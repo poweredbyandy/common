@@ -1,0 +1,25 @@
+.btn-primary{
+    border-radius: 0%;
+    border: solid 1px $o-brand-primary;
+    &:hover,&:focus{
+        background-color: $white;
+        color: $o-brand-primary;
+    }
+}
+.btn-secondary{
+    border-radius: 0%;
+    border: solid 1px $o-brand-primary;
+    background-color: $white;
+}
+.o-autocomplete--dropdown-menu{
+    background: #fff;
+    margin: auto;
+    border-radius: 6px;
+    min-width: 280px;
+    max-width: 90vw;
+    box-shadow: 10px 10px 5px gray;
+    position: relative;
+}
+.o_datetime_picker{
+    box-shadow: 10px 10px 5px gray;
+}
