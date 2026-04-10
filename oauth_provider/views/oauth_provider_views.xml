@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_oauth_provider_client_tree" model="ir.ui.view">
+        <field name="name">oauth.provider.client.list</field>
+        <field name="model">oauth.provider.client</field>
+        <field name="arch" type="xml">
+            <list string="Clientes OAuth (Origen)">
+                <field name="name"/>
+                <field name="client_id" string="ID para el Origen"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_oauth_provider_client_form" model="ir.ui.view">
+        <field name="name">oauth.provider.client.form</field>
+        <field name="model">oauth.provider.client</field>
+        <field name="arch" type="xml">
+            <form string="Cliente OAuth Origen">
+                <sheet>
+                    <div class="alert alert-info mb-3" role="alert" groups="base.group_system">
+                        <strong>URIs de retorno:</strong> deben ser la URL del <strong>Odoo Origen</strong>
+                        (p. ej. <code>http://localhost:8069/auth_oauth/signin</code>), nunca la de este Homologado.
+                        <br/>
+                        <strong>En el Origen:</strong> Ajustes → «OAuth Odoo Client» → mismo ID de cliente que aquí.
+                    </div>
+                    <group>
+                        <field name="name" placeholder="Ej.: Producción, Desarrollo"/>
+                        <field name="active"/>
+                    </group>
+                    <group string="ID que debe pegar en el Odoo Origen">
+                        <field
+                            name="client_id"
+                            widget="CopyClipboardChar"
+                            readonly="1"
+                            force_save="1"
+                            placeholder="Se rellena al guardar"
+                        />
+                    </group>
+                    <group string="URIs de retorno">
+                        <field
+                            name="redirect_uris"
+                            widget="text"
+                            placeholder="http://localhost:8069/auth_oauth/signin"
+                        />
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="action_oauth_provider_client" model="ir.actions.act_window">
+        <field name="name">Clientes OAuth (Origen)</field>
+        <field name="res_model">oauth.provider.client</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Cree un cliente por cada Odoo Origen que deba iniciar sesión aquí.
+            </p>
+            <p>
+                Tras guardar, copie el <strong>ID de cliente</strong> al Origen (Ajustes → OAuth Odoo Client)
+                y registre aquí la URI exacta <code>…/auth_oauth/signin</code> del Origen.
+            </p>
+        </field>
+    </record>
+    <menuitem
+        id="menu_oauth_provider_client"
+        name="OAuth (clientes Origen)"
+        parent="base.menu_users"
+        action="action_oauth_provider_client"
+        sequence="25"
+        groups="base.group_system"
+    />
+</odoo>
