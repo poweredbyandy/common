@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_users_form_commission_inherit" model="ir.ui.view">
+        <field name="name">res.users.form.commission.inherit</field>
+        <field name="model">res.users</field>
+        <field name="inherit_id" ref="base.view_users_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='tz']" position="after">
+                <field name="commission_percent" groups="pba_easy_commission.group_commission_admin"/>
+                <field name="commission_percent" groups="pba_easy_commission.group_commission_user" readonly="1"/>
+                <field name="commission_billing_periodicity" groups="pba_easy_commission.group_commission_admin"/>
+                <field name="commission_billing_periodicity" groups="pba_easy_commission.group_commission_user" readonly="1"/>
+                <field name="commission_billing_day"
+                       invisible="commission_billing_periodicity != 'monthly'"
+                       groups="pba_easy_commission.group_commission_admin"/>
+                <field name="commission_billing_day"
+                       invisible="commission_billing_periodicity != 'monthly'"
+                       groups="pba_easy_commission.group_commission_user"
+                       readonly="1"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

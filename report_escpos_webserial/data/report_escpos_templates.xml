@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="report_escpos_demo_document">
+        <t t-out="escpos_payload"/>
+    </template>
+</odoo>

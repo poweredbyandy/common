@@ -1,0 +1,5 @@
+from . import pba_product_cost_history
+from . import product_template
+from . import res_config_settings
+from . import purchase_order_line
+from . import purchase_order

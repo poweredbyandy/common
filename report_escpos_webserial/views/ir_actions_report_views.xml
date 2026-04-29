@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_ir_actions_report_escpos" model="ir.ui.view">
+        <field name="name">ir.actions.report.form.escpos</field>
+        <field name="model">ir.actions.report</field>
+        <field name="inherit_id" ref="base.act_report_xml_view"/>
+        <field name="arch" type="xml">
+            <field name="report_type" position="after">
+                <field name="escpos_profile" invisible="report_type != 'qweb-escpos'"/>
+                <field name="escpos_transport" invisible="report_type != 'qweb-escpos'"/>
+                <field name="escpos_baud_rate" invisible="report_type != 'qweb-escpos' or escpos_transport == 'webusb'"/>
+                <field name="escpos_usb_vendor_id" invisible="report_type != 'qweb-escpos' or escpos_transport != 'webusb'"/>
+                <field name="escpos_usb_product_id" invisible="report_type != 'qweb-escpos' or escpos_transport != 'webusb'"/>
+                <field name="escpos_encoding" invisible="report_type != 'qweb-escpos'"/>
+                <field name="escpos_command_set" invisible="report_type != 'qweb-escpos'"/>
+                <field name="escpos_log_payload" invisible="report_type != 'qweb-escpos'"/>
+            </field>
+            <xpath expr="//button[@name='associated_view']" position="attributes">
+                <attribute name="invisible">report_type not in ['qweb-pdf', 'qweb-html', 'qweb-text', 'qweb-escpos']</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="module_category_commission" model="ir.module.category">
+        <field name="name">Comisiones</field>
+        <field name="description">Permisos para gestion de comisiones</field>
+        <field name="sequence">45</field>
+    </record>
+
+    <record id="group_commission_user" model="res.groups">
+        <field name="name">Usuario Comision</field>
+        <field name="category_id" ref="pba_easy_commission.module_category_commission"/>
+    </record>
+
+    <record id="group_commission_admin" model="res.groups">
+        <field name="name">Administrador Comision</field>
+        <field name="category_id" ref="pba_easy_commission.module_category_commission"/>
+        <field name="implied_ids" eval="[(4, ref('pba_easy_commission.group_commission_user'))]"/>
+    </record>
+</odoo>

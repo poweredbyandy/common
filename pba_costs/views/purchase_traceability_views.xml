@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="pba_purchase_line_tree_traceability" model="ir.ui.view">
+        <field name="name">purchase.order.line.list.pba.traceability</field>
+        <field name="model">purchase.order.line</field>
+        <field name="inherit_id" ref="purchase.purchase_history_tree"/>
+        <field name="mode">primary</field>
+        <field name="arch" type="xml">
+            <list position="attributes">
+                <attribute name="default_order">date_approve desc, date_order desc, id desc</attribute>
+            </list>
+            <field name="order_id" position="after">
+                <field name="product_id" optional="show"/>
+            </field>
+        </field>
+    </record>
+</odoo>

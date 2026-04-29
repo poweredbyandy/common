@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_report_escpos_demo" model="ir.actions.report">
+        <field name="name">Ticket ESC/POS (demo)</field>
+        <field name="model">res.partner</field>
+        <field name="report_type">qweb-escpos</field>
+        <field name="report_name">report_escpos_webserial.report_escpos_demo_document</field>
+        <field name="binding_model_id" ref="base.model_res_partner"/>
+        <field name="binding_type">report</field>
+    </record>
+</odoo>

@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="product_template_form_view_pba_costs" model="ir.ui.view">
+        <field name="name">product.template.form.pba.costs</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='general_information']" position="after">
+                <page string="Costos" name="pba_costs">
+                    <group>
+                        <group string="Costo promedio">
+                            <label
+                                for="standard_price"
+                                string="Costo promedio (estándar)"
+                                invisible="(id and product_variant_count != 1 and not is_product_variant) or type == 'combo'"
+                            />
+                            <div
+                                name="pba_standard_price_uom"
+                                invisible="(id and product_variant_count != 1 and not is_product_variant) or type == 'combo'"
+                            >
+                                <field
+                                    name="standard_price"
+                                    class="oe_inline"
+                                    widget="monetary"
+                                    placeholder="Costo medio ponderado del producto"
+                                    options="{'currency_field': 'cost_currency_id', 'field_digits': True}"
+                                />
+                                <span groups="uom.group_uom">
+                                    por
+                                    <field name="uom_name" class="oe_inline"/>
+                                </span>
+                            </div>
+                        </group>
+                        <group string="Último costo (compras)">
+                            <field
+                                name="pba_last_cost"
+                                widget="monetary"
+                                options="{'currency_field': 'cost_currency_id', 'field_digits': True}"
+                            />
+                            <field
+                                name="pba_final_cost"
+                                string="Costo final"
+                                widget="monetary"
+                                options="{'currency_field': 'cost_currency_id', 'field_digits': True}"
+                            />
+                            <field name="pba_session_debug" invisible="1"/>
+                            <div
+                                colspan="2"
+                                invisible="not pba_session_debug"
+                                class="text-muted small mb-2"
+                            >
+                                <span class="fw-bold">Variables disponibles: </span>
+                                <span class="font-monospace">
+                                    <field
+                                        name="pba_formula_variables_reference"
+                                        readonly="1"
+                                        nolabel="1"
+                                    />
+                                </span>
+                            </div>
+                            <field
+                                name="pba_final_cost_formula_edit"
+                                string="Fórmula global (edición)"
+                                widget="text"
+                                groups="base.group_no_one"
+                            />
+                            <button
+                                name="action_pba_last_cost_purchase_traceability"
+                                type="object"
+                                string="Historial de compras"
+                                class="btn-secondary"
+                                icon="fa-history"
+                                colspan="2"
+                            />
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Importación y logística">
+                            <group string="Costo Flete">
+                                <field
+                                    name="pba_cost_freight"
+                                    string="Importe flete"
+                                    placeholder="Monto operación × % (o importe manual)"
+                                    widget="monetary"
+                                    options="{'currency_field': 'cost_currency_id', 'field_digits': True}"
+                                />
+                                <field
+                                    name="pba_cost_freight_operation_total"
+                                    string="Monto total operación"
+                                    placeholder="Base total para prorratear el flete"
+                                    widget="monetary"
+                                    options="{'currency_field': 'cost_currency_id', 'field_digits': True}"
+                                />
+                                <field
+                                    name="pba_cost_freight_percent"
+                                    string="% aplicado sobre operación"
+                                    placeholder="Parte proporcional (p. ej. 0,10 = 10%)"
+                                    widget="percentage"
+                                />
+                                <button
+                                    name="action_pba_cost_history_freight"
+                                    type="object"
+                                    string="Ver historial flete"
+                                    class="btn-secondary"
+                                    icon="fa-history"
+                                    colspan="2"
+                                />
+                            </group>
+                            <group string="Costo Arancel">
+                                <field
+                                    name="pba_cost_tariff"
+                                    string="Importe arancel"
+                                    placeholder="Monto operación × % (o importe manual)"
+                                    widget="monetary"
+                                    options="{'currency_field': 'cost_currency_id', 'field_digits': True}"
+                                />
+                                <field
+                                    name="pba_cost_tariff_operation_total"
+                                    string="Monto total operación"
+                                    placeholder="Valor en aduana o base del arancel"
+                                    widget="monetary"
+                                    options="{'currency_field': 'cost_currency_id', 'field_digits': True}"
+                                />
+                                <field
+                                    name="pba_cost_tariff_percent"
+                                    string="% aplicado sobre operación"
+                                    placeholder="Tasa o parte aplicada"
+                                    widget="percentage"
+                                />
+                                <button
+                                    name="action_pba_cost_history_tariff"
+                                    type="object"
+                                    string="Ver historial arancel"
+                                    class="btn-secondary"
+                                    icon="fa-history"
+                                    colspan="2"
+                                />
+                            </group>
+                        </group>
+                        <group string="Operación y nacionalización">
+                            <group string="Costo Operativo">
+                                <field
+                                    name="pba_cost_operative"
+                                    string="Importe operativo"
+                                    placeholder="Monto operación × % (o importe manual)"
+                                    widget="monetary"
+                                    options="{'currency_field': 'cost_currency_id', 'field_digits': True}"
+                                />
+                                <field
+                                    name="pba_cost_operative_operation_total"
+                                    string="Monto total operación"
+                                    placeholder="Total operación para repartir gastos"
+                                    widget="monetary"
+                                    options="{'currency_field': 'cost_currency_id', 'field_digits': True}"
+                                />
+                                <field
+                                    name="pba_cost_operative_percent"
+                                    string="% aplicado sobre operación"
+                                    placeholder="Parte proporcional del gasto"
+                                    widget="percentage"
+                                />
+                                <button
+                                    name="action_pba_cost_history_operative"
+                                    type="object"
+                                    string="Ver historial operativo"
+                                    class="btn-secondary"
+                                    icon="fa-history"
+                                    colspan="2"
+                                />
+                            </group>
+                            <group string="Costo Nacionalización">
+                                <field
+                                    name="pba_cost_nationalization"
+                                    string="Importe nacionalización"
+                                    placeholder="Monto operación × % (o importe manual)"
+                                    widget="monetary"
+                                    options="{'currency_field': 'cost_currency_id', 'field_digits': True}"
+                                />
+                                <field
+                                    name="pba_cost_nationalization_operation_total"
+                                    string="Monto total operación"
+                                    placeholder="Base total de la operación de importación"
+                                    widget="monetary"
+                                    options="{'currency_field': 'cost_currency_id', 'field_digits': True}"
+                                />
+                                <field
+                                    name="pba_cost_nationalization_percent"
+                                    string="% aplicado sobre operación"
+                                    placeholder="Parte proporcional"
+                                    widget="percentage"
+                                />
+                                <button
+                                    name="action_pba_cost_history_nationalization"
+                                    type="object"
+                                    string="Ver historial nacionalización"
+                                    class="btn-secondary"
+                                    icon="fa-history"
+                                    colspan="2"
+                                />
+                            </group>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

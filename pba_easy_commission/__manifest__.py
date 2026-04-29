@@ -1,0 +1,23 @@
+{
+    'name': 'PBA Easy Commission',
+    'version': '18.0.1.0.0',
+    'summary': 'Comisiones de vendedor basadas en pagos de factura',
+    'author': 'andyengit',
+    'maintainer': 'andyengit',
+    'license': 'LGPL-3',
+    'category': 'Accounting',
+    'depends': ['account', 'mail'],
+    'data': [
+        'security/commission_security.xml',
+        'security/ir.model.access.csv',
+        'data/commission_product_data.xml',
+        'data/commission_cron_data.xml',
+        'views/res_partner_views.xml',
+        'views/res_config_settings_views.xml',
+        'views/account_move_views.xml',
+        'views/commission_billing_wizard_views.xml',
+        'views/commission_menu_views.xml',
+    ],
+    'installable': True,
+    'application': False,
+}

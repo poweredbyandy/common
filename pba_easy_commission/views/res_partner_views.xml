@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_partner_form_commission_inherit" model="ir.ui.view">
+        <field name="name">res.partner.form.commission.inherit</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="Commission">
+                    <group>
+                        <field name="commission_percent" groups="pba_easy_commission.group_commission_admin"/>
+                        <field name="commission_percent" groups="pba_easy_commission.group_commission_user" readonly="1"/>
+                        <field name="commission_billing_periodicity" groups="pba_easy_commission.group_commission_admin"/>
+                        <field name="commission_billing_periodicity" groups="pba_easy_commission.group_commission_user" readonly="1"/>
+                        <field name="commission_billing_day"
+                               invisible="commission_billing_periodicity != 'monthly'"
+                               groups="pba_easy_commission.group_commission_admin"/>
+                        <field name="commission_billing_day"
+                               invisible="commission_billing_periodicity != 'monthly'"
+                               groups="pba_easy_commission.group_commission_user"
+                               readonly="1"/>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

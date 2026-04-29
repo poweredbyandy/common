@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_commission_line_user,access.commission.line.user,model_account_move_commission_line,pba_easy_commission.group_commission_user,1,0,0,0
+access_commission_line_admin,access.commission.line.admin,model_account_move_commission_line,pba_easy_commission.group_commission_admin,1,1,1,1
+access_commission_billing_wizard_user,access.commission.billing.wizard.user,model_commission_billing_wizard,pba_easy_commission.group_commission_user,1,1,1,1
+access_commission_billing_wizard_admin,access.commission.billing.wizard.admin,model_commission_billing_wizard,pba_easy_commission.group_commission_admin,1,1,1,1

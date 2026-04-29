@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="product_commission_service_tmpl" model="product.template">
+        <field name="name">Servicio de Comision</field>
+        <field name="default_code">PBA_COMMISSION_SERVICE</field>
+        <field name="type">service</field>
+        <field name="purchase_ok">True</field>
+        <field name="sale_ok">False</field>
+        <field name="list_price">0.0</field>
+        <field name="standard_price">0.0</field>
+        <field name="taxes_id" eval="[(5, 0, 0)]"/>
+        <field name="supplier_taxes_id" eval="[(5, 0, 0)]"/>
+    </record>
+</odoo>
