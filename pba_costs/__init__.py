@@ -1,12 +1,9 @@
 from . import models
 
 
-def post_init_hook(cr, registry):
-    from odoo import api, SUPERUSER_ID
-
+def post_init_hook(env):
     from .models.product_template import DEFAULT_PBA_FINAL_COST_FORMULA
 
-    env = api.Environment(cr, SUPERUSER_ID, {})
     icp = env["ir.config_parameter"].sudo()
     key = "pba_costs.final_cost_formula"
     current = (icp.get_param(key) or "").strip()

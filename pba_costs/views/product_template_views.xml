@@ -78,24 +78,17 @@
                         <group string="Importación y logística">
                             <group string="Costo Flete">
                                 <field
-                                    name="pba_cost_freight"
-                                    string="Importe flete"
-                                    placeholder="Monto operación × % (o importe manual)"
-                                    widget="monetary"
-                                    options="{'currency_field': 'cost_currency_id', 'field_digits': True}"
-                                />
-                                <field
-                                    name="pba_cost_freight_operation_total"
-                                    string="Monto total operación"
-                                    placeholder="Base total para prorratear el flete"
-                                    widget="monetary"
-                                    options="{'currency_field': 'cost_currency_id', 'field_digits': True}"
-                                />
-                                <field
                                     name="pba_cost_freight_percent"
-                                    string="% aplicado sobre operación"
+                                    string="% sobre costo producto"
                                     placeholder="Parte proporcional (p. ej. 0,10 = 10%)"
                                     widget="percentage"
+                                />
+                                <field
+                                    name="pba_cost_freight"
+                                    string="Importe flete"
+                                    widget="monetary"
+                                    options="{'currency_field': 'cost_currency_id', 'field_digits': True}"
+                                    readonly="1"
                                 />
                                 <button
                                     name="action_pba_cost_history_freight"
@@ -108,24 +101,17 @@
                             </group>
                             <group string="Costo Arancel">
                                 <field
-                                    name="pba_cost_tariff"
-                                    string="Importe arancel"
-                                    placeholder="Monto operación × % (o importe manual)"
-                                    widget="monetary"
-                                    options="{'currency_field': 'cost_currency_id', 'field_digits': True}"
-                                />
-                                <field
-                                    name="pba_cost_tariff_operation_total"
-                                    string="Monto total operación"
-                                    placeholder="Valor en aduana o base del arancel"
-                                    widget="monetary"
-                                    options="{'currency_field': 'cost_currency_id', 'field_digits': True}"
-                                />
-                                <field
                                     name="pba_cost_tariff_percent"
-                                    string="% aplicado sobre operación"
+                                    string="% sobre costo producto"
                                     placeholder="Tasa o parte aplicada"
                                     widget="percentage"
+                                />
+                                <field
+                                    name="pba_cost_tariff"
+                                    string="Importe arancel"
+                                    widget="monetary"
+                                    options="{'currency_field': 'cost_currency_id', 'field_digits': True}"
+                                    readonly="1"
                                 />
                                 <button
                                     name="action_pba_cost_history_tariff"
@@ -140,24 +126,17 @@
                         <group string="Operación y nacionalización">
                             <group string="Costo Operativo">
                                 <field
-                                    name="pba_cost_operative"
-                                    string="Importe operativo"
-                                    placeholder="Monto operación × % (o importe manual)"
-                                    widget="monetary"
-                                    options="{'currency_field': 'cost_currency_id', 'field_digits': True}"
-                                />
-                                <field
-                                    name="pba_cost_operative_operation_total"
-                                    string="Monto total operación"
-                                    placeholder="Total operación para repartir gastos"
-                                    widget="monetary"
-                                    options="{'currency_field': 'cost_currency_id', 'field_digits': True}"
-                                />
-                                <field
                                     name="pba_cost_operative_percent"
-                                    string="% aplicado sobre operación"
+                                    string="% sobre costo producto"
                                     placeholder="Parte proporcional del gasto"
                                     widget="percentage"
+                                />
+                                <field
+                                    name="pba_cost_operative"
+                                    string="Importe operativo"
+                                    widget="monetary"
+                                    options="{'currency_field': 'cost_currency_id', 'field_digits': True}"
+                                    readonly="1"
                                 />
                                 <button
                                     name="action_pba_cost_history_operative"
@@ -170,24 +149,17 @@
                             </group>
                             <group string="Costo Nacionalización">
                                 <field
-                                    name="pba_cost_nationalization"
-                                    string="Importe nacionalización"
-                                    placeholder="Monto operación × % (o importe manual)"
-                                    widget="monetary"
-                                    options="{'currency_field': 'cost_currency_id', 'field_digits': True}"
-                                />
-                                <field
-                                    name="pba_cost_nationalization_operation_total"
-                                    string="Monto total operación"
-                                    placeholder="Base total de la operación de importación"
-                                    widget="monetary"
-                                    options="{'currency_field': 'cost_currency_id', 'field_digits': True}"
-                                />
-                                <field
                                     name="pba_cost_nationalization_percent"
-                                    string="% aplicado sobre operación"
+                                    string="% sobre costo producto"
                                     placeholder="Parte proporcional"
                                     widget="percentage"
+                                />
+                                <field
+                                    name="pba_cost_nationalization"
+                                    string="Importe nacionalización"
+                                    widget="monetary"
+                                    options="{'currency_field': 'cost_currency_id', 'field_digits': True}"
+                                    readonly="1"
                                 />
                                 <button
                                     name="action_pba_cost_history_nationalization"

@@ -9,7 +9,6 @@
                 <field name="product_tmpl_id" optional="hide"/>
                 <field name="cost_type"/>
                 <field name="amount" widget="monetary" options="{'currency_field': 'currency_id'}"/>
-                <field name="operation_total" widget="monetary" options="{'currency_field': 'currency_id'}"/>
                 <field name="percent" widget="percentage"/>
                 <field name="user_id" optional="show"/>
                 <field name="currency_id" column_invisible="1"/>
@@ -30,7 +29,6 @@
                         <field name="user_id"/>
                         <field name="currency_id" invisible="1"/>
                         <field name="amount" widget="monetary" options="{'currency_field': 'currency_id'}"/>
-                        <field name="operation_total" widget="monetary" options="{'currency_field': 'currency_id'}"/>
                         <field name="percent" widget="percentage"/>
                     </group>
                 </sheet>

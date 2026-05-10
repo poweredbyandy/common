@@ -25,10 +25,6 @@ class PbaProductCostHistory(models.Model):
     date = fields.Datetime(required=True, default=fields.Datetime.now)
     user_id = fields.Many2one("res.users", default=lambda self: self.env.user)
     amount = fields.Monetary(string="Costo", currency_field="currency_id")
-    operation_total = fields.Monetary(
-        string="Monto total operación",
-        currency_field="currency_id",
-    )
     percent = fields.Float(string="% aplicado")
     currency_id = fields.Many2one(
         related="product_tmpl_id.cost_currency_id",

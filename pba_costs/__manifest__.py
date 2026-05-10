@@ -1,6 +1,6 @@
 {
     "name": "PBA Costos de producto",
-    "version": "18.0.1.1.0",
+    "version": "18.0.1.3.0",
     "category": "Product",
     "summary": "Costos flete, arancel, operativo, nacionalización e historial",
     "author": "andyengit",

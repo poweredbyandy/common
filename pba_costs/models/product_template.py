@@ -37,8 +37,7 @@ def pba_final_cost_dummy_eval_context():
 
 
 PBA_COST_IMPORTE_HELP = (
-    "Por defecto: monto total operación × % aplicado. "
-    "Editable a mano; al cambiar monto total o % se recalcula."
+    "Calculado: costo promedio del producto (standard_price) × % aplicado."
 )
 
 PBA_COST_HISTORY_TITLES = {
@@ -49,92 +48,73 @@ PBA_COST_HISTORY_TITLES = {
 }
 
 COST_FIELD_GROUPS = (
-    (
-        "freight",
-        (
-            "pba_cost_freight",
-            "pba_cost_freight_operation_total",
-            "pba_cost_freight_percent",
-        ),
-    ),
-    (
-        "tariff",
-        (
-            "pba_cost_tariff",
-            "pba_cost_tariff_operation_total",
-            "pba_cost_tariff_percent",
-        ),
-    ),
-    (
-        "operative",
-        (
-            "pba_cost_operative",
-            "pba_cost_operative_operation_total",
-            "pba_cost_operative_percent",
-        ),
-    ),
+    ("freight", ("pba_cost_freight", "pba_cost_freight_percent")),
+    ("tariff", ("pba_cost_tariff", "pba_cost_tariff_percent")),
+    ("operative", ("pba_cost_operative", "pba_cost_operative_percent")),
     (
         "nationalization",
-        (
-            "pba_cost_nationalization",
-            "pba_cost_nationalization_operation_total",
-            "pba_cost_nationalization_percent",
-        ),
+        ("pba_cost_nationalization", "pba_cost_nationalization_percent"),
     ),
 )
 
+_LEGACY_OPERATION_TOTAL_KEYS = (
+    "pba_cost_freight_operation_total",
+    "pba_cost_tariff_operation_total",
+    "pba_cost_operative_operation_total",
+    "pba_cost_nationalization_operation_total",
+)
 
-def _pba_cost_triplets():
-    return [g[1] for g in COST_FIELD_GROUPS]
+
+def _pba_strip_legacy_write_vals(vals):
+    vals = dict(vals)
+    for k in _LEGACY_OPERATION_TOTAL_KEYS:
+        vals.pop(k, None)
+    return vals
 
 
 class ProductTemplate(models.Model):
     _inherit = "product.template"
 
+    pba_cost_freight_percent = fields.Float(string="% aplicado (Flete)")
+
+    pba_cost_tariff_percent = fields.Float(string="% aplicado (Arancel)")
+
+    pba_cost_operative_percent = fields.Float(string="% aplicado (Operativo)")
+
+    pba_cost_nationalization_percent = fields.Float(
+        string="% aplicado (Nacionalización)",
+    )
+
     pba_cost_freight = fields.Monetary(
         string="Costo Flete",
         currency_field="cost_currency_id",
+        compute="_compute_pba_cost_freight",
+        store=True,
         help=PBA_COST_IMPORTE_HELP,
     )
-    pba_cost_freight_operation_total = fields.Monetary(
-        string="Monto total operación (Flete)",
-        currency_field="cost_currency_id",
-    )
-    pba_cost_freight_percent = fields.Float(string="% aplicado (Flete)")
 
     pba_cost_tariff = fields.Monetary(
         string="Costo Arancel",
         currency_field="cost_currency_id",
+        compute="_compute_pba_cost_tariff",
+        store=True,
         help=PBA_COST_IMPORTE_HELP,
     )
-    pba_cost_tariff_operation_total = fields.Monetary(
-        string="Monto total operación (Arancel)",
-        currency_field="cost_currency_id",
-    )
-    pba_cost_tariff_percent = fields.Float(string="% aplicado (Arancel)")
 
     pba_cost_operative = fields.Monetary(
         string="Costo Operativo",
         currency_field="cost_currency_id",
+        compute="_compute_pba_cost_operative",
+        store=True,
         help=PBA_COST_IMPORTE_HELP,
     )
-    pba_cost_operative_operation_total = fields.Monetary(
-        string="Monto total operación (Operativo)",
-        currency_field="cost_currency_id",
-    )
-    pba_cost_operative_percent = fields.Float(string="% aplicado (Operativo)")
 
     pba_cost_nationalization = fields.Monetary(
         string="Costo Nacionalización",
         currency_field="cost_currency_id",
+        compute="_compute_pba_cost_nationalization",
+        store=True,
         help=PBA_COST_IMPORTE_HELP,
-    )
-    pba_cost_nationalization_operation_total = fields.Monetary(
-        string="Monto total operación (Nacionalización)",
-        currency_field="cost_currency_id",
-    )
-    pba_cost_nationalization_percent = fields.Float(
-        string="% aplicado (Nacionalización)",
     )
 
     pba_cost_history_ids = fields.One2many(
@@ -177,13 +157,18 @@ class ProductTemplate(models.Model):
         "para usuarios con el grupo Características técnicas (base.group_no_one). Ver ayuda en Ajustes ▸ PBA Costos.",
     )
 
-    @api.depends("product_variant_ids", "cost_currency_id")
+    @api.depends(
+        "product_variant_ids",
+        "cost_currency_id",
+        "standard_price",
+    )
     def _compute_pba_last_cost(self):
         Pol = self.env["purchase.order.line"]
         for template in self:
+            fallback = template.standard_price or 0.0
             variants = template.product_variant_ids
             if not variants:
-                template.pba_last_cost = 0.0
+                template.pba_last_cost = fallback
                 continue
             line = Pol.search(
                 [
@@ -195,7 +180,7 @@ class ProductTemplate(models.Model):
                 limit=1,
             )
             if not line:
-                template.pba_last_cost = 0.0
+                template.pba_last_cost = fallback
                 continue
             price_uom = line.product_uom._compute_price(
                 line.price_unit_discounted,
@@ -215,19 +200,43 @@ class ProductTemplate(models.Model):
                 round=True,
             )
 
+    @api.depends("standard_price", "pba_cost_freight_percent")
+    def _compute_pba_cost_freight(self):
+        for rec in self:
+            base = rec.standard_price or 0.0
+            pct = rec.pba_cost_freight_percent or 0.0
+            rec.pba_cost_freight = base * pct
+
+    @api.depends("standard_price", "pba_cost_tariff_percent")
+    def _compute_pba_cost_tariff(self):
+        for rec in self:
+            base = rec.standard_price or 0.0
+            pct = rec.pba_cost_tariff_percent or 0.0
+            rec.pba_cost_tariff = base * pct
+
+    @api.depends("standard_price", "pba_cost_operative_percent")
+    def _compute_pba_cost_operative(self):
+        for rec in self:
+            base = rec.standard_price or 0.0
+            pct = rec.pba_cost_operative_percent or 0.0
+            rec.pba_cost_operative = base * pct
+
+    @api.depends("standard_price", "pba_cost_nationalization_percent")
+    def _compute_pba_cost_nationalization(self):
+        for rec in self:
+            base = rec.standard_price or 0.0
+            pct = rec.pba_cost_nationalization_percent or 0.0
+            rec.pba_cost_nationalization = base * pct
+
     @api.depends(
         "pba_last_cost",
         "pba_cost_freight",
         "pba_cost_tariff",
         "pba_cost_operative",
         "pba_cost_nationalization",
-        "pba_cost_freight_operation_total",
         "pba_cost_freight_percent",
-        "pba_cost_tariff_operation_total",
         "pba_cost_tariff_percent",
-        "pba_cost_operative_operation_total",
         "pba_cost_operative_percent",
-        "pba_cost_nationalization_operation_total",
         "pba_cost_nationalization_percent",
         "standard_price",
         "list_price",
@@ -323,23 +332,22 @@ class ProductTemplate(models.Model):
         def z(val):
             return float(val or 0.0)
 
+        base = z(self.standard_price)
         return {
             "pba_last_cost": z(self.pba_last_cost),
             "pba_cost_freight": z(self.pba_cost_freight),
             "pba_cost_tariff": z(self.pba_cost_tariff),
             "pba_cost_operative": z(self.pba_cost_operative),
             "pba_cost_nationalization": z(self.pba_cost_nationalization),
-            "pba_cost_freight_operation_total": z(self.pba_cost_freight_operation_total),
+            "pba_cost_freight_operation_total": base,
             "pba_cost_freight_percent": z(self.pba_cost_freight_percent),
-            "pba_cost_tariff_operation_total": z(self.pba_cost_tariff_operation_total),
+            "pba_cost_tariff_operation_total": base,
             "pba_cost_tariff_percent": z(self.pba_cost_tariff_percent),
-            "pba_cost_operative_operation_total": z(self.pba_cost_operative_operation_total),
+            "pba_cost_operative_operation_total": base,
             "pba_cost_operative_percent": z(self.pba_cost_operative_percent),
-            "pba_cost_nationalization_operation_total": z(
-                self.pba_cost_nationalization_operation_total
-            ),
+            "pba_cost_nationalization_operation_total": base,
             "pba_cost_nationalization_percent": z(self.pba_cost_nationalization_percent),
-            "standard_price": z(self.standard_price),
+            "standard_price": base,
             "list_price": z(self.list_price),
         }
 
@@ -347,70 +355,22 @@ class ProductTemplate(models.Model):
         if self:
             self.invalidate_recordset(["pba_last_cost", "pba_final_cost"])
 
-    def _pba_merge_recomputed_costs_create(self, vals):
-        vals = dict(vals)
-        for cf, of, pf in _pba_cost_triplets():
-            if of in vals or pf in vals:
-                op = vals.get(of, 0.0) or 0.0
-                pct = vals.get(pf, 0.0) or 0.0
-                vals[cf] = op * pct
-        return vals
-
-    def _pba_merge_recomputed_costs_write(self, vals):
-        self.ensure_one()
-        merged = dict(vals)
-        for cf, of, pf in _pba_cost_triplets():
-            if of in merged or pf in merged:
-                op = merged[of] if of in merged else self[of]
-                pct = merged[pf] if pf in merged else self[pf]
-                op = op or 0.0
-                pct = pct or 0.0
-                merged[cf] = op * pct
-        return merged
-
-    @api.onchange(
-        "pba_cost_freight_operation_total",
-        "pba_cost_freight_percent",
-    )
-    def _onchange_pba_recompute_freight(self):
-        self.pba_cost_freight = (self.pba_cost_freight_operation_total or 0.0) * (
-            self.pba_cost_freight_percent or 0.0
-        )
-
-    @api.onchange(
-        "pba_cost_tariff_operation_total",
-        "pba_cost_tariff_percent",
-    )
-    def _onchange_pba_recompute_tariff(self):
-        self.pba_cost_tariff = (self.pba_cost_tariff_operation_total or 0.0) * (
-            self.pba_cost_tariff_percent or 0.0
-        )
-
-    @api.onchange(
-        "pba_cost_operative_operation_total",
-        "pba_cost_operative_percent",
-    )
-    def _onchange_pba_recompute_operative(self):
-        self.pba_cost_operative = (self.pba_cost_operative_operation_total or 0.0) * (
-            self.pba_cost_operative_percent or 0.0
-        )
-
-    @api.onchange(
-        "pba_cost_nationalization_operation_total",
-        "pba_cost_nationalization_percent",
-    )
-    def _onchange_pba_recompute_nationalization(self):
-        self.pba_cost_nationalization = (
-            self.pba_cost_nationalization_operation_total or 0.0
-        ) * (self.pba_cost_nationalization_percent or 0.0)
+    def _pba_cost_types_to_log_on_write(self, vals):
+        types = set()
+        pct_fields = {pair[1] for _ct, pair in COST_FIELD_GROUPS}
+        if any(k in vals for k in pct_fields):
+            for cost_type, (_amount_f, pct_f) in COST_FIELD_GROUPS:
+                if pct_f in vals:
+                    types.add(cost_type)
+        if "standard_price" in vals:
+            types.update(ct for ct, _pair in COST_FIELD_GROUPS)
+        return types
 
     @api.model_create_multi
     def create(self, vals_list):
-        merged_list = [
-            self._pba_merge_recomputed_costs_create(dict(vals)) for vals in vals_list
-        ]
-        records = super().create(merged_list)
-        for rec, vals in zip(records, merged_list):
+        cleaned_list = [_pba_strip_legacy_write_vals(dict(vals)) for vals in vals_list]
+        records = super().create(cleaned_list)
+        for rec, vals in zip(records, cleaned_list):
             for cost_type, field_names in COST_FIELD_GROUPS:
                 if any(fn in vals for fn in field_names):
                     rec._pba_create_cost_history_line(cost_type)
@@ -419,32 +379,31 @@ class ProductTemplate(models.Model):
     def write(self, vals):
         if not self:
             return super().write(vals)
-        if len(self) == 1:
-            merged = self._pba_merge_recomputed_costs_write(vals)
-            res = super().write(merged)
-            for template in self:
-                for cost_type, field_names in COST_FIELD_GROUPS:
-                    if any(fn in merged for fn in field_names):
-                        template._pba_create_cost_history_line(cost_type)
-            return res
-        for rec in self:
-            merged = rec._pba_merge_recomputed_costs_write(vals)
-            super(ProductTemplate, rec).write(merged)
-            for cost_type, field_names in COST_FIELD_GROUPS:
-                if any(fn in merged for fn in field_names):
-                    rec._pba_create_cost_history_line(cost_type)
-        return True
+        vals = _pba_strip_legacy_write_vals(vals)
+        triggers_by_rec = {rec: rec._pba_cost_types_to_log_on_write(vals) for rec in self}
+        res = super().write(vals)
+        field_by_type = dict(COST_FIELD_GROUPS)
+        for template, cost_types in triggers_by_rec.items():
+            for cost_type in cost_types:
+                amount_f, pct_f = field_by_type[cost_type]
+                if (
+                    "standard_price" in vals
+                    and pct_f not in vals
+                    and not (template[pct_f] or 0.0)
+                ):
+                    continue
+                template._pba_create_cost_history_line(cost_type)
+        return res
 
     def _pba_create_cost_history_line(self, cost_type):
         self.ensure_one()
-        field_by_type = {ct: names for ct, names in COST_FIELD_GROUPS}
-        amount_f, op_f, pct_f = field_by_type[cost_type]
+        field_by_type = dict(COST_FIELD_GROUPS)
+        amount_f, pct_f = field_by_type[cost_type]
         self.env["pba.product.cost.history"].create(
             {
                 "product_tmpl_id": self.id,
                 "cost_type": cost_type,
                 "amount": self[amount_f],
-                "operation_total": self[op_f],
                 "percent": self[pct_f],
             }
         )

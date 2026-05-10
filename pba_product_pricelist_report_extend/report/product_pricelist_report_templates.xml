@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="report_pricelist_page" inherit_id="product.report_pricelist_page">
+        <xpath expr="//thead/tr/t[@t-foreach='quantities']" position="before">
+            <th class="px-1">Marca</th>
+            <th class="px-1">Cantidad disponible</th>
+            <th class="px-1">Categoría</th>
+            <th class="px-1">Referencia interna</th>
+        </xpath>
+        <xpath expr="//tbody/t[@t-foreach='products']/tr[not(@t-as)]/t[@t-foreach='quantities']" position="before">
+            <td class="px-1" t-out="product['brand']"/>
+            <td class="text-end px-1" t-out="product['qty_available']"/>
+            <td class="px-1" t-out="product['categ_name']"/>
+            <td class="px-1" t-out="product['default_code']"/>
+        </xpath>
+        <xpath expr="//tbody//tr[@t-as='variant']/t[@t-foreach='quantities']" position="before">
+            <td class="px-1" t-out="variant['brand']"/>
+            <td class="text-end px-1" t-out="variant['qty_available']"/>
+            <td class="px-1" t-out="variant['categ_name']"/>
+            <td class="px-1" t-out="variant['default_code']"/>
+        </xpath>
+    </template>
+</odoo>
