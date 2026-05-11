@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="dispatch_escpos_doc">
+        <t t-out="escpos_payload"/>
+    </template>
+    <record id="action_report_stock_picking_dispatch_escpos" model="ir.actions.report">
+        <field name="name">Nota de despacho (ESC/P Epson)</field>
+        <field name="model">stock.picking</field>
+        <field name="report_type">qweb-escpos</field>
+        <field name="report_name">report_escpos_inventory.dispatch_escpos_doc</field>
+        <field name="binding_model_id" ref="stock.model_stock_picking"/>
+        <field name="binding_type">report</field>
+        <field name="escpos_encoding">latin-1</field>
+        <field name="escpos_command_set">esc_p_epson</field>
+    </record>
+</odoo>
