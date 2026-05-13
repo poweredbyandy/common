@@ -11,7 +11,7 @@ LETTER_MARGIN_TOP_IN = 0.5
 LETTER_MARGIN_BOTTOM_IN = 0.5
 MATRIX_LINE_SPACING_LPI = 6
 
-TABLE_HEADER_LINES = 1
+TABLE_HEADER_LINES = 2
 FOOTER_LINES_LAST = 5
 FOOTER_LINES_CONTINUE = 2
 
@@ -30,10 +30,10 @@ def _matrix_dispatch_max_product_lines(header_line_count):
     reserved = _matrix_dispatch_reserved_lines(header_line_count, FOOTER_LINES_LAST)
     return max(1, page - reserved)
 
-COL_IDX = 5
-COL_REF = 12
+COL_IDX = 2
+COL_REF = 16
 COL_QTY = 6
-COL_COD = 12
+COL_COD = 16
 COL_BRAND = 10
 
 _GAP = " "
@@ -188,7 +188,7 @@ class ReportStockPickingDispatchEscpos(models.AbstractModel):
         raw = product.name or ""
         desc = " ".join((raw or "").replace("\n", " ").split())
         line = _format_table_row(
-            (str(idx) + ".")[:COL_IDX],
+            _cell(str(idx), COL_IDX),
             ref,
             qty_str,
             icode,
@@ -246,14 +246,10 @@ class ReportStockPickingDispatchEscpos(models.AbstractModel):
         comp_p = company.partner_id
         inv = _invoice_ref(picking) or "-"
         fecha = _emission_date(picking).strftime("%d/%m/%Y")
-        fact_right = ("Nota de despacho de la Factura: %s" % inv)[: w // 2 - 2]
-        l1 = _fill_line(
-            (company.name or "-")[: w // 2 + 10],
-            fact_right,
-            width=w,
-        )
+        l1 = (company.name or "-")[:w]
+        l2 = ("Nota de despacho de la Factura: %s" % inv)[:w]
         rif_co = (comp_p.vat or company.vat or "-")[:16]
-        l2 = ("RIF:%s  |  Fecha:%s  |  Pag:%s/%s" % (rif_co, fecha, page_num, total_pages))[:w]
+        l3 = ("RIF:%s  |  Fecha:%s  |  Pag:%s/%s" % (rif_co, fecha, page_num, total_pages))[:w]
         addr = ", ".join(
             p
             for p in [
@@ -264,17 +260,30 @@ class ReportStockPickingDispatchEscpos(models.AbstractModel):
             ]
             if p
         )[:w]
-        l3 = addr or "-"
+        l4 = addr or "-"
         cref = (partner.ref or str(partner.id) if partner else "-")[:10]
         cname = (partner.name or "-")[: w - 16]
-        l4 = ("Cli:%s  %s" % (cref, cname))[:w]
+        l5 = ("Cli:%s  %s" % (cref, cname))[:w]
+        caddr = ""
+        if partner:
+            caddr = ", ".join(
+                p
+                for p in [
+                    partner.street,
+                    partner.street2,
+                    partner.city,
+                    partner.state_id.name if partner.state_id else "",
+                ]
+                if p
+            )[:w]
+        l6 = caddr or "-"
         pv = (partner.vat or "-")[:14]
         user = picking.user_id
         vend = (user.name if user else "-")[:14]
         if hasattr(picking, "sale_id") and picking.sale_id and picking.sale_id.user_id:
             vend = (picking.sale_id.user_id.name or vend)[:14]
-        l5 = ("RIF:%s  Vend:%s  Alb:%s" % (pv, vend, (picking.name or "")[:16]))[:w]
-        lines = [l1, l2, l3, l4, l5]
+        l7 = ("RIF:%s  Vend:%s  Alb:%s" % (pv, vend, (picking.name or "")[:16]))[:w]
+        lines = [l1, l2, l3, l4, l5, l6, l7]
         return nl.join(lines) + nl, len(lines)
 
     def _table_header_block(self, nl, ctl, cmd_set):
@@ -290,7 +299,7 @@ class ReportStockPickingDispatchEscpos(models.AbstractModel):
         uoff = ctl.get("underline_off") or ""
         if cmd_set != "esc_p_epson" and uon and uoff:
             hdr = uon + hdr + uoff
-        return hdr + nl
+        return hdr + nl + ("-" * LINE_WIDTH) + nl
 
     def _footer_block(self, picking, page_num, total_pages, is_last, n_articulos, nl):
         w = LINE_WIDTH
