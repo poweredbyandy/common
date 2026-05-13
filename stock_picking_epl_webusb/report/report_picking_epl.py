@@ -209,7 +209,7 @@ class ReportPickingEpl(models.AbstractModel):
         pvat = _epl_field(partner.vat or "-")[:40]
         d1, d2 = self._partner_dest_lines(partner)
         tel = _epl_field(partner.phone or partner.mobile or "-")[:40]
-        pkg_url = self._package_open_url(package)
+        pkg_url = self._package_open_url(package) or self._picking_open_url(picking)
         return [
             com_name,
             com_vat,
@@ -349,6 +349,28 @@ class ReportPickingEpl(models.AbstractModel):
         )
 
     @api.model
+    def _picking_open_url(self, picking):
+        if not picking:
+            return ""
+        base = self.env["ir.config_parameter"].sudo().get_param("web.base.url", "") or ""
+        base = base.rstrip("/")
+        if not base:
+            return ""
+        return "%s/web#id=%s&model=stock.picking&view_type=form" % (base, int(picking.id))
+
+    @api.model
+    def _picking_label_jobs(self, picking):
+        packages = self._picking_packages_sequence(picking)
+        if packages:
+            total = len(packages)
+            return [(p, i, total) for i, p in enumerate(packages, start=1)]
+        n = int(picking.dispatch_bultos_manual or 0)
+        if n <= 0:
+            return None
+        empty = self.env["stock.quant.package"].browse()
+        return [(empty, i, n) for i in range(1, n + 1)]
+
+    @api.model
     def _qr_raster_gw_block(self, text, gx, gy, max_side=400):
         try:
             import qrcode
@@ -428,9 +450,11 @@ class ReportPickingEpl(models.AbstractModel):
         idx_s = str(int(index))
         tot_s = str(int(total))
         bulto_txt = "BULTO %s DE %s" % (idx_s, tot_s)
-        pkg_bc = _epl_code39_payload(
-            package.display_name or package.name or "PKG", max_len=BC_PKG_MAX_LEN
-        )
+        if package:
+            pname = package.display_name or package.name or "PKG"
+        else:
+            pname = picking._epl_label_scan_text()
+        pkg_bc = _epl_code39_payload(pname, max_len=BC_PKG_MAX_LEN)
         lines = [
             f'A{tx},{ty_n1},0,3,1,1,N,"{com_n1}"',
         ]
@@ -594,7 +618,7 @@ class ReportPickingEpl(models.AbstractModel):
         bc_b = (
             f'B40,{seg["y_bar"]},0,3,2,4,{BC_LINE_HEIGHT},B,"{seg["pkg_bc"]}"\n'
         ).encode("ascii")
-        url = self._package_open_url(package)
+        url = self._package_open_url(package) or self._picking_open_url(picking)
         qr_b = b""
         if url:
             pkg_bc = seg["pkg_bc"]
@@ -619,14 +643,16 @@ class ReportPickingEpl(models.AbstractModel):
     def _build_epl_body(self, pickings):
         chunks = []
         for picking in pickings:
-            packages = self._picking_packages_sequence(picking)
-            if not packages:
+            jobs = self._picking_label_jobs(picking)
+            if not jobs:
                 raise UserError(
-                    _("El albarán %s no tiene paquetes destino (result_package_id).")
+                    _(
+                        "El albarán %s no tiene paquetes destino (result_package_id). "
+                        "Indique bultos en el campo «Bultos (sin empaquetar)» o empaquete las líneas."
+                    )
                     % (picking.display_name,)
                 )
-            total = len(packages)
-            for index, package in enumerate(packages, start=1):
+            for package, index, total in jobs:
                 chunks.append(
                     self._build_epl_package_label(picking, package, index, total)
                 )
@@ -636,14 +662,16 @@ class ReportPickingEpl(models.AbstractModel):
     def _render_epl_webusb_binary_body(self, pickings):
         out = bytearray()
         for picking in pickings:
-            packages = self._picking_packages_sequence(picking)
-            if not packages:
+            jobs = self._picking_label_jobs(picking)
+            if not jobs:
                 raise UserError(
-                    _("El albarán %s no tiene paquetes destino (result_package_id).")
+                    _(
+                        "El albarán %s no tiene paquetes destino (result_package_id). "
+                        "Indique bultos en el campo «Bultos (sin empaquetar)» o empaquete las líneas."
+                    )
                     % (picking.display_name,)
                 )
-            total = len(packages)
-            for index, package in enumerate(packages, start=1):
+            for package, index, total in jobs:
                 out.extend(
                     self._build_epl_package_label_bytes(
                         picking, package, index, total

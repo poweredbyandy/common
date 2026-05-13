@@ -10,6 +10,7 @@ LETTER_HEIGHT_IN = 11.0
 LETTER_MARGIN_TOP_IN = 0.5
 LETTER_MARGIN_BOTTOM_IN = 0.5
 MATRIX_LINE_SPACING_LPI = 6
+MATRIX_EXTRA_PRODUCT_LINES = 2
 
 TABLE_HEADER_LINES = 2
 FOOTER_LINES_LAST = 5
@@ -18,7 +19,7 @@ FOOTER_LINES_CONTINUE = 2
 
 def _matrix_letter_printable_lines():
     usable = LETTER_HEIGHT_IN - LETTER_MARGIN_TOP_IN - LETTER_MARGIN_BOTTOM_IN
-    return max(1, int(usable * MATRIX_LINE_SPACING_LPI))
+    return max(1, int(usable * MATRIX_LINE_SPACING_LPI)) + MATRIX_EXTRA_PRODUCT_LINES
 
 
 def _matrix_dispatch_reserved_lines(header_line_count, footer_lines):
@@ -31,10 +32,10 @@ def _matrix_dispatch_max_product_lines(header_line_count):
     return max(1, page - reserved)
 
 COL_IDX = 2
-COL_REF = 16
+COL_REF = 18
 COL_QTY = 6
-COL_COD = 16
-COL_BRAND = 10
+COL_COD = 18
+COL_BRAND = 15
 
 _GAP = " "
 
@@ -85,12 +86,20 @@ def _cell(text, width):
     return (text or "")[:width].ljust(width)
 
 
+def _cell_c(text, width):
+    t = (text or "")[:width]
+    pad = width - len(t)
+    left = pad // 2
+    right = pad - left
+    return (" " * left + t + " " * right)[:width]
+
+
 def _format_table_row(first, ref, qty_str, cod, brand, desc):
     dw = _desc_width()
     parts = [
         _cell(first, COL_IDX),
         _cell(ref, COL_REF),
-        _cell(qty_str, COL_QTY),
+        _cell_c(qty_str, COL_QTY),
         _cell(cod, COL_COD),
         _cell(brand, COL_BRAND),
         _cell(desc, dw),
@@ -141,14 +150,17 @@ def _product_internal_code(product):
     return (code or "-")[:COL_COD]
 
 
-def _brand_sort_key(move):
+def _dispatch_move_sort_key(move):
     product = move.product_id
     tmpl = product.product_tmpl_id
     brand = getattr(tmpl, "product_brand_id", False) or getattr(
         product, "product_brand_id", False
     )
     bname = (brand.name or "").lower() if brand else "\uffff"
-    return (bname, product.default_code or "", product.id, move.id)
+    ref = (product.default_code or "").lower()
+    icode = getattr(tmpl, "internal_code", None) or ""
+    icode = (icode or "").lower()
+    return (bname, icode, ref, product.id, move.id)
 
 
 def _invoice_ref(picking):
@@ -200,7 +212,7 @@ class ReportStockPickingDispatchEscpos(models.AbstractModel):
     def _build_pages(self, picking):
         moves = picking.move_ids.filtered(
             lambda m: m.state != "cancel" and (m.product_uom_qty or m.quantity)
-        ).sorted(key=_brand_sort_key)
+        ).sorted(key=_dispatch_move_sort_key)
         rows = []
         idx = 0
         for move in moves:
@@ -308,8 +320,12 @@ class ReportStockPickingDispatchEscpos(models.AbstractModel):
         if not is_last:
             lines.append(_fill_line("--- CONTINUA ---", "P.%s/%s" % (page_num, total_pages)))
             return nl.join(lines) + nl
-        bultos = len(picking.package_level_ids) if picking.package_level_ids else 0
-        bultos_txt = str(bultos) if bultos else "____"
+        n_pkg = len(picking.package_level_ids) if picking.package_level_ids else 0
+        if n_pkg:
+            bultos_txt = str(n_pkg)
+        else:
+            manual = int(getattr(picking, "dispatch_bultos_manual", 0) or 0)
+            bultos_txt = str(manual) if manual else "________"
         lines.append(
             _fill_line("ARTICULOS:%s" % n_articulos, "BULTOS:%s" % bultos_txt, width=w)
         )

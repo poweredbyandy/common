@@ -11,12 +11,6 @@ class ReportPickingZpl(models.AbstractModel):
     _description = "Etiquetas de paquetes ZPL (2844-Z u otros ZPL)"
 
     @api.model
-    def _picking_packages_sequence(self, picking):
-        packages = picking.move_line_ids.result_package_id
-        packages = packages.filtered(lambda p: p)
-        return packages.sorted(lambda p: (p.name or "", p.id))
-
-    @api.model
     def _zpl_from_lines(self, lines, barcode_text):
         y = 20
         dy = 28
@@ -37,18 +31,25 @@ class ReportPickingZpl(models.AbstractModel):
         epl_report = self.env["report.stock_picking_epl_webusb.report_picking_epl"]
         chunks = []
         for picking in pickings:
-            packages = self._picking_packages_sequence(picking)
-            if not packages:
+            jobs = epl_report._picking_label_jobs(picking)
+            if not jobs:
                 raise UserError(
-                    _("El albarán %s no tiene paquetes destino (result_package_id).")
+                    _(
+                        "El albarán %s no tiene paquetes destino (result_package_id). "
+                        "Indique bultos en el campo «Bultos (sin empaquetar)» o empaquete las líneas."
+                    )
                     % (picking.display_name,)
                 )
-            total = len(packages)
-            for index, package in enumerate(packages, start=1):
+            for package, index, total in jobs:
                 lines = epl_report._label_plain_lines(
                     picking, package, index, total
                 )
-                bc = (package.display_name or picking.display_name or "0")[:40]
+                if package:
+                    bc = (package.display_name or picking.display_name or "0")[:40]
+                else:
+                    bc = (picking._epl_label_scan_text() or picking.display_name or "0")[
+                        :40
+                    ]
                 bc = "".join(c for c in bc if ord(c) < 127)
                 chunks.append(self._zpl_from_lines(lines, bc))
         return "".join(chunks)

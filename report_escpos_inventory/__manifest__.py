@@ -1,6 +1,6 @@
 {
     "name": "Inventario ESC/POS",
-    "version": "18.0.1.18.0",
+    "version": "18.0.1.29.0",
     "category": "Inventory",
     "summary": "Informes ESC/POS o ESC/P Epson matriz para stock (nota de despacho, etc.)",
     "author": "andyengit",
