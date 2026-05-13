@@ -60,7 +60,7 @@ class ReportStockPickingEscpTest(models.AbstractModel):
         self._push(lines, "\x1b\x45\x01" + "ENFASIS" + "\x1b\x46" + "  normal")
         self._push(lines, "")
         self._push(lines, "--- Doble impacto ESC G / ESC H ---")
-        self._push(lines, "\x1b\x47\x01" + "Doble golpe" + "\x1b\x48")
+        self._push(lines, "\x1b\x47" + "Doble golpe" + "\x1b\x48")
         self._push(lines, "")
         self._push(lines, "--- Subrayado / cursiva ---")
         self._push(

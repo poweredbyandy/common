@@ -47,7 +47,9 @@ def _control_bytes(cmd_set):
     if cmd_set == "esc_p_epson":
         return {
             "init": "\x1b\x40",
-            "double_strike_on": "\x1b\x47\x01",
+            "matrix_slower_prefix": "\x1b\x78\x01\x1b\x55\x01",
+            "matrix_speed_restore": "\x1b\x78\x00\x1b\x55\x00",
+            "double_strike_on": "\x1b\x47",
             "double_strike_off": "\x1b\x48",
             "bold_on": "\x1b\x45\x01",
             "bold_off": "\x1b\x46",
@@ -275,8 +277,7 @@ class ReportStockPickingDispatchEscpos(models.AbstractModel):
         lines = [l1, l2, l3, l4, l5]
         return nl.join(lines) + nl, len(lines)
 
-    def _table_header_block(self, nl, ctl):
-        dw = _desc_width()
+    def _table_header_block(self, nl, ctl, cmd_set):
         hdr = _format_table_row(
             "#",
             "Referencia",
@@ -287,7 +288,7 @@ class ReportStockPickingDispatchEscpos(models.AbstractModel):
         )
         uon = ctl.get("underline_on") or ""
         uoff = ctl.get("underline_off") or ""
-        if uon and uoff:
+        if cmd_set != "esc_p_epson" and uon and uoff:
             hdr = uon + hdr + uoff
         return hdr + nl
 
@@ -325,6 +326,7 @@ class ReportStockPickingDispatchEscpos(models.AbstractModel):
         pickings = self.env["stock.picking"].browse(docids)
         out_parts = [ctl["init"]]
         if cmd_set == "esc_p_epson":
+            out_parts.append(ctl.get("matrix_slower_prefix", ""))
             out_parts.append(ctl.get("double_strike_on", ""))
         for picking in pickings:
             pages = self._build_pages(picking)
@@ -340,7 +342,7 @@ class ReportStockPickingDispatchEscpos(models.AbstractModel):
                     picking, page_num, total_pages, nl
                 )
                 out_parts.append(header_block)
-                out_parts.append(self._table_header_block(nl, ctl))
+                out_parts.append(self._table_header_block(nl, ctl, cmd_set))
                 for row_lines in page_rows:
                     out_parts.append(nl.join(row_lines) + nl)
                 n_prod = len(page_rows)
@@ -362,6 +364,7 @@ class ReportStockPickingDispatchEscpos(models.AbstractModel):
             tail += ctl["underline_off"]
         tail += ctl.get("wide_off", "")
         if cmd_set == "esc_p_epson":
+            tail += ctl.get("matrix_speed_restore", "")
             tail += "\x1b\x50\x1b\x32"
         else:
             tail += "\x1d\x21\x00"
