@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <template
+        id="report_saleorder_document_ve_pba_columns"
+        inherit_id="l10n_ve_seniat_sale.report_saleorder_document_ve"
+    >
+        <xpath
+            expr="//t[@t-set='l10n_ve_line_cols']"
+            position="attributes"
+        >
+            <attribute
+                name="t-value"
+            >8 + (1 if has_discount else 0) + (1 if show_taxes_col else 0)</attribute>
+        </xpath>
+        <xpath
+            expr="//thead/tr[@class='bg-secundary text-white border-bottom']/th[contains(., 'Codigo')]"
+            position="after"
+        >
+            <th class="col text-uppercase fw-bold text-nowrap">Cód. int.</th>
+            <th class="col text-uppercase fw-bold text-nowrap">Marca</th>
+        </xpath>
+        <xpath
+            expr="//span[@t-field='line.product_id.default_code']/parent::td"
+            position="after"
+        >
+            <td class="text-nowrap">
+                <span t-field="line.product_id.internal_code" />
+            </td>
+            <td class="text-nowrap">
+                <span t-field="line.product_id.product_brand_id" />
+            </td>
+        </xpath>
+    </template>
+</odoo>
