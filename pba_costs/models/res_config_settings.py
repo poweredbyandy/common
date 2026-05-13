@@ -2,10 +2,7 @@ from odoo import _, api, fields, models
 from odoo.exceptions import UserError
 from odoo.tools.safe_eval import safe_eval
 
-from .product_template import (
-    DEFAULT_PBA_FINAL_COST_FORMULA,
-    pba_final_cost_dummy_eval_context,
-)
+from .pba_constants import DEFAULT_PBA_FINAL_COST_FORMULA, pba_final_cost_dummy_eval_context
 
 
 class ResConfigSettings(models.TransientModel):

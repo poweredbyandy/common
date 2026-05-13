@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="product_view_kanban_catalog_internal_code" model="ir.ui.view">
+        <field name="name">product.view.kanban.catalog.internal.code</field>
+        <field name="model">product.product</field>
+        <field name="inherit_id" ref="product.product_view_kanban_catalog"/>
+        <field name="arch" type="xml">
+            <xpath expr="//kanban" position="inside">
+                <field name="internal_code" invisible="1"/>
+            </xpath>
+            <xpath expr="//div[./field[@name='default_code']]" position="replace">
+                <div t-if="record.internal_code.value or record.default_code.value">[<t t-if="record.internal_code.value"><field name="internal_code"/></t><t t-if="record.internal_code.value and record.default_code.value">|</t><t t-if="record.default_code.value"><field name="default_code"/></t>]</div>
+            </xpath>
+        </field>
+    </record>
+</odoo>

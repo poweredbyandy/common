@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="product_template_form_view_standard_cost_purchase_tax_groups" model="ir.ui.view">
+        <field name="name">product.template.common.form.standard.cost.purchase.tax.groups</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_form_view"/>
+        <field name="priority" eval="90"/>
+        <field name="arch" type="xml">
+            <xpath expr="//label[@id='standard_price_label']" position="attributes">
+                <attribute name="groups">pba_costs.group_pba_product_standard_cost_purchase_tax</attribute>
+            </xpath>
+            <xpath expr="//div[@name='standard_price_uom']" position="attributes">
+                <attribute name="groups">pba_costs.group_pba_product_standard_cost_purchase_tax</attribute>
+            </xpath>
+        </field>
+    </record>
+    <record id="product_template_tree_view_standard_price_groups" model="ir.ui.view">
+        <field name="name">product.template.list.standard.price.groups</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_tree_view"/>
+        <field name="priority" eval="90"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='standard_price']" position="attributes">
+                <attribute name="groups">pba_costs.group_pba_product_standard_cost_purchase_tax</attribute>
+            </xpath>
+        </field>
+    </record>
+    <record id="product_variant_easy_edit_view_standard_price_groups" model="ir.ui.view">
+        <field name="name">product.product.view.form.easy.standard.price.groups</field>
+        <field name="model">product.product</field>
+        <field name="inherit_id" ref="product.product_variant_easy_edit_view"/>
+        <field name="priority" eval="90"/>
+        <field name="arch" type="xml">
+            <xpath expr="//group[@name='pricing']//label[@for='standard_price']" position="attributes">
+                <attribute name="groups">pba_costs.group_pba_product_standard_cost_purchase_tax</attribute>
+            </xpath>
+            <xpath expr="//group[@name='pricing']//field[@name='standard_price']" position="attributes">
+                <attribute name="groups">pba_costs.group_pba_product_standard_cost_purchase_tax</attribute>
+            </xpath>
+        </field>
+    </record>
+    <record id="product_product_tree_view_standard_price_groups" model="ir.ui.view">
+        <field name="name">product.product.list.standard.price.groups</field>
+        <field name="model">product.product</field>
+        <field name="inherit_id" ref="product.product_product_tree_view"/>
+        <field name="priority" eval="90"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='standard_price']" position="attributes">
+                <attribute name="groups">pba_costs.group_pba_product_standard_cost_purchase_tax</attribute>
+            </xpath>
+        </field>
+    </record>
+    <record id="account_product_template_form_view_supplier_taxes_groups" model="ir.ui.view">
+        <field name="name">product.template.form.account.supplier.taxes.groups</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="account.product_template_form_view"/>
+        <field name="priority" eval="90"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='supplier_taxes_id']" position="attributes">
+                <attribute name="groups">pba_costs.group_pba_product_standard_cost_purchase_tax</attribute>
+            </xpath>
+        </field>
+    </record>
+    <record id="account_product_template_view_tree_supplier_taxes_groups" model="ir.ui.view">
+        <field name="name">product.template.list.account.supplier.taxes.groups</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="account.product_template_view_tree"/>
+        <field name="priority" eval="90"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='supplier_taxes_id']" position="attributes">
+                <attribute name="groups">pba_costs.group_pba_product_standard_cost_purchase_tax</attribute>
+            </xpath>
+        </field>
+    </record>
+    <record id="product_template_form_view_pba_costs_standard_block_groups" model="ir.ui.view">
+        <field name="name">product.template.form.pba.costs.standard.block.groups</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="pba_costs.product_template_form_view_pba_costs"/>
+        <field name="priority" eval="91"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='pba_costs']//label[@for='standard_price']" position="attributes">
+                <attribute name="groups">pba_costs.group_pba_product_standard_cost_purchase_tax</attribute>
+            </xpath>
+            <xpath expr="//div[@name='pba_standard_price_uom']" position="attributes">
+                <attribute name="groups">pba_costs.group_pba_product_standard_cost_purchase_tax</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>

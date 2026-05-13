@@ -2,7 +2,7 @@ from . import models
 
 
 def post_init_hook(env):
-    from .models.product_template import DEFAULT_PBA_FINAL_COST_FORMULA
+    from .models.pba_constants import DEFAULT_PBA_FINAL_COST_FORMULA
 
     icp = env["ir.config_parameter"].sudo()
     key = "pba_costs.final_cost_formula"

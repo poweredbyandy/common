@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="report_picking_epl"><t t-translation="off"><t t-out="epl_body"/></t></template>
+    <template id="report_picking_zpl"><t t-translation="off"><t t-out="zpl_body"/></t></template>
+    <template id="report_paper_test_epl"><t t-translation="off"><t t-out="epl_body"/></t></template>
+    <template id="report_paper_test_zpl"><t t-translation="off"><t t-out="zpl_body"/></t></template>
+
+    <record id="action_report_paper_test_epl_webusb" model="ir.actions.report">
+        <field name="name">Prueba papel EPL (WebUSB)</field>
+        <field name="model">stock.picking</field>
+        <field name="report_type">qweb-text</field>
+        <field name="report_name">stock_picking_epl_webusb.report_paper_test_epl</field>
+        <field name="report_file">stock_picking_epl_webusb.report_paper_test_epl</field>
+        <field name="paperformat_id" ref="paperformat_picking_package_epl_4x4"/>
+        <field name="print_report_name">'Prueba-EPL-papel'</field>
+        <field name="binding_model_id" ref="stock.model_stock_picking"/>
+        <field name="binding_type">report</field>
+        <field name="groups_id" eval="[(4, ref('stock.group_stock_user'))]"/>
+    </record>
+
+    <record id="action_report_paper_test_zpl_webusb" model="ir.actions.report">
+        <field name="name">Prueba papel ZPL (WebUSB)</field>
+        <field name="model">stock.picking</field>
+        <field name="report_type">qweb-text</field>
+        <field name="report_name">stock_picking_epl_webusb.report_paper_test_zpl</field>
+        <field name="report_file">stock_picking_epl_webusb.report_paper_test_zpl</field>
+        <field name="paperformat_id" ref="paperformat_picking_package_epl_4x4"/>
+        <field name="print_report_name">'Prueba-ZPL-papel'</field>
+        <field name="binding_model_id" ref="stock.model_stock_picking"/>
+        <field name="binding_type">report</field>
+        <field name="groups_id" eval="[(4, ref('stock.group_stock_user'))]"/>
+    </record>
+
+    <record id="action_report_picking_packages_epl_webusb" model="ir.actions.report">
+        <field name="name">Etiquetas paquetes EPL (WebUSB)</field>
+        <field name="model">stock.picking</field>
+        <field name="report_type">qweb-text</field>
+        <field name="report_name">stock_picking_epl_webusb.report_picking_epl</field>
+        <field name="report_file">stock_picking_epl_webusb.report_picking_epl</field>
+        <field name="paperformat_id" ref="paperformat_picking_package_epl_4x4"/>
+        <field name="print_report_name">'EPL-Paquetes-%s' % (object.name)</field>
+        <field name="binding_model_id" ref="stock.model_stock_picking"/>
+        <field name="binding_type">report</field>
+        <field name="groups_id" eval="[(4, ref('stock.group_tracking_lot'))]"/>
+    </record>
+
+    <record id="action_report_picking_packages_zpl_webusb" model="ir.actions.report">
+        <field name="name">Etiquetas paquetes ZPL (WebUSB)</field>
+        <field name="model">stock.picking</field>
+        <field name="report_type">qweb-text</field>
+        <field name="report_name">stock_picking_epl_webusb.report_picking_zpl</field>
+        <field name="report_file">stock_picking_epl_webusb.report_picking_zpl</field>
+        <field name="paperformat_id" ref="paperformat_picking_package_epl_4x4"/>
+        <field name="print_report_name">'ZPL-Paquetes-%s' % (object.name)</field>
+        <field name="binding_model_id" ref="stock.model_stock_picking"/>
+        <field name="binding_type">report</field>
+        <field name="groups_id" eval="[(4, ref('stock.group_tracking_lot'))]"/>
+    </record>
+</odoo>

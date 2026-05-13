@@ -1,4 +1,4 @@
-from odoo import api, models
+from odoo import api, fields, models
 from odoo.osv import expression
 from odoo.tools.misc import unique
 
@@ -6,7 +6,19 @@ from odoo.tools.misc import unique
 class ProductProduct(models.Model):
     _inherit = "product.product"
 
-    @api.depends("name", "default_code", "product_tmpl_id", "product_tmpl_id.internal_code")
+    internal_code = fields.Char(
+        related="product_tmpl_id.internal_code",
+        string="Código interno",
+        readonly=True,
+    )
+
+    @api.depends(
+        "name",
+        "default_code",
+        "product_tmpl_id",
+        "product_tmpl_id.internal_code",
+        "internal_code",
+    )
     @api.depends_context("display_default_code", "seller_id", "company_id", "partner_id", "lang")
     def _compute_display_name(self):
 

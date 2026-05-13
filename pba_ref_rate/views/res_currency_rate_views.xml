@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_currency_rate_tree_inherit_pba_ref_rate" model="ir.ui.view">
+        <field name="name">res.currency.rate.list.inherit.pba.ref.rate</field>
+        <field name="model">res.currency.rate</field>
+        <field name="inherit_id" ref="base.view_currency_rate_tree"/>
+        <field name="arch" type="xml">
+            <field name="company_rate" position="before">
+                <field name="reference_usd_visible" column_invisible="1"/>
+                <field
+                    name="foreign_per_usd"
+                    digits="[16,6]"
+                    optional="show"
+                    invisible="not reference_usd_visible"
+                />
+            </field>
+        </field>
+    </record>
+    <record id="view_currency_form_inherit_pba_ref_rate" model="ir.ui.view">
+        <field name="name">res.currency.form.inherit.pba.ref.rate</field>
+        <field name="model">res.currency</field>
+        <field name="inherit_id" ref="base.view_currency_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='rate_ids']/list/field[@name='company_rate']" position="before">
+                <field name="reference_usd_visible" column_invisible="1"/>
+                <field
+                    name="foreign_per_usd"
+                    digits="[16,6]"
+                    optional="show"
+                    invisible="not reference_usd_visible"
+                />
+            </xpath>
+        </field>
+    </record>
+</odoo>

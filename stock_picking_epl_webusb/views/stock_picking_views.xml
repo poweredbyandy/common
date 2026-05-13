@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_picking_form_epl_webusb" model="ir.ui.view">
+        <field name="name">stock.picking.form.epl.webusb</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button
+                    name="%(stock_picking_epl_webusb.action_report_picking_packages_epl_webusb)d"
+                    type="action"
+                    string="Etiquetas paquetes (EPL WebUSB)"
+                    class="btn-secondary"
+                    invisible="not has_packages"
+                    groups="stock.group_tracking_lot"
+                />
+                <button
+                    name="%(stock_picking_epl_webusb.action_report_picking_packages_zpl_webusb)d"
+                    type="action"
+                    string="Etiquetas paquetes (ZPL WebUSB)"
+                    class="btn-secondary"
+                    invisible="not has_packages"
+                    groups="stock.group_tracking_lot"
+                />
+            </xpath>
+        </field>
+    </record>
+</odoo>

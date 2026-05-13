@@ -1,40 +1,16 @@
 import logging
 
 from odoo import _, api, fields, models
-from odoo.exceptions import UserError
+from odoo.exceptions import AccessError, UserError
 from odoo.tools.safe_eval import safe_eval
 
-_logger = logging.getLogger(__name__)
-
-DEFAULT_PBA_FINAL_COST_FORMULA = (
-    "pba_last_cost + pba_cost_freight + pba_cost_tariff + "
-    "pba_cost_operative + pba_cost_nationalization"
+from .pba_constants import (
+    DEFAULT_PBA_FINAL_COST_FORMULA,
+    _pba_final_cost_formula_variable_names,
+    pba_final_cost_dummy_eval_context,
 )
 
-
-def _pba_final_cost_formula_variable_names():
-    return (
-        "pba_last_cost",
-        "pba_cost_freight",
-        "pba_cost_tariff",
-        "pba_cost_operative",
-        "pba_cost_nationalization",
-        "pba_cost_freight_operation_total",
-        "pba_cost_freight_percent",
-        "pba_cost_tariff_operation_total",
-        "pba_cost_tariff_percent",
-        "pba_cost_operative_operation_total",
-        "pba_cost_operative_percent",
-        "pba_cost_nationalization_operation_total",
-        "pba_cost_nationalization_percent",
-        "standard_price",
-        "list_price",
-    )
-
-
-def pba_final_cost_dummy_eval_context():
-    return {k: 1.0 for k in _pba_final_cost_formula_variable_names()}
-
+_logger = logging.getLogger(__name__)
 
 PBA_COST_IMPORTE_HELP = (
     "Calculado: costo promedio del producto (standard_price) × % aplicado."
@@ -170,35 +146,38 @@ class ProductTemplate(models.Model):
             if not variants:
                 template.pba_last_cost = fallback
                 continue
-            line = Pol.search(
-                [
-                    ("product_id", "in", variants.ids),
-                    ("state", "in", ["purchase", "done"]),
-                    ("display_type", "=", False),
-                ],
-                order="date_approve desc, date_order desc, id desc",
-                limit=1,
-            )
-            if not line:
+            try:
+                line = Pol.search(
+                    [
+                        ("product_id", "in", variants.ids),
+                        ("state", "in", ["purchase", "done"]),
+                        ("display_type", "=", False),
+                    ],
+                    order="date_approve desc, date_order desc, id desc",
+                    limit=1,
+                )
+                if not line:
+                    template.pba_last_cost = fallback
+                    continue
+                price_uom = line.product_uom._compute_price(
+                    line.price_unit_discounted,
+                    line.product_id.uom_id,
+                )
+                line_dt = line.date_approve or line.date_order
+                if line_dt:
+                    date = line_dt.date() if hasattr(line_dt, "date") else line_dt
+                else:
+                    date = fields.Date.context_today(line)
+                to_currency = template.cost_currency_id or line.company_id.currency_id
+                template.pba_last_cost = line.currency_id._convert(
+                    price_uom,
+                    to_currency,
+                    line.company_id,
+                    date,
+                    round=True,
+                )
+            except AccessError:
                 template.pba_last_cost = fallback
-                continue
-            price_uom = line.product_uom._compute_price(
-                line.price_unit_discounted,
-                line.product_id.uom_id,
-            )
-            line_dt = line.date_approve or line.date_order
-            if line_dt:
-                date = line_dt.date() if hasattr(line_dt, "date") else line_dt
-            else:
-                date = fields.Date.context_today(line)
-            to_currency = template.cost_currency_id or line.company_id.currency_id
-            template.pba_last_cost = line.currency_id._convert(
-                price_uom,
-                to_currency,
-                line.company_id,
-                date,
-                round=True,
-            )
 
     @api.depends("standard_price", "pba_cost_freight_percent")
     def _compute_pba_cost_freight(self):

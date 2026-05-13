@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="module_category_pba_costs" model="ir.module.category">
+        <field name="name">PBA Costos</field>
+        <field name="description">Permisos del módulo PBA Costos en productos.</field>
+        <field name="sequence">95</field>
+    </record>
+    <record id="group_pba_product_costs_tab" model="res.groups">
+        <field name="name">PBA Costos: Ver pestaña Costos (producto)</field>
+        <field name="category_id" ref="module_category_pba_costs"/>
+    </record>
+    <record id="group_pba_product_standard_cost_purchase_tax" model="res.groups">
+        <field name="name">PBA: Costo estándar e impuestos de compra (producto)</field>
+        <field name="category_id" ref="module_category_pba_costs"/>
+    </record>
+    <record id="base.group_system" model="res.groups">
+        <field name="implied_ids" eval="[(4, ref('pba_costs.group_pba_product_costs_tab')), (4, ref('pba_costs.group_pba_product_standard_cost_purchase_tax'))]"/>
+    </record>
+</odoo>

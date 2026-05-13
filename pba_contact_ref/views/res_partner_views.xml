@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_partner_form_pba_contact_ref" model="ir.ui.view">
+        <field name="name">res.partner.form.pba.contact.ref</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//div[hasclass('oe_title')][hasclass('mb24')]/h1" position="after">
+                <div class="o_row" name="pba_contact_ref_header">
+                    <label for="ref" string="Referencia" class="fw-bold me-2" />
+                    <field name="ref" nolabel="1" placeholder="Código interno" />
+                </div>
+            </xpath>
+            <xpath expr="//page[@name='sales_purchases']//field[@name='ref']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>
