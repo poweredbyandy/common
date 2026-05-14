@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_move_form_invoice_user_sheet" model="ir.ui.view">
+        <field name="name">account.move.form.invoice.user.sheet</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="sale.account_invoice_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//group[@name='sale_info_group']/field[@name='user_id']" position="replace"/>
+            <xpath expr="//group[@name='sale_info_group']/field[@name='invoice_user_id']" position="replace"/>
+            <xpath expr="//sheet/notebook" position="before">
+                <group invisible="move_type not in ('out_invoice', 'out_refund')">
+                    <field name="user_id" invisible="1" force_save="1"/>
+                    <field name="invoice_user_id" domain="[('share', '=', False)]" widget="many2one_avatar_user"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>

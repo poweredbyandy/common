@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="module_category_pba_bus_picking" model="ir.module.category">
+        <field name="name">Notificaciones de inventario</field>
+        <field name="sequence">55</field>
+    </record>
+    <record id="group_stock_picking_bus_notify" model="res.groups">
+        <field name="name">Recibir notificaciones de picking</field>
+        <field name="category_id" ref="pba_bus_picking_notification.module_category_pba_bus_picking"/>
+    </record>
+</odoo>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="sale_order_view_form_pba_discount_button" model="ir.ui.view">
+        <field name="name">sale.order.form.pba.discount.button</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="priority" eval="99"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_open_discount_wizard']" position="attributes">
+                <attribute name="groups">sale.group_discount_per_so_line,pba_discount_management.group_pba_global_sale_invoice_discount,pba_discount_management.group_pba_discount_unlimited</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form_pba_discount" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.pba.discount</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="sale.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <setting id="discount_sale_order_lines" position="after">
+                <setting id="pba_max_discount_percent" string="Maximum allowed discount (%)" help="Default ceiling for discount percentage (order lines, customer invoice lines and global discount wizard). A higher value on the customer overrides this upward.">
+                    <field name="pba_max_discount_percent"/>
+                </setting>
+            </setting>
+        </field>
+    </record>
+</odoo>

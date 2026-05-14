@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="group_pba_global_sale_invoice_discount" model="res.groups">
+        <field name="name">PBA: Global discount (sales and customer invoices)</field>
+        <field name="category_id" ref="base.module_category_usability"/>
+    </record>
+
+    <record id="group_pba_discount_unlimited" model="res.groups">
+        <field name="name">PBA: Discount without limit</field>
+        <field name="category_id" ref="base.module_category_usability"/>
+        <field name="implied_ids" eval="[(4, ref('pba_discount_management.group_pba_global_sale_invoice_discount'))]"/>
+    </record>
+</odoo>

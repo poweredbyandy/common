@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_order_form_user_id_sheet" model="ir.ui.view">
+        <field name="name">sale.order.form.user_id.sheet</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='other_information']//field[@name='user_id']" position="replace"/>
+            <xpath expr="//group[@name='order_details']/field[@name='payment_term_id']" position="after">
+                <field name="user_id" widget="many2one_avatar_user"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

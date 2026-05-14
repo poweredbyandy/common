@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="product_template_kanban_view_inherit_pba_catalog" model="ir.ui.view">
+        <field name="name">product.template.product.kanban.pba.catalog.order</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_kanban_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//kanban/field[@name='categ_id']" position="after">
+                <field name="internal_code"/>
+                <field name="default_code"/>
+                <field name="product_brand_id"/>
+            </xpath>
+            <xpath expr="//main[@class='pe-2']" position="replace">
+                <main class="pe-2">
+                    <div class="mb-2">
+                        <div t-if="record.default_code.value" class="fw-bold fs-4 mb-1">
+                            <field name="default_code"/>
+                        </div>
+                        <div t-if="record.internal_code.value">
+                            <field name="internal_code"/>
+                        </div>
+                        <div t-if="record.product_brand_id.raw_value">
+                            <field name="product_brand_id"/>
+                        </div>
+                        <div class="d-flex align-items-start gap-1 mt-2 mb-0">
+                            <field class="mt-1" name="is_favorite" widget="boolean_favorite" nolabel="1"/>
+                            <field name="name" class="fw-bold fs-4"/>
+                        </div>
+                        <strong t-if="record.product_variant_count.value &gt; 1" class="d-block small mt-1">
+                            <field name="product_variant_count"/> Variants
+                        </strong>
+                    </div>
+                    <span>
+                        Price: <field name="list_price" widget="monetary" options="{'currency_field': 'currency_id', 'field_digits': True}"/>
+                    </span>
+                    <field name="product_properties" widget="properties"/>
+                </main>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_partner_form_user_id_sheet" model="ir.ui.view">
+        <field name="name">res.partner.form.user_id.sheet</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='sales_purchases']//field[@name='user_id']" position="replace"/>
+            <xpath expr="//field[@name='category_id']" position="after">
+                <field name="user_id" widget="many2one_avatar_user" domain="[('share', '=', False)]"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>
