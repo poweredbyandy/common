@@ -1,6 +1,6 @@
 {
     "name": "Código interno de producto",
-    "version": "18.0.1.0.1",
+    "version": "18.0.1.0.4",
     "category": "Product",
     "summary": "Campo de código interno en plantilla de producto, búsqueda y nombre mostrado",
     "author": "andyengit",

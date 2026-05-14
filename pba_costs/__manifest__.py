@@ -1,12 +1,12 @@
 {
     "name": "PBA Costos de producto",
-    "version": "18.0.1.7.3",
+    "version": "18.0.1.7.5",
     "category": "Product",
     "summary": "Costos flete, arancel, operativo, nacionalización e historial",
     "author": "andyengit",
     "maintainer": "andyengit",
     "license": "LGPL-3",
-    "depends": ["product", "purchase", "account"],
+    "depends": ["product", "purchase", "account", "sale"],
     "data": [
         "security/pba_costs_security.xml",
         "security/ir.model.access.csv",

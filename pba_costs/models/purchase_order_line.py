@@ -20,9 +20,10 @@ class PurchaseOrderLine(models.Model):
     pba_utility_percent = fields.Float(string="% Utilidad (PBA)")
     pba_utility_percent_baseline = fields.Float(string="Referencia % utilidad")
 
-    pba_list_currency_id = fields.Many2one(
-        "res.currency",
-        compute="_compute_pba_list_currency_id",
+    pba_projected_final_cost = fields.Monetary(
+        string="Costo final (PBA)",
+        currency_field="pba_cost_pba_currency_id",
+        compute="_compute_pba_utility_sale_fields",
     )
 
     pba_utility_margin_amount = fields.Float(
@@ -65,15 +66,6 @@ class PurchaseOrderLine(models.Model):
         "res.currency",
         compute="_compute_pba_cost_pba_currency_id",
     )
-
-    @api.depends("product_id", "company_id")
-    def _compute_pba_list_currency_id(self):
-        for line in self:
-            line.pba_list_currency_id = (
-                line.product_id.currency_id
-                if line.product_id
-                else line.company_id.currency_id
-            )
 
     @api.depends("product_id", "company_id")
     def _compute_pba_cost_pba_currency_id(self):
@@ -124,7 +116,7 @@ class PurchaseOrderLine(models.Model):
         "currency_id",
         "order_id.date_order",
         "company_id",
-        "pba_list_currency_id",
+        "pba_cost_pba_currency_id",
         "pba_cost_freight",
         "pba_cost_tariff",
         "pba_cost_operative",
@@ -134,10 +126,12 @@ class PurchaseOrderLine(models.Model):
     def _compute_pba_utility_sale_fields(self):
         for line in self:
             if line.display_type or not line.product_id:
+                line.pba_projected_final_cost = 0.0
                 line.pba_utility_margin_amount = 0.0
                 line.pba_sale_price_suggested = 0.0
                 continue
-            fin = line._pba_projected_final_in_list_currency_float()
+            fin = line._pba_projected_final_cost_cost_currency()
+            line.pba_projected_final_cost = fin
             util = line.pba_utility_percent or 0.0
             line.pba_utility_margin_amount = fin * util
             line.pba_sale_price_suggested = fin * (1.0 + util)
@@ -181,23 +175,21 @@ class PurchaseOrderLine(models.Model):
             + (self.pba_cost_nationalization or 0.0)
         )
 
-    def _pba_projected_final_in_list_currency_float(self):
+    def _pba_sale_price_for_template_list_price(self):
         self.ensure_one()
         tmpl = self.product_id.product_tmpl_id
-        raw_cc = self._pba_projected_final_cost_cost_currency()
         from_c = tmpl.cost_currency_id or self.company_id.currency_id
         to_c = tmpl.currency_id or self.company_id.currency_id
-        if not to_c:
-            return 0.0
         line_dt = self.order_id.date_order
         if line_dt:
             conv_date = line_dt.date() if hasattr(line_dt, "date") else line_dt
         else:
             conv_date = fields.Date.context_today(self)
+        amount = float(self.pba_sale_price_unit or 0.0)
         if from_c == to_c:
-            return float(raw_cc or 0.0)
+            return amount
         return from_c._convert(
-            float(raw_cc or 0.0),
+            amount,
             to_c,
             self.company_id,
             conv_date,
@@ -386,5 +378,5 @@ class PurchaseOrderLine(models.Model):
             self.pba_sale_price_unit,
             self.pba_sale_price_unit_baseline,
         ):
-            tmpl_vals["list_price"] = self.pba_sale_price_unit
+            tmpl_vals["list_price"] = self._pba_sale_price_for_template_list_price()
         return tmpl_vals

@@ -14,14 +14,17 @@ class ProductTemplate(models.Model):
     def _compute_display_name(self):
         super()._compute_display_name()
         for template in self:
-            if not template.internal_code or not template.name:
+            if not template.name:
                 continue
             if not self._context.get("display_default_code", True):
                 continue
-            codes = [template.internal_code]
+            codes = []
             if template.default_code:
                 codes.append(template.default_code)
-            template.display_name = f"[{'|'.join(codes)}] {template.name}"
+            if template.internal_code:
+                codes.append(template.internal_code)
+            if codes:
+                template.display_name = f"[{' | '.join(codes)}] {template.name}"
 
     @api.model
     def _search_display_name(self, operator, value):

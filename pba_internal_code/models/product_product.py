@@ -25,12 +25,12 @@ class ProductProduct(models.Model):
         def get_display_name(name, code, internal_code):
             if self._context.get("display_default_code", True):
                 codes = []
-                if internal_code:
-                    codes.append(internal_code)
                 if code:
                     codes.append(code)
+                if internal_code:
+                    codes.append(internal_code)
                 if codes:
-                    code_string = "|".join(codes)
+                    code_string = " | ".join(codes)
                     return f"[{code_string}] {name}"
             return name
 
