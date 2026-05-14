@@ -1,6 +1,6 @@
 {
     "name": "PBA Costos de producto",
-    "version": "18.0.1.5.4",
+    "version": "18.0.1.7.3",
     "category": "Product",
     "summary": "Costos flete, arancel, operativo, nacionalización e historial",
     "author": "andyengit",
@@ -12,8 +12,10 @@
         "security/ir.model.access.csv",
         "views/pba_product_cost_history_views.xml",
         "views/purchase_traceability_views.xml",
+        "views/purchase_order_line_pba_views.xml",
         "views/res_config_settings_views.xml",
         "views/product_template_views.xml",
+        "views/product_tree_pba_cost_views.xml",
         "views/product_standard_cost_purchase_tax_groups.xml",
     ],
     "installable": True,

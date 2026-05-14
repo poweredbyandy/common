@@ -61,6 +61,20 @@ class ProductTemplate(models.Model):
         string="% aplicado (Nacionalización)",
     )
 
+    pba_utility_percent = fields.Float(string="% Utilidad")
+
+    pba_utility_margin_amount = fields.Monetary(
+        string="Importe utilidad (sobre costo final)",
+        currency_field="cost_currency_id",
+        compute="_compute_pba_utility_margin_amount",
+    )
+
+    pba_suggested_list_price = fields.Float(
+        string="Precio venta sugerido",
+        compute="_compute_pba_suggested_list_price",
+        digits="Product Price",
+    )
+
     pba_cost_freight = fields.Monetary(
         string="Costo Flete",
         currency_field="cost_currency_id",
@@ -125,6 +139,47 @@ class ProductTemplate(models.Model):
         compute="_compute_pba_formula_variables_reference",
     )
 
+    pba_cost_display_currency_id = fields.Many2one(
+        "res.currency",
+        string="Ver importes en moneda",
+    )
+
+    pba_standard_price_display_ccy = fields.Monetary(
+        string="Costo promedio (ref.)",
+        currency_field="pba_cost_display_currency_id",
+        compute="_compute_pba_costs_display_currency_amounts",
+    )
+    pba_last_cost_display_ccy = fields.Monetary(
+        string="Último costo (ref.)",
+        currency_field="pba_cost_display_currency_id",
+        compute="_compute_pba_costs_display_currency_amounts",
+    )
+    pba_final_cost_display_ccy = fields.Monetary(
+        string="Costo final (ref.)",
+        currency_field="pba_cost_display_currency_id",
+        compute="_compute_pba_costs_display_currency_amounts",
+    )
+    pba_cost_freight_display_ccy = fields.Monetary(
+        string="Flete (ref.)",
+        currency_field="pba_cost_display_currency_id",
+        compute="_compute_pba_costs_display_currency_amounts",
+    )
+    pba_cost_tariff_display_ccy = fields.Monetary(
+        string="Arancel (ref.)",
+        currency_field="pba_cost_display_currency_id",
+        compute="_compute_pba_costs_display_currency_amounts",
+    )
+    pba_cost_operative_display_ccy = fields.Monetary(
+        string="Operativo (ref.)",
+        currency_field="pba_cost_display_currency_id",
+        compute="_compute_pba_costs_display_currency_amounts",
+    )
+    pba_cost_nationalization_display_ccy = fields.Monetary(
+        string="Nacionalización (ref.)",
+        currency_field="pba_cost_display_currency_id",
+        compute="_compute_pba_costs_display_currency_amounts",
+    )
+
     pba_final_cost_formula_edit = fields.Text(
         string="Fórmula global del costo final",
         compute="_compute_pba_final_cost_formula_edit",
@@ -133,41 +188,51 @@ class ProductTemplate(models.Model):
         "para usuarios con el grupo Características técnicas (base.group_no_one). Ver ayuda en Ajustes ▸ PBA Costos.",
     )
 
+    def _pba_find_last_purchase_order_line(self):
+        self.ensure_one()
+        Pol = self.env["purchase.order.line"]
+        variants = self.product_variant_ids
+        if not variants:
+            return Pol.browse()
+        try:
+            return Pol.search(
+                [
+                    ("product_id", "in", variants.ids),
+                    ("state", "in", ["purchase", "done"]),
+                    ("display_type", "=", False),
+                ],
+                order="date_approve desc, date_order desc, id desc",
+                limit=1,
+            )
+        except AccessError:
+            return Pol.browse()
+
+    def _pba_last_purchase_line_conversion_date(self, line):
+        if not line:
+            return fields.Date.context_today(self)
+        line_dt = line.date_approve or line.date_order
+        if line_dt:
+            return line_dt.date() if hasattr(line_dt, "date") else line_dt
+        return fields.Date.context_today(self)
+
     @api.depends(
         "product_variant_ids",
         "cost_currency_id",
         "standard_price",
     )
     def _compute_pba_last_cost(self):
-        Pol = self.env["purchase.order.line"]
         for template in self:
             fallback = template.standard_price or 0.0
-            variants = template.product_variant_ids
-            if not variants:
+            line = template._pba_find_last_purchase_order_line()
+            if not line:
                 template.pba_last_cost = fallback
                 continue
             try:
-                line = Pol.search(
-                    [
-                        ("product_id", "in", variants.ids),
-                        ("state", "in", ["purchase", "done"]),
-                        ("display_type", "=", False),
-                    ],
-                    order="date_approve desc, date_order desc, id desc",
-                    limit=1,
-                )
-                if not line:
-                    template.pba_last_cost = fallback
-                    continue
                 price_uom = line.product_uom._compute_price(
                     line.price_unit_discounted,
                     line.product_id.uom_id,
                 )
-                line_dt = line.date_approve or line.date_order
-                if line_dt:
-                    date = line_dt.date() if hasattr(line_dt, "date") else line_dt
-                else:
-                    date = fields.Date.context_today(line)
+                date = template._pba_last_purchase_line_conversion_date(line)
                 to_currency = template.cost_currency_id or line.company_id.currency_id
                 template.pba_last_cost = line.currency_id._convert(
                     price_uom,
@@ -206,6 +271,42 @@ class ProductTemplate(models.Model):
             base = rec.standard_price or 0.0
             pct = rec.pba_cost_nationalization_percent or 0.0
             rec.pba_cost_nationalization = base * pct
+
+    @api.depends("pba_final_cost", "pba_utility_percent")
+    def _compute_pba_utility_margin_amount(self):
+        for rec in self:
+            rec.pba_utility_margin_amount = (rec.pba_final_cost or 0.0) * (
+                rec.pba_utility_percent or 0.0
+            )
+
+    @api.depends(
+        "pba_final_cost",
+        "pba_utility_percent",
+        "currency_id",
+        "cost_currency_id",
+        "company_id",
+    )
+    def _compute_pba_suggested_list_price(self):
+        for rec in self:
+            fin = rec.pba_final_cost or 0.0
+            to_c = rec.currency_id or rec.company_id.currency_id
+            from_c = rec.cost_currency_id or rec.company_id.currency_id
+            if not to_c:
+                rec.pba_suggested_list_price = 0.0
+                continue
+            if from_c == to_c:
+                fin_sale = fin
+            else:
+                fin_sale = from_c._convert(
+                    fin,
+                    to_c,
+                    rec.company_id,
+                    fields.Date.context_today(rec),
+                    round=True,
+                )
+            rec.pba_suggested_list_price = fin_sale * (
+                1.0 + (rec.pba_utility_percent or 0.0)
+            )
 
     @api.depends(
         "pba_last_cost",
@@ -266,6 +367,100 @@ class ProductTemplate(models.Model):
         text = ", ".join(_pba_final_cost_formula_variable_names())
         for rec in self:
             rec.pba_formula_variables_reference = text
+
+    def _pba_purchase_rate_date_for_display_currency(self):
+        self.ensure_one()
+        return self._pba_last_purchase_line_conversion_date(
+            self._pba_find_last_purchase_order_line(),
+        )
+
+    def _pba_convert_cost_amount_to_currency(
+        self,
+        amount,
+        target_currency,
+        rate_date=None,
+    ):
+        self.ensure_one()
+        if not target_currency:
+            return 0.0
+        from_currency = self.cost_currency_id or self.company_id.currency_id
+        if not from_currency or from_currency == target_currency:
+            return float(amount or 0.0)
+        conv_date = (
+            rate_date
+            if rate_date is not None
+            else fields.Date.context_today(self)
+        )
+        return from_currency._convert(
+            float(amount or 0.0),
+            target_currency,
+            self.company_id,
+            conv_date,
+            round=True,
+        )
+
+    @api.depends(
+        "pba_cost_display_currency_id",
+        "cost_currency_id",
+        "company_id",
+        "standard_price",
+        "pba_last_cost",
+        "pba_final_cost",
+        "pba_cost_freight",
+        "pba_cost_tariff",
+        "pba_cost_operative",
+        "pba_cost_nationalization",
+    )
+    def _compute_pba_costs_display_currency_amounts(self):
+        for rec in self:
+            ccy = rec.pba_cost_display_currency_id
+            if not ccy:
+                rec.pba_standard_price_display_ccy = 0.0
+                rec.pba_last_cost_display_ccy = 0.0
+                rec.pba_final_cost_display_ccy = 0.0
+                rec.pba_cost_freight_display_ccy = 0.0
+                rec.pba_cost_tariff_display_ccy = 0.0
+                rec.pba_cost_operative_display_ccy = 0.0
+                rec.pba_cost_nationalization_display_ccy = 0.0
+                continue
+            rate_date = rec._pba_purchase_rate_date_for_display_currency()
+            rec.pba_standard_price_display_ccy = rec._pba_convert_cost_amount_to_currency(
+                rec.standard_price,
+                ccy,
+                rate_date,
+            )
+            rec.pba_last_cost_display_ccy = rec._pba_convert_cost_amount_to_currency(
+                rec.pba_last_cost,
+                ccy,
+                rate_date,
+            )
+            rec.pba_final_cost_display_ccy = rec._pba_convert_cost_amount_to_currency(
+                rec.pba_final_cost,
+                ccy,
+                rate_date,
+            )
+            rec.pba_cost_freight_display_ccy = rec._pba_convert_cost_amount_to_currency(
+                rec.pba_cost_freight,
+                ccy,
+                rate_date,
+            )
+            rec.pba_cost_tariff_display_ccy = rec._pba_convert_cost_amount_to_currency(
+                rec.pba_cost_tariff,
+                ccy,
+                rate_date,
+            )
+            rec.pba_cost_operative_display_ccy = rec._pba_convert_cost_amount_to_currency(
+                rec.pba_cost_operative,
+                ccy,
+                rate_date,
+            )
+            rec.pba_cost_nationalization_display_ccy = (
+                rec._pba_convert_cost_amount_to_currency(
+                    rec.pba_cost_nationalization,
+                    ccy,
+                    rate_date,
+                )
+            )
 
     @api.depends("pba_final_cost")
     def _compute_pba_final_cost_formula_edit(self):
@@ -332,7 +527,9 @@ class ProductTemplate(models.Model):
 
     def _pba_invalidate_last_cost(self):
         if self:
-            self.invalidate_recordset(["pba_last_cost", "pba_final_cost"])
+            self.invalidate_recordset(
+                ["pba_last_cost", "pba_final_cost", "pba_suggested_list_price"]
+            )
 
     def _pba_cost_types_to_log_on_write(self, vals):
         types = set()

@@ -43,6 +43,25 @@
                                 widget="monetary"
                                 options="{'currency_field': 'cost_currency_id', 'field_digits': True}"
                             />
+                            <field
+                                name="pba_utility_percent"
+                                string="% utilidad"
+                                widget="percentage"
+                            />
+                            <field
+                                name="pba_utility_margin_amount"
+                                string="Importe utilidad"
+                                widget="monetary"
+                                options="{'currency_field': 'cost_currency_id', 'field_digits': True}"
+                                readonly="1"
+                            />
+                            <field
+                                name="pba_suggested_list_price"
+                                string="Precio venta sugerido"
+                                widget="monetary"
+                                options="{'currency_field': 'currency_id', 'field_digits': True}"
+                                readonly="1"
+                            />
                             <field name="pba_session_debug" invisible="1"/>
                             <div
                                 colspan="2"
@@ -71,6 +90,68 @@
                                 class="btn-secondary"
                                 icon="fa-history"
                                 colspan="2"
+                            />
+                        </group>
+                        <group string="Equivalencia en otra moneda" colspan="2">
+                            <field
+                                name="pba_cost_display_currency_id"
+                                options="{'no_create': True}"
+                            />
+                            <field
+                                name="pba_standard_price_display_ccy"
+                                string="Costo promedio"
+                                widget="monetary"
+                                options="{'currency_field': 'pba_cost_display_currency_id', 'field_digits': True}"
+                                invisible="not pba_cost_display_currency_id"
+                                readonly="1"
+                            />
+                            <field
+                                name="pba_last_cost_display_ccy"
+                                string="Último costo"
+                                widget="monetary"
+                                options="{'currency_field': 'pba_cost_display_currency_id', 'field_digits': True}"
+                                invisible="not pba_cost_display_currency_id"
+                                readonly="1"
+                            />
+                            <field
+                                name="pba_final_cost_display_ccy"
+                                string="Costo final"
+                                widget="monetary"
+                                options="{'currency_field': 'pba_cost_display_currency_id', 'field_digits': True}"
+                                invisible="not pba_cost_display_currency_id"
+                                readonly="1"
+                            />
+                            <field
+                                name="pba_cost_freight_display_ccy"
+                                string="Flete"
+                                widget="monetary"
+                                options="{'currency_field': 'pba_cost_display_currency_id', 'field_digits': True}"
+                                invisible="not pba_cost_display_currency_id"
+                                readonly="1"
+                            />
+                            <field
+                                name="pba_cost_tariff_display_ccy"
+                                string="Arancel"
+                                widget="monetary"
+                                options="{'currency_field': 'pba_cost_display_currency_id', 'field_digits': True}"
+                                invisible="not pba_cost_display_currency_id"
+                                readonly="1"
+                            />
+                            <field
+                                name="pba_cost_operative_display_ccy"
+                                string="Operativo"
+                                widget="monetary"
+                                options="{'currency_field': 'pba_cost_display_currency_id', 'field_digits': True}"
+                                invisible="not pba_cost_display_currency_id"
+                                readonly="1"
+                            />
+                            <field
+                                name="pba_cost_nationalization_display_ccy"
+                                string="Nacionalización"
+                                widget="monetary"
+                                options="{'currency_field': 'pba_cost_display_currency_id', 'field_digits': True}"
+                                invisible="not pba_cost_display_currency_id"
+                                readonly="1"
                             />
                         </group>
                     </group>

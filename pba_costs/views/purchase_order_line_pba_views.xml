@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="purchase_order_form_pba_cost_line_fields" model="ir.ui.view">
+        <field name="name">purchase.order.form.pba.cost.lines</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='products']//field[@name='order_line']/list/field[@name='discount']" position="after">
+                <field name="pba_cost_pba_currency_id" column_invisible="1" groups="pba_costs.group_pba_product_costs_tab"/>
+                <field name="pba_cost_freight_percent" optional="hide" widget="percentage" groups="pba_costs.group_pba_product_costs_tab"/>
+                <field name="pba_cost_freight" optional="hide" groups="pba_costs.group_pba_product_costs_tab" widget="monetary" options="{'currency_field': 'pba_cost_pba_currency_id', 'field_digits': True}"/>
+                <field name="pba_cost_tariff_percent" optional="hide" widget="percentage" groups="pba_costs.group_pba_product_costs_tab"/>
+                <field name="pba_cost_tariff" optional="hide" groups="pba_costs.group_pba_product_costs_tab" widget="monetary" options="{'currency_field': 'pba_cost_pba_currency_id', 'field_digits': True}"/>
+                <field name="pba_cost_operative_percent" optional="hide" widget="percentage" groups="pba_costs.group_pba_product_costs_tab"/>
+                <field name="pba_cost_operative" optional="hide" groups="pba_costs.group_pba_product_costs_tab" widget="monetary" options="{'currency_field': 'pba_cost_pba_currency_id', 'field_digits': True}"/>
+                <field name="pba_cost_nationalization_percent" optional="hide" widget="percentage" groups="pba_costs.group_pba_product_costs_tab"/>
+                <field name="pba_cost_nationalization" optional="hide" groups="pba_costs.group_pba_product_costs_tab" widget="monetary" options="{'currency_field': 'pba_cost_pba_currency_id', 'field_digits': True}"/>
+                <field name="pba_cost_freight_percent_baseline" column_invisible="1" groups="pba_costs.group_pba_product_costs_tab"/>
+                <field name="pba_cost_tariff_percent_baseline" column_invisible="1" groups="pba_costs.group_pba_product_costs_tab"/>
+                <field name="pba_cost_operative_percent_baseline" column_invisible="1" groups="pba_costs.group_pba_product_costs_tab"/>
+                <field name="pba_cost_nationalization_percent_baseline" column_invisible="1" groups="pba_costs.group_pba_product_costs_tab"/>
+                <field name="pba_list_currency_id" column_invisible="1" groups="pba_costs.group_pba_product_costs_tab"/>
+                <field name="pba_utility_percent" optional="hide" widget="percentage" groups="pba_costs.group_pba_product_costs_tab"/>
+                <field name="pba_utility_margin_amount" optional="hide" groups="pba_costs.group_pba_product_costs_tab" widget="monetary" options="{'currency_field': 'pba_list_currency_id', 'field_digits': True}"/>
+                <field name="pba_sale_price_suggested" optional="hide" groups="pba_costs.group_pba_product_costs_tab" widget="monetary" options="{'currency_field': 'pba_list_currency_id', 'field_digits': True}" readonly="1"/>
+                <field name="pba_sale_price_unit" optional="hide" groups="pba_costs.group_pba_product_costs_tab" widget="monetary" options="{'currency_field': 'pba_list_currency_id', 'field_digits': True}"/>
+                <field name="pba_utility_percent_baseline" column_invisible="1" groups="pba_costs.group_pba_product_costs_tab"/>
+                <field name="pba_sale_price_unit_baseline" column_invisible="1" groups="pba_costs.group_pba_product_costs_tab"/>
+            </xpath>
+            <xpath expr="//page[@name='products']//field[@name='order_line']/form//notebook" position="inside">
+                <page string="Costos PBA" name="pba_costs_pol" groups="pba_costs.group_pba_product_costs_tab" invisible="display_type">
+                    <group>
+                        <group string="Flete">
+                            <field name="pba_cost_pba_currency_id" invisible="1"/>
+                            <field name="pba_cost_freight_percent" widget="percentage"/>
+                            <field name="pba_cost_freight" widget="monetary" options="{'currency_field': 'pba_cost_pba_currency_id', 'field_digits': True}" readonly="1"/>
+                        </group>
+                        <group string="Arancel">
+                            <field name="pba_cost_tariff_percent" widget="percentage"/>
+                            <field name="pba_cost_tariff" widget="monetary" options="{'currency_field': 'pba_cost_pba_currency_id', 'field_digits': True}" readonly="1"/>
+                        </group>
+                        <group string="Operativo">
+                            <field name="pba_cost_operative_percent" widget="percentage"/>
+                            <field name="pba_cost_operative" widget="monetary" options="{'currency_field': 'pba_cost_pba_currency_id', 'field_digits': True}" readonly="1"/>
+                        </group>
+                        <group string="Nacionalización">
+                            <field name="pba_cost_nationalization_percent" widget="percentage"/>
+                            <field name="pba_cost_nationalization" widget="monetary" options="{'currency_field': 'pba_cost_pba_currency_id', 'field_digits': True}" readonly="1"/>
+                        </group>
+                        <group string="Utilidad y precio venta">
+                            <field name="pba_list_currency_id" invisible="1"/>
+                            <field name="pba_utility_percent" widget="percentage"/>
+                            <field name="pba_utility_margin_amount" widget="monetary" options="{'currency_field': 'pba_list_currency_id', 'field_digits': True}" readonly="1"/>
+                            <field name="pba_sale_price_suggested" string="P.V.P. sugerido" widget="monetary" options="{'currency_field': 'pba_list_currency_id', 'field_digits': True}" readonly="1"/>
+                            <field name="pba_sale_price_unit" string="Precio venta unit." widget="monetary" options="{'currency_field': 'pba_list_currency_id', 'field_digits': True}"/>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>
