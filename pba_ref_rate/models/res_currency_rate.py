@@ -48,6 +48,34 @@ class ResCurrencyRate(models.Model):
             return 0.0
         return line.inverse_company_rate or 0.0
 
+    @api.model
+    def get_foreign_per_usd_at_date(self, company, rate_date, currency):
+        usd = self.env.ref("base.USD", raise_if_not_found=False)
+        if not usd or not currency or currency == usd:
+            return 0.0
+        root = company.root_id
+        if root.currency_id == usd:
+            return 0.0
+        if not rate_date:
+            rate_date = fields.Date.context_today(self)
+        domain = [
+            ("currency_id", "=", currency.id),
+            ("name", "<=", rate_date),
+            "|",
+            ("company_id", "=", False),
+            ("company_id", "=", root.id),
+        ]
+        line = self.search(domain, order="name desc, company_id desc", limit=1)
+        if not line:
+            return 0.0
+        if line.foreign_per_usd:
+            return line.foreign_per_usd
+        usd_inv = self._usd_inverse_company_rate(root, rate_date)
+        inv = line.inverse_company_rate or 0.0
+        if not usd_inv or not inv:
+            return 0.0
+        return usd_inv / inv
+
     def _vals_apply_foreign_per_usd(self, vals, record=None):
         if not vals.get("foreign_per_usd"):
             return vals

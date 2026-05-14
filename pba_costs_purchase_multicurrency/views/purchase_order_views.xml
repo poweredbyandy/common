@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="purchase_order_form_pba_final_cost_totals" model="ir.ui.view">
+        <field name="name">purchase.order.form.pba.final.cost.totals</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='tax_totals']" position="after">
+                <field
+                    name="pba_total_final_cost"
+                    string="Total costo final (PBA) — moneda del pedido"
+                    widget="monetary"
+                    options="{'currency_field': 'currency_id', 'field_digits': True}"
+                    readonly="1"
+                    colspan="2"
+                    groups="pba_costs.group_pba_product_costs_tab"
+                />
+                <field
+                    name="pba_final_cost_totals_multicurrency"
+                    string="Total costo final (PBA) — otras monedas"
+                    widget="pba_final_cost_totals_widget"
+                    nolabel="1"
+                    colspan="2"
+                    groups="pba_costs.group_pba_product_costs_tab"
+                />
+            </xpath>
+        </field>
+    </record>
+</odoo>

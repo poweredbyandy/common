@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="purchase_order_form_inherit_pba_ref_rate" model="ir.ui.view">
+        <field name="name">purchase.order.form.inherit.pba.ref.rate</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_form"/>
+        <field name="arch" type="xml">
+            <xpath
+                expr="//field[@name='currency_id'][@groups='base.group_multi_currency']"
+                position="after"
+            >
+                <field name="pba_ref_rate_show_usd_line" invisible="1" groups="base.group_multi_currency"/>
+                <field
+                    name="pba_ref_rate_foreign_per_usd"
+                    string="Moneda por 1 USD"
+                    invisible="not pba_ref_rate_show_usd_line"
+                    readonly="1"
+                    digits="[16,6]"
+                    groups="base.group_multi_currency"
+                />
+            </xpath>
+        </field>
+    </record>
+</odoo>
