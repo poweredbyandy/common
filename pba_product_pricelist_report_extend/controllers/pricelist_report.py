@@ -202,8 +202,8 @@ class ProductPricelistExportController(ProductPricelistExportControllerBase):
                 else:
                     worksheet.write(r_off, col_idx, cell_value)
         worksheet.set_column(self.COL_REFERENCE, self.COL_REFERENCE, 22)
-        worksheet.set_column(self.COL_CODE, self.COL_CODE, 20)
-        worksheet.set_column(self.COL_BRAND, self.COL_BRAND, 16)
+        worksheet.set_column(self.COL_CODE, self.COL_CODE, 28)
+        worksheet.set_column(self.COL_BRAND, self.COL_BRAND, 26)
         worksheet.set_column(self.COL_PRODUCT, self.COL_PRODUCT, 80)
         worksheet.set_column(self.COL_PRICE, self.COL_PRICE, 14)
         worksheet.set_column(self.COL_ORDER_QTY, self.COL_ORDER_QTY, 20)
