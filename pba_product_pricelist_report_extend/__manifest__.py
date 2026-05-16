@@ -1,8 +1,8 @@
 {
     "name": "Extensión informe lista de precios (marca, referencia, código interno)",
-    "version": "18.0.1.2.0",
+    "version": "18.0.1.3.0",
     "category": "Product",
-    "summary": "Lista de precios: columnas referencia, nombre, código interno, marca y precio (cantidad 1); cabecera de empresa en PDF/XLSX",
+    "summary": "Lista de precios: referencia, nombre, código interno, marca y precio; orden por categoría, marca, referencia, código y nombre",
     "author": "andyengit",
     "maintainer": "andyengit",
     "license": "LGPL-3",

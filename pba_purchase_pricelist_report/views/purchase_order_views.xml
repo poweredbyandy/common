@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="purchase_order_form_pricelist_report" model="ir.ui.view">
+        <field name="name">purchase.order.form.pricelist.report</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header/button[@name='print_quotation'][1]" position="after">
+                <button
+                    name="action_open_pricelist_report"
+                    string="Lista de precios"
+                    type="object"
+                    groups="product.group_product_pricelist"
+                    invisible="not order_line"
+                />
+            </xpath>
+        </field>
+    </record>
+</odoo>
