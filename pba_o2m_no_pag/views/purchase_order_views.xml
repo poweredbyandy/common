@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="purchase_order_form_o2m_no_pag" model="ir.ui.view">
+        <field name="name">purchase.order.form.o2m.no.pag</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='order_line']/list" position="attributes">
+                <attribute name="limit">10000</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>
