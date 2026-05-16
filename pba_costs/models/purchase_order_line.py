@@ -36,6 +36,11 @@ class PurchaseOrderLine(models.Model):
         compute="_compute_pba_utility_sale_fields",
         digits="Product Price",
     )
+    pba_last_sale_price = fields.Float(
+        string="Último P.V. venta (PBA)",
+        compute="_compute_pba_last_sale_price",
+        digits="Product Price",
+    )
     pba_sale_price_unit = fields.Float(
         string="Precio venta unit. (PBA)",
         digits="Product Price",
@@ -135,6 +140,30 @@ class PurchaseOrderLine(models.Model):
             util = line.pba_utility_percent or 0.0
             line.pba_utility_margin_amount = fin * util
             line.pba_sale_price_suggested = fin * (1.0 + util)
+
+    @api.depends(
+        "display_type",
+        "product_id",
+        "product_id.product_tmpl_id.pba_last_sale_price",
+        "pba_cost_pba_currency_id",
+        "company_id",
+        "order_id.date_order",
+    )
+    def _compute_pba_last_sale_price(self):
+        for line in self:
+            if line.display_type or not line.product_id:
+                line.pba_last_sale_price = 0.0
+                continue
+            tmpl = line.product_id.product_tmpl_id
+            line_dt = line.order_id.date_order
+            if line_dt:
+                conv_date = line_dt.date() if hasattr(line_dt, "date") else line_dt
+            else:
+                conv_date = fields.Date.context_today(line)
+            line.pba_last_sale_price = tmpl._pba_convert_sale_amount_to_cost_currency(
+                tmpl.pba_last_sale_price,
+                conv_date,
+            )
 
     def _pba_cost_base_in_product_cost_currency(self):
         self.ensure_one()

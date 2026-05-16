@@ -56,6 +56,13 @@
                                 readonly="1"
                             />
                             <field
+                                name="pba_last_sale_price"
+                                string="Último precio de venta"
+                                widget="monetary"
+                                options="{'currency_field': 'currency_id', 'field_digits': True}"
+                                readonly="1"
+                            />
+                            <field
                                 name="pba_suggested_list_price"
                                 string="Precio venta sugerido"
                                 widget="monetary"

@@ -75,6 +75,14 @@ class ProductTemplate(models.Model):
         digits="Product Price",
     )
 
+    pba_last_sale_price = fields.Float(
+        string="Último precio de venta",
+        compute="_compute_pba_last_sale_price",
+        digits="Product Price",
+        help="Precio unitario de la última venta confirmada (descuento aplicado), "
+        "en la UdM del producto y moneda de venta. Si no hay ventas, se usa el precio de venta actual.",
+    )
+
     pba_cost_freight = fields.Monetary(
         string="Costo Flete",
         currency_field="cost_currency_id",
@@ -207,6 +215,48 @@ class ProductTemplate(models.Model):
         except AccessError:
             return Pol.browse()
 
+    def _pba_find_last_sale_order_line(self):
+        self.ensure_one()
+        Sol = self.env["sale.order.line"]
+        variants = self.product_variant_ids
+        if not variants:
+            return Sol.browse()
+        line_domain = [
+            ("product_id", "in", variants.ids),
+            ("display_type", "=", False),
+            ("is_downpayment", "=", False),
+            ("is_expense", "=", False),
+        ]
+        try:
+            orders = self.env["sale.order"].search(
+                [
+                    ("state", "in", ["sale", "done"]),
+                    ("order_line", "any", line_domain),
+                ],
+                order="date_order desc, id desc",
+                limit=1,
+            )
+            if not orders:
+                return Sol.browse()
+            lines = orders.order_line.filtered_domain(line_domain)
+            if not lines:
+                return Sol.browse()
+            return lines.sorted("id", reverse=True)[:1]
+        except AccessError:
+            return Sol.browse()
+
+    def _pba_last_sale_line_conversion_date(self, line):
+        if not line:
+            return fields.Date.context_today(self)
+        order_dt = line.order_id.date_order
+        if order_dt:
+            return order_dt.date() if hasattr(order_dt, "date") else order_dt
+        return fields.Date.context_today(self)
+
+    def _pba_sale_line_unit_price_discounted(self, line):
+        discount_factor = 1.0 - (line.discount or 0.0) / 100.0
+        return (line.price_unit or 0.0) * discount_factor
+
     def _pba_last_purchase_line_conversion_date(self, line):
         if not line:
             return fields.Date.context_today(self)
@@ -243,6 +293,56 @@ class ProductTemplate(models.Model):
                 )
             except AccessError:
                 template.pba_last_cost = fallback
+
+    @api.depends(
+        "product_variant_ids",
+        "currency_id",
+        "company_id",
+        "list_price",
+    )
+    def _compute_pba_last_sale_price(self):
+        for template in self:
+            fallback = template.list_price or 0.0
+            line = template._pba_find_last_sale_order_line()
+            if not line:
+                template.pba_last_sale_price = fallback
+                continue
+            try:
+                price_disc = template._pba_sale_line_unit_price_discounted(line)
+                price_uom = line.product_uom._compute_price(
+                    price_disc,
+                    line.product_id.uom_id,
+                )
+                date = template._pba_last_sale_line_conversion_date(line)
+                to_currency = template.currency_id or line.company_id.currency_id
+                template.pba_last_sale_price = line.currency_id._convert(
+                    price_uom,
+                    to_currency,
+                    line.company_id,
+                    date,
+                    round=True,
+                )
+            except AccessError:
+                template.pba_last_sale_price = fallback
+
+    def _pba_convert_sale_amount_to_cost_currency(self, amount, rate_date=None):
+        self.ensure_one()
+        from_currency = self.currency_id or self.company_id.currency_id
+        to_currency = self.cost_currency_id or self.company_id.currency_id
+        if not from_currency or not to_currency or from_currency == to_currency:
+            return float(amount or 0.0)
+        conv_date = (
+            rate_date
+            if rate_date is not None
+            else fields.Date.context_today(self)
+        )
+        return from_currency._convert(
+            float(amount or 0.0),
+            to_currency,
+            self.company_id,
+            conv_date,
+            round=True,
+        )
 
     @api.depends("standard_price", "pba_cost_freight_percent")
     def _compute_pba_cost_freight(self):
@@ -530,6 +630,10 @@ class ProductTemplate(models.Model):
             self.invalidate_recordset(
                 ["pba_last_cost", "pba_final_cost", "pba_suggested_list_price"]
             )
+
+    def _pba_invalidate_last_sale_price(self):
+        if self:
+            self.invalidate_recordset(["pba_last_sale_price"])
 
     def _pba_cost_types_to_log_on_write(self, vals):
         types = set()

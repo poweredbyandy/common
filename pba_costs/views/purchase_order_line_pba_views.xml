@@ -22,6 +22,7 @@
                 <field name="pba_projected_final_cost" optional="hide" groups="pba_costs.group_pba_product_costs_tab" widget="monetary" options="{'currency_field': 'pba_cost_pba_currency_id', 'field_digits': True}" readonly="1"/>
                 <field name="pba_utility_percent" optional="hide" widget="percentage" groups="pba_costs.group_pba_product_costs_tab"/>
                 <field name="pba_utility_margin_amount" optional="hide" groups="pba_costs.group_pba_product_costs_tab" widget="monetary" options="{'currency_field': 'pba_cost_pba_currency_id', 'field_digits': True}"/>
+                <field name="pba_last_sale_price" optional="show" groups="pba_costs.group_pba_product_costs_tab" widget="monetary" options="{'currency_field': 'pba_cost_pba_currency_id', 'field_digits': True}" readonly="1"/>
                 <field name="pba_sale_price_suggested" optional="hide" groups="pba_costs.group_pba_product_costs_tab" widget="monetary" options="{'currency_field': 'pba_cost_pba_currency_id', 'field_digits': True}" readonly="1"/>
                 <field name="pba_sale_price_unit" optional="hide" groups="pba_costs.group_pba_product_costs_tab" widget="monetary" options="{'currency_field': 'pba_cost_pba_currency_id', 'field_digits': True}"/>
                 <field name="pba_utility_percent_baseline" column_invisible="1" groups="pba_costs.group_pba_product_costs_tab"/>
@@ -51,6 +52,7 @@
                             <field name="pba_projected_final_cost" widget="monetary" options="{'currency_field': 'pba_cost_pba_currency_id', 'field_digits': True}" readonly="1"/>
                             <field name="pba_utility_percent" widget="percentage"/>
                             <field name="pba_utility_margin_amount" widget="monetary" options="{'currency_field': 'pba_cost_pba_currency_id', 'field_digits': True}" readonly="1"/>
+                            <field name="pba_last_sale_price" string="Último P.V. venta" widget="monetary" options="{'currency_field': 'pba_cost_pba_currency_id', 'field_digits': True}" readonly="1"/>
                             <field name="pba_sale_price_suggested" string="P.V.P. sugerido" widget="monetary" options="{'currency_field': 'pba_cost_pba_currency_id', 'field_digits': True}" readonly="1"/>
                             <field name="pba_sale_price_unit" string="Precio venta unit." widget="monetary" options="{'currency_field': 'pba_cost_pba_currency_id', 'field_digits': True}"/>
                         </group>
