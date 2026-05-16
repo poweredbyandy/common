@@ -31,7 +31,6 @@ class ProductPricelistReport(models.AbstractModel):
     def _pricelist_product_sort_key(self, row):
         return (
             (row.get("category") or "").casefold(),
-            (row.get("brand") or "").casefold(),
             (row.get("default_code") or "").casefold(),
             (row.get("internal_code") or "").casefold(),
             (row.get("name") or "").casefold(),
