@@ -5,10 +5,12 @@ import json
 
 import xlsxwriter
 
+from odoo import fields
 from odoo.addons.product.controllers.pricelist_report import (
     ProductPricelistExportController as ProductPricelistExportControllerBase,
 )
 from odoo.http import content_disposition, request, route
+from odoo.tools import format_date
 
 
 def _company_address_text(company):
@@ -24,6 +26,8 @@ def _company_address_text(company):
 
 
 class ProductPricelistExportController(ProductPricelistExportControllerBase):
+
+    PRODUCT_NAME_MAX_LEN = 80
 
     COL_REFERENCE = 0
     COL_CODE = 1
@@ -61,6 +65,12 @@ class ProductPricelistExportController(ProductPricelistExportControllerBase):
             excel_title=json_data.get("pricelist_excel_title"),
         )
 
+    def _truncate_product_name(self, name):
+        text = str(name or "")
+        if len(text) > self.PRODUCT_NAME_MAX_LEN:
+            return text[: self.PRODUCT_NAME_MAX_LEN]
+        return text
+
     def _generate_rows(self, products, display_qty, include_order_qty=False):
         rows = []
         for product in products:
@@ -91,7 +101,11 @@ class ProductPricelistExportController(ProductPricelistExportControllerBase):
         ]
         return request.make_response(content, hdrs)
 
-    def _write_letterhead(self, worksheet, company, formats):
+    def _get_print_date_label(self, env, company):
+        date_str = format_date(env, fields.Date.context_today(company))
+        return f"Fecha: {date_str}"
+
+    def _write_letterhead(self, worksheet, company, formats, env):
         row = 0
         if company.logo:
             image_data = io.BytesIO(base64.standard_b64decode(company.logo))
@@ -118,6 +132,8 @@ class ProductPricelistExportController(ProductPricelistExportControllerBase):
         if company.email:
             worksheet.write(row, 0, company.email)
             row += 1
+        worksheet.write(row, 0, self._get_print_date_label(env, company))
+        row += 1
         return row + 1
 
     def _generate_xlsx(
@@ -134,22 +150,25 @@ class ProductPricelistExportController(ProductPricelistExportControllerBase):
         workbook = xlsxwriter.Workbook(buffer, {"in_memory": True})
         worksheet = workbook.add_worksheet()
         header_border = {"bottom": 1}
+        header_style = {
+            "bold": True,
+            "bg_color": "#D9D9D9",
+            **header_border,
+        }
         formats = {
             "title": workbook.add_format({"bold": True, "size": 14}),
             "label": workbook.add_format({"bold": True}),
             "banner": workbook.add_format({"bold": True, "size": 22, "align": "center"}),
-            "header": workbook.add_format({"bold": True, **header_border}),
-            "header_qty": workbook.add_format(
-                {"bold": True, "align": "center", **header_border}
-            ),
-            "product": workbook.add_format({"text_wrap": True, "valign": "top"}),
+            "header": workbook.add_format(header_style),
+            "header_qty": workbook.add_format({**header_style, "align": "center"}),
+            "product": workbook.add_format({"text_wrap": False}),
             "qty": workbook.add_format({"align": "center"}),
         }
         dp = int(pricelist.currency_id.decimal_places or 2)
         money_fmt = workbook.add_format(
             {"num_format": f"#,##0.{'0' * dp}"}
         )
-        header_row = self._write_letterhead(worksheet, company, formats)
+        header_row = self._write_letterhead(worksheet, company, formats, request.env)
         if excel_title:
             last_col = max(len(headers) - 1, 0)
             worksheet.merge_range(
@@ -172,17 +191,25 @@ class ProductPricelistExportController(ProductPricelistExportControllerBase):
                         r_off, col_idx, float(cell_value or 0.0), money_fmt
                     )
                 elif col_idx == self.COL_PRODUCT:
-                    worksheet.write(r_off, col_idx, cell_value, formats["product"])
+                    worksheet.write(
+                        r_off,
+                        col_idx,
+                        self._truncate_product_name(cell_value),
+                        formats["product"],
+                    )
                 elif col_idx == self.COL_ORDER_QTY:
                     worksheet.write(r_off, col_idx, cell_value, formats["qty"])
                 else:
                     worksheet.write(r_off, col_idx, cell_value)
-        worksheet.set_column(self.COL_REFERENCE, self.COL_REFERENCE, 14)
-        worksheet.set_column(self.COL_CODE, self.COL_CODE, 12)
+        worksheet.set_column(self.COL_REFERENCE, self.COL_REFERENCE, 22)
+        worksheet.set_column(self.COL_CODE, self.COL_CODE, 20)
         worksheet.set_column(self.COL_BRAND, self.COL_BRAND, 16)
         worksheet.set_column(self.COL_PRODUCT, self.COL_PRODUCT, 80)
         worksheet.set_column(self.COL_PRICE, self.COL_PRICE, 14)
-        worksheet.set_column(self.COL_ORDER_QTY, self.COL_ORDER_QTY, 16)
+        worksheet.set_column(self.COL_ORDER_QTY, self.COL_ORDER_QTY, 20)
+        last_col = len(headers) - 1
+        last_data_row = header_row + len(rows)
+        worksheet.autofilter(header_row, 0, last_data_row, last_col)
         workbook.close()
         content = buffer.getvalue()
         buffer.close()

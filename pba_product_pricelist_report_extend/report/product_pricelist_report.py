@@ -1,4 +1,5 @@
-from odoo import models
+from odoo import fields, models
+from odoo.tools import format_date
 
 
 class ProductPricelistReport(models.AbstractModel):
@@ -11,7 +12,7 @@ class ProductPricelistReport(models.AbstractModel):
             "brand": "Marca",
             "name": "Producto",
             "price": "Precio",
-            "order_qty": "Cantidad",
+            "order_qty": "Cantidad de Pedido",
         }
 
     def _get_pricelist_export_headers(self, include_order_qty=False):
@@ -49,6 +50,9 @@ class ProductPricelistReport(models.AbstractModel):
         res["pricelist_display_qty"] = 1 if 1 in quantities else min(quantities)
         res["pricelist_column_headers"] = self._get_pricelist_table_headers()
         res["products"] = self._sort_pricelist_products(res["products"])
+        res["pricelist_print_date"] = format_date(
+            self.env, fields.Date.context_today(self)
+        )
         return res
 
     def _get_product_data(self, is_product_tmpl, product, pricelist, quantities):
