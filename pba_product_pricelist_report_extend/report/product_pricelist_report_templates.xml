@@ -6,9 +6,9 @@
                 <thead>
                     <tr>
                         <th class="px-1"><span t-out="pricelist_column_headers['default_code']"/></th>
-                        <th class="px-1"><span t-out="pricelist_column_headers['name']"/></th>
                         <th class="px-1"><span t-out="pricelist_column_headers['internal_code']"/></th>
                         <th class="px-1"><span t-out="pricelist_column_headers['brand']"/></th>
+                        <th class="px-1"><span t-out="pricelist_column_headers['name']"/></th>
                         <th class="text-end px-1"><span t-out="pricelist_column_headers['price']"/></th>
                     </tr>
                 </thead>
@@ -16,14 +16,14 @@
                     <t t-foreach="products" t-as="product">
                         <tr>
                             <td class="px-1" t-out="product['default_code']"/>
+                            <td class="px-1" t-out="product.get('internal_code') or ''"/>
+                            <td class="px-1" t-out="product['brand']"/>
                             <td t-att-class="is_product_tmpl and 'fw-bold px-1' or 'px-1'">
                                 <a t-if="is_html_type" href="#" class="o_action" t-att-data-model="is_product_tmpl and 'product.template' or 'product.product'" t-att-data-res-id="product['id']">
                                     <span t-out="product['name']"/>
                                 </a>
                                 <span t-else="" t-out="product['name']"/>
                             </td>
-                            <td class="px-1" t-out="product.get('internal_code') or ''"/>
-                            <td class="px-1" t-out="product['brand']"/>
                             <td class="text-end px-1">
                                 <span t-out="product['price'][pricelist_display_qty]" t-options='{"widget": "monetary", "display_currency": pricelist.currency_id}'/>
                             </td>
@@ -31,14 +31,14 @@
                         <t t-if="is_product_tmpl and 'variants' in product">
                             <tr t-foreach="product['variants']" t-as="variant">
                                 <td class="px-1" t-out="variant['default_code']"/>
+                                <td class="px-1" t-out="variant.get('internal_code') or ''"/>
+                                <td class="px-1" t-out="variant['brand']"/>
                                 <td class="px-1">
                                     <a t-if="is_html_type" href="#" class="o_action ms-4" data-model="product.product" t-att-data-res-id="variant['id']">
                                         <span t-out="variant['name']"/>
                                     </a>
                                     <span t-else="" class="ms-4" t-out="variant['name']"/>
                                 </td>
-                                <td class="px-1" t-out="variant.get('internal_code') or ''"/>
-                                <td class="px-1" t-out="variant['brand']"/>
                                 <td class="text-end px-1">
                                     <span t-out="variant['price'][pricelist_display_qty]" t-options='{"widget": "monetary", "display_currency": pricelist.currency_id}'/>
                                 </td>
@@ -54,17 +54,16 @@
         <xpath expr="//t[@t-call='web.external_layout']" position="replace">
             <t t-set="company" t-value="pricelist.company_id or res_company"/>
             <div class="article o_report_layout_standard o_table_standard">
-                <div class="row mb-4 o_pba_pricelist_letterhead align-items-start">
-                    <div class="col-auto" style="max-width: 110px;">
-                        <img t-if="company.logo" class="o_company_logo_small" style="max-width: 100px; max-height: 50px; width: auto; height: auto; object-fit: contain; display: block;" t-att-src="image_data_uri(company.logo)" alt="Logo"/>
+                <div class="mb-4 o_pba_pricelist_letterhead">
+                    <div t-if="company.logo" class="mb-2">
+                        <img class="o_company_logo_small" style="max-height: 70px; max-width: 200px; width: auto; height: auto; object-fit: contain; display: block;" t-att-src="image_data_uri(company.logo)" alt="Logo"/>
                     </div>
-                    <div class="col">
-                        <div class="fw-bold" t-field="company.name"/>
-                        <div t-if="company.vat">
-                            <span>RIF: </span><span t-esc="company.vat"/>
-                        </div>
-                        <div t-field="company.partner_id" t-options='{"widget": "contact", "fields": ["address"], "no_marker": true}'/>
+                    <div class="fw-bold fs-5 mb-1" t-field="company.name"/>
+                    <div t-if="company.vat" class="mb-1">
+                        <span class="fw-semibold">RIF: </span><span t-esc="company.vat"/>
                     </div>
+                    <div class="mb-1" t-field="company.partner_id" t-options='{"widget": "contact", "fields": ["address"], "no_marker": true}'/>
+                    <div t-if="company.email" t-esc="company.email"/>
                 </div>
                 <t t-call="product.report_pricelist_page"/>
             </div>

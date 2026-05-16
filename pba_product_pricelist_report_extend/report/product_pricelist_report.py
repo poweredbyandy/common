@@ -1,32 +1,31 @@
-from odoo import _, models
+from odoo import models
 
 
 class ProductPricelistReport(models.AbstractModel):
     _inherit = "report.product.report_pricelist"
 
     def _get_pricelist_table_headers(self):
-        Template = self.env["product.template"]
-        field_names = ["default_code", "name", "internal_code"]
-        if "product_brand_id" in Template._fields:
-            field_names.append("product_brand_id")
-        fg = Template.fields_get(field_names, attributes=("string",))
         return {
-            "default_code": fg["default_code"]["string"],
-            "name": fg["name"]["string"],
-            "internal_code": fg["internal_code"]["string"],
-            "brand": fg.get("product_brand_id", {}).get("string") or _("Brand"),
-            "price": _("Price"),
+            "default_code": "Referencia",
+            "internal_code": "Código",
+            "brand": "Marca",
+            "name": "Producto",
+            "price": "Precio",
+            "order_qty": "Cantidad",
         }
 
-    def _get_pricelist_export_headers(self):
+    def _get_pricelist_export_headers(self, include_order_qty=False):
         h = self._get_pricelist_table_headers()
-        return [
+        headers = [
             h["default_code"],
-            h["name"],
             h["internal_code"],
             h["brand"],
+            h["name"],
             h["price"],
         ]
+        if include_order_qty:
+            headers.append(h["order_qty"])
+        return headers
 
     def _pricelist_product_sort_key(self, row):
         return (
@@ -54,6 +53,8 @@ class ProductPricelistReport(models.AbstractModel):
 
     def _get_product_data(self, is_product_tmpl, product, pricelist, quantities):
         data = super()._get_product_data(is_product_tmpl, product, pricelist, quantities)
+        if not is_product_tmpl:
+            data["name"] = product.name or product.product_tmpl_id.name
         tmpl = product.product_tmpl_id if not is_product_tmpl else product
         brand = tmpl.product_brand_id
         data["brand"] = brand.name if brand else ""

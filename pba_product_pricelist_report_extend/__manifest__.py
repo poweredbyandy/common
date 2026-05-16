@@ -1,6 +1,6 @@
 {
     "name": "Extensión informe lista de precios (marca, referencia, código interno)",
-    "version": "18.0.1.3.0",
+    "version": "18.0.1.7.0",
     "category": "Product",
     "summary": "Lista de precios: referencia, nombre, código interno, marca y precio; orden por categoría, marca, referencia, código y nombre",
     "author": "andyengit",
