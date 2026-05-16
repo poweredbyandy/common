@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="daily_payments_report_column_pba_commission" model="account.report.column">
+        <field name="report_id" ref="l10n_ve_reports.daily_payments_report" />
+        <field name="name">% Comisión (factura)</field>
+        <field name="expression_label">pba_commission_percent</field>
+        <field name="figure_type">string</field>
+        <field name="sequence" eval="45" />
+    </record>
+</odoo>

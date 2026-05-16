@@ -9,9 +9,11 @@
     "depends": [
         "sale_management",
         "account",
+        "l10n_ve_reports",
     ],
     "data": [
         "security/pba_discount_management_groups.xml",
+        "data/daily_payments_report_column.xml",
         "views/res_config_settings_views.xml",
         "views/res_partner_views.xml",
         "views/sale_order_views.xml",

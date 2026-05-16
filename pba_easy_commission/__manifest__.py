@@ -6,10 +6,11 @@
     'maintainer': 'andyengit',
     'license': 'LGPL-3',
     'category': 'Accounting',
-    'depends': ['account', 'mail'],
+    'depends': ['account', 'mail', 'l10n_ve_reports'],
     'data': [
         'security/commission_security.xml',
         'security/ir.model.access.csv',
+        'data/daily_payments_report_column.xml',
         'data/commission_product_data.xml',
         'data/commission_cron_data.xml',
         'views/res_partner_views.xml',

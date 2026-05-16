@@ -9,7 +9,9 @@ class ProductProduct(models.Model):
     internal_code = fields.Char(
         related="product_tmpl_id.internal_code",
         string="Código interno",
-        readonly=True,
+        readonly=False,
+        store=True,
+        index=True,
     )
 
     @api.depends(

@@ -47,6 +47,7 @@
                             <field name="payment_move_id"/>
                             <field name="currency_id"/>
                             <field name="payment_amount"/>
+                            <field name="invoice_commission_percent" optional="show"/>
                             <field name="commission_percent"/>
                             <field name="commission_amount"/>
                             <field name="state" widget="badge"/>

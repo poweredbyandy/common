@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="account_move_view_form_pba_line_number" model="ir.ui.view">
+        <field name="name">account.move.form.pba.line.number</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='invoice_line_ids']/list/field[@name='sequence']" position="before">
+                <field name="pba_line_number" string="#" readonly="1" width="40px"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

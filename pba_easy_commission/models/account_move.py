@@ -72,6 +72,11 @@ class AccountMoveCommissionLine(models.Model):
         required=True,
         tracking=True,
     )
+    invoice_commission_percent = fields.Float(
+        string='% Comisión (factura)',
+        related='invoice_id.commission_percent',
+        readonly=True,
+    )
 
     @api.constrains('payment_id', 'credit_note_move_id')
     def _check_commission_line_source(self):

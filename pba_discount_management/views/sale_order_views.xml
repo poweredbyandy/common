@@ -11,4 +11,16 @@
             </xpath>
         </field>
     </record>
+
+    <record id="sale_order_view_form_pba_document_discount_column" model="ir.ui.view">
+        <field name="name">sale.order.form.pba.document.discount.column</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="priority" eval="101"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='order_line']/list/field[@name='price_unit']" position="after">
+                <field name="pba_document_discount_percent" optional="show"/>
+            </xpath>
+        </field>
+    </record>
 </odoo>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="stock_picking_view_form_pba_line_number" model="ir.ui.view">
+        <field name="name">stock.picking.form.pba.line.number</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='move_ids_without_package']/list/field[@name='product_id']" position="before">
+                <field name="pba_line_number" string="#" readonly="1" width="40px"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

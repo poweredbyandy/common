@@ -1,10 +1,16 @@
-from odoo import _, api, models
+from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError
 from odoo.tools.float_utils import float_is_zero
 
 
 class SaleOrderLine(models.Model):
     _inherit = "sale.order.line"
+
+    pba_document_discount_percent = fields.Float(
+        string="% Descuento (documento)",
+        related="order_id.pba_document_discount_percent",
+        digits="Discount",
+    )
 
     def _pba_applies_line_discount_policy(self):
         self.ensure_one()
