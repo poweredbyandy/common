@@ -129,6 +129,16 @@ class AccountMove(models.Model):
                     continue
 
     _inherit = 'account.move'
+
+    def _commission_payment_states_allowed(self):
+        return ('in_payment', 'paid', 'partial')
+
+    def _has_billed_commission_lines(self):
+        self.ensure_one()
+        return bool(self.commission_line_ids.filtered(
+            lambda line: line.vendor_bill_id or line.state in ('invoiced', 'paid')
+        ))
+
     def _prepare_commission_payment_lines_data(self):
         self.ensure_one()
         payment_lines_data = []
@@ -151,7 +161,7 @@ class AccountMove(models.Model):
 
             payment_move = counterpart_line.move_id
             if payment_move.origin_payment_id:
-                if self.payment_state != 'paid':
+                if self.payment_state not in self._commission_payment_states_allowed():
                     continue
                 if payment_move.journal_id in excluded_journals:
                     continue
