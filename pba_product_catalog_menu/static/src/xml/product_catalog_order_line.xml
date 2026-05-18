@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-inherit="product.ProductCatalogOrderLine" t-inherit-mode="extension">
+        <xpath expr="//span[@t-elif='props.readOnly']" position="attributes">
+            <attribute name="t-elif">props.readOnly and props.warning and !env.pbaProductCatalogStandalone</attribute>
+        </xpath>
+    </t>
+</templates>

@@ -19,6 +19,6 @@ class PurchaseOrder(models.Model):
             "context": {
                 "active_model": "product.product",
                 "active_ids": products.ids,
-                "pricelist_excel_title": "Mercancia Recien Llegada",
+                "pricelist_report_source": "purchase",
             },
         }

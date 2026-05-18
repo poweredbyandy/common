@@ -1,6 +1,6 @@
 {
     "name": "PBA número de línea en documentos",
-    "version": "18.0.1.1.1",
+    "version": "18.0.1.1.2",
     "category": "Hidden",
     "summary": "Muestra el número de línea en ventas, compras, facturas y albaranes.",
     "author": "andyengit",

@@ -43,26 +43,24 @@ class ProductPricelistExportController(ProductPricelistExportControllerBase):
             json_data
         )
         pricelist = report_data_dict["pricelist"]
-        pricelist_name = pricelist.name
         quantities = report_data_dict.get("quantities") or [1]
         products = report_data_dict["products"]
         display_qty = 1 if 1 in quantities else min(quantities)
         company = pricelist.company_id or request.env.company
         report_model = request.env["report.product.report_pricelist"]
+        file_title = report_model._get_pricelist_excel_title(pricelist, json_data)
         if export_format == "csv":
             headers = report_model._get_pricelist_export_headers()
-            return self._generate_csv(
-                pricelist_name, products, headers, display_qty
-            )
+            return self._generate_csv(products, headers, display_qty, file_title)
         headers = report_model._get_pricelist_export_headers(include_order_qty=True)
         return self._generate_xlsx(
-            pricelist_name,
             products,
             headers,
             display_qty,
             pricelist,
             company,
-            excel_title=json_data.get("pricelist_excel_title"),
+            excel_title=file_title,
+            file_title=file_title,
         )
 
     def _truncate_product_name(self, name):
@@ -71,8 +69,7 @@ class ProductPricelistExportController(ProductPricelistExportControllerBase):
             return text[: self.PRODUCT_NAME_MAX_LEN]
         return text
 
-    def _generate_rows(self, products, display_qty, include_order_qty=False):
-        rows = []
+    def _iter_pricelist_export_lines(self, products, display_qty, include_order_qty=False):
         for product in products:
             variants = product.get("variants", [product])
             for variant in variants:
@@ -85,10 +82,20 @@ class ProductPricelistExportController(ProductPricelistExportControllerBase):
                 ]
                 if include_order_qty:
                     row.append("")
-                rows.append(row)
-        return rows
+                yield {
+                    "category": variant.get("category") or "Sin categoría",
+                    "values": row,
+                }
 
-    def _generate_csv(self, pricelist_name, products, headers, display_qty):
+    def _generate_rows(self, products, display_qty, include_order_qty=False):
+        return [
+            line["values"]
+            for line in self._iter_pricelist_export_lines(
+                products, display_qty, include_order_qty
+            )
+        ]
+
+    def _generate_csv(self, products, headers, display_qty, file_title):
         buffer = io.StringIO()
         writer = csv.writer(buffer)
         writer.writerow(headers)
@@ -97,7 +104,7 @@ class ProductPricelistExportController(ProductPricelistExportControllerBase):
         buffer.close()
         hdrs = [
             ("Content-Type", "text/csv"),
-            ("Content-Disposition", content_disposition(f"Pricelist - {pricelist_name}.csv")),
+            ("Content-Disposition", content_disposition(f"{file_title}.csv")),
         ]
         return request.make_response(content, hdrs)
 
@@ -138,13 +145,13 @@ class ProductPricelistExportController(ProductPricelistExportControllerBase):
 
     def _generate_xlsx(
         self,
-        pricelist_name,
         products,
         headers,
         display_qty,
         pricelist,
         company,
         excel_title=None,
+        file_title=None,
     ):
         buffer = io.BytesIO()
         workbook = xlsxwriter.Workbook(buffer, {"in_memory": True})
@@ -159,6 +166,9 @@ class ProductPricelistExportController(ProductPricelistExportControllerBase):
             "title": workbook.add_format({"bold": True, "size": 14}),
             "label": workbook.add_format({"bold": True}),
             "banner": workbook.add_format({"bold": True, "size": 22, "align": "center"}),
+            "category": workbook.add_format(
+                {"bold": True, "bg_color": "#E7E6E6", "bottom": 1}
+            ),
             "header": workbook.add_format(header_style),
             "header_qty": workbook.add_format({**header_style, "align": "center"}),
             "product": workbook.add_format({"text_wrap": False}),
@@ -183,33 +193,51 @@ class ProductPricelistExportController(ProductPricelistExportControllerBase):
                 else formats["header"]
             )
             worksheet.write(header_row, col_idx, header, header_fmt)
-        rows = self._generate_rows(products, display_qty, include_order_qty=True)
-        for r_off, row_vals in enumerate(rows, start=header_row + 1):
+        last_col = max(len(headers) - 1, 0)
+        data_row = header_row + 1
+        current_category = None
+        for line in self._iter_pricelist_export_lines(
+            products, display_qty, include_order_qty=True
+        ):
+            category = line["category"]
+            if category != current_category:
+                worksheet.merge_range(
+                    data_row,
+                    0,
+                    data_row,
+                    last_col,
+                    category,
+                    formats["category"],
+                )
+                data_row += 1
+                current_category = category
+            row_vals = line["values"]
             for col_idx, cell_value in enumerate(row_vals):
                 if col_idx == self.COL_PRICE:
                     worksheet.write_number(
-                        r_off, col_idx, float(cell_value or 0.0), money_fmt
+                        data_row, col_idx, float(cell_value or 0.0), money_fmt
                     )
                 elif col_idx == self.COL_PRODUCT:
                     worksheet.write(
-                        r_off,
+                        data_row,
                         col_idx,
                         self._truncate_product_name(cell_value),
                         formats["product"],
                     )
                 elif col_idx == self.COL_ORDER_QTY:
-                    worksheet.write(r_off, col_idx, cell_value, formats["qty"])
+                    worksheet.write(data_row, col_idx, cell_value, formats["qty"])
                 else:
-                    worksheet.write(r_off, col_idx, cell_value)
+                    worksheet.write(data_row, col_idx, cell_value)
+            data_row += 1
         worksheet.set_column(self.COL_REFERENCE, self.COL_REFERENCE, 22)
         worksheet.set_column(self.COL_CODE, self.COL_CODE, 28)
         worksheet.set_column(self.COL_BRAND, self.COL_BRAND, 26)
         worksheet.set_column(self.COL_PRODUCT, self.COL_PRODUCT, 80)
         worksheet.set_column(self.COL_PRICE, self.COL_PRICE, 14)
         worksheet.set_column(self.COL_ORDER_QTY, self.COL_ORDER_QTY, 20)
-        last_col = len(headers) - 1
-        last_data_row = header_row + len(rows)
-        worksheet.autofilter(header_row, 0, last_data_row, last_col)
+        last_data_row = data_row - 1
+        if last_data_row >= header_row + 1:
+            worksheet.autofilter(header_row, 0, last_data_row, last_col)
         workbook.close()
         content = buffer.getvalue()
         buffer.close()
@@ -220,7 +248,7 @@ class ProductPricelistExportController(ProductPricelistExportControllerBase):
             ),
             (
                 "Content-Disposition",
-                content_disposition(f"Pricelist - {pricelist_name}.xlsx"),
+                content_disposition(f"{file_title or excel_title}.xlsx"),
             ),
         ]
         return request.make_response(content, hdrs)

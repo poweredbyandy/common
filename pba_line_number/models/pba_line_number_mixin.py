@@ -22,3 +22,7 @@ class PbaLineNumberMixin(models.AbstractModel):
             for index, line in enumerate(numbered_lines, start=1):
                 line.pba_line_number = index
             (all_lines - numbered_lines).pba_line_number = 0
+
+    def _pba_compute_line_numbers(self, parent_fname, lines_field):
+        self.pba_line_number = 0
+        self._pba_assign_line_numbers(self.mapped(parent_fname), lines_field)

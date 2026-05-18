@@ -6,9 +6,9 @@ import {patch} from "@web/core/utils/patch";
 patch(ProductPricelistReport.prototype, {
     get reportParams() {
         const params = super.reportParams;
-        const excelTitle = this.props.action.context.pricelist_excel_title;
-        if (excelTitle) {
-            params.pricelist_excel_title = excelTitle;
+        const reportSource = this.props.action.context.pricelist_report_source;
+        if (reportSource) {
+            params.pricelist_report_source = reportSource;
         }
         return params;
     },

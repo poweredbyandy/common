@@ -1,0 +1,2 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_pba_product_catalog_viewer_user,pba.product.catalog.viewer user,model_pba_product_catalog_viewer,base.group_user,1,1,1,0

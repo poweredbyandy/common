@@ -1,6 +1,6 @@
 {
     "name": "Lista de precios desde compra",
-    "version": "18.0.1.1.0",
+    "version": "18.0.1.2.0",
     "category": "Purchase",
     "summary": "Imprime la lista de precios con los productos del pedido de compra",
     "author": "andyengit",

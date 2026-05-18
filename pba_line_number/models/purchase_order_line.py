@@ -12,6 +12,4 @@ class PurchaseOrderLine(models.Model):
         "order_id.order_line.sequence",
     )
     def _compute_pba_line_number(self):
-        self._pba_assign_line_numbers(self.mapped("order_id"), "order_line")
-        for line in self.filtered(lambda record: not record.order_id):
-            line.pba_line_number = 0
+        self._pba_compute_line_numbers("order_id", "order_line")

@@ -15,6 +15,16 @@ class ProductPricelistReport(models.AbstractModel):
             "order_qty": "Cantidad de Pedido",
         }
 
+    def _get_pricelist_report_date_label(self):
+        return format_date(self.env, fields.Date.context_today(self))
+
+    def _get_pricelist_excel_title(self, pricelist, data=None):
+        data = data or {}
+        date_label = self._get_pricelist_report_date_label()
+        if data.get("pricelist_report_source") == "purchase":
+            return f"Mercancia recien llegada - {date_label}"
+        return f"Lista de Precios - {pricelist.name} - {date_label}"
+
     def _get_pricelist_export_headers(self, include_order_qty=False):
         h = self._get_pricelist_table_headers()
         headers = [

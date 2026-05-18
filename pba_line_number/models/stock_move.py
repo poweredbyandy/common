@@ -12,6 +12,4 @@ class StockMove(models.Model):
         "picking_id.move_ids_without_package.sequence",
     )
     def _compute_pba_line_number(self):
-        self._pba_assign_line_numbers(self.mapped("picking_id"), "move_ids_without_package")
-        for line in self.filtered(lambda record: not record.picking_id):
-            line.pba_line_number = 0
+        self._pba_compute_line_numbers("picking_id", "move_ids_without_package")
