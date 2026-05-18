@@ -15,6 +15,7 @@
     ],
     "data": [
         "security/ir.model.access.csv",
+        "views/res_config_settings_views.xml",
         "views/pba_product_catalog_menu.xml",
     ],
     "assets": {
