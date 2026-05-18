@@ -5,6 +5,17 @@
         <field name="model">purchase.order</field>
         <field name="inherit_id" ref="purchase.purchase_order_form"/>
         <field name="arch" type="xml">
+            <xpath expr="//header/button[@name='print_quotation'][1]" position="after">
+                <button
+                    name="action_pba_update_sale_prices"
+                    string="Actualizar precios de venta"
+                    type="object"
+                    class="btn-secondary"
+                    groups="pba_costs.group_pba_product_costs_tab"
+                    invisible="not order_line"
+                    confirm="¿Actualizar el precio de venta (PVP) en la ficha de los productos según las líneas de esta orden?"
+                />
+            </xpath>
             <xpath expr="//page[@name='products']//field[@name='order_line']/list/field[@name='discount']" position="after">
                 <field name="pba_cost_pba_currency_id" column_invisible="1" groups="pba_costs.group_pba_product_costs_tab"/>
                 <field name="pba_cost_freight_percent" optional="hide" widget="percentage" groups="pba_costs.group_pba_product_costs_tab"/>

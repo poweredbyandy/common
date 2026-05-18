@@ -371,6 +371,15 @@ class PurchaseOrderLine(models.Model):
             != 0
         )
 
+    def _pba_build_template_sale_price_vals_from_line(self):
+        self.ensure_one()
+        if self.display_type or not self.product_id:
+            return {}
+        digits = self._pba_price_precision_digits()
+        if float_compare(self.pba_sale_price_unit or 0.0, 0.0, precision_digits=digits) <= 0:
+            return {}
+        return {"list_price": self._pba_sale_price_for_template_list_price()}
+
     def _pba_build_template_sync_vals_from_line(self):
         self.ensure_one()
         if self.display_type or not self.product_id:
