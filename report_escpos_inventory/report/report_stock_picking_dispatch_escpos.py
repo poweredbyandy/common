@@ -10,7 +10,7 @@ LETTER_HEIGHT_IN = 11.0
 LETTER_MARGIN_TOP_IN = 0.5
 LETTER_MARGIN_BOTTOM_IN = 0.5
 MATRIX_LINE_SPACING_LPI = 6
-MATRIX_EXTRA_PRODUCT_LINES = 2
+MATRIX_EXTRA_PRODUCT_LINES = 3
 
 TABLE_HEADER_LINES = 2
 FOOTER_LINES_LAST = 5
@@ -294,7 +294,12 @@ class ReportStockPickingDispatchEscpos(models.AbstractModel):
         vend = (user.name if user else "-")[:14]
         if hasattr(picking, "sale_id") and picking.sale_id and picking.sale_id.user_id:
             vend = (picking.sale_id.user_id.name or vend)[:14]
-        l7 = ("RIF:%s  Vend:%s  Alb:%s" % (pv, vend, (picking.name or "")[:16]))[:w]
+        alb = (picking.name or "-")[:14]
+        if hasattr(picking, "sale_id") and picking.sale_id:
+            ped = (picking.sale_id.name or "-")[:14]
+        else:
+            ped = (picking.origin or "-")[:14]
+        l7 = ("RIF:%s  Vend:%s  Alb:%s  Ped:%s" % (pv, vend, alb, ped))[:w]
         lines = [l1, l2, l3, l4, l5, l6, l7]
         return nl.join(lines) + nl, len(lines)
 
