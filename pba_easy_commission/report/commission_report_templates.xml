@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="rpt_comm_pending">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="partner">
+                <t t-set="report" t-value="report_data.get(partner.id, {})"/>
+                <t t-set="invoices_data" t-value="report.get('invoices', [])"/>
+                <t t-call="web.external_layout" t-att-lang="report_lang">
+                    <div class="article o_report_layout_standard o_table_standard o_pba_comm_pending_report" style="font-size: 11px; line-height: 1.35; color: #212529;">
+                        <p style="margin: 0 0 8px; padding-bottom: 6px; border-bottom: 2px solid #714B67;">
+                            <strong style="color: #714B67; font-size: 14px;">Comisiones Pendientes</strong>
+                            <span style="color: #6c757d;"> · </span>
+                            <strong t-field="partner.name"/>
+                            <span style="color: #6c757d;"> · Fecha: <span t-esc="report_date"/></span>
+                        </p>
+
+                        <t t-if="not report.get('has_data')">
+                            <p style="margin: 0; color: #6c757d;">No hay comisiones pendientes para este vendedor.</p>
+                        </t>
+                        <t t-else="">
+                            <p style="margin: 0 0 6px;">
+                                <strong t-esc="report.get('invoice_count', 0)"/> factura(s) pendiente(s) de comisionar
+                            </p>
+                            <table class="table table-sm table-borderless o_main_table" style="width: 100%; border-collapse: collapse; font-size: 10px;">
+                                <thead>
+                                    <tr style="border-bottom: 1px solid #dee2e6; color: #6c757d;">
+                                        <th style="text-align: left; padding: 2px 8px 2px 0; font-weight: 600;">Factura</th>
+                                        <th style="text-align: left; padding: 2px 8px 2px 0; font-weight: 600;">Cliente</th>
+                                        <th style="text-align: right; padding: 2px 8px 2px 0; font-weight: 600;">Monto venta</th>
+                                        <th style="text-align: center; padding: 2px 8px 2px 0; font-weight: 600;">%</th>
+                                        <th style="text-align: left; padding: 2px 8px 2px 0; font-weight: 600;">Detalle</th>
+                                        <th style="text-align: right; padding: 2px 0; font-weight: 600;">Comisión</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <t t-foreach="invoices_data" t-as="inv_data">
+                                        <t t-if="not inv_data.get('lines')">
+                                            <tr style="border-bottom: 1px solid #f0f0f0;">
+                                                <td style="padding: 2px 8px 2px 0; vertical-align: top;"><strong t-esc="inv_data['name']"/></td>
+                                                <td style="padding: 2px 8px 2px 0; vertical-align: top;" t-esc="inv_data['partner']"/>
+                                                <td style="padding: 2px 8px 2px 0; text-align: right; white-space: nowrap; vertical-align: top;">
+                                                    <span t-esc="'{:,.2f}'.format(inv_data['sale_amount'])"/>
+                                                    <span t-esc="inv_data['sale_currency']"/>
+                                                </td>
+                                                <td style="padding: 2px 8px 2px 0; text-align: center; vertical-align: top;" t-esc="'%.2f' % inv_data['percent']"/>
+                                                <td style="padding: 2px 8px 2px 0; color: #6c757d; vertical-align: top;">—</td>
+                                                <td style="padding: 2px 0; text-align: right; white-space: nowrap; vertical-align: top;">
+                                                    <strong t-esc="'{:,.2f}'.format(inv_data['amount'])"/>
+                                                    <span t-esc="inv_data['currency']"/>
+                                                </td>
+                                            </tr>
+                                        </t>
+                                        <t t-else="">
+                                            <t t-foreach="inv_data['lines']" t-as="line">
+                                                <tr style="border-bottom: 1px solid #f0f0f0;">
+                                                    <td style="padding: 2px 8px 2px 0; vertical-align: top;">
+                                                        <strong t-if="line_index == 0" t-esc="inv_data['name']"/>
+                                                    </td>
+                                                    <td style="padding: 2px 8px 2px 0; vertical-align: top;">
+                                                        <span t-if="line_index == 0" t-esc="inv_data['partner']"/>
+                                                    </td>
+                                                    <td style="padding: 2px 8px 2px 0; text-align: right; white-space: nowrap; vertical-align: top;">
+                                                        <t t-if="line_index == 0">
+                                                            <span t-esc="'{:,.2f}'.format(inv_data['sale_amount'])"/>
+                                                            <span t-esc="inv_data['sale_currency']"/>
+                                                        </t>
+                                                    </td>
+                                                    <td style="padding: 2px 8px 2px 0; text-align: center; vertical-align: top;">
+                                                        <span t-if="line_index == 0" t-esc="'%.2f' % inv_data['percent']"/>
+                                                    </td>
+                                                    <td style="padding: 2px 8px 2px 0; color: #495057; vertical-align: top;" t-esc="line['description']"/>
+                                                    <td style="padding: 2px 0; text-align: right; white-space: nowrap; vertical-align: top;">
+                                                        <strong t-esc="'{:,.2f}'.format(line['commission_amount'])"/>
+                                                        <span style="color: #6c757d;" t-esc="line['currency']"/>
+                                                    </td>
+                                                </tr>
+                                            </t>
+                                        </t>
+                                    </t>
+                                </tbody>
+                            </table>
+                            <p style="margin: 6px 0 0; padding-top: 6px; border-top: 1px solid #714B67;">
+                                <strong>Total pendiente:</strong>
+                                <t t-foreach="report.get('totals', [])" t-as="total">
+                                    <span style="color: #714B67; font-weight: 700; margin-left: 8px;">
+                                        <span t-esc="'{:,.2f}'.format(total['amount'])"/>
+                                        <span t-esc="total['currency']"/>
+                                    </span>
+                                </t>
+                            </p>
+                        </t>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <template id="rpt_comm_voucher">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="bill">
+                <t t-set="voucher" t-value="report_data.get(bill.id, {})"/>
+                <t t-call="web.external_layout" t-att-lang="report_lang">
+                    <div class="article o_report_layout_standard o_table_standard o_pba_comm_voucher_report" style="font-size: 11px; line-height: 1.35; color: #212529;">
+                        <p style="margin: 0 0 8px; padding-bottom: 6px; border-bottom: 2px solid #714B67;">
+                            <strong style="color: #714B67; font-size: 14px;">Comprobante de Pago de Comisiones</strong>
+                            <span style="color: #6c757d;"> · </span>
+                            <strong t-esc="voucher.get('vendor_name')"/>
+                            <span style="color: #6c757d;"> · Vendedor: <span t-esc="voucher.get('seller')"/> · Fecha: <span t-esc="voucher.get('vendor_date')"/></span>
+                        </p>
+                        <p style="margin: 0 0 6px;">
+                            <strong>Total comprobante:</strong>
+                            <span style="color: #714B67; font-weight: 700;">
+                                <span t-esc="'{:,.2f}'.format(voucher.get('amount_total', 0.0))"/>
+                                <span t-esc="voucher.get('currency')"/>
+                            </span>
+                            <span style="color: #6c757d;"> · Estado de pago: <span t-esc="voucher.get('payment_state')"/></span>
+                        </p>
+
+                        <p style="margin: 8px 0 4px; font-weight: 600; color: #495057; font-size: 11px;">Facturas comisionadas</p>
+                        <table class="table table-sm table-borderless o_main_table" style="width: 100%; border-collapse: collapse; font-size: 10px;">
+                            <thead>
+                                <tr style="border-bottom: 1px solid #dee2e6; color: #6c757d;">
+                                    <th style="text-align: left; padding: 2px 8px 2px 0; font-weight: 600;">Factura</th>
+                                    <th style="text-align: left; padding: 2px 8px 2px 0; font-weight: 600;">Cliente</th>
+                                    <th style="text-align: center; padding: 2px 8px 2px 0; font-weight: 600;">%</th>
+                                    <th style="text-align: left; padding: 2px 8px 2px 0; font-weight: 600;">Detalle</th>
+                                    <th style="text-align: right; padding: 2px 0; font-weight: 600;">Comisión</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="voucher.get('invoices_data', [])" t-as="inv_data">
+                                    <t t-if="not inv_data.get('lines')">
+                                        <tr style="border-bottom: 1px solid #f0f0f0;">
+                                            <td style="padding: 2px 8px 2px 0;"><strong t-esc="inv_data.get('name')"/></td>
+                                            <td style="padding: 2px 8px 2px 0;" t-esc="inv_data.get('partner')"/>
+                                            <td style="padding: 2px 8px 2px 0; text-align: center;" t-esc="'%.2f' % inv_data.get('percent', 0.0)"/>
+                                            <td style="padding: 2px 8px 2px 0; color: #6c757d;">—</td>
+                                            <td style="padding: 2px 0; text-align: right; white-space: nowrap;">
+                                                <strong>
+                                                    <span t-esc="'{:,.2f}'.format(inv_data.get('subtotal', 0.0))"/>
+                                                    <span t-esc="inv_data.get('currency')"/>
+                                                </strong>
+                                            </td>
+                                        </tr>
+                                    </t>
+                                    <t t-else="">
+                                        <t t-foreach="inv_data.get('lines', [])" t-as="line">
+                                            <tr style="border-bottom: 1px solid #f0f0f0;">
+                                                <td style="padding: 2px 8px 2px 0;">
+                                                    <strong t-if="line_index == 0" t-esc="inv_data.get('name')"/>
+                                                </td>
+                                                <td style="padding: 2px 8px 2px 0;">
+                                                    <span t-if="line_index == 0" t-esc="inv_data.get('partner')"/>
+                                                </td>
+                                                <td style="padding: 2px 8px 2px 0; text-align: center;">
+                                                    <span t-if="line_index == 0" t-esc="'%.2f' % inv_data.get('percent', 0.0)"/>
+                                                </td>
+                                                <td style="padding: 2px 8px 2px 0; color: #495057;" t-esc="line.get('description')"/>
+                                                <td style="padding: 2px 0; text-align: right; white-space: nowrap;">
+                                                    <strong>
+                                                        <span t-esc="'{:,.2f}'.format(line.get('commission_amount', 0.0))"/>
+                                                        <span style="color: #6c757d;" t-esc="line.get('currency')"/>
+                                                    </strong>
+                                                </td>
+                                            </tr>
+                                        </t>
+                                    </t>
+                                </t>
+                            </tbody>
+                        </table>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

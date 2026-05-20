@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_report_commission_pending" model="ir.actions.report">
+        <field name="name">Comisiones Pendientes</field>
+        <field name="model">res.partner</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">pba_easy_commission.rpt_comm_pending</field>
+        <field name="report_file">pba_easy_commission.rpt_comm_pending</field>
+        <field name="print_report_name">'Comisiones_pendientes_%s' % (object.name or object.id)</field>
+    </record>
+
+    <record id="action_report_commission_payment_voucher" model="ir.actions.report">
+        <field name="name">Comprobante de Pago de Comisiones</field>
+        <field name="model">account.move</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">pba_easy_commission.rpt_comm_voucher</field>
+        <field name="report_file">pba_easy_commission.rpt_comm_voucher</field>
+        <field name="print_report_name">'Comprobante_comision_%s' % (object.name or object.id)</field>
+        <field name="binding_model_id" ref="account.model_account_move"/>
+        <field name="binding_type">report</field>
+    </record>
+</odoo>

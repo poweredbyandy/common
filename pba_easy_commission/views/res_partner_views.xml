@@ -5,11 +5,43 @@
         <field name="model">res.partner</field>
         <field name="inherit_id" ref="base.view_partner_form"/>
         <field name="arch" type="xml">
+            <xpath expr="//sheet" position="before">
+                <header invisible="not is_commission_seller">
+                    <button name="action_print_pending_commissions"
+                            string="Comisiones Pendientes"
+                            type="object"
+                            class="btn-secondary"
+                            groups="pba_easy_commission.group_commission_user"/>
+                    <button name="action_pay_pending_commissions"
+                            string="Pagar Comisiones"
+                            type="object"
+                            class="btn-primary"
+                            groups="pba_easy_commission.group_commission_user"/>
+                </header>
+            </xpath>
             <xpath expr="//notebook" position="inside">
-                <page string="Commission">
+                <page string="Commission" invisible="not is_commission_seller">
+                    <field name="is_commission_seller" invisible="1"/>
                     <group>
-                        <field name="commission_percent" groups="pba_easy_commission.group_commission_admin"/>
-                        <field name="commission_percent" groups="pba_easy_commission.group_commission_user" readonly="1"/>
+                        <label for="commission_percent" groups="pba_easy_commission.group_commission_admin"/>
+                        <div class="o_row" groups="pba_easy_commission.group_commission_admin">
+                            <field name="commission_percent"/>
+                            <button name="action_refresh_seller_pending_commissions"
+                                    string="Actualizar Comision"
+                                    type="object"
+                                    class="btn-link"
+                                    icon="fa-refresh"
+                                    groups="pba_easy_commission.group_commission_user"/>
+                        </div>
+                        <label for="commission_percent" groups="pba_easy_commission.group_commission_user"/>
+                        <div class="o_row" groups="pba_easy_commission.group_commission_user">
+                            <field name="commission_percent" readonly="1"/>
+                            <button name="action_refresh_seller_pending_commissions"
+                                    string="Actualizar Comision"
+                                    type="object"
+                                    class="btn-link"
+                                    icon="fa-refresh"/>
+                        </div>
                         <field name="commission_billing_periodicity" groups="pba_easy_commission.group_commission_admin"/>
                         <field name="commission_billing_periodicity" groups="pba_easy_commission.group_commission_user" readonly="1"/>
                         <field name="commission_billing_day"

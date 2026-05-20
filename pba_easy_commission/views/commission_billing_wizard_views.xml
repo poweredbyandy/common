@@ -4,14 +4,20 @@
         <field name="name">commission.billing.wizard.form</field>
         <field name="model">commission.billing.wizard</field>
         <field name="arch" type="xml">
-            <form string="Facturar Comisiones">
-                <group>
-                    <field name="invoice_ids" widget="many2many_tags" readonly="1"/>
-                    <field name="mode"/>
-                    <field name="currency_id" invisible="mode == 'standard'"/>
-                </group>
+            <form string="Pagar Comisiones">
+                <field name="partner_id" invisible="1"/>
+                <field name="invoice_ids" invisible="1"/>
+                <sheet>
+                    <field name="summary_html" nolabel="1" class="mb-2"/>
+                    <group class="mt-1">
+                        <group string="Opciones de facturacion">
+                            <field name="mode"/>
+                            <field name="currency_id" invisible="mode == 'standard'"/>
+                        </group>
+                    </group>
+                </sheet>
                 <footer>
-                    <button name="action_confirm" type="object" string="Crear Facturas" class="btn-primary"/>
+                    <button name="action_confirm" type="object" string="Facturar Comisiones" class="btn-primary"/>
                     <button string="Cancelar" special="cancel" class="btn-secondary"/>
                 </footer>
             </form>

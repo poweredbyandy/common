@@ -84,12 +84,26 @@ class AccountMoveCommissionLine(models.Model):
             if bool(line.payment_id) == bool(line.credit_note_move_id):
                 raise ValidationError(_('Cada linea de comision debe tener un pago o una nota de credito de ajuste, no ambos ni ninguno.'))
 
+    @api.model_create_multi
+    def create(self, vals_list):
+        lines = super().create(vals_list)
+        lines.invoice_id._recompute_seller_commission_pending_stats()
+        return lines
+
     def write(self, vals):
         if 'vendor_bill_id' in vals and not vals.get('vendor_bill_id'):
             vals['state'] = 'waiting'
         elif vals.get('vendor_bill_id') and 'state' not in vals:
             vals['state'] = 'invoiced'
-        return super().write(vals)
+        result = super().write(vals)
+        self.invoice_id._recompute_seller_commission_pending_stats()
+        return result
+
+    def unlink(self):
+        invoices = self.invoice_id
+        result = super().unlink()
+        invoices._recompute_seller_commission_pending_stats()
+        return result
 
 
 class AccountMove(models.Model):
@@ -130,8 +144,91 @@ class AccountMove(models.Model):
 
     _inherit = 'account.move'
 
+    def _recompute_seller_commission_pending_stats(self):
+        users = self.filtered(lambda move: move.move_type == 'out_invoice').mapped('invoice_user_id')
+        if users:
+            users._compute_commission_pending_stats()
+
+    @api.model
+    def _pba_commission_report_lang(self):
+        lang_model = self.env['res.lang'].sudo()
+        if lang_model.search([('code', '=', 'es_VE'), ('active', '=', True)], limit=1):
+            return 'es_VE'
+        for code in ('es_419', 'es_ES', 'es'):
+            if lang_model.search([('code', '=', code), ('active', '=', True)], limit=1):
+                return code
+        return self.env.user.lang or 'es_ES'
+
     def _commission_payment_states_allowed(self):
         return ('in_payment', 'paid', 'partial')
+
+    def _commission_report_payment_state_es(self, payment_state):
+        labels = {
+            'not_paid': 'Sin pagar',
+            'in_payment': 'En pago',
+            'paid': 'Pagado',
+            'partial': 'Pagado parcial',
+            'reversed': 'Revertido',
+            'blocked': 'Bloqueado',
+            'invoicing_legacy': 'Facturación heredada',
+        }
+        return labels.get(payment_state, payment_state or '')
+
+    def _format_commission_report_date_es(self, value):
+        if not value:
+            return ''
+        if isinstance(value, str):
+            value = fields.Date.from_string(value)
+        return value.strftime('%d/%m/%Y')
+
+    def _commission_report_line_description_es(self, invoice, line=None, prepared=None):
+        invoice_label = invoice.name or invoice.ref or str(invoice.id)
+        if line:
+            if line.credit_note_move_id:
+                nc = line.credit_note_move_id.name or line.credit_note_move_id.ref or line.credit_note_move_id.id
+                return (
+                    'Ajuste de comisión (%.2f%%) por nota de crédito %s sobre factura %s (base %s %s)'
+                    % (
+                        line.commission_percent,
+                        nc,
+                        invoice_label,
+                        line.payment_amount,
+                        line.currency_id.name,
+                    )
+                )
+            return (
+                'Comisión de %.2f%% sobre pago %s %s de factura %s'
+                % (
+                    line.commission_percent,
+                    line.payment_amount,
+                    line.currency_id.name,
+                    invoice_label,
+                )
+            )
+        if prepared:
+            if prepared.get('credit_note_move_id'):
+                nc_move = self.env['account.move'].browse(prepared['credit_note_move_id'])
+                nc = nc_move.name or nc_move.ref or nc_move.id
+                return (
+                    'Ajuste de comisión (%.2f%%) por nota de crédito %s sobre factura %s (base %s %s)'
+                    % (
+                        prepared['commission_percent'],
+                        nc,
+                        invoice_label,
+                        prepared['payment_amount'],
+                        self.env['res.currency'].browse(prepared['currency_id']).name,
+                    )
+                )
+            return (
+                'Comisión de %.2f%% sobre pago %s %s de factura %s'
+                % (
+                    prepared['commission_percent'],
+                    prepared['payment_amount'],
+                    self.env['res.currency'].browse(prepared['currency_id']).name,
+                    invoice_label,
+                )
+            )
+        return ''
 
     def _has_billed_commission_lines(self):
         self.ensure_one()
@@ -354,8 +451,48 @@ class AccountMove(models.Model):
             move.commission_line_ids.unlink()
             commands = [fields.Command.create(vals) for vals in payment_lines_data]
             move.commission_line_ids = commands
+        self._recompute_seller_commission_pending_stats()
+
+    def prepare_commission_preview_data(self):
+        self.ensure_one()
+        percent = self.commission_percent or self.invoice_user_id.partner_id.commission_percent
+        lines = self.commission_line_ids.filtered(
+            lambda line: line.state == 'waiting' and not line.vendor_bill_id
+        )
+        if lines:
+            line_data = [{
+                'description': self._commission_report_line_description_es(self, line=line),
+                'payment_amount': line.payment_amount,
+                'commission_amount': line.commission_amount,
+                'currency': line.currency_id.name,
+            } for line in lines]
+            amount = sum(lines.mapped('commission_amount'))
+            currency = lines[:1].currency_id.name if len(lines.currency_id) == 1 else self.currency_id.name
+        else:
+            prepared = self._prepare_commission_payment_lines_data()
+            line_data = [{
+                'description': self._commission_report_line_description_es(self, prepared=item),
+                'payment_amount': item['payment_amount'],
+                'commission_amount': item['commission_amount'],
+                'currency': self.env['res.currency'].browse(item['currency_id']).name,
+            } for item in prepared]
+            amount = sum(item['commission_amount'] for item in prepared)
+            currency = self.currency_id.name
+        return {
+            'name': self.name or self.ref or str(self.id),
+            'date': self._format_commission_report_date_es(self.invoice_date),
+            'partner': self.partner_id.with_context(lang=self.env['account.move']._pba_commission_report_lang()).display_name,
+            'sale_amount': self.amount_total,
+            'sale_currency': self.currency_id.name,
+            'percent': percent,
+            'amount': amount,
+            'currency': currency,
+            'payment_state': self._commission_report_payment_state_es(self.payment_state),
+            'lines': line_data,
+        }
 
     def action_open_commission_billing_wizard(self):
+        seller_partner = self.filtered(lambda m: m.move_type == 'out_invoice').invoice_user_id.partner_id[:1]
         return {
             'name': _('Facturar Comisiones'),
             'type': 'ir.actions.act_window',
@@ -364,6 +501,7 @@ class AccountMove(models.Model):
             'target': 'new',
             'context': {
                 'default_invoice_ids': self.ids,
+                'default_partner_id': seller_partner.id if seller_partner else False,
             },
         }
 
@@ -480,6 +618,7 @@ class AccountMove(models.Model):
         if not bills:
             raise UserError(_('No hay lineas de comision pendientes para facturar.'))
 
+        self._recompute_seller_commission_pending_stats()
         return {
             'name': _('Facturas de proveedor de comision'),
             'type': 'ir.actions.act_window',
@@ -503,6 +642,48 @@ class AccountMove(models.Model):
             'context': {'default_move_type': 'in_invoice'},
         }
 
+    def get_commission_payment_voucher_data(self):
+        self.ensure_one()
+        commission_lines = self.env['account.move.commission.line'].search([
+            ('vendor_bill_id', '=', self.id),
+        ], order='invoice_id, id')
+        invoices_data = []
+        for invoice in commission_lines.mapped('invoice_id'):
+            inv_lines = commission_lines.filtered(lambda line: line.invoice_id == invoice)
+            invoices_data.append({
+                'invoice': invoice,
+                'name': invoice.name or invoice.ref or str(invoice.id),
+                'partner': invoice.partner_id.with_context(
+                    lang=invoice.env['account.move']._pba_commission_report_lang()
+                ).display_name,
+                'date': invoice._format_commission_report_date_es(invoice.invoice_date),
+                'percent': invoice.commission_percent or invoice.invoice_user_id.partner_id.commission_percent,
+                'lines': [{
+                    'description': invoice._commission_report_line_description_es(invoice, line=line),
+                    'payment_amount': line.payment_amount,
+                    'commission_amount': line.commission_amount,
+                    'currency': line.currency_id.name,
+                } for line in inv_lines],
+                'subtotal': sum(inv_lines.mapped('commission_amount')),
+                'currency': inv_lines[:1].currency_id.name if len(inv_lines.currency_id) == 1 else self.currency_id.name,
+            })
+        return {
+            'vendor_bill': self,
+            'vendor_name': self.name or self.ref or str(self.id),
+            'vendor_date': self._format_commission_report_date_es(self.invoice_date),
+            'seller': self.partner_id.with_context(lang=self.env['account.move']._pba_commission_report_lang()).display_name,
+            'amount_total': self.amount_total,
+            'currency': self.currency_id.name,
+            'payment_state': self._commission_report_payment_state_es(self.payment_state),
+            'invoices_data': invoices_data,
+        }
+
+    def action_print_commission_payment_voucher(self):
+        bills = self.filtered(lambda move: move.is_commission_vendor_bill)
+        if not bills:
+            raise UserError(_('Solo se puede imprimir el comprobante en facturas de proveedor de comision.'))
+        return self.env.ref('pba_easy_commission.action_report_commission_payment_voucher').report_action(bills)
+
     def write(self, vals):
         if 'commission_percent' in vals and not self.env.user.has_group('pba_easy_commission.group_commission_admin'):
             invoices = self.filtered(lambda m: m.move_type == 'out_invoice')
@@ -517,6 +698,8 @@ class AccountMove(models.Model):
                     expected_state = 'paid' if line.vendor_bill_id.payment_state == 'paid' else 'invoiced'
                     if line.state != expected_state:
                         line.state = expected_state
+        if {'payment_state', 'state', 'commission_percent', 'invoice_user_id'} & set(vals):
+            self._recompute_seller_commission_pending_stats()
         return result
 
     def unlink(self):
