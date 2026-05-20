@@ -8,6 +8,27 @@ EVENT_TYPES_WITH_DELAY = {
     "quotation_no_followup",
 }
 
+EVENT_TYPES_WITH_CLEANUP = {
+    "overdue_invoice",
+    "draft_invoice_old",
+    "sale_confirmed_not_invoiced",
+    "quotation_no_followup",
+    "return_without_credit_note",
+    "sale_delivered_not_invoiced",
+}
+
+EVENT_TYPE_RES_MODEL = {
+    "overdue_invoice": "account.move",
+    "created_invoice": "account.move",
+    "credit_note": "account.move",
+    "draft_invoice_old": "account.move",
+    "return_picking": "stock.picking",
+    "return_without_credit_note": "stock.picking",
+    "sale_confirmed_not_invoiced": "sale.order",
+    "quotation_no_followup": "sale.order",
+    "sale_delivered_not_invoiced": "sale.order",
+}
+
 
 class PbaAlert(models.Model):
     _name = "pba.alert"
@@ -140,6 +161,58 @@ class PbaAlert(models.Model):
                 limit=1,
             )
         )
+
+    def _has_dismissal(self, record, user):
+        self.ensure_one()
+        if not record:
+            return False
+        return bool(
+            self.env["pba.alert.dismissal"].sudo().search_count(
+                [
+                    ("alert_id", "=", self.id),
+                    ("res_model", "=", record._name),
+                    ("res_id", "=", record.id),
+                    ("user_id", "=", user.id),
+                ],
+                limit=1,
+            )
+        )
+
+    def _register_dismissal(self, record, user):
+        self.ensure_one()
+        if not record or not user:
+            return
+        Dismissal = self.env["pba.alert.dismissal"].sudo()
+        if self._has_dismissal(record, user):
+            return
+        Dismissal.create(
+            {
+                "alert_id": self.id,
+                "res_model": record._name,
+                "res_id": record.id,
+                "user_id": user.id,
+            }
+        )
+
+    def _clear_stale_dismissals(self):
+        Dismissal = self.env["pba.alert.dismissal"].sudo()
+        for alert in self:
+            if alert.event_type not in EVENT_TYPES_WITH_CLEANUP:
+                continue
+            res_model = alert._get_event_res_model()
+            if not res_model:
+                continue
+            valid_ids = set(
+                alert._filter_records_by_company(alert._get_target_records()).ids
+            )
+            dismissals = Dismissal.search(
+                [
+                    ("alert_id", "=", alert.id),
+                    ("res_model", "=", res_model),
+                ]
+            )
+            stale = dismissals.filtered(lambda d: d.res_id not in valid_ids)
+            stale.unlink()
 
     def _get_delay_limit_datetime(self):
         self.ensure_one()
@@ -314,6 +387,33 @@ class PbaAlert(models.Model):
         crons.unlink()
         return res
 
+    def _get_event_res_model(self):
+        self.ensure_one()
+        return EVENT_TYPE_RES_MODEL.get(self.event_type)
+
+    def _clear_stale_activities(self):
+        Activity = self.env["mail.activity"].sudo()
+        for alert in self:
+            if alert.event_type not in EVENT_TYPES_WITH_CLEANUP:
+                continue
+            res_model = alert._get_event_res_model()
+            if not res_model or not alert.user_ids:
+                continue
+            summary = alert._activity_summary()
+            valid_ids = set(
+                alert._filter_records_by_company(alert._get_target_records()).ids
+            )
+            activities = Activity.search(
+                [
+                    ("res_model", "=", res_model),
+                    ("summary", "=", summary),
+                    ("user_id", "in", alert.user_ids.ids),
+                ]
+            )
+            stale = activities.filtered(lambda a: a.res_id not in valid_ids)
+            stale.unlink()
+        self._clear_stale_dismissals()
+
     def schedule_activities(self, records):
         created = 0
         for alert in self:
@@ -328,6 +428,8 @@ class PbaAlert(models.Model):
                 for user in alert.user_ids:
                     if alert._has_pending_activity(record, user, summary):
                         continue
+                    if alert._has_dismissal(record, user):
+                        continue
                     record.activity_schedule(
                         activity_type_id=activity_type.id,
                         user_id=user.id,
@@ -341,6 +443,7 @@ class PbaAlert(models.Model):
         for alert in self:
             if not alert.active or not alert.user_ids:
                 continue
+            alert._clear_stale_activities()
             alert.schedule_activities(alert._get_target_records())
             alert.with_context(pba_alerts_skip_cron_sync=True).write(
                 {"last_run": fields.Datetime.now()}
@@ -355,6 +458,8 @@ class PbaAlert(models.Model):
                 raise UserError(
                     _('Asigne al menos un usuario en la alerta "%s".') % alert.name
                 )
+        for alert in alerts:
+            alert._clear_stale_activities()
         total = sum(alert.schedule_activities(alert._get_target_records()) for alert in alerts)
         alerts.with_context(pba_alerts_skip_cron_sync=True).write(
             {"last_run": fields.Datetime.now()}

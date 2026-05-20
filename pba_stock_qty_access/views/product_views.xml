@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="product_product_stock_tree_pba_qty_access" model="ir.ui.view">
+        <field name="name">product.product.stock.list.pba.qty.access</field>
+        <field name="model">product.product</field>
+        <field name="inherit_id" ref="stock.product_product_stock_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@icon='fa-pencil']" position="attributes">
+                <attribute name="groups">pba_stock_qty_access.group_pba_stock_qty_adjust</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>

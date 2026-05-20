@@ -1,7 +1,7 @@
 {
     "name": "PBA Alertas",
     "icon": "/pba_alerts/static/description/icon.png",
-    "version": "18.0.1.0.3",
+    "version": "18.0.1.0.5",
     "post_init_hook": "post_init_hook",
     "summary": "Actividades automáticas por sucesos de ventas, facturación e inventario",
     "category": "Productivity",
