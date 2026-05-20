@@ -50,13 +50,37 @@
         </field>
     </record>
 
+    <record id="view_move_search_customer_commissions" model="ir.ui.view">
+        <field name="name">account.move.search.customer.commissions</field>
+        <field name="model">account.move</field>
+        <field name="arch" type="xml">
+            <search string="Comisiones">
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="invoice_user_id"/>
+                <filter string="Disponible para comisionar"
+                        name="filter_commission_available"
+                        domain="[('commission_available', '=', True)]"/>
+                <separator/>
+                <filter string="Vendedor"
+                        name="group_by_invoice_user"
+                        context="{'group_by': 'invoice_user_id'}"/>
+            </search>
+        </field>
+    </record>
+
     <record id="action_customer_commissions" model="ir.actions.act_window">
         <field name="name">Comisiones</field>
         <field name="res_model">account.move</field>
         <field name="view_mode">list,form</field>
         <field name="view_id" ref="pba_easy_commission.view_move_tree_customer_commissions"/>
+        <field name="search_view_id" ref="pba_easy_commission.view_move_search_customer_commissions"/>
         <field name="domain">[('move_type', '=', 'out_invoice'), ('state', '=', 'posted'), ('payment_state', 'in', ('paid', 'partial', 'in_payment'))]</field>
-        <field name="context">{'default_move_type': 'out_invoice'}</field>
+        <field name="context">{
+            'default_move_type': 'out_invoice',
+            'search_default_filter_commission_available': 1,
+            'search_default_group_by_invoice_user': 1,
+        }</field>
     </record>
 
     <menuitem id="menu_customer_commissions"

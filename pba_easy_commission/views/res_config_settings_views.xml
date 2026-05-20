@@ -10,6 +10,9 @@
                     <setting id="commission_product_setting" help="Producto usado para facturas de proveedor de comision.">
                         <field name="commission_product_id"/>
                     </setting>
+                    <setting id="commission_journal_setting" help="Diario usado por defecto al crear facturas de proveedor de comision a vendedores.">
+                        <field name="commission_journal_id"/>
+                    </setting>
                     <setting id="commission_excluded_journals_setting" help="Pagos en estos diarios no se tomaran en cuenta para calcular comisiones.">
                         <field name="commission_excluded_journal_ids" widget="many2many_tags"/>
                     </setting>

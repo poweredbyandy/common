@@ -15,3 +15,9 @@ class ResCompany(models.Model):
         string='Diarios Excluidos para Comisiones',
         tracking=True,
     )
+    commission_journal_id = fields.Many2one(
+        comodel_name='account.journal',
+        string='Diario de Comisiones',
+        tracking=True,
+        domain="[('type', '=', 'purchase'), ('company_id', '=', company_id)]",
+    )

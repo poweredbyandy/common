@@ -254,6 +254,12 @@ class AccountMove(models.Model):
         string='Comisiones Facturadas',
         compute='_compute_commission_vendor_bill_count',
     )
+    commission_available = fields.Boolean(
+        string='Disponible para comisionar',
+        compute='_compute_commission_available',
+        store=True,
+        index=True,
+    )
 
     @api.onchange('invoice_user_id')
     def _onchange_invoice_user_id_commission_percent(self):
@@ -287,6 +293,37 @@ class AccountMove(models.Model):
                 move.commission_state = 'invoiced'
             else:
                 move.commission_state = 'waiting'
+
+    @api.depends(
+        'move_type',
+        'state',
+        'payment_state',
+        'commission_percent',
+        'invoice_user_id',
+        'invoice_user_id.partner_id.commission_percent',
+        'commission_line_ids.state',
+        'commission_line_ids.vendor_bill_id',
+        'commission_amount_total',
+    )
+    def _compute_commission_available(self):
+        allowed_states = self._commission_payment_states_allowed()
+        for move in self:
+            available = False
+            if (
+                move.move_type == 'out_invoice'
+                and move.state == 'posted'
+                and move.payment_state in allowed_states
+            ):
+                percent = move.commission_percent or move.invoice_user_id.partner_id.commission_percent
+                if percent > 0:
+                    waiting_lines = move.commission_line_ids.filtered(
+                        lambda line: line.state == 'waiting' and not line.vendor_bill_id
+                    )
+                    if waiting_lines:
+                        available = True
+                    elif not move.commission_line_ids and move.commission_amount_total > 0:
+                        available = True
+            move.commission_available = available
 
     @api.depends('commission_line_ids.vendor_bill_id', 'move_type')
     def _compute_commission_vendor_bill_count(self):
@@ -424,6 +461,7 @@ class AccountMove(models.Model):
                     'price_unit': item['amount'],
                 }))
 
+            company = source_invoices[:1].company_id if source_invoices else self.env.company
             bill_vals = {
                 'move_type': 'in_invoice',
                 'partner_id': payload['partner'].id,
@@ -433,6 +471,8 @@ class AccountMove(models.Model):
                 'is_commission_vendor_bill': True,
                 'commission_source_invoice_id': source_invoices[:1].id if source_invoices else False,
             }
+            if company.commission_journal_id:
+                bill_vals['journal_id'] = company.commission_journal_id.id
             bill = self.env['account.move'].create(bill_vals)
             bills |= bill
             line_group.write({'vendor_bill_id': bill.id, 'state': 'invoiced'})

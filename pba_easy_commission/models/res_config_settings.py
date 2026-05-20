@@ -12,3 +12,7 @@ class ResConfigSettings(models.TransientModel):
         related='company_id.commission_excluded_journal_ids',
         readonly=False,
     )
+    commission_journal_id = fields.Many2one(
+        related='company_id.commission_journal_id',
+        readonly=False,
+    )
