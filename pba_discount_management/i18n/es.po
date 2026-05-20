@@ -1,0 +1,93 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* pba_discount_management
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-05-20 12:00+0000\n"
+"PO-Revision-Date: 2026-05-20 12:00+0000\n"
+"Last-Translator: andyengit\n"
+"Language-Team: Spanish\n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n == 1) ? 0 : ((n != 0 && n % 1000000 == 0) ? 1 : 2);\n"
+
+#. module: pba_discount_management
+#. odoo-python
+#: code:addons/pba_discount_management/models/pba_discount_policy.py:0
+msgid ""
+"Only one discount line is allowed per sales order or invoice. "
+"Remove the extra discount lines before continuing."
+msgstr ""
+"Solo se permite una línea de descuento por pedido de venta o factura. "
+"Elimine las líneas de descuento adicionales antes de continuar."
+
+#. module: pba_discount_management
+#. odoo-python
+#: code:addons/pba_discount_management/models/pba_discount_policy.py:0
+msgid ""
+"The discount (%(value)s%%) exceeds the allowed maximum (%(limit)s%%) for this "
+"company or customer."
+msgstr ""
+"El descuento (%(value)s%%) supera el máximo permitido (%(limit)s%%) para "
+"esta compañía o cliente."
+
+#. module: pba_discount_management
+#. odoo-python
+#: code:addons/pba_discount_management/models/pba_discount_policy.py:0
+msgid ""
+"You are not allowed to use the order discount wizard. Ask an administrator "
+"to grant global discount rights on sales and invoices."
+msgstr ""
+"No tiene permiso para usar el asistente de descuento del pedido. Solicite "
+"a un administrador que le otorgue permisos de descuento global en ventas y "
+"facturas."
+
+#. module: pba_discount_management
+#. odoo-python
+#: code:addons/pba_discount_management/models/sale_order_line.py:0
+msgid "Per-line discounts are disabled. Use the order discount wizard instead."
+msgstr "Los descuentos por línea están deshabilitados. Use el asistente de descuento del pedido."
+
+#. module: pba_discount_management
+#. odoo-python
+#: code:addons/pba_discount_management/models/account_move_line.py:0
+msgid ""
+"Per-line discounts are disabled on customer invoices and receipts."
+msgstr ""
+"Los descuentos por línea están deshabilitados en facturas y recibos de "
+"cliente."
+
+#. module: pba_discount_management
+#. odoo-python
+#: code:addons/pba_discount_management/models/sale_order_discount.py:0
+msgid "Invalid discount amount"
+msgstr "Monto de descuento no válido"
+
+#. module: pba_discount_management
+#. odoo-python
+#: code:addons/pba_discount_management/models/sale_order_discount.py:0
+msgid "This discount mode is not available."
+msgstr "Este modo de descuento no está disponible."
+
+#. module: pba_discount_management
+#. odoo-python
+#: code:addons/pba_discount_management/models/sale_order_discount.py:0
+msgid "The fixed discount exceeds the order total."
+msgstr "El descuento fijo supera el total del pedido."
+
+#. module: pba_discount_management
+#. odoo-python
+#: code:addons/pba_discount_management/models/sale_order_discount.py:0
+msgid "Discount"
+msgstr "Descuento"
+
+#. module: pba_discount_management
+#. odoo-python
+#: code:addons/pba_discount_management/models/sale_order_discount.py:0
+msgid "Discount %(percent)s%%"
+msgstr "Descuento %(percent)s%%"

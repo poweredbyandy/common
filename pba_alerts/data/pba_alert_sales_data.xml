@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="pba_alert_draft_invoice_old" model="pba.alert">
+        <field name="name">Facturas en borrador antiguas</field>
+        <field name="sequence">40</field>
+        <field name="event_type">draft_invoice_old</field>
+        <field name="delay_days">7</field>
+        <field name="schedule_enabled" eval="True"/>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="summary">Factura en borrador antigua: publicar o cancelar</field>
+        <field name="note"><![CDATA[
+<p>Existe una factura de cliente en borrador con más de 7 días sin publicarse. Revise el documento y confírmelo o cancélelo.</p>
+        ]]></field>
+        <field name="activity_type_id" ref="mail.mail_activity_data_todo"/>
+    </record>
+
+    <record id="pba_alert_sale_confirmed_not_invoiced" model="pba.alert">
+        <field name="name">Pedido confirmado sin facturar</field>
+        <field name="sequence">50</field>
+        <field name="event_type">sale_confirmed_not_invoiced</field>
+        <field name="schedule_enabled" eval="True"/>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="summary">Pedido confirmado pendiente de facturar</field>
+        <field name="note"><![CDATA[
+<p>Hay un pedido de venta confirmado con saldo pendiente de facturar. Revise el pedido y genere la factura correspondiente.</p>
+        ]]></field>
+        <field name="activity_type_id" ref="mail.mail_activity_data_todo"/>
+    </record>
+
+    <record id="pba_alert_quotation_no_followup" model="pba.alert">
+        <field name="name">Cotización sin seguimiento</field>
+        <field name="sequence">60</field>
+        <field name="event_type">quotation_no_followup</field>
+        <field name="delay_days">7</field>
+        <field name="schedule_enabled" eval="True"/>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="summary">Cotización sin seguimiento reciente</field>
+        <field name="note"><![CDATA[
+<p>Hay una cotización en borrador o enviada sin actualizaciones recientes. Contacte al cliente o cierre el presupuesto.</p>
+        ]]></field>
+        <field name="activity_type_id" ref="mail.mail_activity_data_todo"/>
+    </record>
+
+    <record id="pba_alert_return_without_credit_note" model="pba.alert">
+        <field name="name">Devolución sin nota de crédito</field>
+        <field name="sequence">70</field>
+        <field name="event_type">return_without_credit_note</field>
+        <field name="schedule_enabled" eval="True"/>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="summary">Devolución sin nota de crédito publicada</field>
+        <field name="note"><![CDATA[
+<p>Se validó una devolución vinculada a un pedido de venta sin nota de crédito publicada. Revise el albarán y emita la nota de crédito.</p>
+        ]]></field>
+        <field name="activity_type_id" ref="mail.mail_activity_data_todo"/>
+    </record>
+
+    <record id="pba_alert_sale_delivered_not_invoiced" model="pba.alert">
+        <field name="name">Pedido entregado sin facturar</field>
+        <field name="sequence">80</field>
+        <field name="event_type">sale_delivered_not_invoiced</field>
+        <field name="schedule_enabled" eval="True"/>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="summary">Pedido entregado pendiente de facturar</field>
+        <field name="note"><![CDATA[
+<p>Hay un pedido de venta totalmente entregado al cliente con saldo pendiente de facturar. Revise el pedido y facture lo entregado.</p>
+        ]]></field>
+        <field name="activity_type_id" ref="mail.mail_activity_data_todo"/>
+    </record>
+</odoo>

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_order_form_overdue_invoice_warning" model="ir.ui.view">
+        <field name="name">sale.order.form.overdue.invoice.warning</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@role='alert'][field[@name='partner_credit_warning']]" position="after">
+                <div
+                    class="alert alert-warning d-flex align-items-center gap-2 mb-0"
+                    role="alert"
+                    invisible="not pba_overdue_invoice_warning"
+                >
+                    <field name="pba_has_overdue_invoices" invisible="1"/>
+                    <field name="pba_overdue_invoice_warning" class="flex-grow-1 mb-0"/>
+                    <button
+                        name="action_pba_open_overdue_invoices"
+                        type="object"
+                        string="Ver facturas vencidas"
+                        class="btn btn-link flex-shrink-0"
+                        groups="account.group_account_invoice"
+                        invisible="not pba_has_overdue_invoices"
+                    />
+                </div>
+            </xpath>
+        </field>
+    </record>
+</odoo>

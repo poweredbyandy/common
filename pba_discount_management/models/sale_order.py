@@ -5,6 +5,13 @@ from odoo.tools.float_utils import float_is_zero
 class SaleOrder(models.Model):
     _inherit = "sale.order"
 
+    @api.constrains("order_line", "order_line.product_id")
+    def _pba_check_single_discount_line(self):
+        policy = self.env["pba.discount.policy"]
+        for order in self:
+            discount_lines = order.order_line.filtered(lambda line: line._is_discount_line())
+            policy._pba_raise_if_multiple_discount_lines(len(discount_lines))
+
     pba_document_discount_percent = fields.Float(
         string="% Descuento (documento)",
         compute="_compute_pba_document_discount_percent",

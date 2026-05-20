@@ -1,11 +1,20 @@
 from odoo import _, models
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError, ValidationError
 from odoo.tools.float_utils import float_compare
 
 
 class PbaDiscountPolicy(models.AbstractModel):
     _name = "pba.discount.policy"
     _description = "Discount limits policy"
+
+    def _pba_raise_if_multiple_discount_lines(self, discount_line_count):
+        if discount_line_count > 1:
+            raise ValidationError(
+                _(
+                    "Only one discount line is allowed per sales order or invoice. "
+                    "Remove the extra discount lines before continuing."
+                )
+            )
 
     def _pba_has_unlimited_discount(self):
         return self.env.user.has_group(

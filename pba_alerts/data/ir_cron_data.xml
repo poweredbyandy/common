@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <delete model="ir.cron" id="ir_cron_pba_alert_overdue_invoices"/>
+</odoo>

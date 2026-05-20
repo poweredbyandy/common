@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="pba_alert_created_invoice" model="pba.alert">
+        <field name="name">Facturas creadas</field>
+        <field name="sequence">15</field>
+        <field name="event_type">created_invoice</field>
+        <field name="schedule_enabled" eval="False"/>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="summary">Nueva factura de cliente publicada</field>
+        <field name="note"><![CDATA[
+<p>Se publicó una factura de cliente. Revise el documento y su información.</p>
+        ]]></field>
+        <field name="activity_type_id" ref="mail.mail_activity_data_todo"/>
+    </record>
+</odoo>

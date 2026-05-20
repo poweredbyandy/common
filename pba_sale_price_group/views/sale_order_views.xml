@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="sale_order_view_form_pba_sale_price" model="ir.ui.view">
+        <field name="name">sale.order.form.pba.sale.price</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="priority" eval="99"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='order_line']/list" position="inside">
+                <field name="pba_sale_price_editable" column_invisible="1"/>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/list/field[@name='price_unit']" position="attributes">
+                <attribute name="readonly">not pba_sale_price_editable or qty_invoiced &gt; 0</attribute>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/list/field[@name='technical_price_unit']" position="attributes">
+                <attribute name="readonly">not pba_sale_price_editable</attribute>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/form/field[@name='technical_price_unit']" position="after">
+                <field name="pba_sale_price_editable" invisible="1"/>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/form//field[@name='price_unit']" position="attributes">
+                <attribute name="readonly">not pba_sale_price_editable</attribute>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/form/field[@name='technical_price_unit']" position="attributes">
+                <attribute name="readonly">not pba_sale_price_editable</attribute>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/kanban" position="inside">
+                <field name="pba_sale_price_editable" invisible="1"/>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/kanban//field[@name='price_unit']" position="attributes">
+                <attribute name="readonly">not pba_sale_price_editable</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="sale_order_line_view_form_pba_sale_price" model="ir.ui.view">
+        <field name="name">sale.order.line.form.pba.sale.price</field>
+        <field name="model">sale.order.line</field>
+        <field name="inherit_id" ref="sale.sale_order_line_view_form_readonly"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='price_unit']" position="before">
+                <field name="pba_sale_price_editable" invisible="1"/>
+            </xpath>
+            <xpath expr="//field[@name='price_unit']" position="attributes">
+                <attribute name="readonly">not pba_sale_price_editable</attribute>
+            </xpath>
+            <xpath expr="//field[@name='technical_price_unit']" position="attributes">
+                <attribute name="readonly">not pba_sale_price_editable</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>

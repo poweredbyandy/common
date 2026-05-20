@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem
+        id="menu_pba_alerts_root"
+        name="Alertas"
+        sequence="55"
+        web_icon="pba_alerts,static/description/icon.png"
+        groups="base.group_user"/>
+    <menuitem
+        id="menu_pba_alerts_config"
+        name="Configuración de alertas"
+        parent="menu_pba_alerts_root"
+        action="action_pba_alert"
+        sequence="10"
+        groups="base.group_user"/>
+</odoo>

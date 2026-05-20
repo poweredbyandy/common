@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="pba_alert_overdue_invoice" model="pba.alert">
+        <field name="name">Facturas vencidas</field>
+        <field name="sequence">10</field>
+        <field name="event_type">overdue_invoice</field>
+        <field name="schedule_enabled" eval="True"/>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="summary">Factura vencida: revisar cobro</field>
+        <field name="note"><![CDATA[
+<p>Existe una factura de cliente vencida sin cobrar. Revise el documento y gestione el cobro.</p>
+        ]]></field>
+        <field name="activity_type_id" ref="mail.mail_activity_data_todo"/>
+    </record>
+
+    <record id="pba_alert_created_invoice" model="pba.alert">
+        <field name="name">Facturas creadas</field>
+        <field name="sequence">15</field>
+        <field name="event_type">created_invoice</field>
+        <field name="schedule_enabled" eval="False"/>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="summary">Nueva factura de cliente publicada</field>
+        <field name="note"><![CDATA[
+<p>Se publicó una factura de cliente. Revise el documento y su información.</p>
+        ]]></field>
+        <field name="activity_type_id" ref="mail.mail_activity_data_todo"/>
+    </record>
+
+    <record id="pba_alert_credit_note" model="pba.alert">
+        <field name="name">Notas de crédito</field>
+        <field name="sequence">20</field>
+        <field name="event_type">credit_note</field>
+        <field name="schedule_enabled" eval="False"/>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="summary">Nueva nota de crédito publicada</field>
+        <field name="note"><![CDATA[
+<p>Se publicó una nota de crédito. Revise el documento y su impacto contable.</p>
+        ]]></field>
+        <field name="activity_type_id" ref="mail.mail_activity_data_todo"/>
+    </record>
+
+    <record id="pba_alert_return_picking" model="pba.alert">
+        <field name="name">Devoluciones</field>
+        <field name="sequence">30</field>
+        <field name="event_type">return_picking</field>
+        <field name="schedule_enabled" eval="False"/>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="summary">Devolución de inventario procesada</field>
+        <field name="note"><![CDATA[
+<p>Se validó una devolución de inventario. Revise el albarán y el stock afectado.</p>
+        ]]></field>
+        <field name="activity_type_id" ref="mail.mail_activity_data_todo"/>
+    </record>
+</odoo>
