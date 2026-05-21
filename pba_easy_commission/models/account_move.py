@@ -147,7 +147,7 @@ class AccountMove(models.Model):
     def _recompute_seller_commission_pending_stats(self):
         users = self.filtered(lambda move: move.move_type == 'out_invoice').mapped('invoice_user_id')
         if users:
-            users._compute_commission_pending_stats()
+            users.sudo()._compute_commission_pending_stats()
 
     @api.model
     def _pba_commission_report_lang(self):

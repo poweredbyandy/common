@@ -39,7 +39,7 @@ class ResUsers(models.Model):
     def init_commission_pending_stats(self):
         sellers = self.sudo().search([('share', '=', False)])
         if sellers:
-            sellers._compute_commission_pending_stats()
+            sellers.sudo()._compute_commission_pending_stats()
 
     @api.depends('active', 'share')
     def _compute_commission_pending_stats(self):
