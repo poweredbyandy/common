@@ -37,6 +37,10 @@ QR_MIN_SIDE = 260
 QR_MAX_SIDE_CAP = 480
 FONT2_CHAR_DOTS = 10
 RIGHT_MARGIN = 8
+INV_SALE_X = 380
+INV_SALE_MAX_CHARS = 42
+INV_Y = 34
+SALE_ORDER_Y = 58
 
 
 def _epl_ascii(value, max_len=200):
@@ -173,6 +177,12 @@ class ReportPickingEpl(models.AbstractModel):
         return picking.origin or ""
 
     @api.model
+    def _sale_order_ref(self, picking):
+        if "sale_id" in picking._fields and picking.sale_id:
+            return picking.sale_id.name or picking.sale_id.display_name or ""
+        return ""
+
+    @api.model
     def _company_header_lines(self, company, company_p):
         l1 = _epl_field(company_p.street or "-", "-")[:52]
         sub = " ".join(
@@ -200,7 +210,8 @@ class ReportPickingEpl(models.AbstractModel):
         com_vat = _epl_field(company_p.vat or company.vat or "-")
         com_name = _epl_field(company.name or company_p.name or "-")[:52]
         print_dt = self._print_datetime_str()
-        inv = _epl_field(self._invoice_ref(picking), "-")[:40]
+        inv = _epl_field(self._invoice_ref(picking), "-")[:INV_SALE_MAX_CHARS]
+        sale = _epl_field(self._sale_order_ref(picking), "-")[:INV_SALE_MAX_CHARS]
         layout = self._layout_company_block(company, company_p, for_text_report=True)
         y_client = layout["y_addr"] + 88
         max_c_lines = self._max_client_name_lines(y_client)
@@ -215,6 +226,7 @@ class ReportPickingEpl(models.AbstractModel):
             com_vat,
             print_dt,
             inv,
+            sale,
             l1,
             l2,
             l3,
@@ -440,10 +452,14 @@ class ReportPickingEpl(models.AbstractModel):
         com_n1, com_n2 = self._split_company_display_name(company, company_p)
         l1, l2, l3 = self._company_header_lines(company, company_p)
         print_dt = _epl_field(self._print_datetime_str(), "-")[:22]
-        inv = _epl_field(self._invoice_ref(picking), "-")[:24]
+        inv = _epl_field(self._invoice_ref(picking), "-")[:INV_SALE_MAX_CHARS]
+        sale = _epl_field(self._sale_order_ref(picking), "-")[:INV_SALE_MAX_CHARS]
         min_rx = max(20, tx + 10)
         x_dt, t_dt = self._epl_right_align_x(print_dt, FONT2_CHAR_DOTS, min_rx)
-        x_inv, t_inv = self._epl_right_align_x(inv, FONT2_CHAR_DOTS, min_rx)
+        x_inv = max(min_rx, INV_SALE_X)
+        t_inv = inv
+        x_so = x_inv
+        t_so = sale
         pvat = _epl_field(partner.vat or "-", "-")[:36]
         d1, d2 = self._partner_dest_lines(partner)
         tel = _epl_field(partner.phone or partner.mobile or "-", "-")[:36]
@@ -464,7 +480,8 @@ class ReportPickingEpl(models.AbstractModel):
             [
                 f'A{tx},{ty_vat},0,2,1,1,N,"{com_vat}"',
                 f'A{x_dt},10,0,2,1,1,N,"{t_dt}"',
-                f'A{x_inv},34,0,2,1,1,N,"{t_inv}"',
+                f'A{x_inv},{INV_Y},0,2,1,1,N,"{t_inv}"',
+                f'A{x_so},{SALE_ORDER_Y},0,2,1,1,N,"{t_so}"',
                 f'A{self._epl_center_x(l1)},{y_addr},0,2,1,1,N,"{l1}"',
                 f'A{self._epl_center_x(l2)},{y_addr + 24},0,2,1,1,N,"{l2}"',
                 f'A{self._epl_center_x(l3)},{y_addr + 48},0,2,1,1,N,"{l3}"',
