@@ -10,19 +10,19 @@
                 <field name="pba_sale_price_editable" column_invisible="1"/>
             </xpath>
             <xpath expr="//field[@name='invoice_line_ids']/list/field[@name='price_unit']" position="attributes">
-                <attribute name="readonly">parent.move_type in ('in_invoice', 'in_refund', 'in_receipt') or not pba_sale_price_editable</attribute>
+                <attribute name="readonly">parent.move_type in ('out_invoice', 'out_refund', 'out_receipt') and not pba_sale_price_editable</attribute>
             </xpath>
             <xpath expr="//field[@name='invoice_line_ids']/kanban" position="inside">
                 <field name="pba_sale_price_editable" invisible="1"/>
             </xpath>
             <xpath expr="//field[@name='invoice_line_ids']/kanban//field[@name='price_unit']" position="attributes">
-                <attribute name="readonly">move_type in ('in_invoice', 'in_refund', 'in_receipt') or not pba_sale_price_editable</attribute>
+                <attribute name="readonly">move_type in ('out_invoice', 'out_refund', 'out_receipt') and not pba_sale_price_editable</attribute>
             </xpath>
             <xpath expr="//field[@name='invoice_line_ids']/form//field[@name='price_unit']" position="before">
                 <field name="pba_sale_price_editable" invisible="1"/>
             </xpath>
             <xpath expr="//field[@name='invoice_line_ids']/form//field[@name='price_unit']" position="attributes">
-                <attribute name="readonly">parent.move_type in ('in_invoice', 'in_refund', 'in_receipt') or not pba_sale_price_editable</attribute>
+                <attribute name="readonly">parent.move_type in ('out_invoice', 'out_refund', 'out_receipt') and not pba_sale_price_editable</attribute>
             </xpath>
         </field>
     </record>
