@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="mail_gateway_form_view_pba_templates" model="ir.ui.view">
+        <field name="name">mail.gateway.form.pba.templates</field>
+        <field name="model">mail.gateway</field>
+        <field name="inherit_id" ref="mail_gateway_whatsapp.mail_gateway_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header/button[@name='button_import_whatsapp_template']" position="after">
+                <button
+                    type="object"
+                    name="button_pba_create_whatsapp_templates"
+                    string="Crear plantillas PBA"
+                    invisible="gateway_type != 'whatsapp'"
+                    icon="fa-file-text-o"
+                />
+            </xpath>
+        </field>
+    </record>
+</odoo>
