@@ -10,20 +10,18 @@
                 class="o-mail-Chatter-whatsapp btn text-nowrap me-1"
                 type="button"
                 t-att-class="{
-                    'btn-secondary': true,
+                    'btn-primary active': state.composerType === 'gateway',
+                    'btn-secondary': state.composerType !== 'gateway',
                     'my-2': !props.compactHeight
                 }"
                 t-att-disabled="!state.thread.canPostMessage and props.threadId"
-                t-on-click="onClickWhatsapp"
+                t-on-click="() => this.toggleComposer('gateway')"
+                data-hotkey="shift+w"
                 title="WhatsApp"
             >
                 <i class="fa fa-whatsapp text-success" role="img" aria-label="WhatsApp"/>
                 <span> WhatsApp</span>
             </button>
         </xpath>
-        <xpath
-            expr="//t[@t-if=&quot;state.composerType === 'gateway' and state.thread.gateway_followers.length&quot;]"
-            position="replace"
-        />
     </t>
 </templates>
