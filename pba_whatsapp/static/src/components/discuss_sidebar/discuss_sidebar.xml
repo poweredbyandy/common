@@ -18,6 +18,12 @@
                 >
                     Atiende: <t t-esc="thread.operator.name"/>
                 </span>
+                <span
+                    t-if="thread.channel_type === 'gateway' and thread.crm_seller"
+                    class="o-xsmaller text-muted text-truncate"
+                >
+                    Vendedor CRM: <t t-esc="thread.crm_seller.name"/>
+                </span>
             </div>
         </xpath>
     </t>

@@ -7,5 +7,8 @@ patch(Thread.prototype, {
         if (this.channel_type === "gateway" && "operator" in data) {
             this.operator = data.operator;
         }
+        if (this.channel_type === "gateway" && "crm_seller" in data) {
+            this.crm_seller = data.crm_seller;
+        }
     },
 });
