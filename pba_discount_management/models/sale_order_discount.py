@@ -23,6 +23,14 @@ class SaleOrderDiscount(models.TransientModel):
             if wizard.discount_type == "so_discount" and wizard.discount_percentage > 1.0:
                 raise ValidationError(_("Invalid discount amount"))
 
+    def _pba_get_global_discount_line_description(self, discount_percentage):
+        self.ensure_one()
+        discount_dp = self.env["decimal.precision"].precision_get("Discount")
+        return _(
+            "%(percent)s%%",
+            percent=float_repr(discount_percentage * 100, discount_dp),
+        )
+
     def _pba_get_fixed_discount_ratio(self):
         self.ensure_one()
         order = self.sale_order_id
@@ -82,7 +90,6 @@ class SaleOrderDiscount(models.TransientModel):
         if not total_price_per_tax_groups:
             return self.env["sale.order.line"]
 
-        discount_dp = self.env["decimal.precision"].precision_get("Discount")
         total_amount = sum(
             subtotal * discount_percentage for subtotal in total_price_per_tax_groups.values()
         )
@@ -90,13 +97,7 @@ class SaleOrderDiscount(models.TransientModel):
         for tax_group in total_price_per_tax_groups:
             taxes |= tax_group
 
-        if self.discount_type == "amount":
-            description = _("Discount")
-        else:
-            description = _(
-                "Discount %(percent)s%%",
-                percent=float_repr(discount_percentage * 100, discount_dp),
-            )
+        description = self._pba_get_global_discount_line_description(discount_percentage)
 
         return self.env["sale.order.line"].create(
             [
