@@ -14,3 +14,9 @@ class DiscussChannel(models.Model):
         string="Fin ventana lead WhatsApp",
         copy=False,
     )
+    whatsapp_assigned_user_id = fields.Many2one(
+        "res.users",
+        string="Comercial asignado WhatsApp",
+        copy=False,
+        ondelete="set null",
+    )

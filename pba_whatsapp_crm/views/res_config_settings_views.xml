@@ -21,8 +21,15 @@
                         <field name="whatsapp_crm_team_id"/>
                     </setting>
                     <setting
+                        id="whatsapp_crm_assign_equally_setting"
+                        invisible="not whatsapp_crm_auto_lead or not whatsapp_crm_team_id"
+                        help="Distribuye los nuevos chats de WhatsApp entre los miembros del equipo seleccionado."
+                    >
+                        <field name="whatsapp_crm_assign_equally"/>
+                    </setting>
+                    <setting
                         id="whatsapp_crm_user_setting"
-                        invisible="not whatsapp_crm_auto_lead"
+                        invisible="not whatsapp_crm_auto_lead or whatsapp_crm_assign_equally"
                     >
                         <field name="whatsapp_crm_user_id"/>
                     </setting>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+    <t t-name="pba_whatsapp.DiscussOperator" t-inherit="mail.Discuss" t-inherit-mode="extension">
+        <xpath expr="//AutoresizeInput[@value='thread.displayName']" position="after">
+            <span
+                t-if="thread.channel_type === 'gateway' and thread.operator"
+                class="badge bg-light text-dark border ms-2"
+            >
+                Atiende: <t t-esc="thread.operator.name"/>
+            </span>
+        </xpath>
+    </t>
+</templates>

@@ -16,3 +16,7 @@ class ResConfigSettings(models.TransientModel):
         related="company_id.whatsapp_crm_user_id",
         readonly=False,
     )
+    whatsapp_crm_assign_equally = fields.Boolean(
+        related="company_id.whatsapp_crm_assign_equally",
+        readonly=False,
+    )

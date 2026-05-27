@@ -43,6 +43,7 @@ class MailGatewayWhatsappService(models.AbstractModel):
 
         company = channel.company_id or self.env.company
         partner = self._pba_get_channel_partner(channel)
+        assigned_user = self._pba_get_assigned_user(channel, company)
         lead_name = channel.name or _("WhatsApp")
         if partner:
             lead_name = _("WhatsApp: %s") % partner.display_name
@@ -57,8 +58,8 @@ class MailGatewayWhatsappService(models.AbstractModel):
             lead_vals["partner_id"] = partner.id
         if company.whatsapp_crm_team_id:
             lead_vals["team_id"] = company.whatsapp_crm_team_id.id
-        if company.whatsapp_crm_user_id:
-            lead_vals["user_id"] = company.whatsapp_crm_user_id.id
+        if assigned_user:
+            lead_vals["user_id"] = assigned_user.id
 
         lead = self.env["crm.lead"].create(lead_vals)
         channel.sudo().write(
@@ -69,6 +70,31 @@ class MailGatewayWhatsappService(models.AbstractModel):
             }
         )
         return lead
+
+    def _pba_get_assigned_user(self, channel, company):
+        channel.ensure_one()
+        if (
+            channel.whatsapp_assigned_user_id
+            and channel.whatsapp_assigned_user_id.active
+            and not channel.whatsapp_assigned_user_id.share
+        ):
+            return channel.whatsapp_assigned_user_id
+        if company.whatsapp_crm_assign_equally and company.whatsapp_crm_team_id:
+            users = company.whatsapp_crm_team_id.member_ids.filtered(
+                lambda user: user.active and not user.share
+            ).sorted(key=lambda user: user.id)
+            if users:
+                assigned_user = users[0]
+                if company.whatsapp_crm_last_user_id in users:
+                    last_index = users.ids.index(company.whatsapp_crm_last_user_id.id)
+                    assigned_user = users[(last_index + 1) % len(users)]
+                company.sudo().write({"whatsapp_crm_last_user_id": assigned_user.id})
+                channel.sudo().write({"whatsapp_assigned_user_id": assigned_user.id})
+                return assigned_user
+        if company.whatsapp_crm_user_id:
+            channel.sudo().write({"whatsapp_assigned_user_id": company.whatsapp_crm_user_id.id})
+            return company.whatsapp_crm_user_id
+        return False
 
     def _pba_link_message_to_lead(self, message, lead):
         if message.gateway_message_id and message.gateway_message_id.model == "crm.lead":

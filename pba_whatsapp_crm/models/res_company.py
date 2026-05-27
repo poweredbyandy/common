@@ -17,3 +17,14 @@ class ResCompany(models.Model):
         "res.users",
         string="Comercial WhatsApp",
     )
+    whatsapp_crm_assign_equally = fields.Boolean(
+        string="Asignar leads de forma equitativa",
+        default=False,
+        help="Distribuye nuevos leads de WhatsApp entre miembros del equipo "
+        "en modalidad round-robin.",
+    )
+    whatsapp_crm_last_user_id = fields.Many2one(
+        "res.users",
+        string="Último comercial asignado WhatsApp",
+        copy=False,
+    )
