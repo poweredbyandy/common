@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form_whatsapp_contact" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.whatsapp.contact</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="base_setup.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//block[@name='integration']" position="inside">
+                <setting id="whatsapp_gateway_setting" string="Gateway WhatsApp">
+                    <field name="whatsapp_gateway_id"/>
+                </setting>
+                <setting
+                    id="whatsapp_auto_create_contact_setting"
+                    string="Contactos WhatsApp"
+                    help="Crea un contacto con el número de teléfono cuando llega un mensaje de un remitente desconocido."
+                >
+                    <field name="whatsapp_auto_create_contact"/>
+                </setting>
+            </xpath>
+        </field>
+    </record>
+</odoo>

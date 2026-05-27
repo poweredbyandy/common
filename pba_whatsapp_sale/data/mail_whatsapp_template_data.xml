@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="whatsapp_template_sale_quotation" model="mail.whatsapp.template">
+        <field name="name">PBA Presupuesto</field>
+        <field name="header">Presupuesto</field>
+        <field name="body">Hola, le enviamos su presupuesto. Quedamos atentos a sus comentarios.</field>
+        <field name="footer">Gracias por su preferencia</field>
+        <field name="category">utility</field>
+        <field name="language">es</field>
+        <field name="state">draft</field>
+    </record>
+    <record id="whatsapp_template_sale_confirmed" model="mail.whatsapp.template">
+        <field name="name">PBA Pedido confirmado</field>
+        <field name="header">Pedido confirmado</field>
+        <field name="body">Su pedido de venta ha sido confirmado. Le mantendremos informado del avance.</field>
+        <field name="footer">Gracias por su compra</field>
+        <field name="category">utility</field>
+        <field name="language">es</field>
+        <field name="state">draft</field>
+    </record>
+    <record id="whatsapp_template_delivery_done" model="mail.whatsapp.template">
+        <field name="name">PBA Entrega realizada</field>
+        <field name="header">Entrega</field>
+        <field name="body">Su pedido ha sido entregado. Esperamos que todo esté conforme.</field>
+        <field name="footer">Gracias</field>
+        <field name="category">utility</field>
+        <field name="language">es</field>
+        <field name="state">draft</field>
+    </record>
+</odoo>

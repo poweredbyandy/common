@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_move_form_whatsapp" model="ir.ui.view">
+        <field name="name">account.move.form.whatsapp</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button
+                    name="action_whatsapp_send_invoice"
+                    type="object"
+                    string="WhatsApp Factura"
+                    invisible="move_type not in ('out_invoice', 'out_refund') or state != 'posted'"
+                />
+                <button
+                    name="action_whatsapp_send_overdue"
+                    type="object"
+                    string="WhatsApp Mora"
+                    invisible="move_type != 'out_invoice' or state != 'posted' or payment_state == 'paid'"
+                />
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="whatsapp_template_invoice" model="mail.whatsapp.template">
+        <field name="name">PBA Factura cliente</field>
+        <field name="header">Factura</field>
+        <field name="body">Estimado cliente, le enviamos su factura. Quedamos atentos ante cualquier consulta.</field>
+        <field name="footer">Gracias</field>
+        <field name="category">utility</field>
+        <field name="language">es</field>
+        <field name="state">draft</field>
+    </record>
+    <record id="whatsapp_template_payment" model="mail.whatsapp.template">
+        <field name="name">PBA Pago registrado</field>
+        <field name="header">Pago recibido</field>
+        <field name="body">Hemos registrado su pago correctamente. Gracias por su confianza.</field>
+        <field name="footer">Gracias</field>
+        <field name="category">utility</field>
+        <field name="language">es</field>
+        <field name="state">draft</field>
+    </record>
+    <record id="whatsapp_template_overdue" model="mail.whatsapp.template">
+        <field name="name">PBA Cuenta por cobrar vencida</field>
+        <field name="header">Recordatorio de pago</field>
+        <field name="body">Le recordamos que tiene una factura pendiente de pago. Por favor contáctenos para regularizar su cuenta.</field>
+        <field name="footer">Departamento de cobranzas</field>
+        <field name="category">utility</field>
+        <field name="language">es</field>
+        <field name="state">draft</field>
+    </record>
+</odoo>

@@ -1,0 +1,20 @@
+{
+    "name": "PBA WhatsApp Contabilidad",
+    "version": "18.0.1.0.0",
+    "category": "Accounting",
+    "summary": "Plantillas WhatsApp para facturas, pagos y cuentas por cobrar vencidas",
+    "author": "andyengit",
+    "maintainer": "andyengit",
+    "license": "LGPL-3",
+    "depends": ["pba_whatsapp_contact", "account"],
+    "data": [
+        "data/mail_whatsapp_template_data.xml",
+        "data/ir_cron_data.xml",
+        "views/res_config_settings_views.xml",
+        "views/account_move_views.xml",
+        "views/account_payment_views.xml",
+    ],
+    "post_init_hook": "post_init_hook",
+    "installable": True,
+    "application": False,
+}
