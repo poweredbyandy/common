@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+    <t
+        t-name="pba_whatsapp.MessagingMenuGatewayInfo"
+        t-inherit="mail.MessagingMenu.content"
+        t-inherit-mode="extension"
+    >
+        <xpath expr="//t[@name='threads']//NotificationItem" position="attributes">
+            <attribute name="body">this.getThreadNotificationBody(thread, message)</attribute>
+            <attribute name="textMaxLine">thread.channel_type === 'gateway' ? 3 : 2</attribute>
+        </xpath>
+    </t>
+</templates>

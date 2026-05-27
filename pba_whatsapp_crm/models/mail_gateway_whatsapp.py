@@ -62,6 +62,8 @@ class MailGatewayWhatsappService(models.AbstractModel):
             lead_vals["user_id"] = assigned_user.id
 
         lead = self.env["crm.lead"].create(lead_vals)
+        if assigned_user:
+            self._pba_assign_partner_seller(channel, assigned_user)
         channel.sudo().write(
             {
                 "whatsapp_lead_id": lead.id,
@@ -69,7 +71,15 @@ class MailGatewayWhatsappService(models.AbstractModel):
                 + timedelta(hours=WHATSAPP_LEAD_WINDOW_HOURS),
             }
         )
+        channel._pba_broadcast_gateway_store()
         return lead
+
+    def _pba_assign_partner_seller(self, channel, user):
+        if not user:
+            return
+        partner = self._pba_get_channel_partner(channel)
+        if partner and not partner.user_id:
+            partner.sudo().write({"user_id": user.id})
 
     def _pba_get_assigned_user(self, channel, company):
         channel.ensure_one()
@@ -78,6 +88,9 @@ class MailGatewayWhatsappService(models.AbstractModel):
             and channel.whatsapp_assigned_user_id.active
             and not channel.whatsapp_assigned_user_id.share
         ):
+            self._pba_assign_partner_seller(
+                channel, channel.whatsapp_assigned_user_id
+            )
             return channel.whatsapp_assigned_user_id
         if company.whatsapp_crm_assign_equally and company.whatsapp_crm_team_id:
             users = company.whatsapp_crm_team_id.member_ids.filtered(
@@ -90,9 +103,15 @@ class MailGatewayWhatsappService(models.AbstractModel):
                     assigned_user = users[(last_index + 1) % len(users)]
                 company.sudo().write({"whatsapp_crm_last_user_id": assigned_user.id})
                 channel.sudo().write({"whatsapp_assigned_user_id": assigned_user.id})
+                self._pba_assign_partner_seller(channel, assigned_user)
+                channel._pba_broadcast_gateway_store()
                 return assigned_user
         if company.whatsapp_crm_user_id:
-            channel.sudo().write({"whatsapp_assigned_user_id": company.whatsapp_crm_user_id.id})
+            channel.sudo().write(
+                {"whatsapp_assigned_user_id": company.whatsapp_crm_user_id.id}
+            )
+            self._pba_assign_partner_seller(channel, company.whatsapp_crm_user_id)
+            channel._pba_broadcast_gateway_store()
             return company.whatsapp_crm_user_id
         return False
 

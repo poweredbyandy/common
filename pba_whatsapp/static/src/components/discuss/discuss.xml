@@ -9,7 +9,7 @@
                 Atiende: <t t-esc="thread.operator.name"/>
             </span>
             <span
-                t-if="thread.channel_type === 'gateway' and thread.crm_seller"
+                t-if="thread.channel_type === 'gateway' and thread.crm_seller?.name"
                 class="badge bg-light text-dark border ms-2"
             >
                 Vendedor CRM: <t t-esc="thread.crm_seller.name"/>
