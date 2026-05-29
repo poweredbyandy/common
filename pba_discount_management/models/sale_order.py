@@ -18,11 +18,20 @@ class SaleOrder(models.Model):
         digits="Discount",
     )
 
-    @api.depends("amount_undiscounted", "amount_untaxed")
+    @api.depends(
+        "order_line.price_subtotal",
+        "order_line.product_id",
+        "order_line.display_type",
+        "amount_untaxed",
+    )
     def _compute_pba_document_discount_percent(self):
         prec = self.env["decimal.precision"].precision_get("Discount")
         for order in self:
-            und = order.amount_undiscounted or 0.0
+            product_lines = order.order_line.filtered(
+                lambda line: not line._is_discount_line()
+                and line.display_type not in ("line_section", "line_note")
+            )
+            und = sum(product_lines.mapped("price_subtotal"))
             if float_is_zero(und, precision_digits=prec):
                 order.pba_document_discount_percent = 0.0
             else:

@@ -3,6 +3,7 @@ import logging
 
 from odoo import _, api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
+from odoo.tools.float_utils import float_is_zero
 
 _logger = logging.getLogger(__name__)
 
@@ -305,6 +306,51 @@ class AccountMove(models.Model):
                     ),
                 })
         return payment_lines_data
+
+    def _pba_get_commission_product(self):
+        self.ensure_one()
+        product = self.company_id.commission_product_id
+        if not product:
+            template = self.env.ref(
+                "pba_easy_commission.product_commission_service_tmpl",
+                raise_if_not_found=False,
+            )
+            product = template.product_variant_id if template else False
+        return product
+
+    def _pba_get_commission_percent_from_product_lines(self):
+        self.ensure_one()
+        product = self._pba_get_commission_product()
+        if not product:
+            return []
+        prec = self.env["decimal.precision"].precision_get("Discount")
+        percents = []
+        for line in self.invoice_line_ids.filtered(
+            lambda aml, product=product: aml.product_id == product
+        ):
+            pct = line.discount or 0.0
+            if not float_is_zero(pct, precision_digits=prec):
+                percents.append(pct)
+                continue
+            if line.price_unit and 0.0 < line.price_unit <= 100.0:
+                percents.append(line.price_unit)
+        return percents
+
+    def _pba_get_commission_percents_for_payment_move(self, payment_move):
+        self.ensure_one()
+        payment_move = payment_move[:1]
+        percents = self._pba_get_commission_percent_from_product_lines()
+        if percents:
+            return percents
+        commission_lines = self.commission_line_ids.filtered(
+            lambda line: line.payment_move_id == payment_move
+        )
+        if commission_lines:
+            return commission_lines.mapped("commission_percent")
+        header_pct = self.commission_percent
+        if not header_pct and self.invoice_user_id:
+            header_pct = self.invoice_user_id.partner_id.commission_percent
+        return [header_pct] if header_pct else []
 
 
     commission_percent = fields.Float(

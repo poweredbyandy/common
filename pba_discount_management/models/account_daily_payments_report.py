@@ -9,16 +9,14 @@ class AccountDailyPaymentsReportHandlerDiscount(models.AbstractModel):
         invoices = self._get_invoice_moves_for_daily_payment_line(payment_move)
         if not invoices:
             return None
-        orders = invoices.line_ids.sale_line_ids.order_id
-        if not orders:
-            return None
         prec = self.env["decimal.precision"].precision_get("Discount")
         percents = []
-        for order in orders:
-            und = order.amount_undiscounted or 0.0
-            if float_is_zero(und, precision_digits=prec):
+        for invoice in invoices:
+            if not invoice.is_sale_document(include_receipts=True):
                 continue
-            pct = (und - (order.amount_untaxed or 0.0)) / und * 100.0
+            pct = invoice._pba_get_document_discount_percent()
+            if float_is_zero(pct, precision_digits=prec):
+                continue
             percents.append(pct)
         if not percents:
             return None
@@ -27,34 +25,47 @@ class AccountDailyPaymentsReportHandlerDiscount(models.AbstractModel):
         parts = ["%.2f%%" % (p,) for p in unique]
         return ", ".join(parts) if parts else None
 
-    def _pba_daily_payments_replace_column_cell(
+    def _pba_daily_payments_set_column_value(
         self, report, options, columns, expr_label, value
     ):
-        idx = None
-        column = None
-        for i, col in enumerate(options["columns"]):
-            if col["expression_label"] == expr_label:
-                idx = i
-                column = col
-                break
-        if idx is None or not columns or idx >= len(columns):
+        if not columns:
             return columns
         display_currency = self.env["res.currency"].browse(
             options["display_currency_id"]
         )
-        new_cols = list(columns)
-        if column.get("figure_type") == "monetary":
-            new_cols[idx] = report._build_column_dict(
-                value,
-                column,
-                options=options,
-                currency=display_currency,
+        result = []
+        for col in columns:
+            if col.get("expression_label") != expr_label:
+                result.append(col)
+                continue
+            option_col = next(
+                (
+                    c
+                    for c in options["columns"]
+                    if c.get("expression_label") == expr_label
+                    and c.get("column_group_key") == col.get("column_group_key")
+                ),
+                None,
             )
-        else:
-            new_cols[idx] = report._build_column_dict(
-                value, column, options=options
-            )
-        return new_cols
+            if not option_col:
+                result.append(col)
+                continue
+            if option_col.get("figure_type") == "monetary":
+                result.append(
+                    report._build_column_dict(
+                        value,
+                        option_col,
+                        options=options,
+                        currency=display_currency,
+                    )
+                )
+            else:
+                result.append(
+                    report._build_column_dict(
+                        value, option_col, options=options
+                    )
+                )
+        return result
 
     def _custom_line_postprocessor(self, report, options, lines):
         lines = super()._custom_line_postprocessor(report, options, lines)
@@ -71,7 +82,7 @@ class AccountDailyPaymentsReportHandlerDiscount(models.AbstractModel):
             if not move:
                 continue
             text = self._pba_daily_payments_discount_display(move)
-            line["columns"] = self._pba_daily_payments_replace_column_cell(
+            line["columns"] = self._pba_daily_payments_set_column_value(
                 report,
                 options,
                 cols,

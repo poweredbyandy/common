@@ -1,8 +1,30 @@
 from odoo import api, models
+from odoo.tools.float_utils import float_is_zero
 
 
 class AccountMove(models.Model):
     _inherit = "account.move"
+
+    def _pba_get_document_discount_percent(self):
+        self.ensure_one()
+        prec = self.env["decimal.precision"].precision_get("Discount")
+        if not self.is_sale_document(include_receipts=True):
+            return 0.0
+        discount_lines = self._pba_get_customer_invoice_discount_lines()
+        product_lines = self.invoice_line_ids.filtered(
+            lambda line: line.display_type == "product" and line not in discount_lines
+        )
+        undiscounted = sum(product_lines.mapped("price_subtotal"))
+        if not float_is_zero(undiscounted, precision_digits=prec):
+            pct = (
+                (undiscounted - (self.amount_untaxed or 0.0)) / undiscounted * 100.0
+            )
+            if not float_is_zero(pct, precision_digits=prec):
+                return pct
+        orders = self.invoice_line_ids.sale_line_ids.order_id
+        if orders:
+            return orders[:1].pba_document_discount_percent
+        return 0.0
 
     def _pba_get_customer_invoice_discount_lines(self):
         self.ensure_one()
