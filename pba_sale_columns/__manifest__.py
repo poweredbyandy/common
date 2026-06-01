@@ -7,6 +7,7 @@
     "maintainer": "andyengit",
     "license": "LGPL-3",
     "depends": [
+        "l10n_ve_seniat",
         "l10n_ve_seniat_sale",
         "pba_internal_code",
         "product_brand",
