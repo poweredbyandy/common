@@ -1,0 +1,41 @@
+.o_pba_image_expand_overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1100;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+}
+
+.o_pba_image_expand_content {
+    max-width: 100%;
+    max-height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.o_pba_image_expand_image {
+    max-width: 96vw;
+    max-height: 92vh;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+}
+
+.o_pba_image_expand_trigger:hover {
+    cursor: zoom-in;
+}
+
+.o_pba_image_expand_close {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    z-index: 1101;
+}
+
+body.o_pba_image_expand_no_scroll {
+    overflow: hidden;
+}

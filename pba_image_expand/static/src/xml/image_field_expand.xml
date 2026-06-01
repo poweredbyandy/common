@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-inherit="web.ImageField" t-inherit-mode="extension">
+        <xpath expr="//img" position="attributes">
+            <attribute name="t-on-click">onImageExpand</attribute>
+        </xpath>
+        <xpath expr="//div[hasclass('d-inline-block')]" position="inside">
+            <div t-if="state.isExpanded" class="o_pba_image_expand_overlay">
+                <button
+                    type="button"
+                    class="btn btn-light o_pba_image_expand_close"
+                    aria-label="Cerrar"
+                    t-on-click="onCloseImageExpand"
+                >
+                    <i class="fa fa-times"/>
+                </button>
+                <div class="o_pba_image_expand_content">
+                    <img
+                        t-att-src="state.expandedSrc"
+                        t-att-alt="imgAlt"
+                        class="o_pba_image_expand_image"
+                        t-on-error="onExpandedImageLoadFailed"
+                    />
+                </div>
+            </div>
+        </xpath>
+    </t>
+</templates>

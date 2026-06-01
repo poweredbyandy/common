@@ -83,5 +83,5 @@ msgstr "El descuento fijo supera el total del pedido."
 #. module: pba_discount_management
 #. odoo-python
 #: code:addons/pba_discount_management/models/sale_order_discount.py:0
-msgid "%(percent)s%%"
-msgstr "%(percent)s%%"
+msgid "%(percent)s%% sobre %(amount)s %(currency)s"
+msgstr "%(percent)s%% sobre %(amount)s %(currency)s"

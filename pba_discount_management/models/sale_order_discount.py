@@ -23,12 +23,15 @@ class SaleOrderDiscount(models.TransientModel):
             if wizard.discount_type == "so_discount" and wizard.discount_percentage > 1.0:
                 raise ValidationError(_("Invalid discount amount"))
 
-    def _pba_get_global_discount_line_description(self, discount_percentage):
+    def _pba_get_global_discount_line_description(self, discount_percentage, base_amount):
         self.ensure_one()
         discount_dp = self.env["decimal.precision"].precision_get("Discount")
+        currency = self.sale_order_id.currency_id
         return _(
-            "%(percent)s%%",
+            "%(percent)s%% sobre %(amount)s %(currency)s",
             percent=float_repr(discount_percentage * 100, discount_dp),
+            amount=float_repr(base_amount, currency.decimal_places),
+            currency=currency.name,
         )
 
     def _pba_get_fixed_discount_ratio(self):
@@ -90,6 +93,7 @@ class SaleOrderDiscount(models.TransientModel):
         if not total_price_per_tax_groups:
             return self.env["sale.order.line"]
 
+        total_base_amount = sum(total_price_per_tax_groups.values())
         total_amount = sum(
             subtotal * discount_percentage for subtotal in total_price_per_tax_groups.values()
         )
@@ -97,9 +101,11 @@ class SaleOrderDiscount(models.TransientModel):
         for tax_group in total_price_per_tax_groups:
             taxes |= tax_group
 
-        description = self._pba_get_global_discount_line_description(discount_percentage)
+        description = self._pba_get_global_discount_line_description(
+            discount_percentage, total_base_amount
+        )
 
-        return self.env["sale.order.line"].create(
+        discount_lines = self.env["sale.order.line"].create(
             [
                 self._prepare_discount_line_values(
                     product=discount_product,
@@ -109,6 +115,8 @@ class SaleOrderDiscount(models.TransientModel):
                 )
             ]
         )
+        discount_lines.write({"name": description})
+        return discount_lines
 
     def action_apply_discount(self):
         self.ensure_one()
