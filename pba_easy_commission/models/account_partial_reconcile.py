@@ -6,6 +6,8 @@ class AccountPartialReconcile(models.Model):
     _inherit = 'account.partial.reconcile'
 
     def unlink(self):
+        if self.env.context.get("pba_skip_commission_unreconcile_check"):
+            return super().unlink()
         for partial in self:
             invoice_moves = (partial.debit_move_id.move_id + partial.credit_move_id.move_id).filtered(
                 lambda m: m.move_type == 'out_invoice' and m.state == 'posted'
