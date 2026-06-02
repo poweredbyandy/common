@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_account_move_discount_sale_line,account.move.discount sale line discount,model_account_move_discount,sale.group_discount_per_so_line,1,1,1,1
+access_account_move_discount_pba_global,account.move.discount pba global,model_account_move_discount,group_pba_global_sale_invoice_discount,1,1,1,1
+access_account_move_discount_pba_unlimited,account.move.discount pba unlimited,model_account_move_discount,group_pba_discount_unlimited,1,1,1,1

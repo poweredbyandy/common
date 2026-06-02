@@ -1,10 +1,16 @@
-from odoo import _, api, models
+from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError
 from odoo.tools.float_utils import float_is_zero
 
 
 class AccountMoveLine(models.Model):
     _inherit = "account.move.line"
+
+    pba_document_discount_percent = fields.Float(
+        string="% Descuento (documento)",
+        related="move_id.pba_document_discount_percent",
+        digits="Discount",
+    )
 
     def _pba_is_customer_invoice_discount_line(self):
         self.ensure_one()

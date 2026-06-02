@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="account_move_view_form_pba_discount_button" model="ir.ui.view">
+        <field name="name">account.move.form.pba.discount.button</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="priority" eval="99"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='tax_totals']" position="before">
+                <div class="d-flex justify-content-end mb-2"
+                     name="pba_invoice_discount_button"
+                     invisible="state != 'draft' or move_type not in ('out_invoice', 'out_refund', 'out_receipt')">
+                    <button string="Discount"
+                            name="action_open_discount_wizard"
+                            type="object"
+                            class="btn btn-secondary"
+                            groups="sale.group_discount_per_so_line,pba_discount_management.group_pba_global_sale_invoice_discount,pba_discount_management.group_pba_discount_unlimited"/>
+                </div>
+            </xpath>
+            <xpath expr="//field[@name='invoice_line_ids']/list/field[@name='price_unit']" position="after">
+                <field name="pba_document_discount_percent" optional="show" column_invisible="parent.move_type not in ('out_invoice', 'out_refund', 'out_receipt')"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

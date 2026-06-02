@@ -1,9 +1,53 @@
-from odoo import api, models
+from odoo import _, api, fields, models
+from odoo.exceptions import UserError
 from odoo.tools.float_utils import float_is_zero
 
 
 class AccountMove(models.Model):
     _inherit = "account.move"
+
+    pba_document_discount_percent = fields.Float(
+        string="% Descuento (documento)",
+        compute="_compute_pba_document_discount_percent",
+        digits="Discount",
+    )
+
+    @api.depends(
+        "invoice_line_ids.price_subtotal",
+        "invoice_line_ids.product_id",
+        "invoice_line_ids.display_type",
+        "amount_untaxed",
+        "move_type",
+    )
+    def _compute_pba_document_discount_percent(self):
+        for move in self:
+            if move.is_sale_document(include_receipts=True):
+                move.pba_document_discount_percent = move._pba_get_document_discount_percent()
+            else:
+                move.pba_document_discount_percent = 0.0
+
+    def action_open_discount_wizard(self):
+        self.ensure_one()
+        self.env["pba.discount.policy"]._pba_require_global_discount_rights()
+        if self.state != "draft":
+            raise UserError(_("Discount can only be changed on draft documents."))
+        if not self.is_sale_document(include_receipts=True):
+            raise UserError(_("This wizard only applies to customer invoices and credit notes."))
+        return {
+            "name": _("Discount"),
+            "type": "ir.actions.act_window",
+            "res_model": "account.move.discount",
+            "view_mode": "form",
+            "view_id": self.env.ref(
+                "pba_discount_management.account_move_discount_view_form"
+            ).id,
+            "target": "new",
+            "context": {
+                "default_move_id": self.id,
+                "active_id": self.id,
+                "active_model": "account.move",
+            },
+        }
 
     def _pba_get_document_discount_percent(self):
         self.ensure_one()
