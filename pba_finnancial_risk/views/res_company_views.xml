@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_company_form_global_financial_risk" model="ir.ui.view">
+        <field name="name">pba.financial.risk.global.settings.form</field>
+        <field name="model">pba.financial.risk.global.settings</field>
+        <field name="arch" type="xml">
+            <form string="Riesgo financiero global">
+                <header>
+                    <button
+                        name="action_apply_global_risk_to_partners"
+                        type="object"
+                        string="Aplicar a contactos"
+                        class="btn-primary"
+                        groups="account_financial_risk.group_account_financial_risk_manager"
+                    />
+                </header>
+                <sheet>
+                    <field name="company_id" invisible="1"/>
+                    <group>
+                        <group string="General">
+                            <field name="company_id" readonly="1"/>
+                            <field name="currency_id" readonly="1"/>
+                            <field name="pba_effective_currency_id" readonly="1"/>
+                            <field name="pba_risk_enabled"/>
+                            <field name="pba_risk_credit_currency"/>
+                            <field
+                                name="pba_risk_manual_credit_currency_id"
+                                options="{'no_create': True}"
+                                invisible="pba_risk_credit_currency != 'manual'"
+                            />
+                            <field
+                                name="pba_risk_credit_limit"
+                                widget="monetary"
+                                options="{'currency_field': 'pba_effective_currency_id'}"
+                            />
+                            <field name="pba_risk_sale_order_include"/>
+                            <field
+                                name="pba_risk_sale_order_limit"
+                                widget="monetary"
+                                options="{'currency_field': 'pba_effective_currency_id'}"
+                            />
+                        </group>
+                        <group string="Limites globales">
+                            <field name="pba_risk_invoice_draft_include"/>
+                            <field
+                                name="pba_risk_invoice_draft_limit"
+                                widget="monetary"
+                                options="{'currency_field': 'pba_effective_currency_id'}"
+                            />
+                            <field name="pba_risk_invoice_open_include"/>
+                            <field
+                                name="pba_risk_invoice_open_limit"
+                                widget="monetary"
+                                options="{'currency_field': 'pba_effective_currency_id'}"
+                            />
+                            <field name="pba_risk_invoice_unpaid_include"/>
+                            <field
+                                name="pba_risk_invoice_unpaid_limit"
+                                widget="monetary"
+                                options="{'currency_field': 'pba_effective_currency_id'}"
+                            />
+                            <field name="pba_risk_account_amount_include"/>
+                            <field
+                                name="pba_risk_account_amount_limit"
+                                widget="monetary"
+                                options="{'currency_field': 'pba_effective_currency_id'}"
+                            />
+                            <field name="pba_risk_account_amount_unpaid_include"/>
+                            <field
+                                name="pba_risk_account_amount_unpaid_limit"
+                                widget="monetary"
+                                options="{'currency_field': 'pba_effective_currency_id'}"
+                            />
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_pba_financial_risk_apply_confirm_wizard_form" model="ir.ui.view">
+        <field name="name">pba.financial.risk.apply.confirm.wizard.form</field>
+        <field name="model">pba.financial.risk.apply.confirm.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Confirmar actualizacion">
+                <group>
+                    <div class="o_form_label">
+                        Se detectaron contactos con limites ya configurados.
+                    </div>
+                    <div class="o_form_label">
+                        Desea actualizar estos registros tambien:
+                    </div>
+                    <field name="affected_count" readonly="1"/>
+                </group>
+                <footer>
+                    <button
+                        name="action_confirm_update_all"
+                        type="object"
+                        string="Si, actualizar todos"
+                        class="btn-primary"
+                    />
+                    <button
+                        name="action_confirm_skip_existing"
+                        type="object"
+                        string="No, omitir esos registros"
+                        class="btn-secondary"
+                    />
+                    <button string="Cancelar" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_open_financial_risk_global_settings" model="ir.actions.server">
+        <field name="name">Riesgo financiero global</field>
+        <field name="model_id" ref="base.model_res_users"/>
+        <field name="state">code</field>
+        <field name="code">
+settings = env["pba.financial.risk.global.settings"].get_or_create_for_company(env.company)
+action = {
+    "type": "ir.actions.act_window",
+    "name": "Riesgo financiero global",
+    "res_model": "pba.financial.risk.global.settings",
+    "res_id": settings.id,
+    "view_mode": "form",
+    "view_id": env.ref("pba_finnancial_risk.view_company_form_global_financial_risk").id,
+    "target": "current",
+}
+        </field>
+    </record>
+
+    <menuitem
+        id="menu_pba_financial_risk_root"
+        name="Riesgo Financiero"
+        action="action_open_financial_risk_global_settings"
+        sequence="32"
+        groups="account_financial_risk.group_account_financial_risk_manager"
+        web_icon="pba_finnancial_risk,static/description/icon.png"
+    />
+</odoo>

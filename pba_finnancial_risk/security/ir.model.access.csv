@@ -1,0 +1,3 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_pba_financial_risk_apply_confirm_wizard_manager,pba.financial.risk.apply.confirm.wizard.manager,model_pba_financial_risk_apply_confirm_wizard,account_financial_risk.group_account_financial_risk_manager,1,1,1,1
+access_pba_financial_risk_global_settings_manager,pba.financial.risk.global.settings.manager,model_pba_financial_risk_global_settings,account_financial_risk.group_account_financial_risk_manager,1,1,1,1

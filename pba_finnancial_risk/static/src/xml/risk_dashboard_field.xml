@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="pba_finnancial_risk.RiskDashboardField">
+        <div class="pba_risk_dashboard">
+            <div class="pba_risk_summary">
+                <span class="pba_risk_summary_label">Riesgo disponible</span>
+                <span class="pba_risk_summary_value">
+                    <t t-esc="_formatMoney(data.remaining_value)"/>
+                    <span class="pba_risk_summary_pct">(<t t-esc="data.remaining_percentage.toFixed(2)"/>%)</span>
+                </span>
+            </div>
+            <div class="pba_risk_total_line">
+                <span class="pba_risk_total_label">Limite de credito total</span>
+                <span class="pba_risk_total_value">
+                    <t t-esc="_formatMoney(data.credit_total)"/> / <t t-esc="_formatMoney(data.credit_limit)"/>
+                </span>
+            </div>
+            <div class="pba_risk_cards">
+                <t t-foreach="data.items || []" t-as="item" t-key="item.label">
+                    <div class="pba_risk_card" t-att-class="item.exceeded ? 'is-exceeded' : ''">
+                        <div class="pba_risk_card_header">
+                            <span class="pba_risk_card_title"><t t-esc="item.label"/></span>
+                            <label class="pba_risk_switch_wrap">
+                                <input
+                                    type="checkbox"
+                                    class="form-check-input"
+                                    t-att-checked="item.included"
+                                    t-att-disabled="!canEdit"
+                                    t-on-change="_toggleInclude.bind(this, item)"
+                                />
+                                <span class="pba_risk_card_badge" t-att-class="item.included ? 'is-on' : 'is-off'">
+                                    <t t-esc="item.included ? 'Encendido' : 'Apagado'"/>
+                                </span>
+                            </label>
+                        </div>
+                        <div class="pba_risk_card_amount">
+                            <span class="pba_current"><t t-esc="_formatMoney(item.current)"/></span>
+                            <t t-if="item.included">
+                                <span class="pba_divider">/</span>
+                                <t t-if="_isEditing(item)">
+                                    <input
+                                        type="number"
+                                        class="pba_limit_input"
+                                        step="0.01"
+                                        t-att-value="state.value"
+                                        t-on-input="_onInput"
+                                        t-on-keydown="_onKeydown.bind(this, item)"
+                                        t-on-blur="_commitEdit.bind(this, item)"
+                                    />
+                                </t>
+                                <t t-else="">
+                                    <button
+                                        type="button"
+                                        class="pba_limit_button"
+                                        t-att-disabled="!canEdit"
+                                        t-on-click="_beginEdit.bind(this, item)"
+                                    >
+                                        <span class="pba_limit"><t t-esc="_formatMoney(item.limit)"/></span>
+                                    </button>
+                                </t>
+                            </t>
+                            <t t-else="">
+                                <span class="pba_limit_off">Sin maximo activo</span>
+                            </t>
+                        </div>
+                        <t t-if="item.included">
+                            <div class="pba_progress_track">
+                                <div class="pba_progress_fill" t-att-style="'width:' + item.progress + '%'"/>
+                            </div>
+                        </t>
+                    </div>
+                </t>
+            </div>
+        </div>
+    </t>
+</templates>

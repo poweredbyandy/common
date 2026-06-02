@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_move_form_financial_risk_button" model="ir.ui.view">
+        <field name="name">account.move.form.financial.risk.button</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='due_date']" position="after">
+                <div class="o_td_label" groups="account_financial_risk.group_account_financial_risk_user,account_financial_risk.group_account_financial_risk_manager" invisible="move_type not in ('out_invoice', 'out_refund', 'out_receipt', 'in_invoice', 'in_refund', 'in_receipt') or not partner_id">
+                    <span class="o_form_label">Riesgo financiero</span>
+                </div>
+                <button name="action_open_partner_financial_risk" type="object" string="Abrir riesgo financiero" class="btn-link p-0" groups="account_financial_risk.group_account_financial_risk_user,account_financial_risk.group_account_financial_risk_manager" invisible="move_type not in ('out_invoice', 'out_refund', 'out_receipt', 'in_invoice', 'in_refund', 'in_receipt') or not partner_id"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

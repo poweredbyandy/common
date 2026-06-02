@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form_pba_replenishment" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.pba.replenishment</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="stock.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//setting[@id='reception_report']" position="after">
+                <setting
+                    id="pba_replenishment_equivalence_currency_ids"
+                    string="Monedas equivalencia (reporte de compras)"
+                    help="Valores por defecto al abrir el reporte. También puede cambiarlos en el asistente antes de descargar el Excel."
+                >
+                    <field
+                        name="pba_replenishment_equivalence_currency_ids"
+                        widget="many2many_tags"
+                        options="{'no_create': True}"
+                    />
+                </setting>
+            </xpath>
+        </field>
+    </record>
+</odoo>

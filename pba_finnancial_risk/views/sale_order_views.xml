@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_order_form_financial_risk_button" model="ir.ui.view">
+        <field name="name">sale.order.form.financial.risk.button</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//group[@name='order_details']/field[@name='payment_term_id']" position="after">
+                <div class="o_td_label" groups="account_financial_risk.group_account_financial_risk_user,account_financial_risk.group_account_financial_risk_manager" invisible="not partner_id">
+                    <span class="o_form_label">Riesgo financiero</span>
+                </div>
+                <button name="action_open_partner_financial_risk" type="object" string="Abrir riesgo financiero" class="btn-link p-0" groups="account_financial_risk.group_account_financial_risk_user,account_financial_risk.group_account_financial_risk_manager" invisible="not partner_id"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

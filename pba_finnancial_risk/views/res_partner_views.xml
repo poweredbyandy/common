@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_partner_form_financial_risk_action" model="ir.ui.view">
+        <field name="name">res.partner.form.financial.risk.action</field>
+        <field name="model">res.partner</field>
+        <field name="priority">90</field>
+        <field name="arch" type="xml">
+            <form string="Riesgo financiero">
+                <sheet>
+                    <group col="2">
+                        <group>
+                            <field name="name" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="risk_allow_edit" invisible="1"/>
+                            <field name="risk_currency_id" readonly="1"/>
+                            <field name="credit_currency" readonly="not risk_allow_edit"/>
+                            <field name="manual_credit_currency_id" options="{'no_create': True}" readonly="not risk_allow_edit" invisible="credit_currency != 'manual'"/>
+                        </group>
+                    </group>
+                    <group
+                        invisible="not is_company and parent_id"
+                        groups="account_financial_risk.group_account_financial_risk_user"
+                    >
+                        <group>
+                            <field name="risk_dashboard_json" widget="risk_dashboard" nolabel="1" readonly="1"/>
+                            <field name="risk_invoice_draft_include" invisible="1"/>
+                            <field name="risk_invoice_open_include" invisible="1"/>
+                            <field name="risk_invoice_unpaid_include" invisible="1"/>
+                            <field name="risk_account_amount_include" invisible="1"/>
+                            <field name="risk_account_amount_unpaid_include" invisible="1"/>
+                            <field name="risk_sale_order_include" invisible="1"/>
+                            <field name="risk_invoice_draft_limit" invisible="1"/>
+                            <field name="risk_invoice_open_limit" invisible="1"/>
+                            <field name="risk_invoice_unpaid_limit" invisible="1"/>
+                            <field name="risk_account_amount_limit" invisible="1"/>
+                            <field name="risk_account_amount_unpaid_limit" invisible="1"/>
+                            <field name="risk_sale_order_limit" invisible="1"/>
+                        </group>
+                        <group string="Configuracion de riesgo" col="2">
+                            <group>
+                                <field name="credit_limit" widget="monetary" options="{'currency_field': 'risk_currency_id'}" readonly="not risk_allow_edit"/>
+                                <field name="date_credit_limit" readonly="not risk_allow_edit"/>
+                                <field name="credit_policy" readonly="not risk_allow_edit"/>
+                            </group>
+                            <group>
+                                <field name="risk_exception" readonly="1"/>
+                                <field name="risk_amount_exceeded" widget="monetary" options="{'currency_field': 'risk_currency_id'}" readonly="1"/>
+                                <field name="show_financial_risk_in_portal" invisible="not portal_show_financial_risk_visible"/>
+                                <field name="portal_show_financial_risk_visible" invisible="1"/>
+                            </group>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+</odoo>
