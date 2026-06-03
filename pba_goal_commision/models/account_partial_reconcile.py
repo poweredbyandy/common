@@ -1,0 +1,25 @@
+from odoo import _, models
+from odoo.exceptions import UserError
+
+
+class AccountPartialReconcile(models.Model):
+    _inherit = "account.partial.reconcile"
+
+    def unlink(self):
+        if self.env.context.get("pba_skip_goal_commission_unreconcile_check"):
+            return super().unlink()
+        for partial in self:
+            invoice_moves = (partial.debit_move_id.move_id + partial.credit_move_id.move_id).filtered(
+                lambda move: move.move_type == "out_invoice" and move.state == "posted"
+            )
+            blocked_invoice = invoice_moves.filtered("goal_commission_line_ids").filtered(
+                lambda move: move._has_billed_goal_commission_lines()
+            )
+            if blocked_invoice:
+                raise UserError(
+                    _(
+                        "No se puede desconciliar pagos en una factura con comisiones por meta ya registradas. Factura: %(invoice)s",
+                        invoice=blocked_invoice[0].name or blocked_invoice[0].ref or blocked_invoice[0].id,
+                    )
+                )
+        return super().unlink()

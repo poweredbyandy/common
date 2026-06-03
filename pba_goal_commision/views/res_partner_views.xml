@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_partner_form_goal_commission_inherit" model="ir.ui.view">
+        <field name="name">res.partner.form.goal.commission.inherit</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet" position="before">
+                <header invisible="not is_goal_commission_seller">
+                    <button name="action_print_goal_pending_commissions"
+                            string="Comisiones Pendientes"
+                            type="object"
+                            class="btn-secondary"
+                            groups="pba_goal_commision.group_goal_commission_user"/>
+                    <button name="action_pay_goal_pending_commissions"
+                            string="Pagar Comisiones"
+                            type="object"
+                            class="btn-primary"
+                            groups="pba_goal_commision.group_goal_commission_user"/>
+                </header>
+            </xpath>
+            <xpath expr="//notebook" position="inside">
+                <page string="Comisión por Meta" invisible="not show_goal_commission_tab">
+                    <field name="show_goal_commission_tab" invisible="1"/>
+                    <field name="is_goal_commission_seller" invisible="1"/>
+                    <group string="Configuracion por Vendedor">
+                        <group>
+                            <field name="goal_commission_currency_id" groups="pba_goal_commision.group_goal_commission_admin"/>
+                            <field name="goal_commission_product_id" groups="pba_goal_commision.group_goal_commission_admin"/>
+                            <field name="goal_commission_journal_id" groups="pba_goal_commision.group_goal_commission_admin"/>
+                            <field name="goal_commission_excluded_journal_ids" widget="many2many_tags" groups="pba_goal_commision.group_goal_commission_admin"/>
+                        </group>
+                        <group>
+                            <field name="goal_commission_currency_id" readonly="1" groups="pba_goal_commision.group_goal_commission_user,!pba_goal_commision.group_goal_commission_admin"/>
+                            <field name="goal_commission_product_id" readonly="1" groups="pba_goal_commision.group_goal_commission_user,!pba_goal_commision.group_goal_commission_admin"/>
+                            <field name="goal_commission_journal_id" readonly="1" groups="pba_goal_commision.group_goal_commission_user,!pba_goal_commision.group_goal_commission_admin"/>
+                            <field name="goal_commission_excluded_journal_ids" readonly="1" widget="many2many_tags" groups="pba_goal_commision.group_goal_commission_user,!pba_goal_commision.group_goal_commission_admin"/>
+                        </group>
+                    </group>
+                    <group string="Tramos por Meta" groups="pba_goal_commision.group_goal_commission_admin">
+                        <field name="goal_commission_tier_ids">
+                            <list editable="bottom">
+                                <field name="sequence" optional="hide"/>
+                                <field name="name"/>
+                                <field name="min_amount"/>
+                                <field name="max_amount"/>
+                                <field name="commission_percent"/>
+                                <field name="active"/>
+                            </list>
+                        </field>
+                    </group>
+                    <group string="Tramos por Meta" groups="pba_goal_commision.group_goal_commission_user,!pba_goal_commision.group_goal_commission_admin">
+                        <field name="goal_commission_tier_ids" readonly="1">
+                            <list>
+                                <field name="sequence" optional="hide"/>
+                                <field name="name"/>
+                                <field name="min_amount"/>
+                                <field name="max_amount"/>
+                                <field name="commission_percent"/>
+                                <field name="active"/>
+                            </list>
+                        </field>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

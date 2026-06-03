@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <delete model="ir.actions.act_window" id="action_goal_commission_report_seller_sale"/>
+    <delete model="ir.actions.act_window" id="action_goal_commission_report_late_payment"/>
+    <delete model="ir.actions.act_window" id="action_goal_commission_report_pending_commission"/>
+
+    <record id="action_goal_commission_report_seller_sale" model="ir.actions.client">
+        <field name="name">Ventas por vendedor</field>
+        <field name="tag">goal_commission_report_seller_sale</field>
+        <field name="target">current</field>
+    </record>
+
+    <record id="action_goal_commission_report_late_payment" model="ir.actions.client">
+        <field name="name">Facturas pagadas tardias</field>
+        <field name="tag">goal_commission_report_late_payment</field>
+        <field name="target">current</field>
+    </record>
+
+    <record id="action_goal_commission_report_pending_commission" model="ir.actions.client">
+        <field name="name">Comisiones pendientes de pago</field>
+        <field name="tag">goal_commission_report_pending_commission</field>
+        <field name="target">current</field>
+    </record>
+
+    <menuitem id="menu_goal_commission_reports"
+              name="Reportes"
+              parent="pba_goal_commision.menu_goal_commission_root"
+              sequence="40"/>
+
+    <menuitem id="menu_goal_commission_report_seller_sale"
+              name="Ventas por vendedor"
+              parent="pba_goal_commision.menu_goal_commission_reports"
+              action="pba_goal_commision.action_goal_commission_report_seller_sale"
+              sequence="10"/>
+
+    <menuitem id="menu_goal_commission_report_late_payment"
+              name="Facturas pagadas tardias"
+              parent="pba_goal_commision.menu_goal_commission_reports"
+              action="pba_goal_commision.action_goal_commission_report_late_payment"
+              sequence="20"/>
+
+    <menuitem id="menu_goal_commission_report_pending_commission"
+              name="Comisiones pendientes de pago"
+              parent="pba_goal_commision.menu_goal_commission_reports"
+              action="pba_goal_commision.action_goal_commission_report_pending_commission"
+              sequence="30"/>
+</odoo>

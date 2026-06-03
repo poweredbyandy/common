@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_goal_commission_seller_kanban" model="ir.ui.view">
+        <field name="name">res.partner.goal.commission.seller.kanban</field>
+        <field name="model">res.partner</field>
+        <field name="arch" type="xml">
+            <kanban default_order="name">
+                <field name="is_goal_commission_seller"/>
+                <field name="user_ids"/>
+                <field name="name"/>
+                <field name="image_128"/>
+                <field name="goal_invoice_amount"/>
+                <field name="goal_collected_amount"/>
+                <field name="goal_commission_target_amount"/>
+                <field name="goal_commission_current_tier_name"/>
+                <field name="goal_commission_current_tier_target"/>
+                <field name="goal_invoice_tier_progress_pct"/>
+                <field name="goal_invoice_tier_progress_display"/>
+                <field name="goal_tier_achievement_display"/>
+                <field name="goal_tier_badges_html"/>
+                <field name="goal_achieved_tier_count"/>
+                <field name="goal_invoice_progress_pct"/>
+                <field name="goal_invoice_progress_display"/>
+                <field name="goal_collection_progress_pct"/>
+                <field name="goal_collection_progress_display"/>
+                <field name="goal_collected_target_progress_pct"/>
+                <field name="goal_collected_target_progress_display"/>
+                <field name="goal_commission_currency_id"/>
+                <field name="goal_commission_current_percent"/>
+                <field name="goal_commission_pending_invoice_count"/>
+                <field name="goal_commission_pending_display"/>
+                <field name="goal_dashboard_period_name"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="oe_kanban_global_click p-2" style="min-height: 420px;">
+                            <div class="text-center mb-2 fw-semibold text-muted" t-if="record.goal_dashboard_period_name.raw_value">
+                                <field name="goal_dashboard_period_name"/>
+                            </div>
+                            <div class="d-flex align-items-center mb-2">
+                                <img t-if="record.image_128.raw_value"
+                                     t-att-src="'/web/image/res.partner/%s/image_128' % record.id.raw_value"
+                                     class="rounded-circle me-2"
+                                     style="width:48px;height:48px;object-fit:cover;"/>
+                                <div>
+                                    <div class="fw-bold"><field name="name"/></div>
+                                    <div class="text-muted">Pendiente: <field name="goal_commission_pending_display"/></div>
+                                </div>
+                            </div>
+                            <div class="mb-2">
+                                <div class="text-muted mb-1" style="font-size:11px;">Metas del periodo</div>
+                                <field name="goal_tier_badges_html" widget="html"/>
+                            </div>
+                            <div class="d-flex justify-content-between gap-2">
+                                <div class="text-center">
+                                    <div t-attf-style="width:100px;height:100px;border-radius:50%;background:conic-gradient(#714B67 {{ record.goal_invoice_tier_progress_pct.raw_value or 0 }}%, #e9ecef 0);display:flex;align-items:center;justify-content:center;">
+                                        <div style="width:72px;height:72px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;">
+                                            <field name="goal_invoice_tier_progress_display"/>%
+                                        </div>
+                                    </div>
+                                    <div class="mt-1 text-muted" style="font-size:11px;">
+                                        Tramo actual: <t t-esc="record.goal_commission_current_tier_name.value or '—'"/>
+                                    </div>
+                                </div>
+                                <div class="text-center">
+                                    <div t-attf-style="width:100px;height:100px;border-radius:50%;background:conic-gradient(#198754 {{ record.goal_collection_progress_pct.raw_value or 0 }}%, #e9ecef 0);display:flex;align-items:center;justify-content:center;">
+                                        <div style="width:72px;height:72px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;">
+                                            <field name="goal_collection_progress_display"/>%
+                                        </div>
+                                    </div>
+                                    <div class="mt-1 text-muted" style="font-size:11px;">Cobrado / Facturado</div>
+                                </div>
+                                <div class="text-center">
+                                    <div t-attf-style="width:100px;height:100px;border-radius:50%;background:conic-gradient(#0d6efd {{ record.goal_collected_target_progress_pct.raw_value or 0 }}%, #e9ecef 0);display:flex;align-items:center;justify-content:center;">
+                                        <div style="width:72px;height:72px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;">
+                                            <field name="goal_collected_target_progress_display"/>%
+                                        </div>
+                                    </div>
+                                    <div class="mt-1 text-muted" style="font-size:11px;">Cobrado vs tope tramo</div>
+                                </div>
+                            </div>
+                            <div class="mt-2">
+                                <div>Facturado: <strong><field name="goal_invoice_amount"/></strong> · Tope tramo: <strong><field name="goal_commission_current_tier_target"/></strong></div>
+                                <div>Cobrado: <strong><field name="goal_collected_amount"/></strong></div>
+                                <div>Metas cumplidas: <strong><field name="goal_achieved_tier_count"/></strong> · <span class="text-muted"><field name="goal_tier_achievement_display"/></span></div>
+                                <div>% Comision actual: <strong><t t-esc="(record.goal_commission_current_percent.raw_value or 0)"/>%</strong></div>
+                            </div>
+                            <div class="mt-2 d-flex justify-content-between">
+                                <button name="action_open_goal_pending_commissions"
+                                        type="object"
+                                        class="btn btn-secondary btn-sm"
+                                        groups="pba_goal_commision.group_goal_commission_user">
+                                    Pendientes
+                                </button>
+                                <t t-if="(record.goal_commission_pending_invoice_count.raw_value or 0) &gt; 0">
+                                    <button name="action_pay_goal_pending_commissions"
+                                            type="object"
+                                            class="btn btn-primary btn-sm"
+                                            groups="pba_goal_commision.group_goal_commission_user">
+                                        Pagar
+                                    </button>
+                                </t>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="view_goal_commission_seller_tree" model="ir.ui.view">
+        <field name="name">res.partner.goal.commission.seller.tree</field>
+        <field name="model">res.partner</field>
+        <field name="arch" type="xml">
+            <list string="Vendedores" default_order="name">
+                <field name="name" string="Vendedor"/>
+                <field name="goal_commission_pending_invoice_count"/>
+                <field name="goal_commission_pending_display"/>
+                <field name="goal_invoice_amount"/>
+                <field name="goal_collected_amount"/>
+                <field name="goal_commission_target_amount"/>
+                <field name="goal_commission_current_percent"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_goal_commission_seller_search" model="ir.ui.view">
+        <field name="name">res.partner.goal.commission.seller.search</field>
+        <field name="model">res.partner</field>
+        <field name="arch" type="xml">
+            <search string="Vendedores">
+                <field name="name"/>
+                <separator string="Mes"/>
+                <filter string="Con comision pendiente"
+                        name="filter_with_pending"
+                        domain="[('goal_commission_pending_invoice_count', '&gt;', 0)]"/>
+                <filter string="Solo vendedores" name="filter_sellers" domain="[('user_ids', '!=', False), ('goal_commission_tier_ids', '!=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_goal_commission_sellers" model="ir.actions.act_window">
+        <field name="name">Dashboard Vendedores</field>
+        <field name="res_model">res.partner</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="view_ids" eval="[
+            (5, 0, 0),
+            (0, 0, {'view_mode': 'kanban', 'view_id': ref('pba_goal_commision.view_goal_commission_seller_kanban')}),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('pba_goal_commision.view_goal_commission_seller_tree')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('base.view_partner_form')}),
+        ]"/>
+        <field name="search_view_id" ref="pba_goal_commision.view_goal_commission_seller_search"/>
+        <field name="domain">[('user_ids', 'in', [uid]), ('goal_commission_tier_ids', '!=', False), ('active', '=', True)]</field>
+        <field name="context">{'search_default_filter_sellers': 1}</field>
+    </record>
+
+    <record id="action_goal_commission_sellers_admin" model="ir.actions.act_window">
+        <field name="name">Dashboard Vendedores</field>
+        <field name="res_model">res.partner</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="view_ids" eval="[
+            (5, 0, 0),
+            (0, 0, {'view_mode': 'kanban', 'view_id': ref('pba_goal_commision.view_goal_commission_seller_kanban')}),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('pba_goal_commision.view_goal_commission_seller_tree')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('base.view_partner_form')}),
+        ]"/>
+        <field name="search_view_id" ref="pba_goal_commision.view_goal_commission_seller_search"/>
+        <field name="domain">[('user_ids', '!=', False), ('goal_commission_tier_ids', '!=', False), ('active', '=', True)]</field>
+        <field name="context">{'search_default_filter_sellers': 1}</field>
+    </record>
+</odoo>

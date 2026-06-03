@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_goal_commission_billing_wizard_form" model="ir.ui.view">
+        <field name="name">goal.commission.billing.wizard.form</field>
+        <field name="model">goal.commission.billing.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Pagar Comisiones por Meta">
+                <field name="partner_id" invisible="1"/>
+                <field name="period_id" invisible="1"/>
+                <field name="invoice_ids" invisible="1"/>
+                <sheet>
+                    <field name="other_periods_warning_html" nolabel="1" invisible="not other_periods_warning_html"/>
+                    <field name="summary_html" nolabel="1" class="mb-2"/>
+                </sheet>
+                <footer>
+                    <button name="action_confirm" type="object" string="Facturar Comisiones" class="btn-primary"/>
+                    <button string="Cancelar" special="cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

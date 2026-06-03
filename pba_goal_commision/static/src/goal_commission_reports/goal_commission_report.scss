@@ -1,0 +1,25 @@
+.o_goal_commission_report {
+    height: 100%;
+    min-height: 0;
+
+    .o_goal_commission_report_scroller {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-y: auto;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .o_goal_commission_invoice_link {
+        font-weight: 500;
+    }
+
+    .o_goal_commission_summary thead th,
+    .o_goal_commission_lines thead th {
+        white-space: nowrap;
+    }
+}
+
+.o_action:has(.o_goal_commission_report) {
+    overflow: hidden;
+}

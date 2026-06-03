@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form_goal_commission" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.goal.commission</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="account.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//app[@name='account']" position="inside">
+                <block title="Comisiones por Meta">
+                    <setting id="goal_commission_start_date_setting" help="Las comisiones solo se calcularan para facturas con fecha igual o mayor a esta fecha.">
+                        <field name="goal_commission_start_date"/>
+                    </setting>
+                </block>
+            </xpath>
+        </field>
+    </record>
+</odoo>

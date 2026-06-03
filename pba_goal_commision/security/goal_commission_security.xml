@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="module_category_goal_commission" model="ir.module.category">
+        <field name="name">Comisiones por Meta</field>
+        <field name="description">Permisos para gestion de comisiones por meta</field>
+        <field name="sequence">46</field>
+    </record>
+
+    <record id="group_goal_commission_user" model="res.groups">
+        <field name="name">Usuario Comision por Meta</field>
+        <field name="category_id" ref="pba_goal_commision.module_category_goal_commission"/>
+    </record>
+
+    <record id="group_goal_commission_admin" model="res.groups">
+        <field name="name">Administrador Comision por Meta</field>
+        <field name="category_id" ref="pba_goal_commision.module_category_goal_commission"/>
+        <field name="implied_ids" eval="[(4, ref('pba_goal_commision.group_goal_commission_user'))]"/>
+    </record>
+</odoo>

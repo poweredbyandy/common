@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_report_goal_commission_pending" model="ir.actions.report">
+        <field name="name">Comisiones Pendientes por Meta</field>
+        <field name="model">res.partner</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">pba_goal_commision.rpt_goal_comm_pending</field>
+        <field name="report_file">pba_goal_commision.rpt_goal_comm_pending</field>
+        <field name="binding_model_id" ref="base.model_res_partner"/>
+        <field name="binding_type">report</field>
+        <field name="print_report_name">'Comisiones_Pendientes_Meta_%s' % (object.name)</field>
+    </record>
+
+    <record id="action_report_goal_commission_payment_voucher" model="ir.actions.report">
+        <field name="name">Comprobante de Comision por Meta</field>
+        <field name="model">account.move</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">pba_goal_commision.rpt_goal_comm_voucher</field>
+        <field name="report_file">pba_goal_commision.rpt_goal_comm_voucher</field>
+        <field name="binding_model_id" ref="account.model_account_move"/>
+        <field name="binding_type">report</field>
+        <field name="print_report_name">'Comprobante_Comision_Meta_%s' % (object.name)</field>
+    </record>
+</odoo>

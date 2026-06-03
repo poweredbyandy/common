@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_invoice_tree_goal_commission_inherit" model="ir.ui.view">
+        <field name="name">account.invoice.tree.goal.commission.inherit</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_invoice_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='invoice_user_id']" position="after">
+                <field name="goal_commission_exception" optional="hide" column_invisible="context.get('default_move_type') != 'out_invoice'"/>
+                <field name="goal_commission_state"
+                       widget="badge"
+                       optional="show"
+                       column_invisible="context.get('default_move_type') != 'out_invoice'"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_move_tree_customer_goal_commissions" model="ir.ui.view">
+        <field name="name">account.move.tree.customer.goal.commissions</field>
+        <field name="model">account.move</field>
+        <field name="arch" type="xml">
+            <list string="Comisiones de Clientes por Meta" default_order="invoice_date desc">
+                <header>
+                    <button name="action_open_goal_commission_billing_wizard"
+                            type="object"
+                            string="Facturar Comisiones Meta"
+                            groups="pba_goal_commision.group_goal_commission_user"/>
+                </header>
+                <field name="name" string="Factura"/>
+                <field name="invoice_date" string="Fecha Factura"/>
+                <field name="partner_id" string="Cliente"/>
+                <field name="invoice_user_id" string="Vendedor" widget="many2one_avatar_user"/>
+                <field name="goal_commission_state" string="Estado Comision" widget="badge"/>
+                <field name="goal_commission_exception" string="Excepcion comision" optional="show"/>
+                <field name="goal_commission_payable_date" string="Fecha Cobro Comision" optional="show"/>
+                <field name="amount_total_in_currency_signed" string="Total Venta"/>
+                <field name="currency_id"/>
+                <field name="payment_state" string="Estado Pago"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_move_search_customer_goal_commissions" model="ir.ui.view">
+        <field name="name">account.move.search.customer.goal.commissions</field>
+        <field name="model">account.move</field>
+        <field name="arch" type="xml">
+            <search string="Comisiones por Meta">
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="invoice_user_id"/>
+                <separator string="Mes"/>
+                <filter string="Cobrable para comisionar"
+                        name="filter_goal_commission_collectible"
+                        domain="[('goal_commission_collectible', '=', True)]"/>
+                <filter string="Excepcion de comision"
+                        name="filter_goal_commission_exception"
+                        domain="[('goal_commission_exception', '=', True)]"/>
+                <separator/>
+                <filter string="Vendedor"
+                        name="group_by_invoice_user"
+                        context="{'group_by': 'invoice_user_id'}"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_customer_goal_commissions" model="ir.actions.act_window">
+        <field name="name">Facturas por Comisionar</field>
+        <field name="res_model">account.move</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="pba_goal_commision.view_move_tree_customer_goal_commissions"/>
+        <field name="search_view_id" ref="pba_goal_commision.view_move_search_customer_goal_commissions"/>
+        <field name="domain">[('move_type', '=', 'out_invoice'), ('state', '=', 'posted'), ('payment_state', 'in', ('paid', 'in_payment')), ('goal_commission_collectible', '=', True), ('invoice_user_id', '=', uid)]</field>
+        <field name="context">{
+            'default_move_type': 'out_invoice',
+            'search_default_filter_goal_commission_collectible': 1,
+            'search_default_group_by_invoice_user': 1,
+        }</field>
+    </record>
+
+    <record id="action_customer_goal_commissions_admin" model="ir.actions.act_window">
+        <field name="name">Facturas por Comisionar</field>
+        <field name="res_model">account.move</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="pba_goal_commision.view_move_tree_customer_goal_commissions"/>
+        <field name="search_view_id" ref="pba_goal_commision.view_move_search_customer_goal_commissions"/>
+        <field name="domain">[('move_type', '=', 'out_invoice'), ('state', '=', 'posted'), ('payment_state', 'in', ('paid', 'in_payment')), ('goal_commission_collectible', '=', True)]</field>
+        <field name="context">{
+            'default_move_type': 'out_invoice',
+            'search_default_filter_goal_commission_collectible': 1,
+            'search_default_group_by_invoice_user': 1,
+        }</field>
+    </record>
+
+    <record id="view_move_tree_vendor_goal_commissions" model="ir.ui.view">
+        <field name="name">account.move.tree.vendor.goal.commissions</field>
+        <field name="model">account.move</field>
+        <field name="arch" type="xml">
+            <list string="Facturas de Comisiones por Meta" default_order="invoice_date desc">
+                <field name="name" string="Factura Proveedor"/>
+                <field name="state"/>
+                <field name="invoice_date" string="Fecha"/>
+                <field name="partner_id" string="Vendedor"/>
+                <field name="goal_commission_source_invoice_id" string="Factura Origen"/>
+                <field name="amount_total_in_currency_signed" string="Total" sum="Total"/>
+                <field name="amount_residual_signed" string="Saldo" sum="Saldo"/>
+                <field name="currency_id"/>
+                <field name="payment_state" string="Estado Pago"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_vendor_goal_commissions" model="ir.actions.act_window">
+        <field name="name">Comisiones Facturadas</field>
+        <field name="res_model">account.move</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="pba_goal_commision.view_move_tree_vendor_goal_commissions"/>
+        <field name="domain">[('move_type', '=', 'in_invoice'), ('is_goal_commission_vendor_bill', '=', True), ('partner_id.user_ids', 'in', [uid])]</field>
+        <field name="context">{'default_move_type': 'in_invoice'}</field>
+    </record>
+
+    <record id="action_vendor_goal_commissions_admin" model="ir.actions.act_window">
+        <field name="name">Comisiones Facturadas</field>
+        <field name="res_model">account.move</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="pba_goal_commision.view_move_tree_vendor_goal_commissions"/>
+        <field name="domain">[('move_type', '=', 'in_invoice'), ('is_goal_commission_vendor_bill', '=', True)]</field>
+        <field name="context">{'default_move_type': 'in_invoice'}</field>
+    </record>
+
+    <record id="action_goal_commission_sellers_router" model="ir.actions.server">
+        <field name="name">Dashboard Vendedores (Router)</field>
+        <field name="model_id" ref="base.model_res_partner"/>
+        <field name="state">code</field>
+        <field name="code">action = env['res.partner'].action_goal_commission_dashboard_menu()</field>
+    </record>
+
+    <record id="action_customer_goal_commissions_router" model="ir.actions.server">
+        <field name="name">Facturas por Comisionar (Router)</field>
+        <field name="model_id" ref="account.model_account_move"/>
+        <field name="state">code</field>
+        <field name="code">action = env['account.move'].action_goal_customer_commissions_menu()</field>
+    </record>
+
+    <record id="action_vendor_goal_commissions_router" model="ir.actions.server">
+        <field name="name">Comisiones Facturadas (Router)</field>
+        <field name="model_id" ref="account.model_account_move"/>
+        <field name="state">code</field>
+        <field name="code">action = env['account.move'].action_goal_vendor_commissions_menu()</field>
+    </record>
+
+    <menuitem id="menu_goal_commission_root"
+              name="Comision Meta"
+              sequence="46"
+              groups="pba_goal_commision.group_goal_commission_user"/>
+
+    <menuitem id="menu_goal_commission_sellers"
+              name="Dashboard Vendedores"
+              parent="pba_goal_commision.menu_goal_commission_root"
+              action="pba_goal_commision.action_goal_commission_sellers_router"
+              sequence="10"/>
+
+    <menuitem id="menu_customer_goal_commissions"
+              name="Facturas por Comisionar"
+              parent="pba_goal_commision.menu_goal_commission_root"
+              action="pba_goal_commision.action_customer_goal_commissions_router"
+              sequence="20"/>
+
+    <menuitem id="menu_vendor_goal_commissions"
+              name="Comisiones Facturadas"
+              parent="pba_goal_commision.menu_goal_commission_root"
+              action="pba_goal_commision.action_vendor_goal_commissions_router"
+              sequence="30"/>
+</odoo>

@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="pba_goal_commision.GoalCommissionReport">
+        <div class="o_goal_commission_report d-flex flex-column h-100 min-h-0 overflow-hidden">
+            <div class="o_goal_commission_report_toolbar flex-shrink-0 p-3 border-bottom bg-view">
+                <div class="d-flex flex-wrap align-items-end gap-3">
+                    <div>
+                        <label class="form-label mb-1">Periodo</label>
+                        <select class="form-select" t-model.number="state.filters.period_id" t-on-change="onFilterChange">
+                            <option value="0">Todos</option>
+                            <t t-foreach="state.filterOptions.periods" t-as="period" t-key="period.id">
+                                <option t-att-value="period.id" t-esc="period.name"/>
+                            </t>
+                        </select>
+                    </div>
+                    <div t-if="state.filterOptions.is_admin">
+                        <label class="form-label mb-1">Vendedor</label>
+                        <select class="form-select" t-model.number="state.filters.seller_partner_id" t-on-change="onFilterChange">
+                            <option value="0">Todos</option>
+                            <t t-foreach="state.filterOptions.sellers" t-as="seller" t-key="seller.id">
+                                <option t-att-value="seller.id" t-esc="seller.name"/>
+                            </t>
+                        </select>
+                    </div>
+                    <div t-if="config.showCollectedFilter">
+                        <label class="form-label mb-1">Cobro</label>
+                        <select class="form-select" t-model="state.filters.collected" t-on-change="onFilterChange">
+                            <option value="all">Todos</option>
+                            <option value="yes">Cobradas</option>
+                            <option value="no">Sin cobrar</option>
+                        </select>
+                    </div>
+                    <div t-if="config.showMinDaysFilter">
+                        <label class="form-label mb-1">Días pendiente mín.</label>
+                        <select class="form-select" t-model.number="state.filters.min_days" t-on-change="onFilterChange">
+                            <option value="0">Todos</option>
+                            <option value="30">Más de 30</option>
+                            <option value="60">Más de 60</option>
+                            <option value="90">Más de 90</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary" t-on-click="loadReport" t-att-disabled="state.loading or state.exporting">
+                        Actualizar
+                    </button>
+                    <button class="btn btn-secondary" t-on-click="downloadExcel" t-att-disabled="state.loading or state.exporting or !state.lines.length">
+                        <t t-if="state.exporting">Exportando...</t>
+                        <t t-else="">Descargar Excel</t>
+                    </button>
+                </div>
+            </div>
+
+            <div class="o_content o_goal_commission_report_scroller flex-grow-1 min-h-0 overflow-auto p-3">
+                <div t-if="state.loading" class="text-center text-muted py-5">
+                    Cargando reporte...
+                </div>
+
+                <t t-else="">
+                    <h4 class="mb-3" t-esc="config.title"/>
+
+                    <div class="card mb-4" t-if="state.summary_by_seller.length">
+                        <div class="card-header fw-bold">Resumen por vendedor</div>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-hover mb-0 o_goal_commission_summary">
+                                <thead>
+                                    <tr>
+                                        <th>Vendedor</th>
+                                        <th t-if="reportType === 'late_payment'">Mes comisión</th>
+                                        <th class="text-end">Facturas</th>
+                                        <th class="text-end" t-if="reportType === 'seller_sale'">Facturado</th>
+                                        <th t-if="reportType === 'seller_sale'">Moneda meta</th>
+                                        <th class="text-end" t-if="reportType === 'late_payment'">Días tardío prom.</th>
+                                        <th class="text-end" t-if="reportType === 'pending_commission'">Comisión pendiente</th>
+                                        <th class="text-end" t-if="reportType === 'pending_commission'">Días pend. prom.</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr t-foreach="state.summary_by_seller" t-as="row" t-key="row.seller_partner_id + '_' + (row.commission_period_name || '') + (row.currency_name || '')">
+                                        <td t-esc="row.seller_name"/>
+                                        <td t-if="reportType === 'late_payment'" t-esc="row.commission_period_name or '—'"/>
+                                        <td class="text-end" t-esc="row.invoice_count"/>
+                                        <td class="text-end" t-if="reportType === 'seller_sale'">
+                                            <t t-esc="formatAmount(row.amount_goal_currency)"/>
+                                        </td>
+                                        <td t-if="reportType === 'seller_sale'" t-esc="row.goal_currency_name"/>
+                                        <td class="text-end" t-if="reportType === 'late_payment'" t-esc="row.avg_days_late"/>
+                                        <td class="text-end" t-if="reportType === 'pending_commission'">
+                                            <t t-esc="formatAmount(row.pending_commission_amount)"/> <t t-esc="row.currency_name"/>
+                                        </td>
+                                        <td class="text-end" t-if="reportType === 'pending_commission'" t-esc="row.avg_days_pending"/>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="card mb-0">
+                        <div class="card-header fw-bold d-flex justify-content-between">
+                            <span>Detalle</span>
+                            <span class="text-muted" t-esc="state.lines.length + ' registros'"/>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-striped mb-0 o_goal_commission_lines">
+                                <thead>
+                                    <tr>
+                                        <th>Factura</th>
+                                        <th>Fecha</th>
+                                        <th>Vendedor</th>
+                                        <th>Cliente</th>
+                                        <th t-if="reportType === 'seller_sale'">Mes</th>
+                                        <th t-if="reportType === 'late_payment'">Vencimiento</th>
+                                        <th t-if="reportType === 'late_payment'">Cobro</th>
+                                        <th t-if="reportType === 'late_payment'">Mes comisión</th>
+                                        <th t-if="reportType === 'late_payment'" class="text-end">Días tardío</th>
+                                        <th t-if="reportType === 'pending_commission'">Disp. comisión</th>
+                                        <th t-if="reportType === 'pending_commission'" class="text-end">Días pend.</th>
+                                        <th class="text-end" t-if="reportType === 'seller_sale'">Subtotal neto</th>
+                                        <th t-if="reportType === 'seller_sale'">Mon. factura</th>
+                                        <th class="text-end" t-if="reportType === 'seller_sale'">Facturado meta</th>
+                                        <th t-if="reportType === 'seller_sale'">Mon. meta</th>
+                                        <th class="text-end" t-if="reportType !== 'seller_sale'">Monto</th>
+                                        <th t-if="reportType === 'seller_sale'">Estado cobro</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr t-foreach="state.lines" t-as="line" t-key="line.invoice_id">
+                                        <td>
+                                            <a href="#" class="o_goal_commission_invoice_link" t-on-click.prevent="() => this.openInvoice(line.invoice_id)" t-esc="line.invoice_name"/>
+                                        </td>
+                                        <td t-esc="formatDate(line.invoice_date)"/>
+                                        <td t-esc="line.seller_name"/>
+                                        <td t-esc="line.customer_name"/>
+                                        <td t-if="reportType === 'seller_sale'" t-esc="line.invoice_month"/>
+                                        <td t-if="reportType === 'late_payment'" t-esc="formatDate(line.due_date)"/>
+                                        <td t-if="reportType === 'late_payment'" t-esc="formatDate(line.payment_date)"/>
+                                        <td t-if="reportType === 'late_payment'" t-esc="line.commission_period_name or '—'"/>
+                                        <td t-if="reportType === 'late_payment'" class="text-end" t-esc="line.days_late_payment"/>
+                                        <td t-if="reportType === 'pending_commission'" t-esc="formatDate(line.commission_payable_date)"/>
+                                        <td t-if="reportType === 'pending_commission'" class="text-end" t-esc="line.days_pending_commission"/>
+                                        <td class="text-end" t-if="reportType === 'seller_sale'" t-esc="formatAmount(line.amount_untaxed_net)"/>
+                                        <td t-if="reportType === 'seller_sale'" t-esc="line.currency_name"/>
+                                        <td class="text-end" t-if="reportType === 'seller_sale'" t-esc="formatAmount(line.amount_goal_currency)"/>
+                                        <td t-if="reportType === 'seller_sale'" t-esc="line.goal_currency_name"/>
+                                        <td class="text-end" t-if="reportType === 'pending_commission'">
+                                            <t t-esc="formatAmount(line.pending_commission_amount)"/> <t t-esc="line.currency_name"/>
+                                        </td>
+                                        <td class="text-end" t-if="reportType === 'late_payment'">
+                                            <t t-esc="formatAmount(line.amount_untaxed_net)"/> <t t-esc="line.currency_name"/>
+                                        </td>
+                                        <td t-if="reportType === 'seller_sale'">
+                                            <span class="badge rounded-pill" t-att-class="line.is_fully_collected ? 'text-bg-success' : 'text-bg-warning'" t-esc="line.is_fully_collected ? 'Cobrada' : (line.payment_state_label or line.payment_state)"/>
+                                        </td>
+                                    </tr>
+                                    <tr t-if="!state.lines.length">
+                                        <td colspan="12" class="text-center text-muted py-4">
+                                            No hay datos para los filtros seleccionados.
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </t>
+            </div>
+        </div>
+    </t>
+
+</templates>
