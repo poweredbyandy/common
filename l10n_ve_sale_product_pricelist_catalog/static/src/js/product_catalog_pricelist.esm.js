@@ -21,4 +21,10 @@ patch(ProductCatalogOrderLine.prototype, {
         const pricelists = this.pricelists;
         return pricelists && pricelists.length > 0;
     },
+
+    get showForeignPriceColumn() {
+        return this.pricelists.some(
+            (pricelist) => pricelist.currency_id !== pricelist.company_currency_id
+        );
+    },
 });

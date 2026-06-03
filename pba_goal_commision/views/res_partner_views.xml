@@ -6,7 +6,7 @@
         <field name="inherit_id" ref="base.view_partner_form"/>
         <field name="arch" type="xml">
             <xpath expr="//sheet" position="before">
-                <header invisible="not is_goal_commission_seller">
+                <header invisible="not is_goal_commission_seller" groups="pba_goal_commision.group_goal_commission_user">
                     <button name="action_print_goal_pending_commissions"
                             string="Comisiones Pendientes"
                             type="object"
@@ -20,7 +20,7 @@
                 </header>
             </xpath>
             <xpath expr="//notebook" position="inside">
-                <page string="Comisión por Meta" invisible="not show_goal_commission_tab">
+                <page string="Comisión por Meta" invisible="not show_goal_commission_tab" groups="pba_goal_commision.group_goal_commission_user">
                     <field name="show_goal_commission_tab" invisible="1"/>
                     <field name="is_goal_commission_seller" invisible="1"/>
                     <group string="Configuracion por Vendedor">

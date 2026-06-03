@@ -1,0 +1,57 @@
+.o_kanban_view.o_product_catalog_pricelist_kanban .o_kanban_renderer {
+    --KanbanRecord-width: 22rem;
+}
+
+.o_kanban_view.o_product_catalog_pricelist_kanban .o_kanban_record {
+    div[name="o_kanban_pricelists"]:not(.o_product_catalog_pricelists_host) {
+        display: none;
+    }
+
+    .o_product_catalog_pricelists_host {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        align-self: stretch;
+        padding: 0 var(--KanbanRecord-padding-h, 8px) var(--KanbanRecord-padding-v, 8px);
+        box-sizing: border-box;
+    }
+}
+
+.o_product_catalog_pricelists {
+    width: 100%;
+    box-sizing: border-box;
+    font-size: 0.8125rem;
+    line-height: 1.35;
+
+    .o_product_catalog_pricelist_table {
+        table-layout: fixed;
+        width: 100%;
+        margin-bottom: 0;
+
+        td {
+            border: 0;
+            padding: 0.2rem 0.15rem;
+            vertical-align: middle;
+        }
+
+        tr td:nth-child(1) {
+            width: 42%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        tr td:nth-child(2):last-child {
+            width: 58%;
+        }
+
+        tr td:nth-child(2):not(:last-child),
+        tr td:nth-child(3) {
+            width: 29%;
+        }
+
+        .o_product_catalog_pricelist_price {
+            font-variant-numeric: tabular-nums;
+        }
+    }
+}

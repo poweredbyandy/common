@@ -213,11 +213,20 @@ class ResPartner(models.Model):
         "goal_commission_tier_ids.active",
     )
     def _compute_is_goal_commission_seller(self):
-        is_admin = self.env.user.has_group("pba_goal_commision.group_goal_commission_admin")
+        tier_model = self.env["goal.commission.tier"]
+        has_tier_access = tier_model.check_access_rights("read", raise_exception=False)
+        is_commission_admin = (
+            has_tier_access
+            and self.env.user.has_group("pba_goal_commision.group_goal_commission_admin")
+        )
         for partner in self:
+            if not has_tier_access:
+                partner.show_goal_commission_tab = False
+                partner.is_goal_commission_seller = False
+                continue
             has_internal_user = bool(partner.user_ids.filtered(lambda user: not user.share and user.active))
             has_active_tier = bool(partner.goal_commission_tier_ids.filtered("active"))
-            partner.show_goal_commission_tab = has_internal_user or is_admin
+            partner.show_goal_commission_tab = has_internal_user or is_commission_admin
             partner.is_goal_commission_seller = has_internal_user and has_active_tier
 
     def _get_goal_commission_seller_users(self):

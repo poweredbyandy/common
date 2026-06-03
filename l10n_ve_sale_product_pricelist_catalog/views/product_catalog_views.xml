@@ -4,12 +4,26 @@
         <field name="name">product.view.kanban.catalog.pricelist</field>
         <field name="model">product.product</field>
         <field name="inherit_id" ref="product.product_view_kanban_catalog" />
+        <field name="priority">92</field>
         <field name="arch" type="xml">
-            <xpath expr="//div[@name='o_kanban_price']" position="after">
+            <xpath expr="//kanban" position="attributes">
+                <attribute name="class" add="o_product_catalog_pricelist_kanban" />
+            </xpath>
+            <xpath
+                expr="//t[@t-name='card']/div[contains(@class, 'flex-grow-1')]"
+                position="after"
+            >
                 <div
-                    name="o_kanban_pricelists"
-                    t-attf-id="product-{{record.id.raw_value}}-pricelists"
+                    name="o_kanban_pricelists_panel"
+                    class="o_product_catalog_pricelists_host"
+                    t-attf-id="product-{{record.id.raw_value}}-pricelists-panel"
                 />
+            </xpath>
+            <xpath
+                expr="//t[@t-name='card']//div[contains(@class, 'overflow-hidden')]"
+                position="attributes"
+            >
+                <attribute name="class" separator=" " remove="overflow-hidden" />
             </xpath>
         </field>
     </record>

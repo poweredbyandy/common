@@ -8,13 +8,13 @@
     >
         <xpath expr="//t[@t-portal]" position="before">
             <t
-                t-portal="`#product-${props.productId}-pricelists`"
+                t-portal="`#product-${props.productId}-pricelists-panel`"
                 t-if="this.showPricelists"
             >
-                <div
-                    class="o_product_catalog_pricelists mt-2 pt-2 pb-2 mb-2 border-top border-bottom"
-                >
-                    <table class="table table-borderless table-striped table-sm">
+                <div class="o_product_catalog_pricelists w-100 border-top border-bottom">
+                    <table
+                        class="table table-borderless table-sm mb-0 o_product_catalog_pricelist_table"
+                    >
                         <tbody>
                             <t
                                 t-foreach="pricelists"
@@ -22,25 +22,29 @@
                                 t-key="pricelist.id"
                             >
                                 <tr>
-                                    <td class="text-nowrap">
-                                        <span
-                                            class="text-muted"
-                                            t-out="pricelist.name"
-                                        />
+                                    <td
+                                        class="o_product_catalog_pricelist_name text-muted"
+                                        t-att-title="pricelist.name"
+                                    >
+                                        <span t-out="pricelist.name" />
                                     </td>
-                                    <td class="text-end text-nowrap">
+                                    <td
+                                        t-if="showForeignPriceColumn"
+                                        class="o_product_catalog_pricelist_price text-end text-nowrap"
+                                    >
                                         <t
                                             t-if="pricelist.currency_id != pricelist.company_currency_id"
                                         >
                                             <span
-                                                class="fw-bold text-end "
                                                 t-out="formatPrice(pricelist.price, pricelist.currency_id, [false, 2])"
                                             />
                                         </t>
+                                        <t t-else="">—</t>
                                     </td>
-                                    <td class="text-end ">
+                                    <td
+                                        class="o_product_catalog_pricelist_price text-end text-nowrap fw-bold"
+                                    >
                                         <span
-                                            class="fw-bold"
                                             t-out="formatPrice(pricelist.company_currency_price, pricelist.company_currency_id, [false, 2])"
                                         />
                                     </td>
