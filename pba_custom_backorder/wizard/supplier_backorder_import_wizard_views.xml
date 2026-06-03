@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_pba_supplier_backorder_import_wizard_form" model="ir.ui.view">
+        <field name="name">pba.supplier.backorder.import.wizard.form</field>
+        <field name="model">pba.supplier.backorder.import.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Importar backorder de proveedor">
+                <header>
+                    <field name="state" widget="statusbar" statusbar_visible="upload,mapping,review"/>
+                </header>
+                <sheet>
+                    <div class="oe_title" invisible="state != 'review'">
+                        <h1>Revisión e importación</h1>
+                    </div>
+                    <group invisible="state != 'upload'">
+                        <group>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="file_data" filename="file_name"/>
+                            <field name="file_name" invisible="1"/>
+                        </group>
+                        <div class="alert alert-info" role="alert">
+                            <p>
+                                Cargue el archivo Excel del backorder del proveedor.
+                                El asistente detectará columnas, moneda y referencias automáticamente.
+                            </p>
+                        </div>
+                    </group>
+                    <field name="duplicate_warning" nolabel="1" colspan="2"
+                        invisible="state not in ('mapping', 'review') or not duplicate_warning"/>
+                    <field name="import_mode" invisible="1"/>
+                    <field name="existing_purchase_order_id" invisible="1"/>
+                    <field name="file_hash" invisible="1"/>
+                    <group invisible="state != 'mapping'">
+                        <group string="Detección automática">
+                            <field name="sheet_name"/>
+                            <field name="available_sheet_names" colspan="2"
+                                invisible="not available_sheet_names"/>
+                            <label for="sheet_index" string="Hoja a importar"
+                                invisible="not available_sheet_names"/>
+                            <div invisible="not available_sheet_names" class="o_row">
+                                <field name="sheet_index" class="oe_inline"/>
+                                <button name="action_apply_sheet"
+                                    type="object"
+                                    string="Usar esta hoja"
+                                    class="btn-link"/>
+                            </div>
+                            <field name="header_row"/>
+                            <field name="currency_id"/>
+                            <field name="currency_detected"/>
+                            <field name="confirmation_ref"/>
+                            <field name="factory_name"/>
+                        </group>
+                        <group string="Vista previa del mapeo">
+                            <field name="preview_html" nolabel="1" colspan="2"/>
+                        </group>
+                    </group>
+                    <group invisible="state != 'mapping'" string="Columnas del archivo">
+                        <group>
+                            <field name="col_internal_code"/>
+                            <field name="col_product_ref"/>
+                            <field name="col_description"/>
+                            <field name="col_quantity"/>
+                            <field name="col_uom"/>
+                            <field name="col_unit_price"/>
+                            <field name="col_line_total"/>
+                        </group>
+                        <group>
+                            <field name="col_item"/>
+                            <field name="col_factory"/>
+                            <field name="col_order_ref"/>
+                            <field name="col_confirmation"/>
+                            <field name="col_supplier_name"/>
+                        </group>
+                    </group>
+                    <group invisible="state != 'mapping'">
+                        <field name="detected_headers" widget="text" readonly="1" colspan="2"/>
+                    </group>
+                    <group invisible="state != 'review'">
+                        <group string="Compra">
+                            <field name="partner_id"/>
+                            <field name="currency_id"/>
+                            <field name="confirmation_ref"/>
+                            <field name="factory_name"/>
+                            <field name="existing_purchase_order_id"
+                                invisible="not existing_purchase_order_id"/>
+                            <field name="import_mode"
+                                invisible="not existing_purchase_order_id"/>
+                        </group>
+                        <group string="Resumen">
+                            <field name="total_line_count"/>
+                            <field name="ready_line_count"/>
+                            <field name="missing_product_count"/>
+                        </group>
+                    </group>
+                    <notebook invisible="state != 'review'">
+                        <page string="Líneas del backorder" name="lines">
+                            <field name="line_ids" nolabel="1">
+                                <list editable="bottom" create="0" delete="0" limit="10000">
+                                    <field name="sequence" column_invisible="1"/>
+                                    <field name="internal_code"/>
+                                    <field name="product_ref" optional="hide"/>
+                                    <field name="factory"/>
+                                    <field name="description"/>
+                                    <field name="quantity"/>
+                                    <field name="uom_name" optional="hide"/>
+                                    <field name="unit_price"/>
+                                    <field name="product_match"
+                                        decoration-danger="product_match == 'missing'"
+                                        decoration-success="product_match in ('matched', 'created')"
+                                        decoration-muted="product_match == 'skipped'"/>
+                                    <field name="product_id"
+                                        readonly="product_match == 'skipped'"/>
+                                    <field name="uom_id" optional="hide"/>
+                                    <button name="action_open_create_product"
+                                        type="object"
+                                        string="Crear producto"
+                                        icon="fa-plus"
+                                        invisible="product_match != 'missing'"/>
+                                    <button name="action_open_from_template"
+                                        type="object"
+                                        string="Desde existente"
+                                        icon="fa-copy"
+                                        invisible="product_match != 'missing'"/>
+                                    <button name="action_skip_line"
+                                        type="object"
+                                        string="Omitir"
+                                        icon="fa-ban"
+                                        invisible="product_match != 'missing'"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <footer>
+                    <button name="action_analyze_file"
+                        string="Analizar archivo"
+                        type="object"
+                        class="btn-primary"
+                        invisible="state != 'upload'"/>
+                    <button name="action_back_to_upload"
+                        string="← Paso 1: Archivo"
+                        type="object"
+                        invisible="state != 'mapping'"/>
+                    <button name="action_reanalyze"
+                        string="Volver a analizar"
+                        type="object"
+                        invisible="state != 'mapping'"/>
+                    <button name="action_go_to_review"
+                        string="Continuar → Paso 3"
+                        type="object"
+                        class="btn-primary"
+                        invisible="state != 'mapping'"/>
+                    <button name="action_back_to_mapping"
+                        string="← Paso 2: Configuración"
+                        type="object"
+                        invisible="state != 'review'"/>
+                    <button name="action_back_to_upload"
+                        string="← Paso 1: Archivo"
+                        type="object"
+                        invisible="state != 'review'"/>
+                    <button name="action_create_purchase_order"
+                        string="Crear orden de compra"
+                        type="object"
+                        class="btn-primary"
+                        invisible="state != 'review' or import_mode != 'create'"/>
+                    <button name="action_create_purchase_order"
+                        string="Actualizar orden existente"
+                        type="object"
+                        class="btn-primary"
+                        invisible="state != 'review' or import_mode != 'update'"/>
+                    <button name="action_create_purchase_order"
+                        string="Abrir orden existente"
+                        type="object"
+                        class="btn-primary"
+                        invisible="state != 'review' or import_mode != 'open'"/>
+                    <button string="Cancelar" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_pba_supplier_backorder_import_wizard" model="ir.actions.act_window">
+        <field name="name">Importar backorder de proveedor</field>
+        <field name="res_model">pba.supplier.backorder.import.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>

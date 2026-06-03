@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_pba_supplier_backorder_import_wizard,pba.supplier.backorder.import.wizard,model_pba_supplier_backorder_import_wizard,purchase.group_purchase_user,1,1,1,1
+access_pba_supplier_backorder_import_line,pba.supplier.backorder.import.line,model_pba_supplier_backorder_import_line,purchase.group_purchase_user,1,1,1,1
+access_pba_supplier_backorder_product_wizard,pba.supplier.backorder.product.wizard,model_pba_supplier_backorder_product_wizard,purchase.group_purchase_user,1,1,1,1
+access_pba_supplier_backorder_product_from_template_wizard,pba.supplier.backorder.product.from.template.wizard,model_pba_supplier_backorder_product_from_template_wizard,purchase.group_purchase_user,1,1,1,1

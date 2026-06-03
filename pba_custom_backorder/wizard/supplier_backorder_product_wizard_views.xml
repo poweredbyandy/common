@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_pba_supplier_backorder_product_wizard_form" model="ir.ui.view">
+        <field name="name">pba.supplier.backorder.product.wizard.form</field>
+        <field name="model">pba.supplier.backorder.product.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Crear producto">
+                <group>
+                    <field name="import_line_id" invisible="1"/>
+                    <field name="name"/>
+                    <field name="default_code"/>
+                    <field name="categ_id"/>
+                    <field name="uom_id"/>
+                    <field name="standard_price"/>
+                    <field name="list_price"/>
+                    <field name="purchase_ok"/>
+                    <field name="sale_ok"/>
+                </group>
+                <footer>
+                    <button name="action_back_to_import"
+                        string="← Volver a importación"
+                        type="object"
+                        class="btn-secondary"/>
+                    <button name="action_open_from_template"
+                        string="Importar de uno ya existente"
+                        type="object"
+                        class="btn-secondary"/>
+                    <button name="action_create_product"
+                        string="Crear producto"
+                        type="object"
+                        class="btn-primary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_pba_supplier_backorder_product_from_template_wizard_form" model="ir.ui.view">
+        <field name="name">pba.supplier.backorder.product.from.template.wizard.form</field>
+        <field name="model">pba.supplier.backorder.product.from.template.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Importar de producto existente">
+                <group>
+                    <field name="import_line_id" invisible="1"/>
+                    <field name="template_product_id"/>
+                    <field name="name"/>
+                </group>
+                <group string="Datos del nuevo producto">
+                    <field name="product_brand_id"/>
+                    <field name="internal_code"/>
+                    <field name="default_code"/>
+                </group>
+                <div class="text-muted" role="note">
+                    El nombre se copia del producto plantilla.
+                    La referencia se sugiere desde la plantilla y puede editarse.
+                    El código interno es el nº parte del Excel.
+                </div>
+                <footer>
+                    <button name="action_back_to_import"
+                        string="← Volver a importación"
+                        type="object"
+                        class="btn-secondary"/>
+                    <button name="action_duplicate_from_template"
+                        string="Duplicar y continuar"
+                        type="object"
+                        class="btn-primary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

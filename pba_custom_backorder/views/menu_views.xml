@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem
+        id="menu_pba_supplier_backorder_import"
+        name="Importar backorder"
+        parent="purchase.menu_procurement_management"
+        action="pba_custom_backorder.action_pba_supplier_backorder_import_wizard"
+        sequence="25"
+        groups="purchase.group_purchase_user"
+    />
+</odoo>

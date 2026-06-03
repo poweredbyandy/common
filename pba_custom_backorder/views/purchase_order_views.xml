@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="purchase_order_form_inherit_pba_backorder" model="ir.ui.view">
+        <field name="name">purchase.order.form.pba.backorder</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_form"/>
+        <field name="arch" type="xml">
+            <field name="partner_ref" position="after">
+                <field name="pba_is_supplier_backorder" invisible="1"/>
+                <field name="pba_backorder_confirmation"
+                    invisible="not pba_is_supplier_backorder"/>
+                <field name="pba_backorder_factory"
+                    invisible="not pba_is_supplier_backorder"/>
+                <field name="pba_backorder_import_filename"
+                    invisible="not pba_is_supplier_backorder"/>
+                <field name="pba_backorder_file_hash"
+                    invisible="1"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="purchase_order_search_inherit_pba_backorder" model="ir.ui.view">
+        <field name="name">purchase.order.search.pba.backorder</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.view_purchase_order_filter"/>
+        <field name="arch" type="xml">
+            <filter name="my_purchases" position="after">
+                <separator/>
+                <filter name="pba_supplier_backorder"
+                    string="Backorders de proveedor"
+                    domain="[('pba_is_supplier_backorder', '=', True)]"/>
+            </filter>
+        </field>
+    </record>
+</odoo>

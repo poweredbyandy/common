@@ -3,7 +3,7 @@ import io
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError
 from odoo.tools import format_date
-from odoo.tools.float_utils import float_compare, float_is_zero
+from odoo.tools.float_utils import float_compare, float_is_zero, float_round
 from odoo.tools.misc import xlsxwriter
 
 
@@ -159,10 +159,11 @@ class PbaPurchaseReplenishmentReportWizard(models.TransientModel):
         )
         headers.extend(
             [
-                "Existencia",
                 "Proveedor",
+                "Existencia",
                 "Cant.",
                 "Fecha",
+                "Sugerencia",
                 "Cantidad a Pedir",
             ]
         )
@@ -172,11 +173,12 @@ class PbaPurchaseReplenishmentReportWizard(models.TransientModel):
             "extra_currencies": extra_currencies,
             "col_name": 2,
             "col_cost": col_cost,
-            "col_qty": col_cost + 1,
-            "col_vendor": col_cost + 2,
+            "col_vendor": col_cost + 1,
+            "col_qty": col_cost + 2,
             "col_purchase_qty": col_cost + 3,
             "col_purchase_date": col_cost + 4,
-            "col_order_qty": col_cost + 5,
+            "col_suggestion": col_cost + 5,
+            "col_order_qty": col_cost + 6,
         }
 
     def _cost_rate_date(self, product, last_line):
@@ -236,6 +238,18 @@ class PbaPurchaseReplenishmentReportWizard(models.TransientModel):
             parts.append(_("equivalencias: %s", extra_labels))
         return _("Moneda: %s", " | ".join(parts))
 
+    def _compute_suggestion(self, product, qty_available, min_qty_by_product, last_line):
+        rounding = product.uom_id.rounding
+        min_qty = min_qty_by_product.get(product.id, 0.0)
+        if not float_is_zero(min_qty, precision_rounding=rounding):
+            raw = min_qty - qty_available
+        else:
+            last_qty = last_line.product_qty if last_line else 0.0
+            raw = last_qty - qty_available
+        if float_compare(raw, 0.0, precision_rounding=rounding) <= 0:
+            return 0.0
+        return float_round(raw, precision_rounding=rounding)
+
     def _format_purchase_date(self, line):
         if not line:
             return ""
@@ -245,7 +259,9 @@ class PbaPurchaseReplenishmentReportWizard(models.TransientModel):
         line_date = line_dt.date() if hasattr(line_dt, "date") else line_dt
         return format_date(self.env, line_date)
 
-    def _build_row(self, product, last_line, qty_available, layout):
+    def _build_row(
+        self, product, last_line, qty_available, min_qty_by_product, layout
+    ):
         tmpl = product.product_tmpl_id
         brand = tmpl.product_brand_id
         row = [
@@ -265,12 +281,16 @@ class PbaPurchaseReplenishmentReportWizard(models.TransientModel):
                 product, last_line, self.currency_id, for_equivalence=False
             )
         )
+        suggestion = self._compute_suggestion(
+            product, qty_available, min_qty_by_product, last_line
+        )
         row.extend(
             [
-                qty_available,
                 last_line.order_id.partner_id.display_name if last_line else "",
+                qty_available,
                 last_line.product_qty if last_line else "",
                 self._format_purchase_date(last_line),
+                suggestion,
                 "",
             ]
         )
@@ -377,6 +397,7 @@ class PbaPurchaseReplenishmentReportWizard(models.TransientModel):
                 product,
                 last_line,
                 qty_available,
+                min_qty_by_product,
                 layout,
             )
             for col_idx, cell_value in enumerate(row_vals):
@@ -394,7 +415,10 @@ class PbaPurchaseReplenishmentReportWizard(models.TransientModel):
                         cell_value,
                         row_formats["order_qty"],
                     )
-                elif col_idx == layout["col_purchase_qty"]:
+                elif col_idx in (
+                    layout["col_purchase_qty"],
+                    layout["col_suggestion"],
+                ):
                     if cell_value != "":
                         worksheet.write_number(
                             data_row,
@@ -428,6 +452,9 @@ class PbaPurchaseReplenishmentReportWizard(models.TransientModel):
         )
         worksheet.set_column(
             layout["col_purchase_date"], layout["col_purchase_date"], 13
+        )
+        worksheet.set_column(
+            layout["col_suggestion"], layout["col_suggestion"], 12
         )
         worksheet.set_column(
             layout["col_order_qty"], layout["col_order_qty"], 15

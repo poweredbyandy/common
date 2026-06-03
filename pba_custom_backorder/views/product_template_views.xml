@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="product_template_backorder_import_form_view" model="ir.ui.view">
+        <field name="name">product.template.form.backorder.import</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_form_view"/>
+        <field name="mode">primary</field>
+        <field name="priority">32</field>
+        <field name="arch" type="xml">
+            <xpath expr="//chatter" position="before">
+                <footer>
+                    <button name="action_pba_back_to_import"
+                        type="object"
+                        string="← Volver a importación"
+                        class="btn-secondary"/>
+                    <button name="action_pba_open_from_template"
+                        type="object"
+                        string="Importar de uno ya existente"
+                        class="btn-secondary"/>
+                    <button name="action_pba_backorder_save_and_return"
+                        type="object"
+                        string="Guardar cambios y continuar"
+                        class="btn-primary"/>
+                </footer>
+            </xpath>
+        </field>
+    </record>
+</odoo>
