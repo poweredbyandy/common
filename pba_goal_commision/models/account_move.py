@@ -181,24 +181,52 @@ class AccountMove(models.Model):
             partners.sudo()._compute_goal_commission_stats()
 
     def _recompute_goal_commission_collectible_for_seller_months(self):
-        Move = self.env["account.move"]
-        sellers = self.filtered(
-            lambda row: row.move_type == "out_invoice" and row.state == "posted"
-        ).mapped("invoice_user_id")
-        if not sellers:
-            return
-        invoices = Move.search([
-            ("move_type", "=", "out_invoice"),
-            ("state", "=", "posted"),
-            ("invoice_user_id", "in", sellers.ids),
-        ])
-        if invoices:
-            invoices._goal_commission_persist_stored_fields()
+        targets = self.env["account.move"]
+        for move in self:
+            if move.move_type == "out_invoice" and move.state == "posted":
+                seller = move.invoice_user_id.partner_id
+                if seller.goal_commission_tier_ids.filtered("active"):
+                    targets |= move._goal_commission_month_invoices_for_tier()
+                else:
+                    targets |= move
+            elif (
+                move.move_type == "out_refund"
+                and move.state == "posted"
+                and move.reversed_entry_id
+            ):
+                source = move.reversed_entry_id
+                seller = source.invoice_user_id.partner_id
+                if seller and seller.goal_commission_tier_ids.filtered("active"):
+                    targets |= source._goal_commission_month_invoices_for_tier()
+                else:
+                    targets |= source
+        if targets:
+            targets._goal_commission_persist_stored_fields()
 
-    def _goal_commission_stored_field_values(self):
+    def _goal_commission_month_invoices_for_tier(self):
+        self.ensure_one()
+        if self.move_type != "out_invoice" or not self.invoice_user_id:
+            return self.env["account.move"]
+        inv_date = self.invoice_date or self.date
+        if not inv_date:
+            return self.filtered(lambda row: row.state == "posted" and row.move_type == "out_invoice")
+        period_model = self.env["goal.commission.period"]
+        date_start, date_end = period_model._month_bounds(inv_date.year, inv_date.month)
+        return self.env["account.move"].search(
+            [
+                ("move_type", "=", "out_invoice"),
+                ("state", "=", "posted"),
+                ("invoice_user_id", "=", self.invoice_user_id.id),
+                ("invoice_date", ">=", date_start),
+                ("invoice_date", "<=", date_end),
+            ]
+        )
+
+    def _goal_commission_stored_field_values(self, credit_map=None):
         self.ensure_one()
         move = self
-        credit_map = move._goal_commission_dashboard()._goal_commission_batch_credit_untaxed([move.id])
+        if credit_map is None:
+            credit_map = move._goal_commission_dashboard()._goal_commission_batch_credit_untaxed([move.id])
         credit = credit_map.get(move.id, 0.0)
         if (
             move.move_type != "out_invoice"
@@ -251,11 +279,14 @@ class AccountMove(models.Model):
             "goal_commission_payable_date",
             "goal_commission_available",
         ]
+        period_invoiced_cache = {}
+        credit_map = self._goal_commission_dashboard()._goal_commission_batch_credit_untaxed(invoices.ids)
+        invoices = invoices.with_context(_goal_commission_period_invoiced_cache=period_invoiced_cache)
         batch_size = 200
         for offset in range(0, len(invoices), batch_size):
             batch = invoices[offset : offset + batch_size]
             for move in batch:
-                values = move._goal_commission_stored_field_values()
+                values = move._goal_commission_stored_field_values(credit_map=credit_map)
                 self.env.cr.execute(
                     """
                     UPDATE account_move
@@ -1163,7 +1194,7 @@ class AccountMove(models.Model):
             ).mapped("reversed_entry_id")
             out_invoices |= credit_sources
             if out_invoices:
-                self.env["goal.commission.period"].sync_from_invoices(out_invoices.mapped("company_id"))
+                self.env["goal.commission.period"].ensure_periods_for_moves(out_invoices)
                 out_invoices._recompute_goal_commission_collectible_for_seller_months()
         if "payment_state" in vals:
             vendor_bills = self.filtered(lambda move: move.move_type == "in_invoice")
@@ -1175,7 +1206,7 @@ class AccountMove(models.Model):
                     expected = "paid" if line.vendor_bill_id.payment_state == "paid" else "invoiced"
                     if line.state != expected:
                         line.state = expected
-        if {"payment_state", "state", "invoice_user_id", "goal_commission_exception"} & set(vals):
+        if {"payment_state", "invoice_user_id", "goal_commission_exception"} & set(vals):
             self._recompute_goal_commission_pending_stats()
         if "goal_commission_exception" in vals:
             out_invoices = self.filtered(lambda move: move.move_type == "out_invoice" and move.state == "posted")

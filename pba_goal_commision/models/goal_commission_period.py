@@ -202,6 +202,40 @@ class GoalCommissionPeriod(models.Model):
         return month_keys
 
     @api.model
+    def ensure_periods_for_moves(self, moves):
+        created_any = False
+        seen = set()
+        for move in moves:
+            company = move.company_id
+            dates = [move.invoice_date or move.date]
+            if move.goal_commission_payable_date:
+                dates.append(move.goal_commission_payable_date)
+            for date_value in dates:
+                if not date_value:
+                    continue
+                month_key = self._month_key(date_value.year, date_value.month)
+                key = (company.id, month_key)
+                if key in seen:
+                    continue
+                seen.add(key)
+                if self._get_period_for_date(date_value, company):
+                    continue
+                date_start, date_end = self._month_bounds(date_value.year, date_value.month)
+                self.create(
+                    {
+                        "name": self._period_label(date_value.year, date_value.month),
+                        "month_key": month_key,
+                        "date_start": date_start,
+                        "date_end": date_end,
+                        "company_id": company.id,
+                    }
+                )
+                created_any = True
+        if created_any:
+            self._register_period_filters()
+        return created_any
+
+    @api.model
     def sync_from_invoices(self, companies=None):
         companies = companies or self.env.companies
         for company in companies:

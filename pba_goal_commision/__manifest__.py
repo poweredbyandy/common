@@ -1,6 +1,6 @@
 {
     "name": "PBA Goal Commision",
-    "version": "18.0.1.15.0",
+    "version": "18.0.1.16.0",
     "post_init_hook": "post_init_hook",
     "summary": "Comisiones por metas de venta y cobro para vendedores",
     "author": "andyengit",

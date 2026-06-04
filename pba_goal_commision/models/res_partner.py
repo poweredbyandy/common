@@ -187,23 +187,32 @@ class ResPartner(models.Model):
         self.ensure_one()
         if not period:
             return 0.0
+        cache = self.env.context.get("_goal_commission_period_invoiced_cache")
+        if cache is not None:
+            cache_key = (self.id, period.id)
+            if cache_key in cache:
+                return cache[cache_key]
         users = self._get_goal_commission_seller_users()
         if not users:
-            return 0.0
-        company = self._get_goal_reference_company()
-        goal_currency = self.goal_commission_currency_id or company.currency_id
-        invoices = self.env["account.move"].search(self._get_goal_invoice_domain(users, period, False))
-        total_invoiced = 0.0
-        dashboard = self._goal_commission_dashboard()
-        for invoice in invoices:
-            inv_date = invoice.invoice_date or invoice.date
-            if not inv_date:
-                continue
-            if not dashboard._goal_commission_invoice_eligible_for_progress(invoice, inv_date):
-                continue
-            total_invoiced += invoice._goal_commission_net_subtotal_in_currency(goal_currency)
-        currency = self.goal_commission_currency_id or company.currency_id
-        return currency.round(total_invoiced)
+            amount = 0.0
+        else:
+            company = self._get_goal_reference_company()
+            goal_currency = self.goal_commission_currency_id or company.currency_id
+            invoices = self.env["account.move"].search(self._get_goal_invoice_domain(users, period, False))
+            total_invoiced = 0.0
+            dashboard = self._goal_commission_dashboard()
+            for invoice in invoices:
+                inv_date = invoice.invoice_date or invoice.date
+                if not inv_date:
+                    continue
+                if not dashboard._goal_commission_invoice_eligible_for_progress(invoice, inv_date):
+                    continue
+                total_invoiced += invoice._goal_commission_net_subtotal_in_currency(goal_currency)
+            currency = self.goal_commission_currency_id or company.currency_id
+            amount = currency.round(total_invoiced)
+        if cache is not None:
+            cache[(self.id, period.id)] = amount
+        return amount
 
     @api.depends(
         "user_ids",
