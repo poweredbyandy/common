@@ -4,35 +4,19 @@ from odoo import models
 class AccountMove(models.Model):
     _inherit = "account.move"
 
-    def _pba_is_immediate_invoice_term(self):
+    def _pba_is_credit_sale(self):
         self.ensure_one()
+        if self.move_type not in ("out_invoice", "out_refund"):
+            return False
         term = self.invoice_payment_term_id
         if not term:
             return False
-        if hasattr(term, "_is_credit_sale_authorization_term"):
-            return not term._is_credit_sale_authorization_term()
-        return bool(
-            term.line_ids
-            and all(
-                line.delay_type == "days_after" and not line.nb_days
-                for line in term.line_ids
-            )
-        )
-
-    def _pba_can_bypass_invoice_risk(self):
-        self.ensure_one()
-        partner = self.partner_id.commercial_partner_id
-        return (
-            self.move_type == "out_invoice"
-            and self._pba_is_immediate_invoice_term()
-            and not bool(partner.risk_invoice_unpaid)
-        )
+        return term._pba_is_credit_payment_term()
 
     def risk_exception_msg(self):
-        message = super().risk_exception_msg()
-        if message and self._pba_can_bypass_invoice_risk():
+        if not self._pba_is_credit_sale():
             return ""
-        return message
+        return super().risk_exception_msg()
 
     def action_open_partner_financial_risk(self):
         self.ensure_one()

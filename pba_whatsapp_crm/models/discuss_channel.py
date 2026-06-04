@@ -31,7 +31,7 @@ class DiscussChannel(models.Model):
     )
 
     def _compute_whatsapp_crm_lead_count(self):
-        lead_data = self.env["crm.lead"]._read_group(
+        lead_data = self.env["crm.lead"].sudo()._read_group(
             [("whatsapp_channel_id", "in", self.ids)],
             ["whatsapp_channel_id"],
             ["__count"],
@@ -42,16 +42,24 @@ class DiscussChannel(models.Model):
         for channel in self:
             channel.whatsapp_crm_lead_count = counts.get(channel.id, 0)
 
-    def _get_whatsapp_crm_leads(self):
+    def _pba_count_whatsapp_crm_leads(self):
         self.ensure_one()
-        domain = [("whatsapp_channel_id", "=", self.id)]
-        if self.whatsapp_lead_id:
+        return len(self._get_whatsapp_crm_leads(for_display=True))
+
+    def _get_whatsapp_crm_leads(self, for_display=False):
+        self.ensure_one()
+        channel = self.sudo() if for_display else self
+        Lead = self.env["crm.lead"]
+        if for_display:
+            Lead = Lead.sudo()
+        domain = [("whatsapp_channel_id", "=", channel.id)]
+        if channel.whatsapp_lead_id:
             domain = [
                 "|",
-                ("whatsapp_channel_id", "=", self.id),
-                ("id", "=", self.whatsapp_lead_id.id),
+                ("whatsapp_channel_id", "=", channel.id),
+                ("id", "=", channel.whatsapp_lead_id.id),
             ]
-        return self.env["crm.lead"].search(
+        return Lead.search(
             domain,
             order="create_date desc, id desc",
         )

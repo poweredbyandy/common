@@ -4,40 +4,17 @@ from odoo import models
 class SaleOrder(models.Model):
     _inherit = "sale.order"
 
-    def _pba_is_immediate_payment_term(self):
+    def _pba_is_credit_sale(self):
         self.ensure_one()
         term = self.payment_term_id
         if not term:
             return False
-        if hasattr(term, "_is_credit_sale_authorization_term"):
-            return not term._is_credit_sale_authorization_term()
-        return bool(
-            term.line_ids
-            and all(
-                line.delay_type == "days_after" and not line.nb_days
-                for line in term.line_ids
-            )
-        )
-
-    def _pba_can_bypass_risk_for_immediate(self, partner):
-        self.ensure_one()
-        invoices_count = self.env["account.move"].search_count(
-            [
-                ("partner_id", "child_of", partner.id),
-                ("move_type", "in", ("out_invoice", "out_refund", "out_receipt")),
-                ("state", "!=", "cancel"),
-                ("company_id", "=", self.company_id.id),
-            ]
-        )
-        return self._pba_is_immediate_payment_term() and not bool(
-            partner.risk_invoice_unpaid
-        ) and invoices_count == 0
+        return term._pba_is_credit_payment_term()
 
     def evaluate_risk_message(self, partner):
-        message = super().evaluate_risk_message(partner)
-        if message and self._pba_can_bypass_risk_for_immediate(partner):
+        if not self._pba_is_credit_sale():
             return ""
-        return message
+        return super().evaluate_risk_message(partner)
 
     def action_open_partner_financial_risk(self):
         self.ensure_one()

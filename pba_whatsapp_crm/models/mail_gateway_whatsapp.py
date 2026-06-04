@@ -34,12 +34,13 @@ class MailGatewayWhatsappService(models.AbstractModel):
 
     def _pba_get_or_create_whatsapp_lead(self, channel, message):
         now = fields.Datetime.now()
+        channel_sudo = channel.sudo()
         if (
-            channel.whatsapp_lead_id
-            and channel.whatsapp_lead_window_end
-            and channel.whatsapp_lead_window_end > now
+            channel_sudo.whatsapp_lead_id
+            and channel_sudo.whatsapp_lead_window_end
+            and channel_sudo.whatsapp_lead_window_end > now
         ):
-            return channel.whatsapp_lead_id
+            return channel_sudo.whatsapp_lead_id
 
         company = channel.company_id or self.env.company
         partner = self._pba_get_channel_partner(channel)
@@ -118,7 +119,7 @@ class MailGatewayWhatsappService(models.AbstractModel):
     def _pba_link_message_to_lead(self, message, lead):
         if message.gateway_message_id and message.gateway_message_id.model == "crm.lead":
             return
-        lead_message = lead.message_post(
+        lead_message = lead.sudo().message_post(
             body=message.body or "",
             message_type="comment",
             subtype_xmlid="mail.mt_comment",

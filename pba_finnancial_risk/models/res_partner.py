@@ -222,17 +222,19 @@ class ResPartner(models.Model):
     def _prepare_risk_account_vals(self, groups):
         vals = super()._prepare_risk_account_vals(groups)
         draft_total = 0.0
-        for (
-            partner,
-            account,
-            currency,
-            amount_residual,
-            amount_residual_currency,
-        ) in groups["draft"]["read_group"]:
-            if partner.id not in self.ids:
+        draft_lines = self.env["account.move.line"].search(
+            groups["draft"]["domain"] + [("partner_id", "child_of", self.ids)]
+        )
+        for line in draft_lines:
+            move = line.move_id
+            term = move.invoice_payment_term_id
+            if not term or not term._pba_is_credit_payment_term():
                 continue
             draft_total += self._get_amount_in_risk_currency(
-                currency, amount_residual_currency, amount_residual, account
+                line.currency_id,
+                line.amount_residual_currency,
+                line.amount_residual,
+                line.account_id,
             )
         vals["risk_invoice_draft"] = draft_total
         return vals

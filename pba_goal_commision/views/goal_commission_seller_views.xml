@@ -3,6 +3,8 @@
     <record id="view_goal_commission_seller_kanban" model="ir.ui.view">
         <field name="name">res.partner.goal.commission.seller.kanban</field>
         <field name="model">res.partner</field>
+        <field name="priority" eval="99"/>
+        <field name="groups_id" eval="[(4, ref('pba_goal_commision.group_goal_commission_user'))]"/>
         <field name="arch" type="xml">
             <kanban default_order="name">
                 <field name="is_goal_commission_seller"/>
@@ -32,6 +34,7 @@
                 <field name="goal_dashboard_period_name"/>
                 <templates>
                     <t t-name="card">
+                        <t t-if="record.is_goal_commission_seller.raw_value">
                         <div class="oe_kanban_global_click p-2" style="min-height: 420px;">
                             <div class="text-center mb-2 fw-semibold text-muted" t-if="record.goal_dashboard_period_name.raw_value">
                                 <field name="goal_dashboard_period_name"/>
@@ -101,6 +104,12 @@
                                 </t>
                             </div>
                         </div>
+                        </t>
+                        <t t-else="">
+                            <div class="oe_kanban_global_click p-3">
+                                <div class="fw-bold"><field name="name"/></div>
+                            </div>
+                        </t>
                     </t>
                 </templates>
             </kanban>
@@ -110,6 +119,8 @@
     <record id="view_goal_commission_seller_tree" model="ir.ui.view">
         <field name="name">res.partner.goal.commission.seller.tree</field>
         <field name="model">res.partner</field>
+        <field name="priority" eval="99"/>
+        <field name="groups_id" eval="[(4, ref('pba_goal_commision.group_goal_commission_user'))]"/>
         <field name="arch" type="xml">
             <list string="Vendedores" default_order="name">
                 <field name="name" string="Vendedor"/>
@@ -126,6 +137,8 @@
     <record id="view_goal_commission_seller_search" model="ir.ui.view">
         <field name="name">res.partner.goal.commission.seller.search</field>
         <field name="model">res.partner</field>
+        <field name="priority" eval="99"/>
+        <field name="groups_id" eval="[(4, ref('pba_goal_commision.group_goal_commission_user'))]"/>
         <field name="arch" type="xml">
             <search string="Vendedores">
                 <field name="name"/>
@@ -150,7 +163,12 @@
         ]"/>
         <field name="search_view_id" ref="pba_goal_commision.view_goal_commission_seller_search"/>
         <field name="domain">[('user_ids', 'in', [uid]), ('goal_commission_tier_ids', '!=', False), ('active', '=', True)]</field>
-        <field name="context">{'search_default_filter_sellers': 1}</field>
+        <field name="context">{
+            'search_default_filter_sellers': 1,
+            'kanban_view_ref': 'pba_goal_commision.view_goal_commission_seller_kanban',
+            'list_view_ref': 'pba_goal_commision.view_goal_commission_seller_tree',
+            'search_view_ref': 'pba_goal_commision.view_goal_commission_seller_search',
+        }</field>
     </record>
 
     <record id="action_goal_commission_sellers_admin" model="ir.actions.act_window">
@@ -165,6 +183,11 @@
         ]"/>
         <field name="search_view_id" ref="pba_goal_commision.view_goal_commission_seller_search"/>
         <field name="domain">[('user_ids', '!=', False), ('goal_commission_tier_ids', '!=', False), ('active', '=', True)]</field>
-        <field name="context">{'search_default_filter_sellers': 1}</field>
+        <field name="context">{
+            'search_default_filter_sellers': 1,
+            'kanban_view_ref': 'pba_goal_commision.view_goal_commission_seller_kanban',
+            'list_view_ref': 'pba_goal_commision.view_goal_commission_seller_tree',
+            'search_view_ref': 'pba_goal_commision.view_goal_commission_seller_search',
+        }</field>
     </record>
 </odoo>
