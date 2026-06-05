@@ -39,6 +39,7 @@
                                 invisible="source_type != 'static'"
                                 required="source_type == 'static'"
                             />
+                            <field name="sample_value" readonly="1" optional="show"/>
                             <field name="model_id" column_invisible="1"/>
                         </list>
                         <form>
@@ -63,6 +64,7 @@
                                     invisible="source_type != 'static'"
                                     required="source_type == 'static'"
                                 />
+                                <field name="sample_value" readonly="1"/>
                                 <field name="model_id" invisible="1"/>
                             </group>
                         </form>

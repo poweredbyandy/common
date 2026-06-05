@@ -41,10 +41,19 @@ class MailWhatsappTemplateVariable(models.Model):
     )
     field_ttype = fields.Selection(related="field_id.ttype", string="Tipo de campo")
     static_value = fields.Char(string="Texto fijo")
+    sample_value = fields.Char(
+        string="Valor de ejemplo",
+        compute="_compute_sample_value",
+    )
     model_id = fields.Many2one(
         related="template_id.model_id",
     )
     model_name = fields.Char(related="model_id.model", string="Modelo")
+
+    @api.depends("source_type", "field_id", "static_value", "position")
+    def _compute_sample_value(self):
+        for variable in self:
+            variable.sample_value = variable._pba_get_demo_value()
 
     _sql_constraints = [
         (
