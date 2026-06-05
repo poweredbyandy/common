@@ -1,4 +1,4 @@
-from odoo import models
+from odoo import fields, models
 
 
 class MailGatewayWhatsappService(models.AbstractModel):
@@ -87,6 +87,8 @@ class MailGatewayWhatsappService(models.AbstractModel):
         if message.author_id and message.author_id in internal_partners:
             return
         company = channel.company_id or self.env.company
+        if not self._pba_should_send_autoreply_today(channel, company):
+            return
         reply_text = self.env["pba.whatsapp.autoreply.rule"]._pba_get_message_for_company(
             company
         )
@@ -104,6 +106,17 @@ class MailGatewayWhatsappService(models.AbstractModel):
             message_type="comment",
             subtype_xmlid="mail.mt_comment",
         )
+        channel.sudo().write({"pba_whatsapp_last_autoreply_dt": fields.Datetime.now()})
+
+    def _pba_should_send_autoreply_today(self, channel, company):
+        channel.ensure_one()
+        if not channel.pba_whatsapp_last_autoreply_dt:
+            return True
+        last_local = company._pba_whatsapp_local_datetime(
+            channel.pba_whatsapp_last_autoreply_dt
+        )
+        now_local = company._pba_whatsapp_local_datetime()
+        return last_local.date() != now_local.date()
 
     def _send_payload(
         self, channel, body=False, media_id=False, media_type=False, media_name=False
