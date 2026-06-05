@@ -17,6 +17,18 @@ class AccountMove(models.Model):
                 move.partner_id.mobile or move.partner_id.phone or ""
             )
 
+    @api.depends(
+        "move_type",
+        "state",
+        "payment_state",
+        "company_id.whatsapp_template_overdue_id",
+    )
+    def _compute_pba_whatsapp_show_button(self):
+        for move in self:
+            move.pba_whatsapp_show_button = bool(
+                move._pba_whatsapp_get_template_options()
+            )
+
     def _whatsapp_get_partner(self):
         return self.partner_id
 
@@ -27,6 +39,18 @@ class AccountMove(models.Model):
             raise UserError(_("La factura no tiene un cliente asociado."))
         phone_field = "mobile" if partner.mobile else "phone"
         return partner._whatsapp_get_channel(phone_field, gateway)
+
+    def _pba_whatsapp_get_template_options(self):
+        self.ensure_one()
+        templates = self.env["mail.whatsapp.template"]
+        if (
+            self.move_type == "out_invoice"
+            and self.state == "posted"
+            and self.payment_state in ("not_paid", "partial")
+            and self.company_id.whatsapp_template_overdue_id
+        ):
+            templates |= self.company_id.whatsapp_template_overdue_id
+        return templates
 
     def _get_whatsapp_overdue_body(self):
         self.ensure_one()
@@ -39,16 +63,6 @@ class AccountMove(models.Model):
             self.name,
             self.currency_id.format(self.amount_residual),
             due,
-        )
-
-    def action_whatsapp_send_overdue(self):
-        self.ensure_one()
-        template = self.company_id.whatsapp_template_overdue_id
-        body, template, variables = self._pba_whatsapp_prepare_send(
-            template, self._get_whatsapp_overdue_body()
-        )
-        return self.action_whatsapp_send(
-            body, template=template, template_variables=variables
         )
 
     @api.model
@@ -95,5 +109,7 @@ class AccountMove(models.Model):
                         subtype_xmlid="mail.mt_comment",
                         message_type="comment",
                     )
+                    if template:
+                        move._pba_whatsapp_log_template_send(template)
                 except UserError:
                     continue

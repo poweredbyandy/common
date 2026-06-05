@@ -1,10 +1,109 @@
-from odoo import _, models
+from odoo import _, api, fields, models
 from odoo.exceptions import UserError
 
 
 class MailWhatsappMixin(models.AbstractModel):
     _name = "mail.whatsapp.mixin"
     _description = "Envío WhatsApp desde documentos"
+
+    pba_whatsapp_show_button = fields.Boolean(
+        compute="_compute_pba_whatsapp_show_button",
+    )
+
+    @api.depends()
+    def _compute_pba_whatsapp_show_button(self):
+        for record in self:
+            record.pba_whatsapp_show_button = bool(
+                record._pba_whatsapp_get_template_options()
+            )
+
+    def _pba_whatsapp_get_template_options(self):
+        return self.env["mail.whatsapp.template"]
+
+    def _pba_whatsapp_get_template_send_log(self, template):
+        self.ensure_one()
+        return self.env["pba.whatsapp.template.send.log"].search(
+            [
+                ("res_model", "=", self._name),
+                ("res_id", "=", self.id),
+                ("template_id", "=", template.id),
+            ],
+            limit=1,
+        )
+
+    def _pba_whatsapp_log_template_send(self, template):
+        self.ensure_one()
+        log = self._pba_whatsapp_get_template_send_log(template)
+        vals = {
+            "sent_date": fields.Datetime.now(),
+            "user_id": self.env.user.id,
+        }
+        if log:
+            log.write(vals)
+            return log
+        return self.env["pba.whatsapp.template.send.log"].create(
+            {
+                "res_model": self._name,
+                "res_id": self.id,
+                "template_id": template.id,
+                **vals,
+            }
+        )
+
+    def _pba_whatsapp_prepare_template_wizard_lines(self):
+        self.ensure_one()
+        lines = []
+        Log = self.env["pba.whatsapp.template.send.log"]
+        for sequence, template in enumerate(
+            self._pba_whatsapp_get_template_options(), start=1
+        ):
+            log = Log.search(
+                [
+                    ("res_model", "=", self._name),
+                    ("res_id", "=", self.id),
+                    ("template_id", "=", template.id),
+                ],
+                limit=1,
+            )
+            body, _variables = template._pba_prepare_body_and_variables(self)
+            lines.append(
+                (
+                    0,
+                    0,
+                    {
+                        "sequence": sequence * 10,
+                        "template_id": template.id,
+                        "body_preview": body,
+                        "send_state": "sent" if log else "pending",
+                        "sent_date": log.sent_date if log else False,
+                        "sent_user_id": log.user_id.id if log else False,
+                    },
+                )
+            )
+        return lines
+
+    def action_pba_whatsapp_open_templates(self):
+        self.ensure_one()
+        partner = self._whatsapp_get_partner()
+        if not partner:
+            raise UserError(_("El documento no tiene un contacto asociado."))
+        if not (partner.mobile or partner.phone):
+            raise UserError(_("El contacto no tiene teléfono ni móvil configurado."))
+        if not self._pba_whatsapp_get_template_options():
+            raise UserError(
+                _("No hay plantillas WhatsApp disponibles para este documento.")
+            )
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("WhatsApp"),
+            "res_model": "pba.whatsapp.template.send.wizard",
+            "view_mode": "form",
+            "target": "new",
+            "context": {
+                "default_res_model": self._name,
+                "default_res_id": self.id,
+            },
+        }
 
     def _whatsapp_get_partner(self):
         if hasattr(self, "partner_id") and self.partner_id:

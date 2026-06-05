@@ -8,3 +8,4 @@ from . import mail_whatsapp_mixin
 from . import mail_whatsapp_template
 from . import mail_whatsapp_template_variable
 from . import mail_whatsapp_template_button
+from . import pba_whatsapp_template_send_log

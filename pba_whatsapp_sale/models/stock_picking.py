@@ -17,6 +17,13 @@ class StockPicking(models.Model):
                 picking.partner_id.mobile or picking.partner_id.phone or ""
             )
 
+    @api.depends("state", "company_id.whatsapp_template_delivery_done_id")
+    def _compute_pba_whatsapp_show_button(self):
+        for picking in self:
+            picking.pba_whatsapp_show_button = bool(
+                picking._pba_whatsapp_get_template_options()
+            )
+
     def _whatsapp_get_partner(self):
         return self.partner_id
 
@@ -28,20 +35,9 @@ class StockPicking(models.Model):
         phone_field = "mobile" if partner.mobile else "phone"
         return partner._whatsapp_get_channel(phone_field, gateway)
 
-    def _get_whatsapp_delivery_body(self):
+    def _pba_whatsapp_get_template_options(self):
         self.ensure_one()
-        order_name = self.sale_id.name if self.sale_id else self.name
-        return _("Hola %s, su entrega del pedido %s ha sido realizada.") % (
-            self.partner_id.name,
-            order_name,
-        )
-
-    def action_whatsapp_send_delivery(self):
-        self.ensure_one()
-        template = self.company_id.whatsapp_template_delivery_done_id
-        body, template, variables = self._pba_whatsapp_prepare_send(
-            template, self._get_whatsapp_delivery_body()
-        )
-        return self.action_whatsapp_send(
-            body, template=template, template_variables=variables
-        )
+        templates = self.env["mail.whatsapp.template"]
+        if self.state == "done" and self.company_id.whatsapp_template_delivery_done_id:
+            templates |= self.company_id.whatsapp_template_delivery_done_id
+        return templates

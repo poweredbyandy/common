@@ -21,3 +21,5 @@ class WhatsappComposer(models.TransientModel):
         channel.with_context(**ctx).message_post(
             body=self.body, subtype_xmlid="mail.mt_comment", message_type="comment"
         )
+        if self.template_id and hasattr(record, "_pba_whatsapp_log_template_send"):
+            record._pba_whatsapp_log_template_send(self.template_id)

@@ -18,6 +18,17 @@ class SaleOrder(models.Model):
                 order.partner_id.mobile or order.partner_id.phone or ""
             )
 
+    @api.depends(
+        "state",
+        "company_id.whatsapp_template_sale_quotation_id",
+        "company_id.whatsapp_template_sale_confirmed_id",
+    )
+    def _compute_pba_whatsapp_show_button(self):
+        for order in self:
+            order.pba_whatsapp_show_button = bool(
+                order._pba_whatsapp_get_template_options()
+            )
+
     def _whatsapp_get_partner(self):
         return self.partner_id
 
@@ -29,42 +40,12 @@ class SaleOrder(models.Model):
         phone_field = "mobile" if partner.mobile else "phone"
         return partner._whatsapp_get_channel(phone_field, gateway)
 
-    def _get_whatsapp_quotation_body(self):
+    def _pba_whatsapp_get_template_options(self):
         self.ensure_one()
-        return _(
-            "Hola %s, le enviamos su presupuesto %s por un monto de %s."
-        ) % (
-            self.partner_id.name,
-            self.name,
-            self.currency_id.format(self.amount_total),
-        )
-
-    def _get_whatsapp_confirmed_body(self):
-        self.ensure_one()
-        return _(
-            "Hola %s, su pedido %s ha sido confirmado. Total: %s."
-        ) % (
-            self.partner_id.name,
-            self.name,
-            self.currency_id.format(self.amount_total),
-        )
-
-    def action_whatsapp_send_quotation(self):
-        self.ensure_one()
-        template = self.company_id.whatsapp_template_sale_quotation_id
-        body, template, variables = self._pba_whatsapp_prepare_send(
-            template, self._get_whatsapp_quotation_body()
-        )
-        return self.action_whatsapp_send(
-            body, template=template, template_variables=variables
-        )
-
-    def action_whatsapp_send_confirmed(self):
-        self.ensure_one()
-        template = self.company_id.whatsapp_template_sale_confirmed_id
-        body, template, variables = self._pba_whatsapp_prepare_send(
-            template, self._get_whatsapp_confirmed_body()
-        )
-        return self.action_whatsapp_send(
-            body, template=template, template_variables=variables
-        )
+        templates = self.env["mail.whatsapp.template"]
+        company = self.company_id
+        if self.state in ("draft", "sent") and company.whatsapp_template_sale_quotation_id:
+            templates |= company.whatsapp_template_sale_quotation_id
+        if self.state == "sale" and company.whatsapp_template_sale_confirmed_id:
+            templates |= company.whatsapp_template_sale_confirmed_id
+        return templates

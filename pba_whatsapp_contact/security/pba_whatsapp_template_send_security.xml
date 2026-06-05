@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="access_pba_whatsapp_template_send_log_user" model="ir.model.access">
+        <field name="name">pba.whatsapp.template.send.log user</field>
+        <field name="model_id" search="[('model', '=', 'pba.whatsapp.template.send.log')]"/>
+        <field name="group_id" ref="base.group_user"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="access_pba_whatsapp_template_send_wizard_user" model="ir.model.access">
+        <field name="name">pba.whatsapp.template.send.wizard user</field>
+        <field name="model_id" search="[('model', '=', 'pba.whatsapp.template.send.wizard')]"/>
+        <field name="group_id" ref="base.group_user"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+    <record id="access_pba_whatsapp_template_send_wizard_line_user" model="ir.model.access">
+        <field name="name">pba.whatsapp.template.send.wizard.line user</field>
+        <field name="model_id" search="[('model', '=', 'pba.whatsapp.template.send.wizard.line')]"/>
+        <field name="group_id" ref="base.group_user"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+</odoo>

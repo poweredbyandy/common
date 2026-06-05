@@ -1,6 +1,6 @@
 {
     "name": "PBA WhatsApp Ventas",
-    "version": "18.0.1.0.9",
+    "version": "18.0.1.0.10",
     "category": "Sales",
     "summary": "Plantillas y envío WhatsApp para presupuestos, pedidos y entregas",
     "author": "andyengit",

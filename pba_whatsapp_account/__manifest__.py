@@ -1,6 +1,6 @@
 {
     "name": "PBA WhatsApp Contabilidad",
-    "version": "18.0.1.0.7",
+    "version": "18.0.1.0.8",
     "category": "Accounting",
     "summary": "Plantillas WhatsApp para cuentas por cobrar vencidas",
     "author": "andyengit",

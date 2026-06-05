@@ -6,11 +6,14 @@
         <field name="inherit_id" ref="account.view_move_form"/>
         <field name="arch" type="xml">
             <xpath expr="//header" position="inside">
+                <field name="pba_whatsapp_show_button" invisible="1"/>
                 <button
-                    name="action_whatsapp_send_overdue"
+                    name="action_pba_whatsapp_open_templates"
                     type="object"
-                    string="WhatsApp Mora"
-                    invisible="move_type != 'out_invoice' or state != 'posted' or payment_state == 'paid'"
+                    string="WhatsApp"
+                    icon="fa-whatsapp"
+                    class="btn-secondary"
+                    invisible="not pba_whatsapp_show_button"
                 />
             </xpath>
         </field>
