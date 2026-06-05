@@ -2,29 +2,85 @@ SALE_TEMPLATES = {
     "whatsapp_template_sale_quotation": {
         "name": "PBA Presupuesto",
         "header": "Presupuesto",
-        "body": "Hola, le enviamos su presupuesto. Quedamos atentos a sus comentarios.",
+        "body": (
+            "Hola {{1}}, le enviamos su presupuesto {{2}} por un monto de {{3}}. "
+            "Puede revisarlo con el botón inferior."
+        ),
         "footer": "Gracias por su preferencia",
         "category": "utility",
         "language": "es",
         "state": "draft",
+        "model": "sale.order",
+        "variables": [
+            {"position": 1, "field": "partner_id"},
+            {"position": 2, "field": "name"},
+            {"position": 3, "field": "amount_total"},
+            {"position": 4, "source_type": "portal_url"},
+        ],
+        "buttons": [
+            {
+                "sequence": 10,
+                "name": "Ver presupuesto",
+                "button_type": "url",
+                "url_source": "portal_preview",
+                "variable_position": 4,
+            }
+        ],
     },
     "whatsapp_template_sale_confirmed": {
         "name": "PBA Pedido confirmado",
         "header": "Pedido confirmado",
-        "body": "Su pedido de venta ha sido confirmado. Le mantendremos informado del avance.",
+        "body": (
+            "Hola {{1}}, su pedido {{2}} ha sido confirmado por un total de {{3}}. "
+            "Puede revisarlo con el botón inferior."
+        ),
         "footer": "Gracias por su compra",
         "category": "utility",
         "language": "es",
         "state": "draft",
+        "model": "sale.order",
+        "variables": [
+            {"position": 1, "field": "partner_id"},
+            {"position": 2, "field": "name"},
+            {"position": 3, "field": "amount_total"},
+            {"position": 4, "source_type": "portal_url"},
+        ],
+        "buttons": [
+            {
+                "sequence": 10,
+                "name": "Ver pedido",
+                "button_type": "url",
+                "url_source": "portal_preview",
+                "variable_position": 4,
+            }
+        ],
     },
     "whatsapp_template_delivery_done": {
         "name": "PBA Entrega realizada",
         "header": "Entrega",
-        "body": "Su pedido ha sido entregado. Esperamos que todo esté conforme.",
+        "body": (
+            "Hola {{1}}, su entrega del pedido {{2}} ha sido realizada. "
+            "Puede revisar el seguimiento del pedido con el botón inferior."
+        ),
         "footer": "Gracias",
         "category": "utility",
         "language": "es",
         "state": "draft",
+        "model": "stock.picking",
+        "variables": [
+            {"position": 1, "field": "partner_id"},
+            {"position": 2, "field": "sale_id"},
+            {"position": 3, "source_type": "sale_order_portal_url"},
+        ],
+        "buttons": [
+            {
+                "sequence": 10,
+                "name": "Ver pedido",
+                "button_type": "url",
+                "url_source": "portal_preview",
+                "variable_position": 3,
+            }
+        ],
     },
 }
 

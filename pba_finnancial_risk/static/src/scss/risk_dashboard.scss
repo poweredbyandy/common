@@ -2,6 +2,11 @@
     display: flex;
     flex-direction: column;
     gap: 12px;
+    width: 100%;
+}
+
+.o_form_view .o_group .pba_risk_dashboard {
+    max-width: none;
 }
 
 .pba_risk_summary {
@@ -108,6 +113,20 @@
 
 .pba_current {
     font-weight: 700;
+}
+
+.pba_current_link {
+    border: 0;
+    background: transparent;
+    padding: 0;
+    color: #2563eb;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.pba_current_link:hover {
+    color: #1d4ed8;
 }
 
 .pba_limit {

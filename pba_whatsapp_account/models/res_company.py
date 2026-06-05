@@ -4,16 +4,6 @@ from odoo import fields, models
 class ResCompany(models.Model):
     _inherit = "res.company"
 
-    whatsapp_template_invoice_id = fields.Many2one(
-        "mail.whatsapp.template",
-        string="Plantilla factura",
-        domain=[("gateway_id.gateway_type", "=", "whatsapp")],
-    )
-    whatsapp_template_payment_id = fields.Many2one(
-        "mail.whatsapp.template",
-        string="Plantilla pago registrado",
-        domain=[("gateway_id.gateway_type", "=", "whatsapp")],
-    )
     whatsapp_template_overdue_id = fields.Many2one(
         "mail.whatsapp.template",
         string="Plantilla cuenta vencida",

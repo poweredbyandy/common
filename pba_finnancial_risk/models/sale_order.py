@@ -1,4 +1,4 @@
-from odoo import models
+from odoo import _, models
 
 
 class SaleOrder(models.Model):
@@ -12,8 +12,11 @@ class SaleOrder(models.Model):
         return term._pba_is_credit_payment_term()
 
     def evaluate_risk_message(self, partner):
+        self.ensure_one()
         if not self._pba_is_credit_sale():
             return ""
+        if partner.sudo().credit_limit <= 0:
+            return _("El cliente no tiene limite de credito configurado.\n")
         return super().evaluate_risk_message(partner)
 
     def action_open_partner_financial_risk(self):

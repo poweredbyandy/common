@@ -39,5 +39,9 @@ class StockPicking(models.Model):
     def action_whatsapp_send_delivery(self):
         self.ensure_one()
         template = self.company_id.whatsapp_template_delivery_done_id
-        body = template.body if template else self._get_whatsapp_delivery_body()
-        return self.action_whatsapp_send(body, template=template)
+        body, template, variables = self._pba_whatsapp_prepare_send(
+            template, self._get_whatsapp_delivery_body()
+        )
+        return self.action_whatsapp_send(
+            body, template=template, template_variables=variables
+        )

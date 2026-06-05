@@ -26,7 +26,16 @@ class MailWhatsappMixin(models.AbstractModel):
             )
         return gateway
 
-    def action_whatsapp_send(self, body, template=False):
+    def _pba_whatsapp_prepare_send(self, template, fallback_body):
+        self.ensure_one()
+        if template and template.variable_ids:
+            body, variables = template._pba_prepare_body_and_variables(self)
+            return body, template, variables
+        if template:
+            return template.body or "", template, None
+        return fallback_body, False, None
+
+    def action_whatsapp_send(self, body, template=False, template_variables=None):
         self.ensure_one()
         partner = self._whatsapp_get_partner()
         if not partner:
@@ -40,9 +49,13 @@ class MailWhatsappMixin(models.AbstractModel):
             "default_number_field_name": self._whatsapp_get_phone_field_name(),
             "default_body": body,
             "default_gateway_id": gateway.id,
+            "pba_whatsapp_res_model": self._name,
+            "pba_whatsapp_res_id": self.id,
         }
         if template:
             ctx["default_template_id"] = template.id
+        if template_variables is not None:
+            ctx["whatsapp_template_variables"] = template_variables
         return {
             "type": "ir.actions.act_window",
             "name": _("Enviar WhatsApp"),

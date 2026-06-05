@@ -1,6 +1,7 @@
 /** @odoo-module **/
 
 import { registry } from "@web/core/registry";
+import { useService } from "@web/core/utils/hooks";
 import { Component, useState } from "@odoo/owl";
 import { standardFieldProps } from "@web/views/fields/standard_field_props";
 
@@ -12,6 +13,8 @@ export class RiskDashboardField extends Component {
     static template = "pba_finnancial_risk.RiskDashboardField";
 
     setup() {
+        this.orm = useService("orm");
+        this.actionService = useService("action");
         this.state = useState({
             editingField: null,
             value: "",
@@ -35,6 +38,24 @@ export class RiskDashboardField extends Component {
         const symbol = this.data.currency_symbol || "";
         const position = this.data.currency_position || "after";
         return position === "before" ? `${symbol}${amount}` : `${amount} ${symbol}`.trim();
+    }
+
+    _canOpenDetail(item) {
+        return Boolean(item.risk_field) && Number(item.current || 0) !== 0;
+    }
+
+    async _openRiskDetail(item) {
+        if (!this._canOpenDetail(item)) {
+            return;
+        }
+        const action = await this.orm.call(
+            "res.partner",
+            "action_open_risk_detail",
+            [[this.props.record.resId], item.risk_field]
+        );
+        if (action) {
+            this.actionService.doAction(action);
+        }
     }
 
     _beginEdit(item) {

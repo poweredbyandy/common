@@ -7,12 +7,6 @@
         <field name="arch" type="xml">
             <xpath expr="//header" position="inside">
                 <button
-                    name="action_whatsapp_send_invoice"
-                    type="object"
-                    string="WhatsApp Factura"
-                    invisible="move_type not in ('out_invoice', 'out_refund') or state != 'posted'"
-                />
-                <button
                     name="action_whatsapp_send_overdue"
                     type="object"
                     string="WhatsApp Mora"

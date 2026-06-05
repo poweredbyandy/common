@@ -1,12 +1,12 @@
 {
     "name": "PBA WhatsApp",
-    "version": "18.0.1.0.17",
+    "version": "18.0.1.0.18",
     "category": "Marketing",
     "summary": "Botón WhatsApp directo en el chatter",
     "author": "andyengit",
     "maintainer": "andyengit",
     "license": "LGPL-3",
-    "depends": ["pba_whatsapp_contact"],
+    "depends": ["mail_gateway_whatsapp", "contacts", "mail"],
     "assets": {
         "web.assets_backend": [
             "pba_whatsapp/static/src/core/**/*",

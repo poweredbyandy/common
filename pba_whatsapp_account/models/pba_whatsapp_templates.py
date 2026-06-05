@@ -1,35 +1,36 @@
 ACCOUNT_TEMPLATES = {
-    "whatsapp_template_invoice": {
-        "name": "PBA Factura cliente",
-        "header": "Factura",
-        "body": "Estimado cliente, le enviamos su factura. Quedamos atentos ante cualquier consulta.",
-        "footer": "Gracias",
-        "category": "utility",
-        "language": "es",
-        "state": "draft",
-    },
-    "whatsapp_template_payment": {
-        "name": "PBA Pago registrado",
-        "header": "Pago recibido",
-        "body": "Hemos registrado su pago correctamente. Gracias por su confianza.",
-        "footer": "Gracias",
-        "category": "utility",
-        "language": "es",
-        "state": "draft",
-    },
     "whatsapp_template_overdue": {
         "name": "PBA Cuenta por cobrar vencida",
         "header": "Recordatorio de pago",
-        "body": "Le recordamos que tiene una factura pendiente de pago. Por favor contáctenos para regularizar su cuenta.",
+        "body": (
+            "Estimado/a {{1}}, le recordamos que la factura {{2}} por {{3}} "
+            "se encuentra vencida desde {{4}}. "
+            "Puede revisar el pedido con el botón inferior."
+        ),
         "footer": "Departamento de cobranzas",
         "category": "utility",
         "language": "es",
         "state": "draft",
+        "model": "account.move",
+        "variables": [
+            {"position": 1, "field": "partner_id"},
+            {"position": 2, "field": "name"},
+            {"position": 3, "field": "amount_residual"},
+            {"position": 4, "field": "invoice_date_due"},
+            {"position": 5, "source_type": "sale_order_portal_url"},
+        ],
+        "buttons": [
+            {
+                "sequence": 10,
+                "name": "Ver pedido",
+                "button_type": "url",
+                "url_source": "portal_preview",
+                "variable_position": 5,
+            }
+        ],
     },
 }
 
 ACCOUNT_COMPANY_FIELDS = {
-    "whatsapp_template_invoice_id": "whatsapp_template_invoice",
-    "whatsapp_template_payment_id": "whatsapp_template_payment",
     "whatsapp_template_overdue_id": "whatsapp_template_overdue",
 }

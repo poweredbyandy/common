@@ -4,3 +4,4 @@ from . import res_partner
 from . import res_company
 from . import risk_apply_confirm_wizard
 from . import sale_order
+from . import sale_order_line

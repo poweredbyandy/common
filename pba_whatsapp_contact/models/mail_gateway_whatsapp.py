@@ -71,3 +71,66 @@ class MailGatewayWhatsappService(models.AbstractModel):
         )
         self._pba_link_partner_gateway(gateway, partner, author_id)
         return partner
+
+    def _post_process_message(self, message, channel):
+        super()._post_process_message(message, channel)
+        self._pba_send_autoreply(message, channel)
+
+    def _pba_send_autoreply(self, message, channel):
+        if self.env.context.get("pba_whatsapp_autoreply"):
+            return
+        if channel.gateway_id.gateway_type != "whatsapp":
+            return
+        if message.message_type != "comment" or message.gateway_message_id:
+            return
+        internal_partners = channel.gateway_id.member_ids.partner_id
+        if message.author_id and message.author_id in internal_partners:
+            return
+        company = channel.company_id or self.env.company
+        reply_text = self.env["pba.whatsapp.autoreply.rule"]._pba_get_message_for_company(
+            company
+        )
+        if not reply_text:
+            return
+        author = channel.gateway_id.member_ids[:1].partner_id
+        if not author:
+            author = company.partner_id
+        channel.with_context(pba_whatsapp_autoreply=True).sudo().message_post(
+            body=reply_text,
+            author_id=author.id,
+            message_type="comment",
+            subtype_xmlid="mail.mt_comment",
+        )
+
+    def _send_payload(
+        self, channel, body=False, media_id=False, media_type=False, media_name=False
+    ):
+        payload = super()._send_payload(
+            channel,
+            body=body,
+            media_id=media_id,
+            media_type=media_type,
+            media_name=media_name,
+        )
+        if not payload or payload.get("type") != "template":
+            return payload
+        template_id = self.env.context.get("whatsapp_template_id")
+        res_model = self.env.context.get("pba_whatsapp_res_model")
+        res_id = self.env.context.get("pba_whatsapp_res_id")
+        if not template_id or not res_model or not res_id:
+            template_variables = self.env.context.get("whatsapp_template_variables")
+            if template_variables and template_id:
+                template = self.env["mail.whatsapp.template"].browse(template_id)
+                parameters = template._pba_get_body_parameters(template_variables)
+                if parameters:
+                    payload["template"]["components"] = [
+                        {"type": "body", "parameters": parameters}
+                    ]
+            return payload
+        template = self.env["mail.whatsapp.template"].browse(template_id)
+        record = self.env[res_model].browse(res_id)
+        if record.exists():
+            components = template._pba_get_template_send_components(record)
+            if components:
+                payload["template"]["components"] = components
+        return payload

@@ -1,4 +1,4 @@
-from odoo import models
+from odoo import _, models
 
 
 class AccountMove(models.Model):
@@ -14,8 +14,12 @@ class AccountMove(models.Model):
         return term._pba_is_credit_payment_term()
 
     def risk_exception_msg(self):
+        self.ensure_one()
         if not self._pba_is_credit_sale():
             return ""
+        partner = self.partner_id.commercial_partner_id
+        if partner.sudo().credit_limit <= 0:
+            return _("El cliente no tiene limite de credito configurado.\n")
         return super().risk_exception_msg()
 
     def action_open_partner_financial_risk(self):

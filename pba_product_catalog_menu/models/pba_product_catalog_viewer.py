@@ -22,6 +22,7 @@ class PbaProductCatalogViewer(models.Model):
         "product.pricelist",
         string="Lista de precios",
         compute="_compute_pricelist_id",
+        store=True,
     )
     currency_id = fields.Many2one(
         "res.currency",

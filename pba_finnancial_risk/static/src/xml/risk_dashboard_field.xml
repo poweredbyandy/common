@@ -34,7 +34,19 @@
                             </label>
                         </div>
                         <div class="pba_risk_card_amount">
-                            <span class="pba_current"><t t-esc="_formatMoney(item.current)"/></span>
+                            <t t-if="_canOpenDetail(item)">
+                                <button
+                                    type="button"
+                                    class="pba_current pba_current_link"
+                                    t-on-click="_openRiskDetail.bind(this, item)"
+                                    title="Ver documentos"
+                                >
+                                    <t t-esc="_formatMoney(item.current)"/>
+                                </button>
+                            </t>
+                            <t t-else="">
+                                <span class="pba_current"><t t-esc="_formatMoney(item.current)"/></span>
+                            </t>
                             <t t-if="item.included">
                                 <span class="pba_divider">/</span>
                                 <t t-if="_isEditing(item)">

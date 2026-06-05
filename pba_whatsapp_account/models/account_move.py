@@ -28,16 +28,6 @@ class AccountMove(models.Model):
         phone_field = "mobile" if partner.mobile else "phone"
         return partner._whatsapp_get_channel(phone_field, gateway)
 
-    def _get_whatsapp_invoice_body(self):
-        self.ensure_one()
-        return _(
-            "Estimado/a %s, le enviamos su factura %s por %s."
-        ) % (
-            self.partner_id.name,
-            self.name,
-            self.currency_id.format(self.amount_total),
-        )
-
     def _get_whatsapp_overdue_body(self):
         self.ensure_one()
         due = self.invoice_date_due or self.invoice_date
@@ -51,19 +41,15 @@ class AccountMove(models.Model):
             due,
         )
 
-    def action_whatsapp_send_invoice(self):
-        self.ensure_one()
-        if self.move_type not in ("out_invoice", "out_refund"):
-            raise UserError(_("Solo se pueden enviar facturas de cliente."))
-        template = self.company_id.whatsapp_template_invoice_id
-        body = template.body if template else self._get_whatsapp_invoice_body()
-        return self.action_whatsapp_send(body, template=template)
-
     def action_whatsapp_send_overdue(self):
         self.ensure_one()
         template = self.company_id.whatsapp_template_overdue_id
-        body = template.body if template else self._get_whatsapp_overdue_body()
-        return self.action_whatsapp_send(body, template=template)
+        body, template, variables = self._pba_whatsapp_prepare_send(
+            template, self._get_whatsapp_overdue_body()
+        )
+        return self.action_whatsapp_send(
+            body, template=template, template_variables=variables
+        )
 
     @api.model
     def _cron_whatsapp_send_overdue_invoices(self):
@@ -87,18 +73,24 @@ class AccountMove(models.Model):
                     move.partner_id.mobile or move.partner_id.phone
                 ):
                     continue
-                body = (
-                    company.whatsapp_template_overdue_id.body
-                    if company.whatsapp_template_overdue_id
-                    else move._get_whatsapp_overdue_body()
-                )
                 template = company.whatsapp_template_overdue_id
+                if template:
+                    body, variables = template._pba_prepare_body_and_variables(move)
+                else:
+                    body = move._get_whatsapp_overdue_body()
+                    variables = None
                 try:
                     gateway = move._whatsapp_get_gateway()
                     channel = move._whatsapp_get_channel("whatsapp_phone", gateway)
-                    channel.with_context(
-                        whatsapp_template_id=template.id if template else False
-                    ).message_post(
+                    ctx = {
+                        "pba_whatsapp_res_model": move._name,
+                        "pba_whatsapp_res_id": move.id,
+                    }
+                    if template:
+                        ctx["whatsapp_template_id"] = template.id
+                    if variables is not None:
+                        ctx["whatsapp_template_variables"] = variables
+                    channel.with_context(**ctx).message_post(
                         body=body,
                         subtype_xmlid="mail.mt_comment",
                         message_type="comment",

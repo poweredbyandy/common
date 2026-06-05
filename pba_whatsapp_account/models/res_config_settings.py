@@ -4,14 +4,6 @@ from odoo import fields, models
 class ResConfigSettings(models.TransientModel):
     _inherit = "res.config.settings"
 
-    whatsapp_template_invoice_id = fields.Many2one(
-        related="company_id.whatsapp_template_invoice_id",
-        readonly=False,
-    )
-    whatsapp_template_payment_id = fields.Many2one(
-        related="company_id.whatsapp_template_payment_id",
-        readonly=False,
-    )
     whatsapp_template_overdue_id = fields.Many2one(
         related="company_id.whatsapp_template_overdue_id",
         readonly=False,

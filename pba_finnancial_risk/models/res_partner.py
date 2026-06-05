@@ -79,8 +79,13 @@ class ResPartner(models.Model):
 
     @api.depends(
         "risk_currency_id",
-        "risk_currency_id.symbol",
-        "risk_currency_id.position",
+        "credit_currency",
+        "manual_credit_currency_id",
+        "manual_credit_currency_id.symbol",
+        "manual_credit_currency_id.position",
+        "property_account_receivable_id.currency_id",
+        "property_account_receivable_id.currency_id.symbol",
+        "property_account_receivable_id.currency_id.position",
         "credit_limit",
         "risk_total",
         "risk_remaining_value",
@@ -116,6 +121,7 @@ class ResPartner(models.Model):
                     partner.risk_sale_order_include,
                     "risk_sale_order_include",
                     "risk_sale_order_limit",
+                    "risk_sale_order",
                 ),
                 (
                     "Limite de Facturas Borrador",
@@ -124,6 +130,7 @@ class ResPartner(models.Model):
                     partner.risk_invoice_draft_include,
                     "risk_invoice_draft_include",
                     "risk_invoice_draft_limit",
+                    "risk_invoice_draft",
                 ),
                 (
                     "Limite de Facturas Abiertas",
@@ -132,6 +139,7 @@ class ResPartner(models.Model):
                     partner.risk_invoice_open_include,
                     "risk_invoice_open_include",
                     "risk_invoice_open_limit",
+                    "risk_invoice_open",
                 ),
                 (
                     "Limite de Facturas Vencidas",
@@ -140,6 +148,7 @@ class ResPartner(models.Model):
                     partner.risk_invoice_unpaid_include,
                     "risk_invoice_unpaid_include",
                     "risk_invoice_unpaid_limit",
+                    "risk_invoice_unpaid",
                 ),
                 (
                     "Limite de Otros Saldos",
@@ -148,6 +157,7 @@ class ResPartner(models.Model):
                     partner.risk_account_amount_include,
                     "risk_account_amount_include",
                     "risk_account_amount_limit",
+                    "risk_account_amount",
                 ),
                 (
                     "Limite de Otros Saldos Vencidos",
@@ -156,10 +166,11 @@ class ResPartner(models.Model):
                     partner.risk_account_amount_unpaid_include,
                     "risk_account_amount_unpaid_include",
                     "risk_account_amount_unpaid_limit",
+                    "risk_account_amount_unpaid",
                 ),
             ]
             items = []
-            for label, current, limit, included, include_field, limit_field in lines:
+            for label, current, limit, included, include_field, limit_field, risk_field in lines:
                 current_value = float(current or 0.0)
                 limit_value = float(limit or 0.0)
                 if limit_value > 0:
@@ -178,6 +189,7 @@ class ResPartner(models.Model):
                         "exceeded": exceeded,
                         "include_field": include_field,
                         "limit_field": limit_field,
+                        "risk_field": risk_field,
                     }
                 )
             partner.risk_dashboard_json = {
@@ -218,6 +230,98 @@ class ResPartner(models.Model):
             fields.Date.context_today(self),
             round=False,
         )
+
+    def _get_risk_sale_order_domain(self):
+        domain = super()._get_risk_sale_order_domain()
+        domain += [
+            ("display_type", "=", False),
+            ("qty_to_invoice", ">", 0),
+            ("order_id.invoice_status", "!=", "invoiced"),
+        ]
+        return domain
+
+    def action_open_risk_detail(self, risk_field):
+        self.ensure_one()
+        return self.with_context(open_risk_field=risk_field).open_risk_pivot_info()
+
+    def open_risk_pivot_info(self):
+        open_risk_field = self.env.context.get("open_risk_field")
+        if open_risk_field == "risk_sale_order":
+            return self._pba_action_open_risk_sale_orders()
+        if open_risk_field in (
+            "risk_invoice_draft",
+            "risk_invoice_open",
+            "risk_invoice_unpaid",
+        ):
+            return self._pba_action_open_risk_invoices(open_risk_field)
+        if open_risk_field in ("risk_account_amount", "risk_account_amount_unpaid"):
+            return self._pba_action_open_risk_move_lines(open_risk_field)
+        return super().open_risk_pivot_info()
+
+    def _pba_action_open_risk_invoices(self, risk_field):
+        self.ensure_one()
+        _model_name, line_domain = self._get_field_risk_model_domain(risk_field)
+        lines = self.env["account.move.line"].search(line_domain)
+        moves = lines.move_id
+        if risk_field == "risk_invoice_draft":
+            moves = moves.filtered(
+                lambda move: move.invoice_payment_term_id
+                and move.invoice_payment_term_id._pba_is_credit_payment_term()
+            )
+        titles = {
+            "risk_invoice_draft": _("Facturas en borrador"),
+            "risk_invoice_open": _("Facturas abiertas"),
+            "risk_invoice_unpaid": _("Facturas vencidas"),
+        }
+        action = self.env["ir.actions.actions"]._for_xml_id(
+            "account.action_move_out_invoice_type"
+        )
+        action.update(
+            {
+                "name": titles[risk_field],
+                "domain": [("id", "in", moves.ids)],
+                "target": "current",
+                "context": {
+                    "default_move_type": "out_invoice",
+                    "search_default_out_invoice": 1,
+                },
+            }
+        )
+        return action
+
+    def _pba_action_open_risk_sale_orders(self):
+        self.ensure_one()
+        lines = self.env["sale.order.line"].search(self._get_risk_sale_order_domain())
+        orders = lines.order_id.filtered(
+            lambda order: order.payment_term_id
+            and order.payment_term_id._pba_is_credit_payment_term()
+        )
+        action = self.env["ir.actions.actions"]._for_xml_id("sale.action_orders")
+        action.update(
+            {
+                "name": _("Pedidos de venta pendientes de facturar"),
+                "domain": [("id", "in", orders.ids)],
+                "target": "current",
+            }
+        )
+        return action
+
+    def _pba_action_open_risk_move_lines(self, risk_field):
+        self.ensure_one()
+        model_name, domain = self._get_field_risk_model_domain(risk_field)
+        titles = {
+            "risk_account_amount": _("Otros saldos abiertos"),
+            "risk_account_amount_unpaid": _("Otros saldos vencidos"),
+        }
+        return {
+            "type": "ir.actions.act_window",
+            "name": titles[risk_field],
+            "res_model": model_name,
+            "view_mode": "list",
+            "views": [(False, "list")],
+            "domain": domain,
+            "target": "current",
+        }
 
     def _prepare_risk_account_vals(self, groups):
         vals = super()._prepare_risk_account_vals(groups)
