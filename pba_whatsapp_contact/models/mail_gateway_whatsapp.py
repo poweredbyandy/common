@@ -92,10 +92,13 @@ class MailGatewayWhatsappService(models.AbstractModel):
         )
         if not reply_text:
             return
-        author = channel.gateway_id.member_ids[:1].partner_id
+        author = self.env.ref("base.partner_root", raise_if_not_found=False)
         if not author:
-            author = company.partner_id
-        channel.with_context(pba_whatsapp_autoreply=True).sudo().message_post(
+            author = channel.gateway_id.member_ids[:1].partner_id or company.partner_id
+        channel.with_context(
+            pba_whatsapp_autoreply=True,
+            no_gateway_notification=False,
+        ).sudo().message_post(
             body=reply_text,
             author_id=author.id,
             message_type="comment",
