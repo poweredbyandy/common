@@ -9,36 +9,42 @@ class MailGateway(models.Model):
 
     def _pba_whatsapp_template_specs(self):
         specs = []
-        installed = set(
+        module_names = ("pba_whatsapp_sale", "pba_whatsapp_account")
+        available_modules = set(
             self.env["ir.module.module"]
             .search(
                 [
-                    ("name", "in", ("pba_whatsapp_sale", "pba_whatsapp_account")),
-                    ("state", "=", "installed"),
+                    ("name", "in", module_names),
+                    ("state", "in", ("installed", "to install", "to upgrade")),
                 ]
             )
             .mapped("name")
         )
-        if "pba_whatsapp_sale" in installed:
-            templates_mod = importlib.import_module(
-                "odoo.addons.pba_whatsapp_sale.models.pba_whatsapp_templates"
-            )
+        module_specs = {
+            "pba_whatsapp_sale": (
+                "odoo.addons.pba_whatsapp_sale.models.pba_whatsapp_templates",
+                "SALE_TEMPLATES",
+                "SALE_COMPANY_FIELDS",
+            ),
+            "pba_whatsapp_account": (
+                "odoo.addons.pba_whatsapp_account.models.pba_whatsapp_templates",
+                "ACCOUNT_TEMPLATES",
+                "ACCOUNT_COMPANY_FIELDS",
+            ),
+        }
+        for module_name in module_names:
+            if module_name not in available_modules:
+                continue
+            import_path, templates_attr, company_fields_attr = module_specs[module_name]
+            try:
+                templates_mod = importlib.import_module(import_path)
+            except Exception:
+                continue
             specs.append(
                 {
-                    "module": "pba_whatsapp_sale",
-                    "templates": templates_mod.SALE_TEMPLATES,
-                    "company_fields": templates_mod.SALE_COMPANY_FIELDS,
-                }
-            )
-        if "pba_whatsapp_account" in installed:
-            templates_mod = importlib.import_module(
-                "odoo.addons.pba_whatsapp_account.models.pba_whatsapp_templates"
-            )
-            specs.append(
-                {
-                    "module": "pba_whatsapp_account",
-                    "templates": templates_mod.ACCOUNT_TEMPLATES,
-                    "company_fields": templates_mod.ACCOUNT_COMPANY_FIELDS,
+                    "module": module_name,
+                    "templates": getattr(templates_mod, templates_attr, {}),
+                    "company_fields": getattr(templates_mod, company_fields_attr, {}),
                 }
             )
         return specs
