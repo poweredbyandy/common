@@ -48,7 +48,8 @@ class MailWhatsappTemplateVariable(models.Model):
     model_id = fields.Many2one(
         related="template_id.model_id",
     )
-    model_name = fields.Char(related="model_id.model", string="Modelo")
+    model = fields.Char(related="model_id.model", string="Modelo")
+    model_name = fields.Char(related="model_id.model", string="Modelo técnico")
 
     @api.depends("source_type", "field_id", "static_value", "position")
     def _compute_sample_value(self):
