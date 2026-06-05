@@ -1,5 +1,3 @@
-import pytz
-
 from odoo import fields, models
 
 
@@ -91,9 +89,7 @@ class MailGatewayWhatsappService(models.AbstractModel):
         company = channel.company_id or self.env.company
         if not self._pba_should_send_autoreply_today(channel, company):
             return
-        reply_text = self.env["pba.whatsapp.autoreply.rule"]._pba_get_message_for_company(
-            company
-        )
+        reply_text = self._pba_get_autoreply_text(message, company)
         if not reply_text:
             return
         author = self.env.ref("base.partner_root", raise_if_not_found=False)
@@ -117,21 +113,31 @@ class MailGatewayWhatsappService(models.AbstractModel):
         now_local = company._pba_whatsapp_local_datetime(fields.Datetime.now())
         start_local = now_local.replace(hour=0, minute=0, second=0, microsecond=0)
         end_local = now_local.replace(hour=23, minute=59, second=59, microsecond=999999)
-        start_utc = fields.Datetime.to_string(start_local.astimezone(pytz.utc))
-        end_utc = fields.Datetime.to_string(end_local.astimezone(pytz.utc))
+        start_utc = fields.Datetime.to_string(
+            start_local.astimezone(fields.Datetime.UTC)
+        )
+        end_utc = fields.Datetime.to_string(end_local.astimezone(fields.Datetime.UTC))
         return (
-            self.env["mail.notification"].sudo().search_count(
+            self.env["mail.message"].sudo().search_count(
                 [
-                    ("gateway_channel_id", "=", channel.id),
-                    ("notification_type", "=", "gateway"),
-                    ("mail_message_id.author_id", "=", author.id),
-                    ("mail_message_id.date", ">=", start_utc),
-                    ("mail_message_id.date", "<=", end_utc),
-                    ("mail_message_id.gateway_message_id", "!=", False),
+                    ("model", "=", "discuss.channel"),
+                    ("res_id", "=", channel.id),
+                    ("author_id", "=", author.id),
+                    ("message_type", "=", "comment"),
+                    ("date", ">=", start_utc),
+                    ("date", "<=", end_utc),
                 ]
             )
             == 0
         )
+
+    def _pba_get_autoreply_text(self, message, company):
+        rule_text = self.env["pba.whatsapp.autoreply.rule"]._pba_get_message_for_company(
+            company, dt=message.date or fields.Datetime.now()
+        )
+        if rule_text:
+            return rule_text
+        return company.whatsapp_autoreply_default_message or False
 
     def _send_payload(
         self, channel, body=False, media_id=False, media_type=False, media_name=False

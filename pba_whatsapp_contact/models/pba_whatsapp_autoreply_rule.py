@@ -87,14 +87,20 @@ class PbaWhatsappAutoreplyRule(models.Model):
             return False
         return self.hour_from <= hour_float < self.hour_to
 
-    def _pba_get_local_datetime_for_rule(self, dt=None):
+    def _pba_get_local_datetime_for_rule(self, company, dt=None):
         self.ensure_one()
         utc_dt = dt or fields.Datetime.now()
         if isinstance(utc_dt, str):
             utc_dt = fields.Datetime.from_string(utc_dt)
         if utc_dt.tzinfo is None:
             utc_dt = pytz.utc.localize(utc_dt)
-        tz_name = self.write_uid.tz or self.create_uid.tz or self.env.user.tz or "UTC"
+        tz_name = (
+            self.write_uid.tz
+            or self.create_uid.tz
+            or company.partner_id.tz
+            or self.env.user.tz
+            or "UTC"
+        )
         return utc_dt.astimezone(pytz.timezone(tz_name))
 
     @api.model
@@ -110,7 +116,7 @@ class PbaWhatsappAutoreplyRule(models.Model):
             order="sequence, id",
         )
         for rule in rules:
-            local_dt = rule._pba_get_local_datetime_for_rule(dt)
+            local_dt = rule._pba_get_local_datetime_for_rule(company, dt)
             weekday = local_dt.weekday()
             hour_float = local_dt.hour + local_dt.minute / 60.0 + local_dt.second / 3600.0
             if rule._pba_matches_schedule(weekday, hour_float):
