@@ -1,4 +1,10 @@
+import logging
+
+import pytz
+
 from odoo import fields, models
+
+_logger = logging.getLogger(__name__)
 
 
 class MailGatewayWhatsappService(models.AbstractModel):
@@ -74,7 +80,14 @@ class MailGatewayWhatsappService(models.AbstractModel):
 
     def _post_process_message(self, message, channel):
         super()._post_process_message(message, channel)
-        self._pba_send_autoreply(message, channel)
+        try:
+            self._pba_send_autoreply(message, channel)
+        except Exception:
+            _logger.exception(
+                "Error enviando autorrespuesta WhatsApp canal=%s mensaje=%s",
+                channel.id,
+                message.id,
+            )
 
     def _pba_send_autoreply(self, message, channel):
         if self.env.context.get("pba_whatsapp_autoreply"):
@@ -113,10 +126,8 @@ class MailGatewayWhatsappService(models.AbstractModel):
         now_local = company._pba_whatsapp_local_datetime(fields.Datetime.now())
         start_local = now_local.replace(hour=0, minute=0, second=0, microsecond=0)
         end_local = now_local.replace(hour=23, minute=59, second=59, microsecond=999999)
-        start_utc = fields.Datetime.to_string(
-            start_local.astimezone(fields.Datetime.UTC)
-        )
-        end_utc = fields.Datetime.to_string(end_local.astimezone(fields.Datetime.UTC))
+        start_utc = fields.Datetime.to_string(start_local.astimezone(pytz.utc))
+        end_utc = fields.Datetime.to_string(end_local.astimezone(pytz.utc))
         return (
             self.env["mail.message"].sudo().search_count(
                 [
