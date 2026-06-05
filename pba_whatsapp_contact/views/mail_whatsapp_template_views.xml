@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <record id="view_mail_whatsapp_template_form_pba_variables" model="ir.ui.view">
-        <field name="name">mail.whatsapp.template.form.pba.variables</field>
+    <record id="view_mail_whatsapp_template_form_pba_contact" model="ir.ui.view">
+        <field name="name">mail.whatsapp.template.form.pba.contact</field>
         <field name="model">mail.whatsapp.template</field>
         <field name="inherit_id" ref="mail_gateway_whatsapp.view_mail_whatsapp_template_form"/>
         <field name="arch" type="xml">
