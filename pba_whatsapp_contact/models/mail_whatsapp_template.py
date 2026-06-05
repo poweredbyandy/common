@@ -21,11 +21,6 @@ class MailWhatsappTemplate(models.Model):
         required=False,
         ondelete="set null",
     )
-    model = fields.Char(
-        related="model_id.model",
-        string="Modelo técnico",
-        readonly=True,
-    )
     variable_ids = fields.One2many(
         "mail.whatsapp.template.variable",
         "template_id",
