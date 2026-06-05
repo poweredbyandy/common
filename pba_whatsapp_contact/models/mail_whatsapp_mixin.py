@@ -93,16 +93,20 @@ class MailWhatsappMixin(models.AbstractModel):
             raise UserError(
                 _("No hay plantillas WhatsApp disponibles para este documento.")
             )
+        wizard = self.env["pba.whatsapp.template.send.wizard"].create(
+            {
+                "res_model": self._name,
+                "res_id": self.id,
+                "line_ids": self._pba_whatsapp_prepare_template_wizard_lines(),
+            }
+        )
         return {
             "type": "ir.actions.act_window",
             "name": _("WhatsApp"),
             "res_model": "pba.whatsapp.template.send.wizard",
+            "res_id": wizard.id,
             "view_mode": "form",
             "target": "new",
-            "context": {
-                "default_res_model": self._name,
-                "default_res_id": self.id,
-            },
         }
 
     def _whatsapp_get_partner(self):

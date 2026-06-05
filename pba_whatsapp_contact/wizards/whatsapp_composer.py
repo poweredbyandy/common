@@ -5,6 +5,15 @@ class WhatsappComposer(models.TransientModel):
     _inherit = "whatsapp.composer"
 
     def _action_send_whatsapp(self):
+        parent_send = getattr(super(), "_action_send_whatsapp", None)
+        if parent_send:
+            result = parent_send()
+            if self.template_id and hasattr(self.env[self.res_model], "_pba_whatsapp_log_template_send"):
+                record = self.env[self.res_model].browse(self.res_id)
+                if record.exists():
+                    record._pba_whatsapp_log_template_send(self.template_id)
+            return result
+
         record = self.env[self.res_model].browse(self.res_id)
         if not record:
             return

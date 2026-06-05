@@ -1,5 +1,3 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_pba_whatsapp_autoreply_rule_user,pba.whatsapp.autoreply.rule user,model_pba_whatsapp_autoreply_rule,base.group_user,1,1,1,1
 access_pba_whatsapp_autoreply_config_user,pba.whatsapp.autoreply.config user,model_pba_whatsapp_autoreply_config,base.group_user,1,1,1,0
-access_mail_whatsapp_template_variable_user,mail.whatsapp.template.variable user,model_mail_whatsapp_template_variable,base.group_user,1,1,1,1
-access_mail_whatsapp_template_button_user,mail.whatsapp.template.button user,model_mail_whatsapp_template_button,base.group_user,1,1,1,1

@@ -3,110 +3,123 @@ from odoo.exceptions import ValidationError
 
 
 class MailWhatsappTemplateVariable(models.Model):
-    _name = "mail.whatsapp.template.variable"
-    _description = "Variable de plantilla WhatsApp"
-    _order = "position, id"
+    _inherit = "mail.whatsapp.template.variable"
 
-    template_id = fields.Many2one(
-        "mail.whatsapp.template",
-        required=True,
-        ondelete="cascade",
-    )
-    position = fields.Integer(
-        string="Posición",
-        required=True,
-        help="Corresponde al marcador {{1}}, {{2}}, etc. en el cuerpo de la plantilla.",
-    )
-    source_type = fields.Selection(
+    pba_source_type = fields.Selection(
         selection=[
             ("field", "Campo del documento"),
             ("portal_url", "Vista previa portal"),
             ("sale_order_portal_url", "Enlace portal del pedido"),
             ("static", "Texto fijo"),
         ],
-        string="Origen",
-        required=True,
-        default="field",
+        string="Origen PBA",
     )
-    field_id = fields.Many2one(
-        "ir.model.fields",
-        string="Campo",
-        ondelete="cascade",
-        domain="[('model_id', '=', model_id), ('ttype', 'in', ('char', 'text', 'html', 'float', 'monetary', 'integer', 'date', 'datetime', 'many2one', 'many2one_reference', 'selection'))]",
-    )
-    field_name = fields.Char(related="field_id.name", string="Nombre técnico")
-    field_description = fields.Char(
-        related="field_id.field_description",
-        string="Etiqueta del campo",
-    )
-    field_ttype = fields.Selection(related="field_id.ttype", string="Tipo de campo")
-    static_value = fields.Char(string="Texto fijo")
-    sample_value = fields.Char(
-        string="Valor de ejemplo",
-        compute="_compute_sample_value",
-    )
-    model_id = fields.Many2one(
-        related="template_id.model_id",
-    )
-    model_name = fields.Char(related="model_id.model", string="Modelo")
 
-    @api.depends("source_type", "field_id", "static_value", "position")
+    @api.depends("pba_source_type")
     def _compute_sample_value(self):
+        parent_compute = getattr(super(), "_compute_sample_value", None)
+        if parent_compute:
+            parent_compute()
         for variable in self:
-            variable.sample_value = variable._pba_get_demo_value()
+            if "sample_value" in variable._fields:
+                variable.sample_value = variable._pba_get_demo_value()
 
-    _sql_constraints = [
-        (
-            "template_position_uniq",
-            "unique(template_id, position)",
-            "Cada posición solo puede definirse una vez por plantilla.",
-        ),
-        (
-            "position_positive",
-            "CHECK(position > 0)",
-            "La posición debe ser mayor que cero.",
-        ),
-    ]
-
-    @api.constrains("source_type", "field_id", "static_value", "template_id")
+    @api.constrains("pba_source_type", "template_id")
     def _check_value_configuration(self):
+        parent_check = getattr(super(), "_check_value_configuration", None)
+        if parent_check:
+            parent_check()
         for variable in self:
-            if not variable.template_id.model_id and variable.source_type == "field":
+            if not variable.pba_source_type and "source_type" not in variable._fields:
+                continue
+            source_type = variable._pba_get_source_type()
+            field = variable._pba_get_field()
+            if not variable.template_id.model_id and source_type == "field":
                 raise ValidationError(
                     _("Debe indicar el documento en la plantilla antes de asignar campos.")
                 )
-            if variable.source_type == "field" and not variable.field_id:
+            if source_type == "field" and not field:
                 raise ValidationError(
                     _("Debe seleccionar un campo del documento para la posición %s.")
-                    % variable.position
+                    % variable._pba_get_position()
                 )
-            if variable.source_type == "static" and not variable.static_value:
+            if source_type == "static" and not variable._pba_get_static_value():
                 raise ValidationError(
                     _("Debe indicar un texto fijo para la posición %s.")
-                    % variable.position
+                    % variable._pba_get_position()
                 )
             if (
-                variable.source_type == "field"
-                and variable.field_id
+                source_type == "field"
+                and field
                 and variable.template_id.model_id
-                and variable.field_id.model_id != variable.template_id.model_id
+                and field.model_id != variable.template_id.model_id
             ):
                 raise ValidationError(
                     _("El campo %(field)s no pertenece al modelo %(model)s.")
                     % {
-                        "field": variable.field_id.field_description,
+                        "field": field.field_description,
                         "model": variable.template_id.model_id.display_name,
                     }
                 )
 
+    def _pba_get_position(self):
+        self.ensure_one()
+        if "position" in self._fields:
+            return self.position
+        name = self.name or ""
+        if name.startswith("{{") and name.endswith("}}"):
+            try:
+                return int(name[2:-2])
+            except ValueError:
+                return 0
+        return 0
+
+    def _pba_get_source_type(self):
+        self.ensure_one()
+        if self.pba_source_type:
+            return self.pba_source_type
+        if "source_type" in self._fields:
+            return self.source_type
+        if "field_type" not in self._fields:
+            return "field"
+        if self.field_type == "portal_url":
+            return "portal_url"
+        if self.field_type == "free_text":
+            return "static"
+        return "field"
+
+    def _pba_get_field(self):
+        self.ensure_one()
+        if "field_id" in self._fields:
+            return self.field_id
+        if not self.field_name or not self.template_id.model_id:
+            return self.env["ir.model.fields"]
+        return self.env["ir.model.fields"].search(
+            [
+                ("model_id", "=", self.template_id.model_id.id),
+                ("name", "=", self.field_name.split(".", 1)[0]),
+            ],
+            limit=1,
+        )
+
+    def _pba_get_static_value(self):
+        self.ensure_one()
+        if "static_value" in self._fields:
+            return self.static_value
+        return self.demo_value or ""
+
     def _pba_get_value(self, record):
         self.ensure_one()
-        if self.source_type == "static":
-            return self.static_value or ""
-        if self.source_type in ("portal_url", "sale_order_portal_url"):
+        source_type = self._pba_get_source_type()
+        if source_type == "static":
+            return self._pba_get_static_value()
+        if source_type in ("portal_url", "sale_order_portal_url"):
             return self._pba_get_portal_url(record)
-        if self.source_type == "field" and self.field_id:
-            return self._pba_read_field_value(record, self.field_id)
+        if source_type == "field":
+            if "field_id" in self._fields and self.field_id:
+                return self._pba_read_field_value(record, self.field_id)
+            if self.field_name:
+                return self._pba_read_field_path(record, self.field_name)
         return ""
 
     def _pba_get_sale_order_for_portal(self, record):
@@ -114,7 +127,7 @@ class MailWhatsappTemplateVariable(models.Model):
 
     def _pba_resolve_portal_record(self, record):
         self.ensure_one()
-        if self.source_type == "sale_order_portal_url":
+        if self._pba_get_source_type() == "sale_order_portal_url":
             return self._pba_get_sale_order_for_portal(record)
         return record
 
@@ -135,7 +148,7 @@ class MailWhatsappTemplateVariable(models.Model):
 
     def _pba_get_button_url_suffix(self, record):
         self.ensure_one()
-        if self.source_type in ("portal_url", "sale_order_portal_url"):
+        if self._pba_get_source_type() in ("portal_url", "sale_order_portal_url"):
             portal_record = self._pba_resolve_portal_record(record)
             if not portal_record or not portal_record.exists():
                 return ""
@@ -152,16 +165,20 @@ class MailWhatsappTemplateVariable(models.Model):
 
     def _pba_get_demo_value(self):
         self.ensure_one()
-        if self.source_type in ("portal_url", "sale_order_portal_url"):
+        source_type = self._pba_get_source_type()
+        if source_type in ("portal_url", "sale_order_portal_url"):
             return "1?access_token=demo"
-        if self.source_type == "static":
-            return self.static_value or "demo"
-        if self.source_type == "field" and self.field_id:
-            if self.field_id.ttype == "many2one":
+        if source_type == "static":
+            return self._pba_get_static_value() or "demo"
+        if source_type == "field":
+            field = self._pba_get_field()
+            if not field:
+                return "demo"
+            if field.ttype == "many2one":
                 return "Demo"
-            if self.field_id.ttype == "monetary":
+            if field.ttype == "monetary":
                 return "100,00 €"
-            if self.field_id.ttype in ("date", "datetime"):
+            if field.ttype in ("date", "datetime"):
                 return "2026-01-01"
             return "demo"
         return "demo"
@@ -196,3 +213,15 @@ class MailWhatsappTemplateVariable(models.Model):
             selection = dict(record._fields[field.name]._description_selection(self.env))
             return selection.get(value, value or "")
         return str(value) if value not in (False, None) else ""
+
+    def _pba_read_field_path(self, record, field_path):
+        current = record
+        for field_name in field_path.split("."):
+            if not current or field_name not in current._fields:
+                return ""
+            value = current[field_name]
+            if isinstance(value, models.BaseModel):
+                current = value[:1]
+            else:
+                return str(value) if value not in (False, None) else ""
+        return current.display_name if isinstance(current, models.BaseModel) else ""

@@ -7,68 +7,37 @@ PORTAL_URL_PATHS = {
 
 
 class MailWhatsappTemplateButton(models.Model):
-    _name = "mail.whatsapp.template.button"
-    _description = "Botón de plantilla WhatsApp"
-    _order = "sequence, id"
+    _inherit = "mail.whatsapp.template.button"
 
-    template_id = fields.Many2one(
-        "mail.whatsapp.template",
-        required=True,
-        ondelete="cascade",
-    )
-    sequence = fields.Integer(default=10)
-    name = fields.Char(string="Texto del botón", required=True)
-    button_type = fields.Selection(
+    pba_source_type = fields.Selection(
         selection=[
-            ("url", "URL"),
-            ("phone_number", "Teléfono"),
-            ("quick_reply", "Respuesta rápida"),
+            ("portal_url", "Vista previa portal"),
+            ("sale_order_portal_url", "Enlace portal del pedido"),
         ],
-        string="Tipo",
-        required=True,
-        default="url",
+        string="Origen PBA",
     )
-    url_source = fields.Selection(
-        selection=[
-            ("portal_preview", "Vista previa portal"),
-            ("custom_dynamic", "URL dinámica personalizada"),
-            ("static", "URL fija"),
-        ],
-        string="Origen URL",
-        default="portal_preview",
-    )
-    url_type = fields.Selection(
-        selection=[
-            ("static", "URL fija"),
-            ("dynamic", "URL dinámica"),
-        ],
-        compute="_compute_url_type",
-        store=True,
-        readonly=False,
-    )
-    website_url = fields.Char(
-        string="URL base",
-        help="Prefijo HTTPS registrado en Meta. La parte dinámica del presupuesto se añade al enviar.",
-    )
-    preview_url_display = fields.Char(
-        string="Vista previa URL",
-        compute="_compute_preview_url_display",
-    )
-    static_url = fields.Char(string="URL completa")
-    call_number = fields.Char(string="Teléfono")
-    variable_id = fields.Many2one(
-        "mail.whatsapp.template.variable",
-        string="Variable dinámica",
-        domain="[('template_id', '=', template_id)]",
-        ondelete="set null",
-    )
+    pba_variable_position = fields.Integer(string="Posición variable PBA")
 
-    @api.depends("url_source")
+    def _pba_effective_url_source(self):
+        self.ensure_one()
+        if "url_source" in self._fields and self.url_source:
+            return self.url_source
+        if self.pba_source_type:
+            return "portal_preview"
+        if "url_type" in self._fields and self.url_type == "static":
+            return "static"
+        return "custom_dynamic"
+
+    @api.depends("pba_source_type")
     def _compute_url_type(self):
+        parent_compute = getattr(super(), "_compute_url_type", None)
+        if parent_compute:
+            parent_compute()
         for button in self:
-            button.url_type = (
-                "static" if button.url_source == "static" else "dynamic"
-            )
+            if "url_type" not in button._fields:
+                continue
+            source = button._pba_effective_url_source()
+            button.url_type = "static" if source == "static" else "dynamic"
 
     def _pba_sync_portal_website_url(self):
         base_url = (
@@ -77,37 +46,50 @@ class MailWhatsappTemplateButton(models.Model):
             .get_param("web.base.url", "https://example.com")
             .rstrip("/")
         )
-        for button in self.filtered(lambda b: b.url_source == "portal_preview"):
-            path = button._pba_get_portal_path()
-            button.website_url = f"{base_url}{path}" if path else base_url
-
-    @api.depends("url_source", "website_url", "variable_id", "static_url", "template_id")
-    def _compute_preview_url_display(self):
         for button in self:
-            if button.url_source == "static":
-                button.preview_url_display = button.static_url or ""
-            elif button.url_source == "portal_preview" and button.website_url:
+            if button._pba_effective_url_source() != "portal_preview":
+                continue
+            path = button._pba_get_portal_path()
+            if "website_url" in button._fields:
+                button.website_url = f"{base_url}{path}" if path else base_url
+
+    @api.depends("pba_source_type", "template_id")
+    def _compute_preview_url_display(self):
+        parent_compute = getattr(super(), "_compute_preview_url_display", None)
+        if parent_compute:
+            parent_compute()
+        for button in self:
+            if "preview_url_display" not in button._fields:
+                continue
+            source = button._pba_effective_url_source()
+            website_url = button.website_url if "website_url" in button._fields else ""
+            if source == "static":
+                static_url = button.static_url if "static_url" in button._fields else ""
+                button.preview_url_display = static_url or ""
+            elif source == "portal_preview" and website_url:
                 demo = (
                     button.variable_id._pba_get_demo_value()
-                    if button.variable_id
+                    if "variable_id" in button._fields and button.variable_id
                     else "1?access_token=demo"
                 )
-                button.preview_url_display = f"{button.website_url.rstrip('/')}/{demo}"
-            elif button.url_source == "custom_dynamic" and button.website_url:
+                button.preview_url_display = f"{website_url.rstrip('/')}/{demo}"
+            elif source == "custom_dynamic" and website_url:
                 demo = (
                     button.variable_id._pba_get_demo_value()
-                    if button.variable_id
+                    if "variable_id" in button._fields and button.variable_id
                     else "demo"
                 )
-                button.preview_url_display = f"{button.website_url.rstrip('/')}/{demo}"
+                button.preview_url_display = f"{website_url.rstrip('/')}/{demo}"
             else:
                 button.preview_url_display = ""
 
     @api.onchange("url_source")
     def _onchange_url_source(self):
+        if "url_source" not in self._fields:
+            return
         if self.url_source == "portal_preview" and self.template_id:
             portal_var = self._pba_get_portal_variable()
-            if portal_var:
+            if portal_var and "variable_id" in self._fields:
                 self.variable_id = portal_var
             self._pba_sync_portal_website_url()
 
@@ -117,13 +99,17 @@ class MailWhatsappTemplateButton(models.Model):
     def _pba_get_portal_variable(self):
         self.ensure_one()
         return self.template_id.variable_ids.filtered(
-            lambda v: v.source_type in self._pba_portal_url_variable_types()
+            lambda v: v._pba_get_source_type() in self._pba_portal_url_variable_types()
         )[:1]
 
     def _pba_get_portal_path(self):
         self.ensure_one()
-        portal_var = self.variable_id or self._pba_get_portal_variable()
-        if portal_var and portal_var.source_type == "sale_order_portal_url":
+        portal_var = (
+            self.variable_id if "variable_id" in self._fields else self.env["mail.whatsapp.template.variable"]
+        ) or self._pba_get_portal_variable()
+        if portal_var and portal_var._pba_get_source_type() == "sale_order_portal_url":
+            return "/my/orders/"
+        if self.pba_source_type == "sale_order_portal_url":
             return "/my/orders/"
         model_name = self.template_id.model_id.model
         return PORTAL_URL_PATHS.get(model_name, "")
@@ -137,12 +123,16 @@ class MailWhatsappTemplateButton(models.Model):
         "template_id",
     )
     def _check_button_configuration(self):
+        parent_check = getattr(super(), "_check_button_configuration", None)
+        if parent_check:
+            parent_check()
         for button in self:
             if button.button_type != "url":
                 continue
-            if button.url_source == "static" and not button.static_url:
+            source = button._pba_effective_url_source()
+            if source == "static" and "static_url" in button._fields and not button.static_url:
                 raise ValidationError(_("Los botones URL fijos requieren la URL completa."))
-            if button.url_source == "portal_preview":
+            if source == "portal_preview":
                 if not button._pba_get_portal_path():
                     raise ValidationError(
                         _(
@@ -150,21 +140,12 @@ class MailWhatsappTemplateButton(models.Model):
                         )
                         % {"model": button.template_id.model_id.display_name}
                     )
-                portal_var = button.template_id.variable_ids.filtered(
-                    lambda v: v.source_type in button._pba_portal_url_variable_types()
-                )
-                if not portal_var:
-                    raise ValidationError(
-                        _(
-                            "Debe existir una variable de tipo enlace portal en la plantilla."
-                        )
-                    )
-            if button.url_source == "custom_dynamic":
-                if not button.website_url:
+            if source == "custom_dynamic":
+                if "website_url" in button._fields and not button.website_url:
                     raise ValidationError(
                         _("Los botones URL dinámicos requieren una URL base.")
                     )
-                if not button.variable_id:
+                if "variable_id" in button._fields and not button.variable_id and not button.pba_source_type:
                     raise ValidationError(
                         _("Los botones URL dinámicos requieren una variable asociada.")
                     )
@@ -173,11 +154,27 @@ class MailWhatsappTemplateButton(models.Model):
 
     def _pba_get_dynamic_url_value(self, record):
         self.ensure_one()
-        if self.url_source == "portal_preview" and self.template_id.variable_ids:
+        source = self._pba_effective_url_source()
+        if source == "portal_preview" and self.pba_source_type:
+            portal_record = record
+            if self.pba_source_type == "sale_order_portal_url":
+                portal_record = self.env["mail.whatsapp.template.variable"]._pba_get_sale_order_for_portal(record)
+            if not portal_record or not portal_record.exists():
+                return ""
+            if not hasattr(portal_record, "get_portal_url"):
+                return ""
+            if hasattr(portal_record, "_portal_ensure_token"):
+                portal_record._portal_ensure_token()
+            portal_url = portal_record.get_portal_url()
+            for marker in ("/my/orders/", "/my/quotes/"):
+                if marker in portal_url:
+                    return portal_url.split(marker, 1)[1]
+            return portal_url.lstrip("/")
+        if source == "portal_preview" and self.template_id.variable_ids:
             portal_var = self._pba_get_portal_variable()
             if portal_var:
                 return portal_var._pba_get_button_url_suffix(record)
-        if self.variable_id:
+        if "variable_id" in self._fields and self.variable_id:
             return self.variable_id._pba_get_button_url_suffix(record)
         return ""
 
@@ -188,16 +185,24 @@ class MailWhatsappTemplateButton(models.Model):
             "text": self.name,
         }
         if self.button_type == "url":
+            source = self._pba_effective_url_source()
             if self.url_type == "dynamic":
-                data["url"] = f"{self.website_url.rstrip('/')}/{{{{1}}}}"
-                demo_var = self.variable_id
-                if self.url_source == "portal_preview":
+                base_url = self.website_url if "website_url" in self._fields else ""
+                data["url"] = f"{base_url.rstrip('/')}/{{{{1}}}}" if base_url else "{{1}}"
+                demo_var = self.variable_id if "variable_id" in self._fields else False
+                if source == "portal_preview":
                     demo_var = self._pba_get_portal_variable()
                 data["example"] = [
-                    demo_var._pba_get_demo_value() if demo_var else "1?access_token=demo"
+                    demo_var._pba_get_demo_value()
+                    if demo_var
+                    else "1?access_token=demo"
                 ]
             else:
-                data["url"] = self.static_url
+                data["url"] = (
+                    self.static_url
+                    if "static_url" in self._fields
+                    else (self.website_url if "website_url" in self._fields else "")
+                )
         elif self.button_type == "phone_number":
             data["phone_number"] = self.call_number
         return data

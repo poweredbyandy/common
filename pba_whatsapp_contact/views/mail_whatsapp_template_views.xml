@@ -5,7 +5,7 @@
         <field name="model">mail.whatsapp.template</field>
         <field name="inherit_id" ref="mail_gateway_whatsapp.view_mail_whatsapp_template_form"/>
         <field name="arch" type="xml">
-            <xpath expr="//header/button[@name='button_sync_template']" position="after">
+            <xpath expr="//header" position="inside">
                 <button
                     string="Log request Meta"
                     name="button_pba_log_meta_request"
@@ -13,124 +13,6 @@
                     groups="base.group_no_one"
                     title="Registra en el log del servidor el body de las requests de exportación y envío a Meta"
                 />
-            </xpath>
-            <xpath expr="//group/group[field[@name='gateway_id']]" position="inside">
-                <field name="model_id" readonly="state != 'draft'" options="{'no_create': True}"/>
-            </xpath>
-            <xpath expr="//page[@name='body']" position="after">
-                <page string="Variables" name="variables">
-                    <div class="alert alert-info" role="alert" invisible="model_id">
-                        Indique primero el documento al que aplica la plantilla para seleccionar sus campos.
-                    </div>
-                    <field name="variable_ids" readonly="state != 'draft'">
-                        <list editable="bottom">
-                            <field name="position"/>
-                            <field name="source_type"/>
-                            <field
-                                name="field_id"
-                                string="Campo"
-                                invisible="source_type != 'field'"
-                                required="source_type == 'field'"
-                                options="{'no_create': True}"
-                                context="{'default_model_id': parent.model_id}"
-                            />
-                            <field
-                                name="static_value"
-                                invisible="source_type != 'static'"
-                                required="source_type == 'static'"
-                            />
-                            <field name="sample_value" readonly="1" optional="show"/>
-                            <field name="model_id" column_invisible="1"/>
-                        </list>
-                        <form>
-                            <group>
-                                <field name="position"/>
-                                <field name="source_type"/>
-                                <field
-                                    name="field_id"
-                                    string="Campo"
-                                    invisible="source_type != 'field'"
-                                    required="source_type == 'field'"
-                                    options="{'no_create': True}"
-                                />
-                                <field
-                                    name="field_name"
-                                    string="Nombre técnico"
-                                    invisible="source_type != 'field'"
-                                    readonly="1"
-                                />
-                                <field
-                                    name="static_value"
-                                    invisible="source_type != 'static'"
-                                    required="source_type == 'static'"
-                                />
-                                <field name="sample_value" readonly="1"/>
-                                <field name="model_id" invisible="1"/>
-                            </group>
-                        </form>
-                    </field>
-                </page>
-                <page string="Botones" name="buttons">
-                    <field name="button_ids" readonly="state != 'draft'">
-                        <list editable="bottom">
-                            <field name="sequence" widget="handle"/>
-                            <field name="name"/>
-                            <field name="button_type"/>
-                            <field name="url_source" invisible="button_type != 'url'"/>
-                            <field
-                                name="preview_url_display"
-                                string="URL resultante"
-                                invisible="button_type != 'url' or url_source == 'static'"
-                                readonly="1"
-                            />
-                            <field
-                                name="website_url"
-                                invisible="button_type != 'url' or url_source != 'custom_dynamic'"
-                                required="button_type == 'url' and url_source == 'custom_dynamic'"
-                            />
-                            <field
-                                name="static_url"
-                                invisible="button_type != 'url' or url_source != 'static'"
-                                required="button_type == 'url' and url_source == 'static'"
-                            />
-                            <field
-                                name="variable_id"
-                                invisible="button_type != 'url' or url_source != 'custom_dynamic'"
-                                options="{'no_create': True}"
-                            />
-                            <field name="call_number" invisible="button_type != 'phone_number'"/>
-                            <field name="url_type" column_invisible="1"/>
-                        </list>
-                        <form>
-                            <group>
-                                <field name="sequence"/>
-                                <field name="name"/>
-                                <field name="button_type"/>
-                                <field name="url_source" invisible="button_type != 'url'"/>
-                                <field
-                                    name="preview_url_display"
-                                    invisible="button_type != 'url' or url_source == 'static'"
-                                    readonly="1"
-                                />
-                                <field
-                                    name="website_url"
-                                    invisible="button_type != 'url' or url_source != 'custom_dynamic'"
-                                />
-                                <field
-                                    name="static_url"
-                                    invisible="button_type != 'url' or url_source != 'static'"
-                                />
-                                <field
-                                    name="variable_id"
-                                    invisible="button_type != 'url' or url_source != 'custom_dynamic'"
-                                    options="{'no_create': True}"
-                                />
-                                <field name="call_number" invisible="button_type != 'phone_number'"/>
-                                <field name="url_type" invisible="1"/>
-                            </group>
-                        </form>
-                    </field>
-                </page>
             </xpath>
         </field>
     </record>

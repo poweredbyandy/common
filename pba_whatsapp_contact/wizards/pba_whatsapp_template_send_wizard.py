@@ -61,6 +61,40 @@ class PbaWhatsappTemplateSendWizardLine(models.TransientModel):
             raise UserError(_("El documento ya no está disponible."))
         template = self.template_id
         body, variables = template._pba_prepare_body_and_variables(record)
-        return record.action_whatsapp_send(
+        action = record.action_whatsapp_send(
             body, template=template, template_variables=variables
         )
+        composer_model = action.get("res_model")
+        if not composer_model:
+            raise UserError(_("No se pudo preparar el envío de WhatsApp."))
+        composer_context = dict(action.get("context", {}))
+        composer = self.env[composer_model].with_context(composer_context).create({})
+        send_method = None
+        for method_name in (
+            "action_send_whatsapp_template",
+            "action_send_whatsapp",
+            "_action_send_whatsapp",
+        ):
+            if hasattr(composer, method_name):
+                send_method = getattr(composer, method_name)
+                break
+        if not send_method:
+            raise UserError(_("No se encontró un método de envío en el composer."))
+        send_method()
+        self.write(
+            {
+                "send_state": "sent",
+                "sent_date": fields.Datetime.now(),
+                "sent_user_id": self.env.user.id,
+            }
+        )
+        return {
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "title": _("WhatsApp"),
+                "message": _("Mensaje enviado."),
+                "type": "success",
+                "sticky": False,
+            },
+        }
