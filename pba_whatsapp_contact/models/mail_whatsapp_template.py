@@ -18,7 +18,8 @@ class MailWhatsappTemplate(models.Model):
         "ir.model",
         string="Documento",
         help="Modelo de Odoo desde el que se enviará esta plantilla.",
-        ondelete="set null",
+        required=False,
+        ondelete="restrict",
     )
     variable_ids = fields.One2many(
         "mail.whatsapp.template.variable",
