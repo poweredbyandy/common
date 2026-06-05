@@ -4,7 +4,6 @@ from . import pba_whatsapp_autoreply_rule
 from . import pba_whatsapp_autoreply_config
 from . import mail_gateway
 from . import mail_gateway_whatsapp
-from . import discuss_channel
 from . import mail_whatsapp_mixin
 from . import mail_whatsapp_template
 from . import mail_whatsapp_template_variable

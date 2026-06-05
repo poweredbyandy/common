@@ -1,3 +1,5 @@
+import pytz
+
 from odoo import fields, models
 
 
@@ -106,17 +108,30 @@ class MailGatewayWhatsappService(models.AbstractModel):
             message_type="comment",
             subtype_xmlid="mail.mt_comment",
         )
-        channel.sudo().write({"pba_whatsapp_last_autoreply_dt": fields.Datetime.now()})
 
     def _pba_should_send_autoreply_today(self, channel, company):
         channel.ensure_one()
-        if not channel.pba_whatsapp_last_autoreply_dt:
+        author = self.env.ref("base.partner_root", raise_if_not_found=False)
+        if not author:
             return True
-        last_local = company._pba_whatsapp_local_datetime(
-            channel.pba_whatsapp_last_autoreply_dt
+        now_local = company._pba_whatsapp_local_datetime(fields.Datetime.now())
+        start_local = now_local.replace(hour=0, minute=0, second=0, microsecond=0)
+        end_local = now_local.replace(hour=23, minute=59, second=59, microsecond=999999)
+        start_utc = fields.Datetime.to_string(start_local.astimezone(pytz.utc))
+        end_utc = fields.Datetime.to_string(end_local.astimezone(pytz.utc))
+        return (
+            self.env["mail.notification"].sudo().search_count(
+                [
+                    ("gateway_channel_id", "=", channel.id),
+                    ("notification_type", "=", "gateway"),
+                    ("mail_message_id.author_id", "=", author.id),
+                    ("mail_message_id.date", ">=", start_utc),
+                    ("mail_message_id.date", "<=", end_utc),
+                    ("mail_message_id.gateway_message_id", "!=", False),
+                ]
+            )
+            == 0
         )
-        now_local = company._pba_whatsapp_local_datetime()
-        return last_local.date() != now_local.date()
 
     def _send_payload(
         self, channel, body=False, media_id=False, media_type=False, media_name=False
