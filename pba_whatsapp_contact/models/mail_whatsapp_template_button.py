@@ -187,9 +187,17 @@ class MailWhatsappTemplateButton(models.Model):
         }
         if self.button_type == "url":
             source = self._pba_effective_url_source()
-            if self.url_type == "dynamic":
-                base_url = self.website_url if "website_url" in self._fields else ""
-                data["url"] = f"{base_url.rstrip('/')}/{{{{1}}}}" if base_url else "{{1}}"
+            if self._pba_requires_send_parameter():
+                base_url = (
+                    self.env["ir.config_parameter"]
+                    .sudo()
+                    .get_param("web.base.url", "https://example.com")
+                    .rstrip("/")
+                )
+                path = self._pba_get_portal_path()
+                if path:
+                    base_url = f"{base_url}{path}"
+                data["url"] = f"{base_url.rstrip('/')}/{{{{1}}}}"
                 demo_var = self.variable_id if "variable_id" in self._fields else False
                 if source == "portal_preview":
                     demo_var = self._pba_get_portal_variable()

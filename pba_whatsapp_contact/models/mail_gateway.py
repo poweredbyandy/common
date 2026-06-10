@@ -90,7 +90,33 @@ class MailGateway(models.Model):
         company = self.company_id or self.env.company
         if company_vals:
             company.write(company_vals)
+        self._pba_sync_gateway_portal_button_urls()
         return created_total, specs
+
+    def _pba_sync_gateway_portal_button_urls(self):
+        self.ensure_one()
+        templates = self.env["mail.whatsapp.template"].search(
+            [("gateway_id", "=", self.id)]
+        )
+        templates._pba_sync_portal_button_urls()
+
+    def button_pba_sync_portal_button_urls(self):
+        self.ensure_one()
+        if self.gateway_type != "whatsapp":
+            raise UserError(_("Solo aplica a gateways de tipo WhatsApp."))
+        self._pba_sync_gateway_portal_button_urls()
+        return {
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "title": _("Plantillas PBA"),
+                "message": _(
+                    "Se actualizaron las URLs base de los botones portal con web.base.url."
+                ),
+                "type": "success",
+                "sticky": False,
+            },
+        }
 
     def button_pba_create_whatsapp_templates(self):
         self.ensure_one()
@@ -181,6 +207,7 @@ class MailGateway(models.Model):
                 create_vals.append(import_vals)
         if create_vals:
             WhatsappTemplate.create(create_vals)
+        self._pba_sync_gateway_portal_button_urls()
         merged, _removed = self._pba_merge_duplicate_whatsapp_templates(silent=True)
         message = self.env._("Synchronization successfully.")
         if merged:

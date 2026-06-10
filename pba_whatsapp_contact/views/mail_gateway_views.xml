@@ -15,6 +15,13 @@
                 />
                 <button
                     type="object"
+                    name="button_pba_sync_portal_button_urls"
+                    string="Actualizar URLs botones"
+                    invisible="gateway_type != 'whatsapp'"
+                    icon="fa-link"
+                />
+                <button
+                    type="object"
                     name="button_pba_merge_duplicate_whatsapp_templates"
                     string="Unificar duplicadas"
                     invisible="gateway_type != 'whatsapp'"

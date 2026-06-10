@@ -64,6 +64,10 @@ class MailWhatsappTemplate(models.Model):
             filtered.pop("button_ids")
         return filtered
 
+    def _pba_sync_portal_button_urls(self):
+        for template in self:
+            template.button_ids._pba_sync_portal_website_url()
+
     @api.constrains("button_ids")
     def _check_button_limits(self):
         for template in self:
