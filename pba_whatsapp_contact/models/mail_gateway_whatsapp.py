@@ -1,8 +1,11 @@
 import logging
+import re
 
 import pytz
 
-from odoo import fields, models
+from odoo import Command, api, fields, models
+from odoo.exceptions import UserError
+from odoo.tools import html2plaintext
 
 _logger = logging.getLogger(__name__)
 
@@ -18,20 +21,7 @@ class MailGatewayWhatsappService(models.AbstractModel):
         if not author_id:
             return super()._get_author(gateway, update)
 
-        gateway_partner = self.env["res.partner.gateway.channel"].search(
-            [
-                ("gateway_id", "=", gateway.id),
-                ("gateway_token", "=", str(author_id)),
-            ],
-            limit=1,
-        )
-        if gateway_partner:
-            return gateway_partner.partner_id
-
-        partner = self.env["res.partner"].search(
-            [("phone_sanitized", "=", "+" + str(author_id))],
-            limit=1,
-        )
+        partner = self._pba_find_partner_by_whatsapp(gateway, author_id)
         if partner:
             self._pba_link_partner_gateway(gateway, partner, author_id)
             return partner
@@ -46,23 +36,123 @@ class MailGatewayWhatsappService(models.AbstractModel):
 
         return super()._get_author(gateway, update)
 
+    def _get_channel(self, gateway, token, update, force_create=False):
+        channel = super()._get_channel(
+            gateway, token, update, force_create=force_create
+        )
+        if channel and channel.channel_type == "gateway":
+            author = self._get_author(gateway, update)
+            if author and author._name == "res.partner":
+                self._pba_ensure_partner_channel_member(channel, author)
+        return channel
+
+    def _pba_whatsapp_token(self, author_id):
+        return str(author_id).lstrip("+")
+
+    def _pba_get_gateway_internal_partner_ids(self, gateway):
+        return set(gateway.member_ids.partner_id.ids)
+
+    def _pba_pick_best_partner(self, partners, internal_partner_ids):
+        partners = partners.exists()
+        if not partners:
+            return partners
+        external = partners.filtered(lambda p: p.id not in internal_partner_ids)
+        pool = external or partners
+        return pool.sorted(
+            key=lambda p: (
+                -(p.customer_rank or 0),
+                -(p.supplier_rank or 0),
+                p.id,
+            )
+        )[:1]
+
+    def _pba_find_partner_by_whatsapp(self, gateway, author_id):
+        token = self._pba_whatsapp_token(author_id)
+        internal_ids = self._pba_get_gateway_internal_partner_ids(gateway)
+        Partner = self.env["res.partner"]
+
+        gateway_partners = self.env["res.partner.gateway.channel"].search(
+            [
+                ("gateway_id", "=", gateway.id),
+                ("gateway_token", "=", token),
+            ]
+        )
+        if gateway_partners:
+            return self._pba_pick_best_partner(gateway_partners.partner_id, internal_ids)
+
+        partner = self._pba_pick_best_partner(
+            Partner.search([("phone_sanitized", "=", "+" + token)]),
+            internal_ids,
+        )
+        if partner:
+            return partner
+
+        return self._pba_search_partner_by_phone_fields(gateway, token)
+
+    def _pba_search_partner_by_phone_fields(self, gateway, token):
+        Partner = self.env["res.partner"]
+        internal_ids = self._pba_get_gateway_internal_partner_ids(gateway)
+        candidates = Partner.browse()
+        for search_value in ("+" + token, token):
+            try:
+                found = Partner.search([("phone_mobile_search", "=", search_value)])
+            except UserError:
+                found = Partner.browse()
+            if found:
+                candidates = found
+                break
+        if not candidates:
+            digits = re.sub(r"\D", "", token)
+            suffix = digits[-10:] if len(digits) >= 10 else digits[-7:]
+            if suffix:
+                candidates = Partner.search(
+                    [
+                        "|",
+                        ("mobile", "ilike", suffix),
+                        ("phone", "ilike", suffix),
+                    ]
+                )
+        return self._pba_pick_best_partner(candidates, internal_ids)
+
     def _pba_link_partner_gateway(self, gateway, partner, author_id):
-        if not self.env["res.partner.gateway.channel"].search_count(
+        token = self._pba_whatsapp_token(author_id)
+        existing = self.env["res.partner.gateway.channel"].search(
             [
                 ("partner_id", "=", partner.id),
                 ("gateway_id", "=", gateway.id),
-            ]
-        ):
-            self.env["res.partner.gateway.channel"].create(
-                {
-                    "name": gateway.name,
-                    "partner_id": partner.id,
-                    "gateway_id": gateway.id,
-                    "gateway_token": str(author_id),
-                }
-            )
+            ],
+            limit=1,
+        )
+        if existing:
+            if existing.gateway_token != token:
+                existing.write({"gateway_token": token})
+            return existing
+        return self.env["res.partner.gateway.channel"].create(
+            {
+                "name": gateway.name,
+                "partner_id": partner.id,
+                "gateway_id": gateway.id,
+                "gateway_token": token,
+            }
+        )
+
+    def _pba_ensure_partner_channel_member(self, channel, partner):
+        channel.ensure_one()
+        partner.ensure_one()
+        internal_ids = self._pba_get_gateway_internal_partner_ids(channel.gateway_id)
+        if partner.id in internal_ids:
+            return
+        if partner in channel.channel_member_ids.partner_id:
+            return
+        channel.sudo().write(
+            {"channel_member_ids": [Command.create({"partner_id": partner.id})]}
+        )
 
     def _pba_create_partner_from_whatsapp(self, gateway, author_id, update):
+        partner = self._pba_find_partner_by_whatsapp(gateway, author_id)
+        if partner:
+            self._pba_link_partner_gateway(gateway, partner, author_id)
+            return partner
         name = "WhatsApp %s" % author_id
         for contact in update.get("contacts", []):
             if contact.get("wa_id") == author_id:
@@ -71,7 +161,7 @@ class MailGatewayWhatsappService(models.AbstractModel):
         partner = self.env["res.partner"].create(
             {
                 "name": name,
-                "mobile": "+" + str(author_id),
+                "mobile": "+" + self._pba_whatsapp_token(author_id),
                 "company_id": gateway.company_id.id or False,
             }
         )
@@ -150,35 +240,87 @@ class MailGatewayWhatsappService(models.AbstractModel):
             return rule_text
         return company.whatsapp_autoreply_default_message or False
 
+    def _send(
+        self,
+        gateway,
+        record,
+        auto_commit=False,
+        raise_exception=False,
+        parse_mode=False,
+    ):
+        strict = bool(self.env.context.get("pba_whatsapp_raise_on_failure"))
+        super()._send(
+            gateway,
+            record,
+            auto_commit=auto_commit,
+            raise_exception=raise_exception if not strict else False,
+            parse_mode=parse_mode,
+        )
+        if strict and record.notification_status == "exception":
+            reason = record.failure_reason or self.env._("Error desconocido")
+            reason_text = self._pba_format_whatsapp_failure_reason(reason)
+            raise UserError(
+                self.env._("Error al enviar WhatsApp: %s") % reason_text
+            )
+
+    @api.model
+    def _pba_format_whatsapp_failure_reason(self, reason):
+        response = getattr(reason, "response", None)
+        if response is not None:
+            try:
+                payload = response.json()
+                error = payload.get("error", {})
+                details = error.get("error_data", {}).get("details")
+                message = error.get("message")
+                if details and message:
+                    return "%s — %s" % (message, details)
+                if message:
+                    return message
+            except Exception:
+                pass
+        return str(reason)
+
+    def _pba_build_template_payload(self, channel, template, body):
+        template.ensure_one()
+        record = template._pba_get_template_send_record()
+        template_data = {
+            "name": template.template_name,
+            "language": {"code": template.language},
+        }
+        components = template._pba_build_template_send_components(record)
+        if components:
+            template_data["components"] = components
+        return {
+            "messaging_product": "whatsapp",
+            "recipient_type": "individual",
+            "to": channel.gateway_channel_token,
+            "type": "template",
+            "template": template_data,
+        }
+
     def _send_payload(
         self, channel, body=False, media_id=False, media_type=False, media_name=False
     ):
-        payload = super()._send_payload(
+        template_id = self.env.context.get("whatsapp_template_id")
+        if body and template_id:
+            template = self.env["mail.whatsapp.template"].browse(template_id)
+            if template.exists():
+                return self._pba_build_template_payload(channel, template, body)
+        if body:
+            return {
+                "messaging_product": "whatsapp",
+                "recipient_type": "individual",
+                "to": channel.gateway_channel_token,
+                "type": "text",
+                "text": {
+                    "preview_url": False,
+                    "body": html2plaintext(body),
+                },
+            }
+        return super()._send_payload(
             channel,
             body=body,
             media_id=media_id,
             media_type=media_type,
             media_name=media_name,
         )
-        if not payload or payload.get("type") != "template":
-            return payload
-        template_id = self.env.context.get("whatsapp_template_id")
-        res_model = self.env.context.get("pba_whatsapp_res_model")
-        res_id = self.env.context.get("pba_whatsapp_res_id")
-        if not template_id or not res_model or not res_id:
-            template_variables = self.env.context.get("whatsapp_template_variables")
-            if template_variables and template_id:
-                template = self.env["mail.whatsapp.template"].browse(template_id)
-                parameters = template._pba_get_body_parameters(template_variables)
-                if parameters:
-                    payload["template"]["components"] = [
-                        {"type": "body", "parameters": parameters}
-                    ]
-            return payload
-        template = self.env["mail.whatsapp.template"].browse(template_id)
-        record = self.env[res_model].browse(res_id)
-        if record.exists():
-            components = template._pba_get_template_send_components(record)
-            if components:
-                payload["template"]["components"] = components
-        return payload

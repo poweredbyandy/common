@@ -4,15 +4,65 @@ import re
 
 from werkzeug.urls import url_join
 
-from odoo import _, api, models
+from odoo import _, api, fields, models
 from odoo.addons.mail_gateway_whatsapp.models.mail_gateway import BASE_URL
 from odoo.exceptions import UserError, ValidationError
 
 _logger = logging.getLogger(__name__)
 
+PBA_MANAGED_TEMPLATE_MODULES = (
+    "pba_whatsapp_sale",
+    "pba_whatsapp_account",
+    "pba_whatsapp_contact",
+)
+
 
 class MailWhatsappTemplate(models.Model):
     _inherit = "mail.whatsapp.template"
+
+    pba_meta_url_button_count = fields.Integer(
+        string="Botones URL dinámicos en Meta",
+        default=0,
+    )
+
+    @api.model
+    def _pba_count_meta_dynamic_url_buttons(self, json_data):
+        count = 0
+        for component in json_data.get("components", []):
+            if component.get("type") != "BUTTONS":
+                continue
+            for button in component.get("buttons", []):
+                if button.get("type") == "URL" and "{{" in (button.get("url") or ""):
+                    count += 1
+        return count
+
+    def _pba_is_managed_template(self):
+        self.ensure_one()
+        return bool(
+            self.env["ir.model.data"].search(
+                [
+                    ("model", "=", "mail.whatsapp.template"),
+                    ("res_id", "=", self.id),
+                    ("module", "in", PBA_MANAGED_TEMPLATE_MODULES),
+                ],
+                limit=1,
+            )
+        )
+
+    def _pba_prepare_import_write_vals(self, vals, json_data=None):
+        self.ensure_one()
+        filtered = dict(vals)
+        if json_data is not None:
+            filtered["pba_meta_url_button_count"] = self._pba_count_meta_dynamic_url_buttons(
+                json_data
+            )
+        if not self._pba_is_managed_template():
+            return filtered
+        protected = {"model_id", "gateway_id", "variable_ids"}
+        filtered = {key: value for key, value in filtered.items() if key not in protected}
+        if self.button_ids and "button_ids" in filtered:
+            filtered.pop("button_ids")
+        return filtered
 
     @api.constrains("button_ids")
     def _check_button_limits(self):
@@ -55,8 +105,37 @@ class MailWhatsappTemplate(models.Model):
         self.ensure_one()
         parameters = []
         for value in variables:
-            parameters.append({"type": "text", "text": str(value or "")})
+            text = str(value or "").strip()
+            if not text:
+                text = " "
+            parameters.append({"type": "text", "text": text})
         return parameters
+
+    def _pba_get_template_send_record(self, res_model=None, res_id=None):
+        model_name = res_model or self.env.context.get("pba_whatsapp_res_model")
+        record_id = res_id or self.env.context.get("pba_whatsapp_res_id")
+        if model_name and record_id:
+            record = self.env[model_name].browse(record_id)
+            if record.exists():
+                return record
+        default_res_id = self.env.context.get("default_res_id")
+        if default_res_id and self.model_id:
+            record = self.env[self.model_id.model].browse(int(default_res_id))
+            if record.exists():
+                return record
+        return self.env[self.model_id.model if self.model_id else "res.partner"]
+
+    def _pba_build_template_send_components(self, record):
+        self.ensure_one()
+        record = record if record else self._pba_get_template_send_record()
+        if record.exists():
+            return self._pba_get_template_send_components(record)
+        variables = self.env.context.get("whatsapp_template_variables")
+        if variables is not None:
+            parameters = self._pba_get_body_parameters(variables)
+            if parameters:
+                return [{"type": "body", "parameters": parameters}]
+        return []
 
     def _pba_get_body_export_examples(self):
         self.ensure_one()
@@ -158,7 +237,10 @@ class MailWhatsappTemplate(models.Model):
         body_parameters = self._pba_get_body_parameters(body_variables)
         if body_parameters:
             components.append({"type": "body", "parameters": body_parameters})
+        meta_button_limit = self.pba_meta_url_button_count
         for index, button in enumerate(self.button_ids.sorted("sequence")):
+            if meta_button_limit is not None and index >= meta_button_limit:
+                break
             button_component = button._pba_prepare_send_component(record, index)
             if button_component:
                 components.append(button_component)

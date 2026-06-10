@@ -13,6 +13,13 @@
                     invisible="gateway_type != 'whatsapp'"
                     icon="fa-file-text-o"
                 />
+                <button
+                    type="object"
+                    name="button_pba_merge_duplicate_whatsapp_templates"
+                    string="Unificar duplicadas"
+                    invisible="gateway_type != 'whatsapp'"
+                    icon="fa-compress"
+                />
             </xpath>
         </field>
     </record>

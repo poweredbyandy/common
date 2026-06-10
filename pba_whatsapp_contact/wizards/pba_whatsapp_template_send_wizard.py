@@ -80,7 +80,14 @@ class PbaWhatsappTemplateSendWizardLine(models.TransientModel):
                 break
         if not send_method:
             raise UserError(_("No se encontró un método de envío en el composer."))
-        send_method()
+        try:
+            send_method()
+        except UserError:
+            raise
+        except Exception as exc:
+            raise UserError(
+                _("No se pudo enviar el WhatsApp: %s") % exc
+            ) from exc
         self.write(
             {
                 "send_state": "sent",

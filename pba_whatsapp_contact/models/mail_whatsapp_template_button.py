@@ -28,16 +28,17 @@ class MailWhatsappTemplateButton(models.Model):
             return "static"
         return "custom_dynamic"
 
-    @api.depends("pba_source_type")
-    def _compute_url_type(self):
-        parent_compute = getattr(super(), "_compute_url_type", None)
-        if parent_compute:
-            parent_compute()
-        for button in self:
-            if "url_type" not in button._fields:
-                continue
-            source = button._pba_effective_url_source()
-            button.url_type = "static" if source == "static" else "dynamic"
+    def _pba_requires_send_parameter(self):
+        self.ensure_one()
+        if self.button_type != "url":
+            return False
+        source = self._pba_effective_url_source()
+        if source in ("portal_preview", "custom_dynamic"):
+            return True
+        if self.url_type == "dynamic":
+            return True
+        website_url = self.website_url if "website_url" in self._fields else ""
+        return "{{" in (website_url or "")
 
     def _pba_sync_portal_website_url(self):
         base_url = (
@@ -209,18 +210,16 @@ class MailWhatsappTemplateButton(models.Model):
 
     def _pba_prepare_send_component(self, record, index):
         self.ensure_one()
-        if self.button_type != "url":
+        if not self._pba_requires_send_parameter():
             return False
-        if self.url_type == "dynamic":
-            url_suffix = self._pba_get_dynamic_url_value(record)
-            if not url_suffix:
-                return False
-            return {
-                "type": "button",
-                "sub_type": "url",
-                "index": str(index),
-                "parameters": [
-                    {"type": "text", "text": url_suffix}
-                ],
-            }
-        return False
+        url_suffix = self._pba_get_dynamic_url_value(record)
+        if not url_suffix:
+            url_suffix = " "
+        return {
+            "type": "button",
+            "sub_type": "url",
+            "index": index,
+            "parameters": [
+                {"type": "text", "text": url_suffix}
+            ],
+        }
