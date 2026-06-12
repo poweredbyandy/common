@@ -261,9 +261,23 @@ class MailWhatsappTemplate(models.Model):
         vals["is_supported"] = is_supported
         return vals
 
+    def _pba_prepare_header_component(self, record):
+        self.ensure_one()
+        if not self.header:
+            return False
+        header_vars = self.variable_ids.filtered(lambda variable: variable.line_type == "header")
+        if not header_vars:
+            return False
+        values = header_vars._get_variables_value(record)
+        value = values.get("header-{{1}}") or " "
+        return {"type": "header", "parameters": [{"type": "text", "text": value}]}
+
     def _pba_get_template_send_components(self, record):
         self.ensure_one()
         components = []
+        header_component = self._pba_prepare_header_component(record)
+        if header_component:
+            components.append(header_component)
         body_variables = self._pba_resolve_body_variables(record)
         body_parameters = self._pba_get_body_parameters(body_variables)
         if body_parameters:

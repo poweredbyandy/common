@@ -1,6 +1,6 @@
 {
     "name": "PBA WhatsApp Contacto",
-    "version": "18.0.1.0.37",
+    "version": "18.0.1.0.38",
     "category": "Marketing",
     "summary": "Crea contactos automáticamente al recibir mensajes de WhatsApp",
     "author": "andyengit",

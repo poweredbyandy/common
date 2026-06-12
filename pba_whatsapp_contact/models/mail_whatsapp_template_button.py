@@ -41,6 +41,7 @@ class MailWhatsappTemplateButton(models.Model):
         return "{{" in (website_url or "")
 
     def _pba_sync_portal_website_url(self):
+        self._pba_autoconfigure_portal_button()
         base_url = (
             self.env["ir.config_parameter"]
             .sudo()
@@ -153,30 +154,72 @@ class MailWhatsappTemplateButton(models.Model):
             if button.button_type == "phone_number" and not button.call_number:
                 raise ValidationError(_("Los botones de teléfono requieren un número."))
 
+    def _pba_website_url_is_dynamic(self):
+        self.ensure_one()
+        website_url = self.website_url if "website_url" in self._fields else ""
+        return "{{" in (website_url or "")
+
+    def _pba_detect_portal_source_type(self):
+        self.ensure_one()
+        website_url = self.website_url if "website_url" in self._fields else ""
+        if "/my/orders/" in website_url or "/my/quotes/" in website_url:
+            model_name = self.template_id.model_id.model
+            if model_name == "sale.order":
+                return "portal_url"
+            return "sale_order_portal_url"
+        return False
+
+    def _pba_autoconfigure_portal_button(self):
+        for button in self.filtered(lambda item: item.button_type == "url"):
+            if button.pba_source_type or not button._pba_website_url_is_dynamic():
+                continue
+            source_type = button._pba_detect_portal_source_type()
+            if not source_type:
+                continue
+            vals = {"pba_source_type": source_type}
+            button.write(vals)
+
+    def _pba_get_portal_record(self, record):
+        self.ensure_one()
+        if self.pba_source_type == "sale_order_portal_url":
+            return self.env["mail.whatsapp.template.variable"]._pba_get_sale_order_for_portal(
+                record
+            )
+        model_name = self.template_id.model_id.model
+        if model_name == "sale.order" and record._name == "sale.order":
+            return record
+        return self.env["mail.whatsapp.template.variable"]._pba_get_sale_order_for_portal(
+            record
+        )
+
+    def _pba_resolve_portal_url_suffix(self, record):
+        self.ensure_one()
+        portal_record = self._pba_get_portal_record(record)
+        if not portal_record or not portal_record.exists():
+            return ""
+        if not hasattr(portal_record, "get_portal_url"):
+            return ""
+        if hasattr(portal_record, "_portal_ensure_token"):
+            portal_record._portal_ensure_token()
+        portal_url = portal_record.get_portal_url()
+        for marker in ("/my/orders/", "/my/quotes/"):
+            if marker in portal_url:
+                return portal_url.split(marker, 1)[1]
+        return portal_url.lstrip("/")
+
     def _pba_get_dynamic_url_value(self, record):
         self.ensure_one()
         source = self._pba_effective_url_source()
         if source == "portal_preview" and self.pba_source_type:
-            portal_record = record
-            if self.pba_source_type == "sale_order_portal_url":
-                portal_record = self.env["mail.whatsapp.template.variable"]._pba_get_sale_order_for_portal(record)
-            if not portal_record or not portal_record.exists():
-                return ""
-            if not hasattr(portal_record, "get_portal_url"):
-                return ""
-            if hasattr(portal_record, "_portal_ensure_token"):
-                portal_record._portal_ensure_token()
-            portal_url = portal_record.get_portal_url()
-            for marker in ("/my/orders/", "/my/quotes/"):
-                if marker in portal_url:
-                    return portal_url.split(marker, 1)[1]
-            return portal_url.lstrip("/")
+            return self._pba_resolve_portal_url_suffix(record)
         if source == "portal_preview" and self.template_id.variable_ids:
             portal_var = self._pba_get_portal_variable()
             if portal_var:
                 return portal_var._pba_get_button_url_suffix(record)
         if "variable_id" in self._fields and self.variable_id:
             return self.variable_id._pba_get_button_url_suffix(record)
+        if self._pba_website_url_is_dynamic():
+            return self._pba_resolve_portal_url_suffix(record)
         return ""
 
     def _pba_prepare_export_button_data(self):
