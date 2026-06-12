@@ -23,6 +23,8 @@
                         <field name="credit_limit" widget="monetary" options="{'currency_field': 'risk_currency_id'}" readonly="not risk_allow_edit"/>
                         <field name="date_credit_limit" readonly="not risk_allow_edit"/>
                         <field name="credit_policy" readonly="not risk_allow_edit"/>
+                        <field name="pba_block_sale_on_overdue_all" readonly="not risk_allow_edit"/>
+                        <field name="pba_block_sale_on_overdue_credit" readonly="not risk_allow_edit"/>
                         <field name="risk_exception" readonly="1"/>
                         <field name="risk_amount_exceeded" widget="monetary" options="{'currency_field': 'risk_currency_id'}" readonly="1"/>
                         <field name="show_financial_risk_in_portal" invisible="not portal_show_financial_risk_visible"/>
@@ -48,6 +50,31 @@
                     </group>
                 </sheet>
             </form>
+        </field>
+    </record>
+
+    <record id="view_partner_form_financial_risk_overdue_block" model="ir.ui.view">
+        <field name="name">res.partner.form.financial.risk.overdue.block</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="account_financial_risk.res_partner_view_risk"/>
+        <field name="arch" type="xml">
+            <group name="risk_general" position="inside">
+                <group
+                    string="Bloqueo por facturas vencidas"
+                    col="2"
+                    groups="account_financial_risk.group_account_financial_risk_user"
+                >
+                    <field name="risk_allow_edit" invisible="1"/>
+                    <field
+                        name="pba_block_sale_on_overdue_all"
+                        readonly="not risk_allow_edit"
+                    />
+                    <field
+                        name="pba_block_sale_on_overdue_credit"
+                        readonly="not risk_allow_edit"
+                    />
+                </group>
+            </group>
         </field>
     </record>
 </odoo>

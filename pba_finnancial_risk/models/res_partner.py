@@ -6,6 +6,23 @@ class ResPartner(models.Model):
     _inherit = "res.partner"
 
     risk_dashboard_json = fields.Json(compute="_compute_risk_dashboard_json")
+    pba_block_sale_on_overdue_all = fields.Boolean(
+        string="Bloquear ventas por facturas vencidas",
+        help="Impide confirmar pedidos y publicar facturas de clientes con facturas vencidas, "
+        "tanto al contado como a credito.",
+    )
+    pba_block_sale_on_overdue_credit = fields.Boolean(
+        string="Bloquear ventas a credito por facturas vencidas",
+        help="Impide confirmar pedidos y publicar facturas a credito cuando el cliente "
+        "tiene facturas vencidas con terminos de pago a credito.",
+    )
+
+    @api.model
+    def _commercial_fields(self):
+        return super()._commercial_fields() + [
+            "pba_block_sale_on_overdue_all",
+            "pba_block_sale_on_overdue_credit",
+        ]
 
     @api.onchange("risk_sale_order_include")
     def _onchange_pba_risk_sale_order_include(self):
@@ -47,6 +64,8 @@ class ResPartner(models.Model):
             "risk_account_amount_limit",
             "risk_account_amount_unpaid_include",
             "risk_account_amount_unpaid_limit",
+            "pba_block_sale_on_overdue_all",
+            "pba_block_sale_on_overdue_credit",
         }
         for vals in vals_list:
             vals = dict(vals)
@@ -231,6 +250,82 @@ class ResPartner(models.Model):
             round=False,
         )
 
+    def _pba_get_overdue_invoice_lines(self, credit_only=False):
+        self.ensure_one()
+        commercial = self.commercial_partner_id
+        _model_name, domain = commercial._get_field_risk_model_domain(
+            "risk_invoice_unpaid"
+        )
+        lines = self.env["account.move.line"].search(domain)
+        if not credit_only:
+            return lines
+        return lines.filtered(
+            lambda line: line.move_id.invoice_payment_term_id
+            and line.move_id.invoice_payment_term_id._pba_is_credit_payment_term()
+        )
+
+    def _pba_get_overdue_invoices_amount(self, credit_only=False):
+        self.ensure_one()
+        total = 0.0
+        for line in self._pba_get_overdue_invoice_lines(credit_only=credit_only):
+            total += self._get_amount_in_risk_currency(
+                line.currency_id,
+                line.amount_residual_currency,
+                line.amount_residual,
+                line.account_id,
+            )
+        return total
+
+    def _pba_get_overdue_block_settings(self, company):
+        partner = self.commercial_partner_id
+        return (
+            bool(partner.pba_block_sale_on_overdue_all),
+            bool(partner.pba_block_sale_on_overdue_credit),
+        )
+
+    def _pba_overdue_invoices_exception_msg(self, company, is_credit_sale):
+        self.ensure_one()
+        block_all, block_credit = self._pba_get_overdue_block_settings(company)
+        if block_all and self._pba_get_overdue_invoices_amount(credit_only=False) > 0:
+            return _(
+                "El cliente tiene facturas vencidas pendientes de pago. "
+                "No se permite realizar ventas.\n"
+            )
+        if (
+            is_credit_sale
+            and block_credit
+            and self._pba_get_overdue_invoices_amount(credit_only=True) > 0
+        ):
+            return _(
+                "El cliente tiene facturas vencidas pendientes de pago. "
+                "No se permite realizar ventas a credito.\n"
+            )
+        return ""
+
+    @api.model
+    def _get_depends_compute_risk_exception(self):
+        return super()._get_depends_compute_risk_exception() + [
+            "pba_block_sale_on_overdue_all",
+            "pba_block_sale_on_overdue_credit",
+            "child_ids.pba_block_sale_on_overdue_all",
+            "child_ids.pba_block_sale_on_overdue_credit",
+        ]
+
+    @api.depends(lambda x: x._get_depends_compute_risk_exception())
+    def _compute_risk_exception(self):
+        super()._compute_risk_exception()
+        for partner in self:
+            company = partner.company_id or self.env.company
+            block_all, block_credit = partner._pba_get_overdue_block_settings(company)
+            if block_all and partner._pba_get_overdue_invoices_amount(
+                credit_only=False
+            ) > 0:
+                partner.risk_exception = True
+            elif block_credit and partner._pba_get_overdue_invoices_amount(
+                credit_only=True
+            ) > 0:
+                partner.risk_exception = True
+
     def _get_risk_sale_order_domain(self):
         domain = super()._get_risk_sale_order_domain()
         domain += [
@@ -263,7 +358,7 @@ class ResPartner(models.Model):
         _model_name, line_domain = self._get_field_risk_model_domain(risk_field)
         lines = self.env["account.move.line"].search(line_domain)
         moves = lines.move_id
-        if risk_field == "risk_invoice_draft":
+        if risk_field in ("risk_invoice_draft", "risk_invoice_unpaid"):
             moves = moves.filtered(
                 lambda move: move.invoice_payment_term_id
                 and move.invoice_payment_term_id._pba_is_credit_payment_term()
@@ -341,4 +436,22 @@ class ResPartner(models.Model):
                 line.account_id,
             )
         vals["risk_invoice_draft"] = draft_total
+        unpaid_total = 0.0
+        unpaid_lines = self.env["account.move.line"].search(
+            groups["unpaid"]["domain"] + [("partner_id", "child_of", self.ids)]
+        )
+        for line in unpaid_lines:
+            move = line.move_id
+            term = move.invoice_payment_term_id
+            if not term or not term._pba_is_credit_payment_term():
+                continue
+            if self.property_account_receivable_id.id != line.account_id.id:
+                continue
+            unpaid_total += self._get_amount_in_risk_currency(
+                line.currency_id,
+                line.amount_residual_currency,
+                line.amount_residual,
+                line.account_id,
+            )
+        vals["risk_invoice_unpaid"] = unpaid_total
         return vals

@@ -1,6 +1,6 @@
 {
     "name": "PBA Finnancial Risk",
-    "version": "18.0.1.0.5",
+    "version": "18.0.1.0.8",
     "summary": "Acceso rapido al riesgo financiero desde ventas y facturas",
     "category": "Accounting",
     "author": "andyengit",
@@ -15,6 +15,7 @@
     "data": [
         "security/ir.model.access.csv",
         "views/res_partner_views.xml",
+        "views/partner_risk_exceeded_views.xml",
         "views/sale_order_views.xml",
         "views/account_move_views.xml",
         "views/res_company_views.xml",

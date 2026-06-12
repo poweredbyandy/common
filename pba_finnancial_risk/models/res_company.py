@@ -21,6 +21,16 @@ class PbaFinancialRiskGlobalSettings(models.Model):
         store=False,
     )
     pba_risk_enabled = fields.Boolean(string="Activar riesgo global", default=True)
+    pba_block_sale_on_overdue_all = fields.Boolean(
+        string="Bloquear ventas por facturas vencidas",
+        help="Impide confirmar pedidos y publicar facturas de clientes con facturas vencidas, "
+        "tanto al contado como a credito.",
+    )
+    pba_block_sale_on_overdue_credit = fields.Boolean(
+        string="Bloquear ventas a credito por facturas vencidas",
+        help="Impide confirmar pedidos y publicar facturas a credito cuando el cliente "
+        "tiene facturas vencidas con terminos de pago a credito.",
+    )
     pba_risk_credit_currency = fields.Selection(
         selection=[
             ("company", "Company Currency"),
@@ -123,6 +133,8 @@ class PbaFinancialRiskGlobalSettings(models.Model):
             "risk_account_amount_unpaid_include": include_value
             and self.pba_risk_account_amount_unpaid_include,
             "risk_account_amount_unpaid_limit": self.pba_risk_account_amount_unpaid_limit,
+            "pba_block_sale_on_overdue_all": self.pba_block_sale_on_overdue_all,
+            "pba_block_sale_on_overdue_credit": self.pba_block_sale_on_overdue_credit,
         }
 
     def _get_risk_partners_domain(self):

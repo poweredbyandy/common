@@ -22,6 +22,8 @@
                             <field name="currency_id" readonly="1"/>
                             <field name="pba_effective_currency_id" readonly="1"/>
                             <field name="pba_risk_enabled"/>
+                            <field name="pba_block_sale_on_overdue_all"/>
+                            <field name="pba_block_sale_on_overdue_credit"/>
                             <field name="pba_risk_credit_currency"/>
                             <field
                                 name="pba_risk_manual_credit_currency_id"

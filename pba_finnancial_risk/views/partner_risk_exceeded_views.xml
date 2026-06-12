@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="partner_risk_exceeded_wizard_pba" model="ir.ui.view">
+        <field name="name">partner.risk.exceeded.wiz.pba</field>
+        <field name="model">partner.risk.exceeded.wiz</field>
+        <field name="inherit_id" ref="account_financial_risk.partner_risk_exceeded_wizard"/>
+        <field name="arch" type="xml">
+            <p position="replace">
+                <p invisible="pba_is_overdue_block">El partner ha excedido su riesgo financiero.</p>
+                <p invisible="not pba_is_overdue_block">El cliente tiene facturas vencidas y el bloqueo esta activo.</p>
+            </p>
+            <field name="exception_msg" position="after">
+                <group invisible="not pba_is_overdue_block">
+                    <field name="pba_is_overdue_block" invisible="1"/>
+                    <field name="pba_risk_currency_id" invisible="1"/>
+                    <field name="pba_block_sale_on_overdue_all"/>
+                    <field name="pba_block_sale_on_overdue_credit"/>
+                    <field
+                        name="pba_overdue_invoices_amount"
+                        widget="monetary"
+                        options="{'currency_field': 'pba_risk_currency_id'}"
+                    />
+                </group>
+            </field>
+            <button name="button_continue" position="attributes">
+                <attribute name="invisible">pba_is_overdue_block</attribute>
+            </button>
+        </field>
+    </record>
+</odoo>

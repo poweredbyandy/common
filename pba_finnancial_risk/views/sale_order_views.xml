@@ -5,6 +5,16 @@
         <field name="model">sale.order</field>
         <field name="inherit_id" ref="sale.view_order_form"/>
         <field name="arch" type="xml">
+            <xpath expr="//sheet" position="before">
+                <field name="pba_overdue_risk_warning" invisible="1"/>
+                <div
+                    class="alert alert-warning mb-0"
+                    role="alert"
+                    invisible="not pba_overdue_risk_warning"
+                >
+                    <field name="pba_overdue_risk_warning" nolabel="1" readonly="1"/>
+                </div>
+            </xpath>
             <xpath expr="//group[@name='order_details']/field[@name='payment_term_id']" position="after">
                 <div class="o_td_label" groups="account_financial_risk.group_account_financial_risk_user,account_financial_risk.group_account_financial_risk_manager" invisible="not partner_id">
                     <span class="o_form_label">Riesgo financiero</span>
