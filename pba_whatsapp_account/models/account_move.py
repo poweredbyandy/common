@@ -21,7 +21,8 @@ class AccountMove(models.Model):
         "move_type",
         "state",
         "payment_state",
-        "company_id.whatsapp_template_overdue_id",
+        "company_id",
+        "company_id.whatsapp_gateway_id",
     )
     def _compute_pba_whatsapp_show_button(self):
         for move in self:
@@ -40,17 +41,13 @@ class AccountMove(models.Model):
         phone_field = "mobile" if partner.mobile else "phone"
         return partner._whatsapp_get_channel(phone_field, gateway)
 
-    def _pba_whatsapp_get_template_options(self):
+    def _pba_whatsapp_record_is_eligible(self):
         self.ensure_one()
-        templates = self.env["mail.whatsapp.template"]
-        if (
+        return (
             self.move_type == "out_invoice"
             and self.state == "posted"
             and self.payment_state in ("not_paid", "partial")
-            and self.company_id.whatsapp_template_overdue_id
-        ):
-            templates |= self.company_id.whatsapp_template_overdue_id
-        return templates
+        )
 
     def _get_whatsapp_overdue_body(self):
         self.ensure_one()
@@ -87,7 +84,8 @@ class AccountMove(models.Model):
                     move.partner_id.mobile or move.partner_id.phone
                 ):
                     continue
-                template = company.whatsapp_template_overdue_id
+                templates = move._pba_whatsapp_get_template_options()
+                template = templates[:1]
                 if template:
                     body, variables = template._pba_prepare_body_and_variables(move)
                 else:

@@ -18,11 +18,7 @@ class SaleOrder(models.Model):
                 order.partner_id.mobile or order.partner_id.phone or ""
             )
 
-    @api.depends(
-        "state",
-        "company_id.whatsapp_template_sale_quotation_id",
-        "company_id.whatsapp_template_sale_confirmed_id",
-    )
+    @api.depends("state", "company_id", "company_id.whatsapp_gateway_id")
     def _compute_pba_whatsapp_show_button(self):
         for order in self:
             order.pba_whatsapp_show_button = bool(
@@ -39,13 +35,3 @@ class SaleOrder(models.Model):
             raise UserError(_("El pedido no tiene un cliente asociado."))
         phone_field = "mobile" if partner.mobile else "phone"
         return partner._whatsapp_get_channel(phone_field, gateway)
-
-    def _pba_whatsapp_get_template_options(self):
-        self.ensure_one()
-        templates = self.env["mail.whatsapp.template"]
-        company = self.company_id
-        if self.state in ("draft", "sent") and company.whatsapp_template_sale_quotation_id:
-            templates |= company.whatsapp_template_sale_quotation_id
-        if self.state == "sale" and company.whatsapp_template_sale_confirmed_id:
-            templates |= company.whatsapp_template_sale_confirmed_id
-        return templates

@@ -24,6 +24,22 @@ class MailWhatsappTemplate(models.Model):
         string="Botones URL dinámicos en Meta",
         default=0,
     )
+    pba_record_states = fields.Char(
+        string="Estados del documento",
+        help="Estados separados por coma en los que aplica esta plantilla. "
+        "Dejar vacío para todos los estados.",
+    )
+
+    def pba_applies_to_record_state(self, record_state):
+        self.ensure_one()
+        if not self.pba_record_states or not record_state:
+            return True
+        allowed = {
+            state.strip()
+            for state in self.pba_record_states.split(",")
+            if state.strip()
+        }
+        return record_state in allowed
 
     @api.model
     def _pba_count_meta_dynamic_url_buttons(self, json_data):
@@ -519,7 +535,7 @@ class MailWhatsappTemplate(models.Model):
         IrModelData = self.env["ir.model.data"]
         created = {}
         sync_fields = ("body", "header", "footer")
-        meta_fields = ("model", "variables", "buttons")
+        meta_fields = ("model", "variables", "buttons", "record_states")
         for xmlid, vals in templates.items():
             full_xmlid = f"{module}.{xmlid}"
             template = self.env.ref(full_xmlid, raise_if_not_found=False)
@@ -528,6 +544,8 @@ class MailWhatsappTemplate(models.Model):
                 for key, value in vals.items()
                 if key not in meta_fields
             }
+            if vals.get("record_states"):
+                template_vals["pba_record_states"] = vals["record_states"]
             if vals.get("model"):
                 template_vals["model_id"] = self.env["ir.model"]._get(vals["model"]).id
             if vals.get("variables") and template_vals.get("model_id"):
@@ -551,6 +569,11 @@ class MailWhatsappTemplate(models.Model):
                 }
                 if vals.get("model") and template.model_id.model != vals["model"]:
                     sync_vals["model_id"] = template_vals["model_id"]
+                if (
+                    vals.get("record_states")
+                    and template.pba_record_states != vals["record_states"]
+                ):
+                    sync_vals["pba_record_states"] = vals["record_states"]
                 if sync_vals:
                     template.write(sync_vals)
                 if vals.get("variables"):

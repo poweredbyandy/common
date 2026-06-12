@@ -12,6 +12,7 @@ ACCOUNT_TEMPLATES = {
         "language": "es",
         "state": "draft",
         "model": "account.move",
+        "record_states": "posted",
         "variables": [
             {"position": 1, "field": "partner_id"},
             {"position": 2, "field": "name"},

@@ -11,6 +11,7 @@ SALE_TEMPLATES = {
         "language": "es",
         "state": "draft",
         "model": "sale.order",
+        "record_states": "draft,sent",
         "variables": [
             {"position": 1, "field": "partner_id"},
             {"position": 2, "field": "name"},
@@ -39,6 +40,7 @@ SALE_TEMPLATES = {
         "language": "es",
         "state": "draft",
         "model": "sale.order",
+        "record_states": "sale",
         "variables": [
             {"position": 1, "field": "partner_id"},
             {"position": 2, "field": "name"},
@@ -67,6 +69,7 @@ SALE_TEMPLATES = {
         "language": "es",
         "state": "draft",
         "model": "stock.picking",
+        "record_states": "done",
         "variables": [
             {"position": 1, "field": "partner_id"},
             {"position": 2, "field": "sale_id"},

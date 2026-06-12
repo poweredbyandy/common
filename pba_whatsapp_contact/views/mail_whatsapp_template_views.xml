@@ -14,6 +14,9 @@
                     title="Registra en el log del servidor el body de las requests de exportación y envío a Meta"
                 />
             </xpath>
+            <xpath expr="//field[@name='model_id']" position="after">
+                <field name="pba_record_states" placeholder="draft,sent,sale"/>
+            </xpath>
         </field>
     </record>
 </odoo>

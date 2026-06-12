@@ -17,12 +17,16 @@ class StockPicking(models.Model):
                 picking.partner_id.mobile or picking.partner_id.phone or ""
             )
 
-    @api.depends("state", "company_id.whatsapp_template_delivery_done_id")
+    @api.depends("state", "company_id", "company_id.whatsapp_gateway_id")
     def _compute_pba_whatsapp_show_button(self):
         for picking in self:
             picking.pba_whatsapp_show_button = bool(
                 picking._pba_whatsapp_get_template_options()
             )
+
+    def _pba_whatsapp_record_is_eligible(self):
+        self.ensure_one()
+        return self.state == "done"
 
     def _whatsapp_get_partner(self):
         return self.partner_id
@@ -34,10 +38,3 @@ class StockPicking(models.Model):
             raise UserError(_("La operación no tiene un contacto asociado."))
         phone_field = "mobile" if partner.mobile else "phone"
         return partner._whatsapp_get_channel(phone_field, gateway)
-
-    def _pba_whatsapp_get_template_options(self):
-        self.ensure_one()
-        templates = self.env["mail.whatsapp.template"]
-        if self.state == "done" and self.company_id.whatsapp_template_delivery_done_id:
-            templates |= self.company_id.whatsapp_template_delivery_done_id
-        return templates

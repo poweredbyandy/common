@@ -77,19 +77,12 @@ class MailGateway(models.Model):
                 )
             return 0, []
         Template = self.env["mail.whatsapp.template"]
-        company_vals = {}
         created_total = 0
         for spec in specs:
             created = Template._pba_ensure_module_templates(
                 spec["module"], spec["templates"], self
             )
             created_total += len(created)
-            for field_name, xmlid in spec.get("company_fields", {}).items():
-                if xmlid in created:
-                    company_vals[field_name] = created[xmlid].id
-        company = self.company_id or self.env.company
-        if company_vals:
-            company.write(company_vals)
         self._pba_sync_gateway_portal_button_urls()
         return created_total, specs
 

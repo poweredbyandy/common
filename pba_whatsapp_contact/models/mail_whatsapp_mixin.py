@@ -17,8 +17,46 @@ class MailWhatsappMixin(models.AbstractModel):
                 record._pba_whatsapp_get_template_options()
             )
 
+    def _pba_whatsapp_get_record_company(self):
+        self.ensure_one()
+        if "company_id" in self._fields and self.company_id:
+            return self.company_id
+        return self.env.company
+
+    def _pba_whatsapp_search_model_templates(self, extra_domain=None):
+        self.ensure_one()
+        company = self._pba_whatsapp_get_record_company()
+        domain = [
+            ("model_id.model", "=", self._name),
+            ("state", "in", ("approved", "pending")),
+        ]
+        gateway = company.whatsapp_gateway_id
+        if gateway:
+            domain.append(("gateway_id", "=", gateway.id))
+        elif company:
+            domain.append(("company_id", "in", (company.id, False)))
+        if extra_domain:
+            domain.extend(extra_domain)
+        return self.env["mail.whatsapp.template"].search(domain, order="name, id")
+
+    def _pba_whatsapp_filter_templates_by_record(self, templates):
+        self.ensure_one()
+        record_state = self._fields.get("state") and self.state
+        if not record_state:
+            return templates
+        return templates.filtered(
+            lambda template: template.pba_applies_to_record_state(record_state)
+        )
+
     def _pba_whatsapp_get_template_options(self):
-        return self.env["mail.whatsapp.template"]
+        self.ensure_one()
+        if not self._pba_whatsapp_record_is_eligible():
+            return self.env["mail.whatsapp.template"]
+        templates = self._pba_whatsapp_search_model_templates()
+        return self._pba_whatsapp_filter_templates_by_record(templates)
+
+    def _pba_whatsapp_record_is_eligible(self):
+        return True
 
     def _pba_whatsapp_get_template_send_log(self, template):
         self.ensure_one()
