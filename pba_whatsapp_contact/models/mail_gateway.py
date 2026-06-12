@@ -196,13 +196,16 @@ class MailGateway(models.Model):
                 self, template_data
             )
             if ws_template:
-                ws_template.write(
-                    ws_template._pba_prepare_import_write_vals(
-                        import_vals, template_data
-                    )
+                write_vals = ws_template._pba_prepare_import_write_vals(
+                    import_vals, template_data
                 )
+                ws_template.write(write_vals)
                 if ws_template.template_uid:
                     templates_by_uid[ws_template.template_uid] = ws_template
+                if ws_template.template_name:
+                    templates_by_name[
+                        (ws_template.template_name, ws_template.language)
+                    ] = ws_template
             else:
                 create_vals.append(import_vals)
         if create_vals:

@@ -170,16 +170,35 @@ class MailGatewayWhatsappService(models.AbstractModel):
 
     def _post_process_message(self, message, channel):
         super()._post_process_message(message, channel)
+
+    def _process_update(self, chat, message, value):
+        max_message_id = (
+            self.env["mail.message"].sudo().search([], order="id desc", limit=1).id
+            or 0
+        )
+        super()._process_update(chat, message, value)
+        inbound = self.env["mail.message"].sudo().search(
+            [
+                ("id", ">", max_message_id),
+                ("model", "=", "discuss.channel"),
+                ("res_id", "=", chat.id),
+                ("message_type", "=", "comment"),
+            ],
+            order="id desc",
+            limit=1,
+        )
+        if not inbound:
+            return
         try:
-            self._pba_send_autoreply(message, channel)
+            self._pba_send_autoreply(inbound, chat, whatsapp_message=message)
         except Exception:
             _logger.exception(
                 "Error enviando autorrespuesta WhatsApp canal=%s mensaje=%s",
-                channel.id,
-                message.id,
+                chat.id,
+                inbound.id,
             )
 
-    def _pba_send_autoreply(self, message, channel):
+    def _pba_send_autoreply(self, message, channel, whatsapp_message=None):
         if self.env.context.get("pba_whatsapp_autoreply"):
             return
         if channel.gateway_id.gateway_type != "whatsapp":
@@ -188,6 +207,10 @@ class MailGatewayWhatsappService(models.AbstractModel):
             return
         internal_partners = channel.gateway_id.member_ids.partner_id
         if message.author_id and message.author_id in internal_partners:
+            return
+        if not self._pba_should_autoreply_for_inbound(
+            channel, message, whatsapp_message=whatsapp_message
+        ):
             return
         company = channel.company_id or self.env.company
         if not self._pba_should_send_autoreply_today(channel, company):
@@ -206,6 +229,65 @@ class MailGatewayWhatsappService(models.AbstractModel):
             author_id=author.id,
             message_type="comment",
             subtype_xmlid="mail.mt_comment",
+        )
+
+    def _pba_get_internal_partner_ids(self, channel):
+        internal_partners = channel.gateway_id.member_ids.partner_id
+        odoo_bot = self.env.ref("base.partner_root", raise_if_not_found=False)
+        if odoo_bot:
+            internal_partners |= odoo_bot
+        return internal_partners
+
+    def _pba_should_autoreply_for_inbound(
+        self, channel, message, whatsapp_message=None
+    ):
+        channel.ensure_one()
+        if whatsapp_message and self._pba_inbound_replies_to_template(
+            channel, whatsapp_message
+        ):
+            return False
+        if self._pba_channel_has_template_outbound_before(channel, message.date):
+            return False
+        return True
+
+    def _pba_inbound_replies_to_template(self, channel, whatsapp_message):
+        related_wamid = (whatsapp_message.get("context") or {}).get("id")
+        if not related_wamid:
+            return False
+        notification = self.env["mail.notification"].sudo().search(
+            [
+                ("gateway_channel_id", "=", channel.id),
+                ("gateway_message_id", "=", related_wamid),
+            ],
+            limit=1,
+        )
+        if not notification or not notification.mail_message_id:
+            return False
+        related_messages = notification.mail_message_id
+        if related_messages.pba_whatsapp_template_id:
+            return True
+        channel_message = related_messages.gateway_message_id
+        return bool(
+            channel_message and channel_message.pba_whatsapp_template_id
+        )
+
+    def _pba_channel_has_template_outbound_before(self, channel, before_dt):
+        channel.ensure_one()
+        internal_partner_ids = self._pba_get_internal_partner_ids(channel).ids
+        return bool(
+            self.env["mail.message"]
+            .sudo()
+            .search_count(
+                [
+                    ("model", "=", "discuss.channel"),
+                    ("res_id", "=", channel.id),
+                    ("message_type", "=", "comment"),
+                    ("pba_whatsapp_template_id", "!=", False),
+                    ("date", "<=", before_dt),
+                    ("author_id", "in", internal_partner_ids),
+                ],
+                limit=1,
+            )
         )
 
     def _pba_should_send_autoreply_today(self, channel, company):

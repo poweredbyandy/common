@@ -49,6 +49,20 @@ class MailWhatsappTemplate(models.Model):
             )
         )
 
+    @api.depends("name", "state", "template_uid")
+    def _compute_template_name(self):
+        standard_templates = self.filtered(
+            lambda template: not template._pba_is_managed_template()
+        )
+        if standard_templates:
+            super(MailWhatsappTemplate, standard_templates)._compute_template_name()
+        for template in self.filtered(lambda t: t._pba_is_managed_template()):
+            if template.template_name:
+                continue
+            template.template_name = re.sub(
+                r"\W+", "_", self.env["ir.http"]._slugify(template.name or "")
+            )
+
     def _pba_prepare_import_write_vals(self, vals, json_data=None):
         self.ensure_one()
         filtered = dict(vals)
@@ -64,9 +78,24 @@ class MailWhatsappTemplate(models.Model):
             filtered.pop("button_ids")
         return filtered
 
+    def _pba_count_local_dynamic_url_buttons(self):
+        self.ensure_one()
+        return len(
+            self.button_ids.filtered(lambda button: button._pba_requires_send_parameter())
+        )
+
+    def _pba_get_meta_url_button_limit(self):
+        self.ensure_one()
+        if self.pba_meta_url_button_count:
+            return self.pba_meta_url_button_count
+        return self._pba_count_local_dynamic_url_buttons()
+
     def _pba_sync_portal_button_urls(self):
         for template in self:
             template.button_ids._pba_sync_portal_website_url()
+            local_count = template._pba_count_local_dynamic_url_buttons()
+            if local_count and not template.pba_meta_url_button_count:
+                template.pba_meta_url_button_count = local_count
 
     @api.constrains("button_ids")
     def _check_button_limits(self):
@@ -165,38 +194,20 @@ class MailWhatsappTemplate(models.Model):
         }
 
     def _prepare_components_to_export(self):
-        parent_prepare = getattr(super(), "_prepare_components_to_export", None)
-        components = (
-            parent_prepare()
-            if parent_prepare
-            else [{"type": "BODY", "text": self.body}]
-        )
+        components = super()._prepare_components_to_export()
+        components = [
+            component for component in components if component.get("type") != "BUTTONS"
+        ]
         body_examples = self._pba_get_body_export_examples()
         if body_examples:
             body_component = next(
                 (component for component in components if component.get("type") == "BODY"),
-                components[0] if components else False,
+                False,
             )
-            if body_component and not body_component.get("example"):
+            if body_component:
                 body_component["example"] = {"body_text": [body_examples]}
-        if self.header and not any(
-            component.get("type") == "HEADER" for component in components
-        ):
-            components.append(
-                {
-                    "type": "HEADER",
-                    "format": "text",
-                    "text": self.header,
-                }
-            )
-        if self.footer and not any(
-            component.get("type") == "FOOTER" for component in components
-        ):
-            components.append({"type": "FOOTER", "text": self.footer})
         button_component = self._pba_prepare_button_export_component()
-        if button_component and not any(
-            component.get("type") == "BUTTONS" for component in components
-        ):
+        if button_component:
             components.append(button_component)
         return components
 
@@ -241,9 +252,9 @@ class MailWhatsappTemplate(models.Model):
         body_parameters = self._pba_get_body_parameters(body_variables)
         if body_parameters:
             components.append({"type": "body", "parameters": body_parameters})
-        meta_button_limit = self.pba_meta_url_button_count
+        meta_button_limit = self._pba_get_meta_url_button_limit()
         for index, button in enumerate(self.button_ids.sorted("sequence")):
-            if meta_button_limit is not None and index >= meta_button_limit:
+            if meta_button_limit and index >= meta_button_limit:
                 break
             button_component = button._pba_prepare_send_component(record, index)
             if button_component:
@@ -499,6 +510,9 @@ class MailWhatsappTemplate(models.Model):
             else:
                 button = Button.create({**vals, "template_id": template.id})
             button._pba_sync_portal_website_url()
+        local_count = template._pba_count_local_dynamic_url_buttons()
+        if local_count:
+            template.pba_meta_url_button_count = local_count
 
     @api.model
     def _pba_ensure_module_templates(self, module, templates, gateway):
