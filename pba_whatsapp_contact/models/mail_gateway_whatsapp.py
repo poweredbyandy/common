@@ -36,6 +36,26 @@ class MailGatewayWhatsappService(models.AbstractModel):
 
         return super()._get_author(gateway, update)
 
+    def _get_channel_vals(self, gateway, token, update):
+        vals = super()._get_channel_vals(gateway, token, update)
+        commands = vals.get("channel_member_ids") or []
+        seen_partner_ids = set()
+        deduped_commands = []
+        for command in commands:
+            if (
+                isinstance(command, (list, tuple))
+                and len(command) == 3
+                and command[0] == Command.CREATE
+                and command[2].get("partner_id")
+            ):
+                partner_id = command[2]["partner_id"]
+                if partner_id in seen_partner_ids:
+                    continue
+                seen_partner_ids.add(partner_id)
+            deduped_commands.append(command)
+        vals["channel_member_ids"] = deduped_commands
+        return vals
+
     def _get_channel(self, gateway, token, update, force_create=False):
         channel = super()._get_channel(
             gateway, token, update, force_create=force_create
@@ -142,7 +162,10 @@ class MailGatewayWhatsappService(models.AbstractModel):
         internal_ids = self._pba_get_gateway_internal_partner_ids(channel.gateway_id)
         if partner.id in internal_ids:
             return
-        if partner in channel.channel_member_ids.partner_id:
+        if self.env["discuss.channel.member"].sudo().search_count(
+            [("channel_id", "=", channel.id), ("partner_id", "=", partner.id)],
+            limit=1,
+        ):
             return
         channel.sudo().write(
             {"channel_member_ids": [Command.create({"partner_id": partner.id})]}
