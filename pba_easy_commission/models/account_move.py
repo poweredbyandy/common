@@ -246,17 +246,67 @@ class AccountMove(models.Model):
     def _commission_line_key(self, payment_move_id, credit_note_move_id=False):
         return (payment_move_id, credit_note_move_id or False)
 
+    def _pba_commission_convert_date(self, payment=False, payment_move=False):
+        if payment and payment.date:
+            return payment.date
+        if payment_move and payment_move.date:
+            return payment_move.date
+        return self.invoice_date or fields.Date.context_today(self)
+
+    def _pba_commission_amount_to_invoice_currency(self, amount, from_currency, conversion_date=False):
+        self.ensure_one()
+        if from_currency.is_zero(amount):
+            return 0.0
+        if from_currency == self.currency_id:
+            return self.currency_id.round(amount)
+        if not conversion_date:
+            conversion_date = self.invoice_date or fields.Date.context_today(self)
+        return from_currency._convert(
+            amount,
+            self.currency_id,
+            self.company_id,
+            conversion_date,
+        )
+
+    def _pba_commission_line_amount_in_invoice_currency(self, line):
+        self.ensure_one()
+        return self._pba_commission_amount_to_invoice_currency(
+            line.commission_amount,
+            line.currency_id,
+            self._pba_commission_convert_date(
+                payment=line.payment_id,
+                payment_move=line.payment_move_id,
+            ),
+        )
+
+    def _pba_commission_prepared_amount_in_invoice_currency(self, prepared):
+        self.ensure_one()
+        from_currency = self.env['res.currency'].browse(prepared['currency_id'])
+        payment = self.env['account.payment'].browse(prepared['payment_id']) if prepared.get('payment_id') else False
+        payment_move = self.env['account.move'].browse(prepared['payment_move_id'])
+        return self._pba_commission_amount_to_invoice_currency(
+            prepared['commission_amount'],
+            from_currency,
+            self._pba_commission_convert_date(
+                payment=payment,
+                payment_move=payment_move,
+            ),
+        )
+
     def _commission_pending_amount_live(self):
         self.ensure_one()
         waiting_lines = self.commission_line_ids.filtered(
             lambda line: line.state == 'waiting' and not line.vendor_bill_id
         )
         if waiting_lines:
-            return sum(waiting_lines.mapped('commission_amount'))
+            return sum(
+                self._pba_commission_line_amount_in_invoice_currency(line)
+                for line in waiting_lines
+            )
         if self.commission_line_ids:
             return 0.0
         return sum(
-            line_data['commission_amount']
+            self._pba_commission_prepared_amount_in_invoice_currency(line_data)
             for line_data in self._prepare_commission_payment_lines_data()
         )
 
@@ -649,23 +699,43 @@ class AccountMove(models.Model):
         for move in self.filtered(lambda m: m.move_type == 'out_invoice'):
             move.commission_percent = move.invoice_user_id.partner_id.commission_percent
 
-    @api.depends('commission_line_ids.commission_amount', 'payment_state', 'move_type', 'state')
+    @api.depends(
+        'commission_line_ids.commission_amount',
+        'commission_line_ids.currency_id',
+        'commission_line_ids.payment_id',
+        'commission_line_ids.payment_move_id',
+        'currency_id',
+        'invoice_date',
+        'payment_state',
+        'move_type',
+        'state',
+        'line_ids.matched_debit_ids',
+        'line_ids.matched_credit_ids',
+    )
     def _compute_commission_amount_total(self):
         for move in self:
             if move.move_type != 'out_invoice' or move.state != 'posted':
                 move.commission_amount_total = 0.0
             elif move.commission_line_ids:
-                move.commission_amount_total = sum(move.commission_line_ids.mapped('commission_amount'))
+                move.commission_amount_total = sum(
+                    move._pba_commission_line_amount_in_invoice_currency(line)
+                    for line in move.commission_line_ids
+                )
             else:
                 move.commission_amount_total = sum(
-                    line_data['commission_amount']
+                    move._pba_commission_prepared_amount_in_invoice_currency(line_data)
                     for line_data in move._prepare_commission_payment_lines_data()
                 )
 
     @api.depends(
         'commission_line_ids.commission_amount',
+        'commission_line_ids.currency_id',
+        'commission_line_ids.payment_id',
+        'commission_line_ids.payment_move_id',
         'commission_line_ids.state',
         'commission_line_ids.vendor_bill_id',
+        'currency_id',
+        'invoice_date',
         'payment_state',
         'move_type',
         'state',
