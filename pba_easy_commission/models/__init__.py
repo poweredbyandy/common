@@ -5,3 +5,4 @@ from . import res_partner
 from . import account_move
 from . import account_partial_reconcile
 from . import account_daily_payments_report
+from . import ir_actions_report

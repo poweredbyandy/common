@@ -1,6 +1,6 @@
 {
     "name": "PBA columnas código interno y marca en venta VE",
-    "version": "18.0.1.0.0",
+    "version": "18.0.1.0.1",
     "category": "Sales/Localizations",
     "summary": "Añade código interno y marca en PDF de pedido/presupuesto VE y en líneas de factura VE",
     "author": "andyengit",

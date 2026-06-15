@@ -13,7 +13,7 @@
             >8 + (1 if has_discount else 0) + (1 if show_taxes_col else 0)</attribute>
         </xpath>
         <xpath
-            expr="//thead/tr[@class='bg-secundary text-white border-bottom']/th[contains(., 'Codigo')]"
+            expr="//thead/tr[@class='bg-secundary text-white border-bottom']/th[2]"
             position="after"
         >
             <th class="col text-uppercase fw-bold text-nowrap">Cód. int.</th>
