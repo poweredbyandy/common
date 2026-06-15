@@ -45,6 +45,7 @@
                 <field name="commission_percent" invisible="move_type != 'out_invoice'" groups="pba_easy_commission.group_commission_user" readonly="1"/>
                 <field name="commission_state" invisible="move_type != 'out_invoice'" readonly="1" widget="statusbar" statusbar_visible="waiting,invoiced,paid"/>
                 <field name="commission_amount_total" invisible="move_type != 'out_invoice'" readonly="1"/>
+                <field name="commission_amount_pending" invisible="move_type != 'out_invoice'" readonly="1"/>
             </xpath>
 
             <xpath expr="//page[@name='other_info']" position="after">
@@ -60,6 +61,7 @@
                             <field name="commission_percent"/>
                             <field name="commission_amount"/>
                             <field name="state" widget="badge"/>
+                            <field name="is_legacy_commission" optional="hide"/>
                             <field name="vendor_bill_id"/>
                             <field name="description"/>
                         </list>

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_partner_form_pba_early_payment_discount" model="ir.ui.view">
+        <field name="name">res.partner.form.pba.early.payment.discount</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='sales_purchases']//group[@name='sale']" position="inside">
+                <label for="pba_early_payment_discount_percent" string="Descuento pronto pago"/>
+                <div class="o_row">
+                    <field name="pba_early_payment_discount_percent" class="oe_inline"/>
+                    <span>% si paga en </span>
+                    <field name="pba_early_payment_discount_days" class="oe_inline"/>
+                    <span> días</span>
+                </div>
+            </xpath>
+            <xpath expr="//page[@name='sales_purchases']//group[@name='purchase']" position="inside">
+                <label for="pba_supplier_early_payment_discount_percent" string="Descuento pronto pago"/>
+                <div class="o_row">
+                    <field name="pba_supplier_early_payment_discount_percent" class="oe_inline"/>
+                    <span>% si paga en </span>
+                    <field name="pba_supplier_early_payment_discount_days" class="oe_inline"/>
+                    <span> días</span>
+                </div>
+            </xpath>
+        </field>
+    </record>
+</odoo>

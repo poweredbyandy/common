@@ -69,16 +69,17 @@ class ResPartner(models.Model):
 
     def get_pending_commission_report_data(self):
         self.ensure_one()
-        invoices = [
+        invoices = self._get_pending_commission_invoices()
+        invoices_data = [
             self._prepare_pending_commission_invoice_data(invoice)
-            for invoice in self._get_pending_commission_invoices()
+            for invoice in invoices
         ]
         totals = {}
-        for invoice_data in invoices:
+        for invoice_data in invoices_data:
             currency = invoice_data['currency']
             totals[currency] = totals.get(currency, 0.0) + invoice_data['amount']
         return {
-            'invoices': invoices,
+            'invoices': invoices_data,
             'invoice_count': len(invoices),
             'totals': [
                 {'currency': currency, 'amount': amount}

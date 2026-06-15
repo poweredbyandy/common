@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="account_move_view_form_pba_early_payment_discount" model="ir.ui.view">
+        <field name="name">account.move.form.pba.early.payment.discount</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='due_date']" position="after">
+                <field name="pba_show_early_payment_discount" invisible="1"/>
+                <field name="pba_can_edit_early_payment_discount" invisible="1"/>
+                <div class="o_td_label"
+                     invisible="not pba_show_early_payment_discount or move_type not in ('out_invoice', 'out_refund', 'out_receipt', 'in_invoice', 'in_refund', 'in_receipt')">
+                    <label for="pba_early_payment_discount_percent" string="Descuento pronto pago"/>
+                </div>
+                <div class="o_field_highlight"
+                     invisible="not pba_show_early_payment_discount or move_type not in ('out_invoice', 'out_refund', 'out_receipt', 'in_invoice', 'in_refund', 'in_receipt')">
+                    <field name="pba_early_payment_discount_percent"
+                           class="text-end o_field_highlight o_input d-inline-block"
+                           style="width: 4rem;"
+                           readonly="not pba_can_edit_early_payment_discount"/>
+                    <span class="mx-1">% si paga en</span>
+                    <field name="pba_early_payment_discount_days"
+                           class="text-end o_field_highlight o_input d-inline-block"
+                           style="width: 3rem;"
+                           readonly="not pba_can_edit_early_payment_discount"/>
+                    <span class="ms-1">días</span>
+                </div>
+            </xpath>
+        </field>
+    </record>
+</odoo>

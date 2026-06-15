@@ -11,8 +11,7 @@
                     <field name="summary_html" nolabel="1" class="mb-2"/>
                     <group class="mt-1">
                         <group string="Opciones de facturacion">
-                            <field name="mode"/>
-                            <field name="currency_id" invisible="mode == 'standard'"/>
+                            <field name="mode" readonly="1"/>
                         </group>
                     </group>
                 </sheet>

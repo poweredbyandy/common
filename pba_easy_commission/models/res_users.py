@@ -59,11 +59,26 @@ class ResUsers(models.Model):
             user_id = invoice.invoice_user_id.id
             if user_id not in pending_by_user:
                 continue
-            pending_by_user[user_id]['count'] += 1
-            currency = invoice.currency_id.name
-            pending_by_user[user_id]['totals'][currency] = (
-                pending_by_user[user_id]['totals'].get(currency, 0.0) + invoice.commission_amount_total
+            waiting_lines = invoice.commission_line_ids.filtered(
+                lambda line: line.state == 'waiting' and not line.vendor_bill_id
             )
+            if waiting_lines:
+                pending_by_user[user_id]['count'] += 1
+                for line in waiting_lines:
+                    currency = line.currency_id.name
+                    pending_by_user[user_id]['totals'][currency] = (
+                        pending_by_user[user_id]['totals'].get(currency, 0.0) + line.commission_amount
+                    )
+                continue
+            prepared = invoice._prepare_commission_payment_lines_data()
+            if not prepared:
+                continue
+            pending_by_user[user_id]['count'] += 1
+            for item in prepared:
+                currency = self.env['res.currency'].browse(item['currency_id']).name
+                pending_by_user[user_id]['totals'][currency] = (
+                    pending_by_user[user_id]['totals'].get(currency, 0.0) + item['commission_amount']
+                )
         for user in self:
             stats = pending_by_user[user.id]
             user.commission_pending_invoice_count = stats['count']

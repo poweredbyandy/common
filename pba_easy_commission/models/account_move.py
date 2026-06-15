@@ -73,6 +73,12 @@ class AccountMoveCommissionLine(models.Model):
         required=True,
         tracking=True,
     )
+    is_legacy_commission = fields.Boolean(
+        string='Registro legacy',
+        default=False,
+        readonly=True,
+        tracking=True,
+    )
     invoice_commission_percent = fields.Float(
         string='% Comisión (factura)',
         related='invoice_id.commission_percent',
@@ -237,6 +243,228 @@ class AccountMove(models.Model):
             lambda line: line.vendor_bill_id or line.state in ('invoiced', 'paid')
         ))
 
+    def _commission_line_key(self, payment_move_id, credit_note_move_id=False):
+        return (payment_move_id, credit_note_move_id or False)
+
+    def _commission_pending_amount_live(self):
+        self.ensure_one()
+        waiting_lines = self.commission_line_ids.filtered(
+            lambda line: line.state == 'waiting' and not line.vendor_bill_id
+        )
+        if waiting_lines:
+            return sum(waiting_lines.mapped('commission_amount'))
+        if self.commission_line_ids:
+            return 0.0
+        return sum(
+            line_data['commission_amount']
+            for line_data in self._prepare_commission_payment_lines_data()
+        )
+
+    def _sync_commission_lines_from_payments(self):
+        CommissionLine = self.env['account.move.commission.line']
+        for move in self.filtered(lambda m: m.move_type == 'out_invoice' and m.state == 'posted'):
+            commission_percent = move.commission_percent or move.invoice_user_id.partner_id.commission_percent
+            if commission_percent <= 0:
+                continue
+            prepared = move._prepare_commission_payment_lines_data()
+            if not prepared:
+                continue
+            existing_keys = {
+                move._commission_line_key(line.payment_move_id.id, line.credit_note_move_id.id)
+                for line in move.commission_line_ids
+            }
+            to_create = []
+            for vals in prepared:
+                key = move._commission_line_key(vals['payment_move_id'], vals.get('credit_note_move_id'))
+                if key in existing_keys:
+                    continue
+                to_create.append({**vals, 'invoice_id': move.id})
+            if to_create:
+                CommissionLine.create(to_create)
+        self._recompute_seller_commission_pending_stats()
+
+    @api.model
+    def _migrate_commission_per_payment_legacy(self):
+        CommissionLine = self.env['account.move.commission.line'].sudo()
+        vendor_bills = self.sudo().search([
+            ('move_type', '=', 'in_invoice'),
+            ('is_commission_vendor_bill', '=', True),
+            ('state', '=', 'posted'),
+        ])
+        for bill in vendor_bills:
+            linked_lines = CommissionLine.search([('vendor_bill_id', '=', bill.id)])
+            if linked_lines:
+                linked_lines.filtered(lambda line: not line.is_legacy_commission).write({
+                    'is_legacy_commission': True,
+                })
+                continue
+            source_invoice = bill.commission_source_invoice_id
+            if not source_invoice or source_invoice.move_type != 'out_invoice':
+                continue
+            if source_invoice.commission_line_ids.filtered(
+                lambda line: line.vendor_bill_id or line.state in ('invoiced', 'paid')
+            ):
+                continue
+            commission_amount = sum(bill.invoice_line_ids.mapped('price_subtotal'))
+            if source_invoice.currency_id.is_zero(commission_amount):
+                continue
+            commission_percent = (
+                source_invoice.commission_percent
+                or source_invoice.invoice_user_id.partner_id.commission_percent
+            )
+            if not commission_percent:
+                continue
+            payment_move = source_invoice._pba_get_primary_payment_move_for_legacy()
+            payment = payment_move.origin_payment_id
+            legacy_currency = payment.currency_id if payment else bill.currency_id
+            line_state = 'paid' if bill.payment_state == 'paid' else 'invoiced'
+            payment_amount = legacy_currency.round(
+                abs(commission_amount / (commission_percent / 100.0))
+            )
+            CommissionLine.create({
+                'invoice_id': source_invoice.id,
+                'payment_id': payment.id if payment else False,
+                'payment_move_id': payment_move.id,
+                'currency_id': legacy_currency.id,
+                'payment_amount': payment_amount,
+                'commission_percent': commission_percent,
+                'commission_amount': commission_amount,
+                'state': line_state,
+                'vendor_bill_id': bill.id,
+                'is_legacy_commission': True,
+                'description': _(
+                    'Comision registrada antes de migracion por pago sobre factura %(invoice)s (factura proveedor %(bill)s)',
+                    invoice=source_invoice.name or source_invoice.ref or source_invoice.id,
+                    bill=bill.name or bill.ref or bill.id,
+                ),
+            })
+        invoices = self.sudo().search([
+            ('move_type', '=', 'out_invoice'),
+            ('state', '=', 'posted'),
+            ('payment_state', 'in', ('partial', 'in_payment', 'paid')),
+        ])
+        invoices.filtered(
+            lambda move: not move._has_billed_commission_lines()
+        )._sync_commission_lines_from_payments()
+        self.env['res.users'].sudo().init_commission_pending_stats()
+
+    @api.model
+    def _resync_waiting_commission_lines_payment_currency(self):
+        invoices = self.env['account.move.commission.line'].sudo().search([
+            ('state', '=', 'waiting'),
+            ('vendor_bill_id', '=', False),
+        ]).mapped('invoice_id')
+        if invoices:
+            invoices._pba_rebuild_waiting_commission_lines()
+        else:
+            self.env['res.users'].sudo().init_commission_pending_stats()
+
+    def _pba_get_primary_payment_move_for_legacy(self):
+        self.ensure_one()
+        receivable_lines = self.line_ids.filtered(
+            lambda line: line.account_id.account_type == 'asset_receivable'
+        )
+        partials = receivable_lines.matched_debit_ids + receivable_lines.matched_credit_ids
+        for partial in partials:
+            if partial.debit_move_id.move_id == self:
+                counterpart_line = partial.credit_move_id
+            else:
+                counterpart_line = partial.debit_move_id
+            payment_move = counterpart_line.move_id
+            if payment_move.origin_payment_id:
+                return payment_move
+        return self
+
+    def _pba_commission_payment_currency(self, payment):
+        return (
+            payment.journal_id.currency_id
+            or payment.currency_id
+            or payment.company_id.currency_id
+        )
+
+    def _pba_partial_amount_on_move(self, partial, move):
+        if partial.debit_move_id.move_id == move:
+            return abs(partial.debit_amount_currency), partial.debit_currency_id
+        if partial.credit_move_id.move_id == move:
+            return abs(partial.credit_amount_currency), partial.credit_currency_id
+        return 0.0, move.currency_id
+
+    @api.model
+    def _pba_total_reconciled_for_payment_move(self, payment_move, currency):
+        total = 0.0
+        for line in payment_move.line_ids:
+            for partial in line.matched_debit_ids | line.matched_credit_ids:
+                invoice_line = (
+                    partial.debit_move_id
+                    if partial.credit_move_id == line
+                    else partial.credit_move_id
+                )
+                invoice = invoice_line.move_id
+                if invoice.move_type != 'out_invoice' or invoice.state != 'posted':
+                    continue
+                amount, line_currency = invoice._pba_partial_amount_on_move(partial, invoice)
+                if line_currency == currency:
+                    total += amount
+        return total
+
+    def _pba_commission_base_from_payment_partial(self, partial, payment_move, payment):
+        self.ensure_one()
+        payment_currency = self._pba_commission_payment_currency(payment)
+        base = self._pba_commission_base_from_move_partial(
+            partial,
+            payment_move,
+            payment_currency,
+        )
+        if base:
+            return base
+        if payment_currency.is_zero(payment.amount):
+            return None
+        partial_invoice_amount, invoice_currency = self._pba_partial_amount_on_move(partial, self)
+        if invoice_currency.is_zero(partial_invoice_amount):
+            return None
+        total_reconciled = self._pba_total_reconciled_for_payment_move(
+            payment_move,
+            invoice_currency,
+        )
+        if invoice_currency.is_zero(total_reconciled):
+            return None
+        prorated = payment_currency.round(
+            abs(payment.amount) * partial_invoice_amount / total_reconciled
+        )
+        if payment_currency.is_zero(prorated):
+            return None
+        return payment_currency, prorated
+
+    def _pba_rebuild_waiting_commission_lines(self):
+        invoices = self.filtered(lambda move: move.move_type == 'out_invoice' and move.state == 'posted')
+        if not invoices:
+            return
+        invoices.commission_line_ids.filtered(
+            lambda line: line.state == 'waiting' and not line.vendor_bill_id
+        ).unlink()
+        invoices._sync_commission_lines_from_payments()
+
+    def _pba_commission_base_from_move_partial(self, partial, target_move, target_currency):
+        self.ensure_one()
+        amount = 0.0
+        for move_line, partial_amount, currency in (
+            (partial.debit_move_id, partial.debit_amount_currency, partial.debit_currency_id),
+            (partial.credit_move_id, partial.credit_amount_currency, partial.credit_currency_id),
+        ):
+            if move_line.move_id == target_move and currency == target_currency:
+                amount += abs(partial_amount)
+        if target_currency.is_zero(amount):
+            return None
+        return target_currency, target_currency.round(amount)
+
+    def _pba_commission_base_from_credit_note_partial(self, partial, credit_note_move):
+        self.ensure_one()
+        return self._pba_commission_base_from_move_partial(
+            partial,
+            credit_note_move,
+            credit_note_move.currency_id,
+        )
+
     def _prepare_commission_payment_lines_data(self):
         self.ensure_one()
         payment_lines_data = []
@@ -250,33 +478,35 @@ class AccountMove(models.Model):
         for partial in partials:
             if partial.debit_move_id.move_id == self:
                 counterpart_line = partial.credit_move_id
-                amount_currency = abs(partial.credit_amount_currency)
-                currency = partial.credit_currency_id
             else:
                 counterpart_line = partial.debit_move_id
-                amount_currency = abs(partial.debit_amount_currency)
-                currency = partial.debit_currency_id
 
             payment_move = counterpart_line.move_id
             if payment_move.origin_payment_id:
-                if self.payment_state not in self._commission_payment_states_allowed():
-                    continue
                 if payment_move.journal_id in excluded_journals:
                     continue
                 payment = payment_move.origin_payment_id
+                base = self._pba_commission_base_from_payment_partial(
+                    partial,
+                    payment_move,
+                    payment,
+                )
+                if not base:
+                    continue
+                currency, payment_amount = base
                 payment_lines_data.append({
                     'payment_id': payment.id,
                     'credit_note_move_id': False,
                     'payment_move_id': payment_move.id,
                     'currency_id': currency.id,
-                    'payment_amount': amount_currency,
+                    'payment_amount': payment_amount,
                     'commission_percent': commission_percent,
-                    'commission_amount': currency.round(amount_currency * commission_percent / 100.0),
+                    'commission_amount': currency.round(payment_amount * commission_percent / 100.0),
                     'state': 'waiting',
                     'description': _(
                         'Comision de %(percent)s%% sobre pago %(base)s %(currency)s de factura %(invoice)s',
                         percent=commission_percent,
-                        base=amount_currency,
+                        base=payment_amount,
                         currency=currency.name,
                         invoice=self.name or self.ref or self.id,
                     ),
@@ -285,7 +515,11 @@ class AccountMove(models.Model):
                 payment_move.move_type == 'out_refund'
                 and payment_move.reversed_entry_id == self
             ):
-                neg_base = -amount_currency
+                base = self._pba_commission_base_from_credit_note_partial(partial, payment_move)
+                if not base:
+                    continue
+                currency, payment_amount = base
+                neg_base = -payment_amount
                 neg_commission = currency.round(neg_base * commission_percent / 100.0)
                 payment_lines_data.append({
                     'payment_id': False,
@@ -369,6 +603,12 @@ class AccountMove(models.Model):
         store=True,
         tracking=True,
     )
+    commission_amount_pending = fields.Monetary(
+        string='Monto Comision Pendiente',
+        compute='_compute_commission_amount_pending',
+        store=True,
+        tracking=True,
+    )
     commission_state = fields.Selection(
         selection=[
             ('waiting', 'En espera'),
@@ -417,7 +657,30 @@ class AccountMove(models.Model):
             elif move.commission_line_ids:
                 move.commission_amount_total = sum(move.commission_line_ids.mapped('commission_amount'))
             else:
-                move.commission_amount_total = sum(line_data['commission_amount'] for line_data in move._prepare_commission_payment_lines_data())
+                move.commission_amount_total = sum(
+                    line_data['commission_amount']
+                    for line_data in move._prepare_commission_payment_lines_data()
+                )
+
+    @api.depends(
+        'commission_line_ids.commission_amount',
+        'commission_line_ids.state',
+        'commission_line_ids.vendor_bill_id',
+        'payment_state',
+        'move_type',
+        'state',
+        'commission_percent',
+        'invoice_user_id',
+        'invoice_user_id.partner_id.commission_percent',
+        'line_ids.matched_debit_ids',
+        'line_ids.matched_credit_ids',
+    )
+    def _compute_commission_amount_pending(self):
+        for move in self:
+            if move.move_type != 'out_invoice' or move.state != 'posted':
+                move.commission_amount_pending = 0.0
+            else:
+                move.commission_amount_pending = move._commission_pending_amount_live()
 
     @api.depends('commission_line_ids.state', 'commission_line_ids.vendor_bill_id.payment_state', 'move_type')
     def _compute_commission_state(self):
@@ -446,26 +709,17 @@ class AccountMove(models.Model):
         'invoice_user_id.partner_id.commission_percent',
         'commission_line_ids.state',
         'commission_line_ids.vendor_bill_id',
-        'commission_amount_total',
+        'commission_amount_pending',
+        'line_ids.matched_debit_ids',
+        'line_ids.matched_credit_ids',
     )
     def _compute_commission_available(self):
-        allowed_states = self._commission_payment_states_allowed()
         for move in self:
             available = False
-            if (
-                move.move_type == 'out_invoice'
-                and move.state == 'posted'
-                and move.payment_state in allowed_states
-            ):
+            if move.move_type == 'out_invoice' and move.state == 'posted':
                 percent = move.commission_percent or move.invoice_user_id.partner_id.commission_percent
-                if percent > 0:
-                    waiting_lines = move.commission_line_ids.filtered(
-                        lambda line: line.state == 'waiting' and not line.vendor_bill_id
-                    )
-                    if waiting_lines:
-                        available = True
-                    elif not move.commission_line_ids and move.commission_amount_total > 0:
-                        available = True
+                if percent > 0 and not move.currency_id.is_zero(move.commission_amount_pending):
+                    available = True
             move.commission_available = available
 
     @api.depends('commission_line_ids.vendor_bill_id', 'move_type')
@@ -480,11 +734,9 @@ class AccountMove(models.Model):
         for move in self:
             if move.move_type != 'out_invoice':
                 continue
-            already_commissioned = move.commission_line_ids.filtered(
-                lambda line: line.vendor_bill_id or line.state in ('invoiced', 'paid')
-            )
-            if already_commissioned:
-                raise UserError(_('La factura ya tiene comisiones facturadas y no puede recalcularse para refacturar.'))
+            if move._has_billed_commission_lines():
+                move._sync_commission_lines_from_payments()
+                continue
             if move.state != 'posted':
                 raise UserError(_('Solo se puede actualizar comision en facturas confirmadas.'))
             effective_percent = move.commission_percent or move.invoice_user_id.partner_id.commission_percent
@@ -499,31 +751,56 @@ class AccountMove(models.Model):
             move.commission_line_ids = commands
         self._recompute_seller_commission_pending_stats()
 
+    def _pba_format_commission_preview_line_from_record(self, line):
+        return {
+            'description': self._commission_report_line_description_es(self, line=line),
+            'payment_amount': line.payment_amount,
+            'commission_amount': line.commission_amount,
+            'currency': line.currency_id.name,
+        }
+
+    def _pba_format_commission_preview_line_from_prepared(self, item):
+        return {
+            'description': self._commission_report_line_description_es(self, prepared=item),
+            'payment_amount': item['payment_amount'],
+            'commission_amount': item['commission_amount'],
+            'currency': self.env['res.currency'].browse(item['currency_id']).name,
+        }
+
+    def _pba_get_commission_preview_line_data(self):
+        self.ensure_one()
+        prepared = self._prepare_commission_payment_lines_data()
+        if prepared:
+            return [
+                self._pba_format_commission_preview_line_from_prepared(item)
+                for item in prepared
+            ]
+        waiting_lines = self.commission_line_ids.filtered(
+            lambda line: line.state == 'waiting' and not line.vendor_bill_id
+        )
+        return [
+            self._pba_format_commission_preview_line_from_record(line)
+            for line in waiting_lines
+        ]
+
     def prepare_commission_preview_data(self):
         self.ensure_one()
         percent = self.commission_percent or self.invoice_user_id.partner_id.commission_percent
-        lines = self.commission_line_ids.filtered(
-            lambda line: line.state == 'waiting' and not line.vendor_bill_id
-        )
-        if lines:
-            line_data = [{
-                'description': self._commission_report_line_description_es(self, line=line),
-                'payment_amount': line.payment_amount,
-                'commission_amount': line.commission_amount,
-                'currency': line.currency_id.name,
-            } for line in lines]
-            amount = sum(lines.mapped('commission_amount'))
-            currency = lines[:1].currency_id.name if len(lines.currency_id) == 1 else self.currency_id.name
+        line_data = self._pba_get_commission_preview_line_data()
+        totals_by_currency = {}
+        for line in line_data:
+            totals_by_currency[line['currency']] = (
+                totals_by_currency.get(line['currency'], 0.0) + line['commission_amount']
+            )
+        if len(totals_by_currency) == 1:
+            currency = next(iter(totals_by_currency))
+            amount = totals_by_currency[currency]
+        elif totals_by_currency:
+            currency = ', '.join(sorted(totals_by_currency))
+            amount = sum(totals_by_currency.values())
         else:
-            prepared = self._prepare_commission_payment_lines_data()
-            line_data = [{
-                'description': self._commission_report_line_description_es(self, prepared=item),
-                'payment_amount': item['payment_amount'],
-                'commission_amount': item['commission_amount'],
-                'currency': self.env['res.currency'].browse(item['currency_id']).name,
-            } for item in prepared]
-            amount = sum(item['commission_amount'] for item in prepared)
             currency = self.currency_id.name
+            amount = 0.0
         return {
             'name': self.name or self.ref or str(self.id),
             'date': self._format_commission_report_date_es(self.invoice_date),
@@ -554,11 +831,11 @@ class AccountMove(models.Model):
     def action_create_commission_vendor_bills(self, mode='standard', selected_currency=False):
         bills = self.env['account.move']
         grouped_payload = {}
+        out_invoices = self.filtered(lambda move: move.move_type == 'out_invoice' and move.state == 'posted')
+        out_invoices._pba_rebuild_waiting_commission_lines()
         selected_currency_id = selected_currency.id if selected_currency else self.env.context.get('selected_currency_id')
         target_currency = self.env['res.currency'].browse(selected_currency_id) if selected_currency_id else False
-        for move in self:
-            if move.move_type != 'out_invoice':
-                continue
+        for move in out_invoices:
             if move.commission_line_ids and all(line.state in ('invoiced', 'paid') for line in move.commission_line_ids):
                 raise UserError(_('La factura %(invoice)s ya tiene su comision facturada.', invoice=move.name or move.ref or move.id))
             if move.state != 'posted':
@@ -568,9 +845,6 @@ class AccountMove(models.Model):
                 raise UserError(_('El vendedor no tiene partner configurado.'))
 
             pending_lines = move.commission_line_ids.filtered(lambda l: l.state == 'waiting')
-            if not pending_lines:
-                move.action_refresh_commission_lines()
-                pending_lines = move.commission_line_ids.filtered(lambda l: l.state == 'waiting')
             if not pending_lines:
                 continue
 
@@ -744,6 +1018,13 @@ class AccountMove(models.Model):
                     expected_state = 'paid' if line.vendor_bill_id.payment_state == 'paid' else 'invoiced'
                     if line.state != expected_state:
                         line.state = expected_state
+            to_sync = self.filtered(
+                lambda move: move.move_type == 'out_invoice'
+                and move.state == 'posted'
+                and not move._has_billed_commission_lines()
+            )
+            if to_sync:
+                to_sync._sync_commission_lines_from_payments()
         if {'payment_state', 'state', 'commission_percent', 'invoice_user_id'} & set(vals):
             self._recompute_seller_commission_pending_stats()
         return result

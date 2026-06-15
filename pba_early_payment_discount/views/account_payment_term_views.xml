@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_payment_term_form_pba_early_payment_discount_help" model="ir.ui.view">
+        <field name="name">account.payment.term.form.pba.early.payment.discount.help</field>
+        <field name="model">account.payment.term</field>
+        <field name="inherit_id" ref="account.view_payment_term_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='early_discount']" position="before">
+                <div class="alert alert-info mb-0" role="alert" colspan="2">
+                    Active el descuento por pronto pago aquí. El porcentaje y los días pueden
+                    personalizarse por contacto o por factura con el módulo PBA Descuento por Pronto Pago.
+                </div>
+            </xpath>
+        </field>
+    </record>
+</odoo>

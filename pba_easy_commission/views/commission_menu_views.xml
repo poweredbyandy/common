@@ -41,6 +41,7 @@
                 <field name="commission_percent" string="% Comision"/>
                 <field name="commission_state" string="Estado Comision" widget="badge"/>
                 <field name="commission_amount_total" string="Monto Comision"/>
+                <field name="commission_amount_pending" string="Pendiente" sum="Pendiente"/>
                 <field name="amount_untaxed_in_currency_signed" string="Base Imponible" sum="Total"/>
                 <field name="amount_tax_signed" string="Impuestos" sum="Total"/>
                 <field name="amount_residual_signed" string="Saldo" sum="Saldo"/>

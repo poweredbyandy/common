@@ -26,8 +26,6 @@ class CommissionBillingWizard(models.TransientModel):
     mode = fields.Selection(
         selection=[
             ('standard', 'Separar por moneda (estandar)'),
-            ('convert_to_single', 'Convertir todo a una sola moneda'),
-            ('only_single_currency', 'Facturar solo una moneda'),
         ],
         string='Modo de Facturacion',
         default='standard',
@@ -38,17 +36,23 @@ class CommissionBillingWizard(models.TransientModel):
         string='Moneda Objetivo',
     )
 
-    @api.depends('invoice_ids', 'invoice_ids.commission_line_ids', 'invoice_ids.commission_amount_total', 'partner_id', 'mode')
+    @api.depends('invoice_ids', 'partner_id', 'mode')
     def _compute_summary_html(self):
         for wizard in self:
             wizard.summary_html = wizard._build_summary_html()
+
+    def _get_commission_invoices(self):
+        self.ensure_one()
+        return self.env['account.move'].browse(self.invoice_ids.ids).filtered(
+            lambda move: move.move_type == 'out_invoice' and move.state == 'posted'
+        )
 
     def _format_amount(self, amount):
         return '{:,.2f}'.format(amount)
 
     def _build_summary_html(self):
         self.ensure_one()
-        invoices = self.invoice_ids.filtered(lambda move: move.move_type == 'out_invoice')
+        invoices = self._get_commission_invoices()
         if not invoices:
             return Markup('<p class="text-muted mb-0" style="font-size:12px;">No hay facturas seleccionadas.</p>')
 
@@ -57,14 +61,18 @@ class CommissionBillingWizard(models.TransientModel):
             sellers = invoices.mapped('invoice_user_id.partner_id')
             seller = sellers[:1].display_name if len(sellers) == 1 else _('Varios vendedores')
 
-        previews = [invoice.prepare_commission_preview_data() for invoice in invoices.sorted(
-            key=lambda move: move.invoice_date or fields.Date.today(),
-            reverse=True,
-        )]
+        previews = [
+            invoice.prepare_commission_preview_data()
+            for invoice in invoices.sorted(
+                key=lambda move: move.invoice_date or fields.Date.today(),
+                reverse=True,
+            )
+        ]
         totals = {}
         for preview in previews:
-            currency = preview['currency']
-            totals[currency] = totals.get(currency, 0.0) + preview['amount']
+            for line in preview.get('lines') or []:
+                currency = line['currency']
+                totals[currency] = totals.get(currency, 0.0) + line['commission_amount']
 
         cell = 'padding:2px 6px 2px 0;vertical-align:top;'
         parts = [
@@ -123,32 +131,19 @@ class CommissionBillingWizard(models.TransientModel):
             f'<strong style="color:#714B67;">{self._format_amount(amount)} {html_escape(currency)}</strong>'
             for currency, amount in sorted(totals.items())
         ]
+        if not total_parts:
+            total_parts = ['<span class="text-muted">0,00</span>']
         parts.append(
             f'<p style="margin:6px 0 0;padding-top:6px;border-top:1px solid #714B67;">'
             f'<strong>Total:</strong> {" · ".join(total_parts)}</p>'
         )
-        if self.mode == 'convert_to_single':
-            parts.append(
-                '<p style="margin:4px 0 0;color:#6c757d;font-size:11px;">'
-                '<em>Se convertirán a la moneda objetivo al confirmar.</em></p>'
-            )
-        elif self.mode == 'only_single_currency':
-            parts.append(
-                '<p style="margin:4px 0 0;color:#6c757d;font-size:11px;">'
-                '<em>Solo líneas en la moneda objetivo.</em></p>'
-            )
         parts.append('</div>')
         return Markup(''.join(parts))
 
     def action_confirm(self):
         self.ensure_one()
-        invoices = self.invoice_ids.filtered(lambda m: m.move_type == 'out_invoice')
+        invoices = self._get_commission_invoices()
         if not invoices:
             raise UserError(_('Debe seleccionar al menos una factura de cliente para comisionar.'))
-        if self.mode in ('convert_to_single', 'only_single_currency') and not self.currency_id:
-            raise UserError(_('Debe indicar la moneda para el modo seleccionado.'))
 
-        return invoices.action_create_commission_vendor_bills(
-            mode=self.mode,
-            selected_currency=self.currency_id,
-        )
+        return invoices.action_create_commission_vendor_bills(mode='standard')
