@@ -1,4 +1,4 @@
-from odoo import _, api, fields, models
+from odoo import api, fields, models
 
 
 class AccountMove(models.Model):
@@ -52,10 +52,8 @@ class AccountMove(models.Model):
         )
         if overdue_msg:
             return overdue_msg
-        if not is_credit_sale:
+        if not is_credit_sale or not partner._pba_is_financial_risk_enabled():
             return ""
-        if partner.sudo().credit_limit <= 0:
-            return _("El cliente no tiene limite de credito configurado.\n")
         return super().risk_exception_msg()
 
     def action_open_partner_financial_risk(self):

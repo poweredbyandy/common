@@ -283,6 +283,25 @@ class ResPartner(models.Model):
             bool(partner.pba_block_sale_on_overdue_credit),
         )
 
+    def _pba_is_financial_risk_enabled(self):
+        self.ensure_one()
+        partner = self.commercial_partner_id
+        if partner.pba_block_sale_on_overdue_all or partner.pba_block_sale_on_overdue_credit:
+            return True
+        if partner.credit_limit > 0:
+            return True
+        return any(
+            limit > 0
+            for limit in (
+                partner.risk_sale_order_limit,
+                partner.risk_invoice_draft_limit,
+                partner.risk_invoice_open_limit,
+                partner.risk_invoice_unpaid_limit,
+                partner.risk_account_amount_limit,
+                partner.risk_account_amount_unpaid_limit,
+            )
+        )
+
     def _pba_overdue_invoices_exception_msg(self, company, is_credit_sale):
         self.ensure_one()
         block_all, block_credit = self._pba_get_overdue_block_settings(company)
@@ -315,6 +334,11 @@ class ResPartner(models.Model):
     def _compute_risk_exception(self):
         super()._compute_risk_exception()
         for partner in self:
+            commercial = partner.commercial_partner_id
+            if not commercial._pba_is_financial_risk_enabled():
+                partner.risk_exception = False
+                partner.risk_amount_exceeded = 0.0
+                continue
             company = partner.company_id or self.env.company
             block_all, block_credit = partner._pba_get_overdue_block_settings(company)
             if block_all and partner._pba_get_overdue_invoices_amount(

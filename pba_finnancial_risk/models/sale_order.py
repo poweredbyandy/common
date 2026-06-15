@@ -1,4 +1,4 @@
-from odoo import _, api, fields, models
+from odoo import api, fields, models
 
 
 class SaleOrder(models.Model):
@@ -41,17 +41,16 @@ class SaleOrder(models.Model):
 
     def evaluate_risk_message(self, partner):
         self.ensure_one()
+        commercial = partner.commercial_partner_id
         is_credit_sale = self._pba_is_credit_sale()
-        overdue_msg = partner._pba_overdue_invoices_exception_msg(
+        overdue_msg = commercial._pba_overdue_invoices_exception_msg(
             self.company_id, is_credit_sale
         )
         if overdue_msg:
             return overdue_msg
-        if not is_credit_sale:
+        if not is_credit_sale or not commercial._pba_is_financial_risk_enabled():
             return ""
-        if partner.sudo().credit_limit <= 0:
-            return _("El cliente no tiene limite de credito configurado.\n")
-        return super().evaluate_risk_message(partner)
+        return super().evaluate_risk_message(commercial)
 
     def action_open_partner_financial_risk(self):
         self.ensure_one()
