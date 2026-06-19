@@ -21,6 +21,10 @@ class AccountMoveLine(models.Model):
         move = self.move_id
         if not move or move.move_type not in ("out_invoice", "out_refund", "out_receipt"):
             return False
+        if move.move_type in ("out_refund", "in_refund"):
+            return False
+        if move.debit_origin_id:
+            return False
         if not move.is_sale_document(include_receipts=True):
             return False
         if self.display_type in (
@@ -34,6 +38,8 @@ class AccountMoveLine(models.Model):
         return True
 
     def _pba_check_customer_sale_price_write(self, vals):
+        if self.env.context.get("pba_skip_sale_price_lock"):
+            return
         if self.env.user.has_group("pba_sale_price_group.group_pba_edit_sale_price"):
             return
         prec = self.env["decimal.precision"].precision_get("Product Price")

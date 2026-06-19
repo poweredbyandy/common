@@ -18,8 +18,14 @@ class AccountPartialReconcile(models.Model):
             invoice_moves |= (partial.debit_move_id.move_id + partial.credit_move_id.move_id).filtered(
                 lambda move: move.move_type == 'out_invoice' and move.state == 'posted'
             )
-        if invoice_moves:
-            invoice_moves._sync_commission_lines_from_payments()
+        if not invoice_moves:
+            return
+        to_rebuild = invoice_moves.filtered(lambda move: not move._has_billed_commission_lines())
+        if to_rebuild:
+            to_rebuild._pba_rebuild_waiting_commission_lines()
+        billed = invoice_moves - to_rebuild
+        if billed:
+            billed._sync_commission_lines_from_payments()
 
     def unlink(self):
         if self.env.context.get("pba_skip_commission_unreconcile_check"):

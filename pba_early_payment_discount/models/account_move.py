@@ -44,6 +44,20 @@ class AccountMove(models.Model):
             "pba_early_payment_discount.group_pba_edit_posted_early_payment_discount"
         )
 
+    def _pba_is_manual_epd_change(self, vals):
+        self.ensure_one()
+        if "pba_early_payment_discount_percent" in vals and float_compare(
+            vals["pba_early_payment_discount_percent"] or 0.0,
+            self.pba_early_payment_discount_percent or 0.0,
+            precision_digits=6,
+        ) != 0:
+            return True
+        if "pba_early_payment_discount_days" in vals and (
+            vals["pba_early_payment_discount_days"] or 0
+        ) != (self.pba_early_payment_discount_days or 0):
+            return True
+        return False
+
     @api.depends(
         "state",
         "reconciled_payment_ids",
@@ -363,21 +377,18 @@ class AccountMove(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
-        epd_fields = {"pba_early_payment_discount_percent", "pba_early_payment_discount_days"}
-        if not self.env.context.get("pba_skip_early_payment_discount_access"):
-            for vals in vals_list:
-                if epd_fields & set(vals) and not self._pba_user_can_edit_early_payment_discount():
-                    raise AccessError(
-                        "No tiene permiso para modificar el descuento por pronto pago en facturas."
-                    )
         moves = super().create(vals_list)
-        moves.filtered(lambda m: m.is_invoice(True))._pba_apply_partner_early_payment_discount_defaults()
+        moves.filtered(
+            lambda m: m.is_invoice(True) and not m.reversed_entry_id
+        )._pba_apply_partner_early_payment_discount_defaults()
         return moves
 
     def write(self, vals):
         epd_fields = {"pba_early_payment_discount_percent", "pba_early_payment_discount_days"}
         if epd_fields & set(vals) and not self.env.context.get("pba_skip_early_payment_discount_access"):
-            invoices = self.filtered(lambda m: m.is_invoice(True))
+            invoices = self.filtered(
+                lambda m: m.is_invoice(True) and m._pba_is_manual_epd_change(vals)
+            )
             if invoices and not self._pba_user_can_edit_early_payment_discount():
                 raise AccessError(
                     "No tiene permiso para modificar el descuento por pronto pago en facturas."
@@ -391,7 +402,7 @@ class AccountMove(models.Model):
         res = super().write(vals)
         if {"partner_id", "invoice_payment_term_id"} & set(vals):
             self.filtered(
-                lambda m: m.is_invoice(True) and m.state == "draft"
+                lambda m: m.is_invoice(True) and m.state == "draft" and not m.reversed_entry_id
             )._pba_apply_partner_early_payment_discount_defaults()
         return res
 

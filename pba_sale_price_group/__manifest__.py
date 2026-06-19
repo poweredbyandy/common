@@ -1,6 +1,6 @@
 {
     "name": "PBA Permiso precio de venta",
-    "version": "18.0.1.0.0",
+    "version": "18.0.1.0.1",
     "category": "Sales",
     "summary": "Permiso para modificar el precio de venta en pedidos y facturas de cliente",
     "author": "andyengit",
