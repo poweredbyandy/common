@@ -1155,6 +1155,16 @@ class AccountMove(models.Model):
                     'vendor_bill_id': False,
                     'state': 'waiting',
                 })
+        payment_commission_lines = self.env['account.move.commission.line'].sudo().search([
+            ('payment_move_id', 'in', self.ids),
+        ])
+        if payment_commission_lines.filtered('vendor_bill_id'):
+            raise UserError(_(
+                'No se puede eliminar un asiento de pago con lineas de comision ya facturadas.'
+            ))
+        payment_commission_lines.filtered(
+            lambda line: line.state == 'waiting' and not line.vendor_bill_id
+        ).unlink()
         return super().unlink()
 
     @api.model_create_multi
