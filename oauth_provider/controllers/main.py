@@ -1,14 +1,49 @@
 import json
-from urllib.parse import unquote_plus, urlparse
+from urllib.parse import parse_qs, unquote_plus, urlencode, urlparse, urlunparse
 
 from werkzeug.exceptions import BadRequest
 from werkzeug.urls import url_encode
 
 from odoo import fields, http
 from odoo.addons.web.controllers.utils import ensure_db
+from odoo.exceptions import AccessDenied
 from odoo.http import request
 
 SESSION_OAUTH_PENDING = "oauth_provider_pending_params"
+
+
+def _append_oauth_embed_token_to_url(path, token):
+    path = _safe_embed_redirect(path)
+    if not token:
+        return path
+    parsed = urlparse(path)
+    qs = parse_qs(parsed.query, keep_blank_values=True)
+    qs["oauth_embed_token"] = [token]
+    flat = [(key, val) for key, vals in qs.items() for val in vals]
+    return urlunparse(parsed._replace(query=urlencode(flat)))
+
+
+def _append_query_param_to_url(path, key, value):
+    path = _safe_embed_redirect(path)
+    if not value:
+        return path
+    parsed = urlparse(path)
+    qs = parse_qs(parsed.query, keep_blank_values=True)
+    if not qs.get(key):
+        qs[key] = [value]
+    flat = [(k, val) for k, vals in qs.items() for val in vals]
+    return urlunparse(parsed._replace(query=urlencode(flat)))
+
+
+def _safe_embed_redirect(path):
+    path = (path or "/odoo").strip()
+    if not path.startswith("/") or path.startswith("//"):
+        return "/odoo"
+    if "://" in path:
+        return "/odoo"
+    if path.startswith(("/web", "/odoo", "/scoped_app")):
+        return path
+    return "/odoo"
 
 
 def _is_loopback_host(hostname):
@@ -40,6 +75,13 @@ def _origins_equivalent(oa, ob):
     if _is_loopback_host(ha) and _is_loopback_host(hb):
         return True
     return False
+
+
+def _same_loopback_machine(url_a, url_b):
+    return _origins_equivalent(
+        _origin_tuple(urlparse(url_a)),
+        _origin_tuple(urlparse(url_b)),
+    )
 
 
 def _parse_oauth_state_dict(state_param):
@@ -154,8 +196,8 @@ class OauthProviderController(http.Controller):
             raise BadRequest()
         if not client_id or not str(client_id).strip():
             return request.make_response(
-                "Falta client_id. En el Odoo Origen: Ajustes > OAuth Odoo Client, "
-                "rellene el ID de cliente (el mismo que en Clientes OAuth aquí).",
+                "Falta client_id. En el Odoo Origen: Instancia Odoo > Probar conexión "
+                "para sincronizar el ID de cliente OAuth con el destino.",
                 status=400,
                 headers=[("Content-Type", "text/plain; charset=utf-8")],
             )
@@ -205,6 +247,7 @@ class OauthProviderController(http.Controller):
         tok_model = request.env["oauth.provider.token"].sudo()
         ttl = tok_model._get_access_token_ttl_seconds()
         token = tok_model.create_for_user(user, ttl_seconds=ttl)
+        tok_model.bind_token_to_session(token)
         fragment = url_encode(
             {
                 "access_token": token,
@@ -250,3 +293,80 @@ class OauthProviderController(http.Controller):
             "name": name,
         }
         return request.make_json_response(payload)
+
+    @http.route(
+        "/oauth_provider/web_session",
+        type="http",
+        auth="public",
+        readonly=False,
+        methods=["GET"],
+        sitemap=False,
+    )
+    def web_session(self, access_token=None, redirect=None, **kw):
+        ensure_db()
+        token = (access_token or "").strip()
+        if not token:
+            return request.redirect("/web/login")
+        tok_model = request.env["oauth.provider.token"].sudo()
+        tok_model._gc_expired()
+        row = tok_model.search([("token", "=", token)], limit=1)
+        now = fields.Datetime.now()
+        if not row or row.expires < now:
+            login_qs = url_encode({"redirect": _safe_embed_redirect(redirect)})
+            return request.redirect("/web/login?%s" % login_qs)
+        user = row.user_id
+        dbname = request.session.db
+        if not dbname:
+            return request.redirect("/web/database/selector")
+        credential = {
+            "login": user.login,
+            "token": token,
+            "type": "oauth_provider_embed",
+        }
+        try:
+            request.session.authenticate(dbname, credential)
+        except AccessDenied:
+            login_qs = url_encode({"redirect": _safe_embed_redirect(redirect)})
+            return request.redirect("/web/login?%s" % login_qs)
+        tok_model.bind_token_to_session(token)
+        target = _append_oauth_embed_token_to_url(redirect, token)
+        target = _append_query_param_to_url(target, "db", dbname)
+        resp = request.redirect(target, 303)
+        resp.autocorrect_location_header = False
+        return resp
+
+    @http.route(
+        "/oauth_provider/embed_login",
+        type="http",
+        auth="public",
+        readonly=False,
+        methods=["GET"],
+        sitemap=False,
+    )
+    def embed_login(self, access_token=None, redirect=None, **kw):
+        ensure_db()
+        token = (access_token or "").strip()
+        if not token:
+            return request.redirect("/web/login")
+        params = url_encode(
+            {
+                "access_token": token,
+                "redirect": _safe_embed_redirect(redirect),
+            }
+        )
+        db_qs = url_encode({"db": request.session.db}) if request.session.db else ""
+        prefix = "?%s&" % db_qs if db_qs else "?"
+        session_path = "/oauth_provider/web_session%s%s" % (prefix, params)
+        html = (
+            "<!DOCTYPE html><html><head><meta charset=\"utf-8\"/></head>"
+            "<body><script>(async function(){"
+            "if(window.isSecureContext&&document.requestStorageAccess){"
+            "try{await document.requestStorageAccess();}catch(e){}"
+            "}"
+            "location.replace(%s);"
+            "})();</script></body></html>"
+        ) % (json.dumps(session_path),)
+        return request.make_response(
+            html,
+            headers=[("Content-Type", "text/html; charset=utf-8")],
+        )

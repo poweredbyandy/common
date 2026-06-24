@@ -150,11 +150,17 @@ class MailWhatsappTemplate(models.Model):
         self.ensure_one()
         return self._pba_render_body(self.body, variables)
 
+    @api.model
+    def _pba_sanitize_whatsapp_text(self, value):
+        text = str(value or "")
+        text = re.sub(r"[\x00-\x1f\x7f]+", " ", text)
+        return re.sub(r" +", " ", text).strip()
+
     def _pba_get_body_parameters(self, variables):
         self.ensure_one()
         parameters = []
         for value in variables:
-            text = str(value or "").strip()
+            text = self._pba_sanitize_whatsapp_text(value)
             if not text:
                 text = " "
             parameters.append({"type": "text", "text": text})

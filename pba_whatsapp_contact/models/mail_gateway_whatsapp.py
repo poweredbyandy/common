@@ -1,3 +1,4 @@
+import json
 import logging
 import re
 
@@ -383,7 +384,21 @@ class MailGatewayWhatsappService(models.AbstractModel):
                     return message
             except Exception:
                 pass
-        return str(reason)
+        reason_text = str(reason)
+        json_start = reason_text.find("{")
+        if json_start >= 0:
+            try:
+                payload = json.loads(reason_text[json_start:])
+                error = payload.get("error", {})
+                details = error.get("error_data", {}).get("details")
+                message = error.get("message")
+                if details and message:
+                    return "%s — %s" % (message, details)
+                if message:
+                    return message
+            except Exception:
+                pass
+        return reason_text
 
     def _pba_build_template_payload(self, channel, template, body):
         template.ensure_one()

@@ -1,7 +1,7 @@
 {
     "name": "Allow Iframe Embedding",
     "summary": "Permite que este Odoo sea embebido en un iframe con aislamiento de sesión.",
-    "version": "18.0.2.0.0",
+    "version": "18.0.2.0.3",
     "author": "andyengit",
     "maintainer": "andyengit",
     "category": "Technical",

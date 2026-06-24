@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <style>
+        body {
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            color: #333;
+            line-height: 1.6;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 16px;
+        }
+        h1 {
+            color: #7C7BAD;
+            border-bottom: 2px solid #7C7BAD;
+            padding-bottom: 8px;
+        }
+        h2 {
+            color: #555;
+            margin-top: 32px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 6px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 12px 0 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #7C7BAD;
+            color: #fff;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 0.9em;
+        }
+        .note {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 10px 14px;
+            margin: 12px 0;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Powered By Andy — SaaS Enterprise</h1>
+<p>
+    Módulo integrador para el <strong>SaaS de Venezuela</strong> en
+    <strong>Odoo 18.0 Enterprise</strong>. Variante compatible con Enterprise de
+    <code>poweredbyandy_saas</code>.
+</p>
+
+<h2>Módulos excluidos respecto a Community</h2>
+<div class="note">
+    Estos módulos no se instalan porque entran en conflicto con Enterprise o
+    tienen equivalente nativo.
+</div>
+<table>
+    <tr><th>Módulo</th><th>Motivo</th></tr>
+    <tr><td><code>web_responsive</code></td><td>Excluye <code>web_enterprise</code></td></tr>
+    <tr><td><code>web_dark_mode</code></td><td>Excluye <code>web_enterprise</code></td></tr>
+    <tr><td><code>account_reconcile_oca</code></td><td>Equivalente: <code>account_accountant</code></td></tr>
+    <tr><td><code>account_reconcile_model_oca</code></td><td>Excluye <code>account_accountant</code></td></tr>
+    <tr><td><code>account_in_payment</code></td><td>Depende de conciliación OCA</td></tr>
+    <tr><td><code>account_partner_reconcile</code></td><td>Depende de conciliación OCA</td></tr>
+    <tr><td><code>account_statement_import_file_reconcile_oca</code></td><td>Depende de conciliación OCA</td></tr>
+</table>
+
+<h2>Módulo Enterprise incluido</h2>
+<table>
+    <tr><th>Módulo</th><th>Descripción</th></tr>
+    <tr><td><code>account_accountant</code></td><td>Contabilidad avanzada y conciliación bancaria</td></tr>
+</table>
+
+<p>
+    <code>l10n_ve_seniat</code> se incluye aunque excluye Studio; es compatible
+    con Enterprise sin instalar Studio.
+</p>
+
+</body>
+</html>

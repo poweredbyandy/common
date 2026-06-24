@@ -266,6 +266,10 @@ class MailWhatsappTemplateButton(models.Model):
         url_suffix = self._pba_get_dynamic_url_value(record)
         if not url_suffix:
             url_suffix = " "
+        else:
+            url_suffix = self.env["mail.whatsapp.template"]._pba_sanitize_whatsapp_text(
+                url_suffix
+            ) or " "
         return {
             "type": "button",
             "sub_type": "url",

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates>
+    <t t-inherit="web_enterprise.HomeMenu" t-inherit-mode="extension">
+        <xpath expr="//div[hasclass('o_home_menu')]" position="inside">
+            <img class="poweredbyandy_watermark" src="/poweredbyandy_e_saas/static/src/img/watermark_logo.png" alt="Powered by Andy" />
+        </xpath>
+    </t>
+</templates>
