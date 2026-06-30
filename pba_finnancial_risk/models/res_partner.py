@@ -291,14 +291,20 @@ class ResPartner(models.Model):
         if partner.credit_limit > 0:
             return True
         return any(
-            limit > 0
-            for limit in (
-                partner.risk_sale_order_limit,
-                partner.risk_invoice_draft_limit,
-                partner.risk_invoice_open_limit,
-                partner.risk_invoice_unpaid_limit,
-                partner.risk_account_amount_limit,
-                partner.risk_account_amount_unpaid_limit,
+            include and limit > 0
+            for include, limit in (
+                (partner.risk_sale_order_include, partner.risk_sale_order_limit),
+                (partner.risk_invoice_draft_include, partner.risk_invoice_draft_limit),
+                (partner.risk_invoice_open_include, partner.risk_invoice_open_limit),
+                (partner.risk_invoice_unpaid_include, partner.risk_invoice_unpaid_limit),
+                (
+                    partner.risk_account_amount_include,
+                    partner.risk_account_amount_limit,
+                ),
+                (
+                    partner.risk_account_amount_unpaid_include,
+                    partner.risk_account_amount_unpaid_limit,
+                ),
             )
         )
 
