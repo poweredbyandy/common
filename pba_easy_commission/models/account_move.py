@@ -310,6 +310,13 @@ class AccountMove(models.Model):
             for line_data in self._prepare_commission_payment_lines_data()
         )
 
+    def _filter_pending_commission_invoices(self):
+        return self.filtered(
+            lambda move: move.move_type == 'out_invoice'
+            and move.state == 'posted'
+            and not move.currency_id.is_zero(move._commission_pending_amount_live())
+        )
+
     def _sync_commission_lines_from_payments(self):
         CommissionLine = self.env['account.move.commission.line']
         for move in self.filtered(lambda m: m.move_type == 'out_invoice' and m.state == 'posted'):
@@ -884,18 +891,20 @@ class AccountMove(models.Model):
 
     def _pba_get_commission_preview_line_data(self):
         self.ensure_one()
-        prepared = self._prepare_commission_payment_lines_data()
-        if prepared:
-            return [
-                self._pba_format_commission_preview_line_from_prepared(item)
-                for item in prepared
-            ]
         waiting_lines = self.commission_line_ids.filtered(
             lambda line: line.state == 'waiting' and not line.vendor_bill_id
         )
+        if waiting_lines:
+            return [
+                self._pba_format_commission_preview_line_from_record(line)
+                for line in waiting_lines
+            ]
+        if self.commission_line_ids:
+            return []
+        prepared = self._prepare_commission_payment_lines_data()
         return [
-            self._pba_format_commission_preview_line_from_record(line)
-            for line in waiting_lines
+            self._pba_format_commission_preview_line_from_prepared(item)
+            for item in prepared
         ]
 
     def prepare_commission_preview_data(self):
@@ -930,7 +939,10 @@ class AccountMove(models.Model):
         }
 
     def action_open_commission_billing_wizard(self):
-        seller_partner = self.filtered(lambda m: m.move_type == 'out_invoice').invoice_user_id.partner_id[:1]
+        invoices = self._filter_pending_commission_invoices()
+        if not invoices:
+            raise UserError(_('No hay lineas de comision pendientes para facturar.'))
+        seller_partner = invoices.invoice_user_id.partner_id[:1]
         return {
             'name': _('Facturar Comisiones'),
             'type': 'ir.actions.act_window',
@@ -938,7 +950,7 @@ class AccountMove(models.Model):
             'view_mode': 'form',
             'target': 'new',
             'context': {
-                'default_invoice_ids': self.ids,
+                'default_invoice_ids': [(6, 0, invoices.ids)],
                 'default_partner_id': seller_partner.id if seller_partner else False,
             },
         }

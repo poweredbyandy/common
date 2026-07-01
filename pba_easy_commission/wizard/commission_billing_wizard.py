@@ -43,9 +43,10 @@ class CommissionBillingWizard(models.TransientModel):
 
     def _get_commission_invoices(self):
         self.ensure_one()
-        return self.env['account.move'].browse(self.invoice_ids.ids).filtered(
+        invoices = self.env['account.move'].browse(self.invoice_ids.ids).filtered(
             lambda move: move.move_type == 'out_invoice' and move.state == 'posted'
         )
+        return invoices._filter_pending_commission_invoices()
 
     def _format_amount(self, amount):
         return '{:,.2f}'.format(amount)
