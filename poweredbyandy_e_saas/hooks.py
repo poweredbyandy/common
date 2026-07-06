@@ -16,7 +16,7 @@ def _disable_partner_autocomplete_integration(env):
         [("name", "=", "partner_autocomplete")], limit=1
     )
     if module and module.state == "installed":
-        module.button_immediate_uninstall()
+        module.button_uninstall()
     _cleanup_partner_autocomplete_views(env)
 
 
