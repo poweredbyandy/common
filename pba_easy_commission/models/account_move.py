@@ -615,6 +615,8 @@ class AccountMove(models.Model):
             if payment_move.journal_id in excluded_journals:
                 continue
             payment = payment_move.origin_payment_id
+            if not payment.pba_apply_commission:
+                continue
             base = self._pba_commission_base_from_payment_partial(
                 partial,
                 payment_move,
@@ -955,15 +957,22 @@ class AccountMove(models.Model):
             },
         }
 
-    def action_create_commission_vendor_bills(self, mode='standard', selected_currency=False):
+    def action_create_commission_vendor_bills(self, mode='standard', selected_currency=False, commission_line_ids=None):
         bills = self.env['account.move']
         grouped_payload = {}
         out_invoices = self.filtered(lambda move: move.move_type == 'out_invoice' and move.state == 'posted')
-        out_invoices._pba_rebuild_waiting_commission_lines()
         selected_currency_id = selected_currency.id if selected_currency else self.env.context.get('selected_currency_id')
         target_currency = self.env['res.currency'].browse(selected_currency_id) if selected_currency_id else False
+        selected_line_ids = set(commission_line_ids or [])
+        filter_by_selection = commission_line_ids is not None
+        if not filter_by_selection:
+            out_invoices._pba_rebuild_waiting_commission_lines()
         for move in out_invoices:
-            if move.commission_line_ids and all(line.state in ('invoiced', 'paid') for line in move.commission_line_ids):
+            if (
+                not filter_by_selection
+                and move.commission_line_ids
+                and all(line.state in ('invoiced', 'paid') for line in move.commission_line_ids)
+            ):
                 raise UserError(_('La factura %(invoice)s ya tiene su comision facturada.', invoice=move.name or move.ref or move.id))
             if move.state != 'posted':
                 continue
@@ -972,6 +981,8 @@ class AccountMove(models.Model):
                 raise UserError(_('El vendedor no tiene partner configurado.'))
 
             pending_lines = move.commission_line_ids.filtered(lambda l: l.state == 'waiting')
+            if filter_by_selection:
+                pending_lines = pending_lines.filtered(lambda l: l.id in selected_line_ids)
             if not pending_lines:
                 continue
 

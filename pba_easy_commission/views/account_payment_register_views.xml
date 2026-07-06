@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_account_payment_register_form_pba_commission" model="ir.ui.view">
+        <field name="name">account.payment.register.form.pba.commission</field>
+        <field name="model">account.payment.register</field>
+        <field name="inherit_id" ref="account.view_account_payment_register_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='payment_date']" position="after">
+                <field
+                    name="pba_apply_commission"
+                    invisible="payment_type != 'inbound' or partner_type != 'customer'"
+                />
+            </xpath>
+        </field>
+    </record>
+</odoo>

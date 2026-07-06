@@ -1,8 +1,72 @@
-from markupsafe import Markup
-
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError
-from odoo.tools import html_escape
+
+
+class CommissionBillingWizardLine(models.TransientModel):
+    _name = 'commission.billing.wizard.line'
+    _description = 'Linea seleccionable del wizard de comisiones'
+    _order = 'invoice_date desc, invoice_id, id'
+
+    wizard_id = fields.Many2one(
+        comodel_name='commission.billing.wizard',
+        required=True,
+        ondelete='cascade',
+    )
+    commission_line_id = fields.Many2one(
+        comodel_name='account.move.commission.line',
+        required=True,
+        readonly=True,
+        ondelete='cascade',
+    )
+    selected = fields.Boolean(
+        string='Facturar',
+        default=True,
+    )
+    invoice_id = fields.Many2one(
+        related='commission_line_id.invoice_id',
+        readonly=True,
+    )
+    invoice_date = fields.Date(
+        related='invoice_id.invoice_date',
+        readonly=True,
+    )
+    invoice_name = fields.Char(
+        related='invoice_id.name',
+        readonly=True,
+    )
+    partner_id = fields.Many2one(
+        related='invoice_id.partner_id',
+        readonly=True,
+    )
+    sale_amount = fields.Monetary(
+        related='invoice_id.amount_total',
+        currency_field='sale_currency_id',
+        readonly=True,
+    )
+    sale_currency_id = fields.Many2one(
+        related='invoice_id.currency_id',
+        readonly=True,
+    )
+    payment_amount = fields.Monetary(
+        related='commission_line_id.payment_amount',
+        readonly=True,
+    )
+    commission_percent = fields.Float(
+        related='commission_line_id.commission_percent',
+        readonly=True,
+    )
+    commission_amount = fields.Monetary(
+        related='commission_line_id.commission_amount',
+        readonly=True,
+    )
+    currency_id = fields.Many2one(
+        related='commission_line_id.currency_id',
+        readonly=True,
+    )
+    description = fields.Char(
+        related='commission_line_id.description',
+        readonly=True,
+    )
 
 
 class CommissionBillingWizard(models.TransientModel):
@@ -18,10 +82,14 @@ class CommissionBillingWizard(models.TransientModel):
         comodel_name='account.move',
         string='Facturas',
     )
-    summary_html = fields.Html(
-        string='Resumen',
-        compute='_compute_summary_html',
-        sanitize=False,
+    line_ids = fields.One2many(
+        comodel_name='commission.billing.wizard.line',
+        inverse_name='wizard_id',
+        string='Lineas de comision',
+    )
+    total_summary = fields.Char(
+        string='Total seleccionado',
+        compute='_compute_total_summary',
     )
     mode = fields.Selection(
         selection=[
@@ -36,115 +104,106 @@ class CommissionBillingWizard(models.TransientModel):
         string='Moneda Objetivo',
     )
 
-    @api.depends('invoice_ids', 'partner_id', 'mode')
-    def _compute_summary_html(self):
-        for wizard in self:
-            wizard.summary_html = wizard._build_summary_html()
+    @api.model
+    def _get_default_invoice_ids(self, default_res=None):
+        if default_res and default_res.get('invoice_ids'):
+            invoice_value = default_res['invoice_ids']
+            if isinstance(invoice_value, list):
+                if invoice_value and isinstance(invoice_value[0], int):
+                    return invoice_value
+                for command in invoice_value:
+                    if isinstance(command, (list, tuple)) and len(command) >= 3 and command[0] == 6:
+                        return command[2]
+        context_commands = self.env.context.get('default_invoice_ids')
+        if context_commands and isinstance(context_commands, list):
+            for command in context_commands:
+                if isinstance(command, (list, tuple)) and len(command) >= 3 and command[0] == 6:
+                    return command[2]
+        return []
 
-    def _get_commission_invoices(self):
-        self.ensure_one()
-        invoices = self.env['account.move'].browse(self.invoice_ids.ids).filtered(
+    @api.model
+    def default_get(self, fields_list):
+        res = super().default_get(fields_list)
+        if 'line_ids' not in fields_list:
+            return res
+        invoice_ids = self._get_default_invoice_ids(res)
+        if not invoice_ids:
+            return res
+        invoices = self.env['account.move'].browse(invoice_ids).filtered(
             lambda move: move.move_type == 'out_invoice' and move.state == 'posted'
         )
-        return invoices._filter_pending_commission_invoices()
-
-    def _format_amount(self, amount):
-        return '{:,.2f}'.format(amount)
-
-    def _build_summary_html(self):
-        self.ensure_one()
-        invoices = self._get_commission_invoices()
-        if not invoices:
-            return Markup('<p class="text-muted mb-0" style="font-size:12px;">No hay facturas seleccionadas.</p>')
-
-        seller = self.partner_id.display_name
-        if not seller:
-            sellers = invoices.mapped('invoice_user_id.partner_id')
-            seller = sellers[:1].display_name if len(sellers) == 1 else _('Varios vendedores')
-
-        previews = [
-            invoice.prepare_commission_preview_data()
-            for invoice in invoices.sorted(
-                key=lambda move: move.invoice_date or fields.Date.today(),
-                reverse=True,
+        if invoices:
+            invoices._sync_commission_lines_from_payments()
+        line_commands = []
+        for invoice in invoices.sorted(
+            key=lambda move: move.invoice_date or fields.Date.today(),
+            reverse=True,
+        ):
+            waiting_lines = invoice.commission_line_ids.filtered(
+                lambda line: line.state == 'waiting' and not line.vendor_bill_id
             )
-        ]
-        totals = {}
-        for preview in previews:
-            for line in preview.get('lines') or []:
-                currency = line['currency']
-                totals[currency] = totals.get(currency, 0.0) + line['commission_amount']
+            for line in waiting_lines:
+                line_commands.append((0, 0, {
+                    'commission_line_id': line.id,
+                    'selected': True,
+                }))
+        res['line_ids'] = line_commands
+        return res
 
-        cell = 'padding:2px 6px 2px 0;vertical-align:top;'
-        parts = [
-            '<div style="font-size:12px;line-height:1.35;color:#212529;">',
-            f'<p style="margin:0 0 6px;"><strong>{html_escape(seller)}</strong> · {len(previews)} factura(s) · factura de proveedor de comisión</p>',
-            '<table style="width:100%;border-collapse:collapse;font-size:11px;">',
-            '<thead><tr style="border-bottom:1px solid #dee2e6;color:#6c757d;">',
-            f'<th style="text-align:left;{cell}">Factura</th>',
-            f'<th style="text-align:left;{cell}">Cliente</th>',
-            f'<th style="text-align:right;{cell}">Monto venta</th>',
-            f'<th style="text-align:center;{cell}">%</th>',
-            f'<th style="text-align:left;{cell}">Detalle</th>',
-            f'<th style="text-align:right;{cell}">Comisión</th>',
-            '</tr></thead><tbody>',
-        ]
+    @api.depends('line_ids.selected', 'line_ids.commission_amount', 'line_ids.currency_id')
+    def _compute_total_summary(self):
+        for wizard in self:
+            totals = {}
+            for line in wizard.line_ids.filtered('selected'):
+                currency = line.currency_id.name
+                totals[currency] = totals.get(currency, 0.0) + line.commission_amount
+            wizard.total_summary = ' · '.join(
+                '%s %s' % ('{:,.2f}'.format(amount), currency)
+                for currency, amount in sorted(totals.items())
+            ) or _('0,00')
 
-        for preview in previews:
-            lines = preview.get('lines') or []
-            if not lines:
-                parts.append(
-                    f'<tr style="border-bottom:1px solid #f0f0f0;">'
-                    f'<td style="{cell}"><strong>{html_escape(preview["name"])}</strong></td>'
-                    f'<td style="{cell}">{html_escape(preview["partner"])}</td>'
-                    f'<td style="{cell};text-align:right;white-space:nowrap;">'
-                    f'{self._format_amount(preview["sale_amount"])} {html_escape(preview["sale_currency"])}</td>'
-                    f'<td style="{cell};text-align:center;">{preview["percent"]:.2f}</td>'
-                    f'<td style="{cell};color:#6c757d;">—</td>'
-                    f'<td style="{cell};text-align:right;">'
-                    f'<strong>{self._format_amount(preview["amount"])} {html_escape(preview["currency"])}</strong></td>'
-                    f'</tr>'
-                )
-                continue
-            for index, line in enumerate(lines):
-                invoice_name = f'<strong>{html_escape(preview["name"])}</strong>' if index == 0 else ''
-                partner_name = html_escape(preview['partner']) if index == 0 else ''
-                sale_amount = (
-                    f'{self._format_amount(preview["sale_amount"])} {html_escape(preview["sale_currency"])}'
-                    if index == 0 else ''
-                )
-                percent = f'{preview["percent"]:.2f}' if index == 0 else ''
-                parts.append(
-                    f'<tr style="border-bottom:1px solid #f0f0f0;">'
-                    f'<td style="{cell}">{invoice_name}</td>'
-                    f'<td style="{cell}">{partner_name}</td>'
-                    f'<td style="{cell};text-align:right;white-space:nowrap;">{sale_amount}</td>'
-                    f'<td style="{cell};text-align:center;">{percent}</td>'
-                    f'<td style="{cell};color:#495057;">{html_escape(line["description"])}</td>'
-                    f'<td style="{cell};text-align:right;white-space:nowrap;">'
-                    f'<strong>{self._format_amount(line["commission_amount"])}</strong> '
-                    f'<span style="color:#6c757d;">{html_escape(line["currency"])}</span></td>'
-                    f'</tr>'
-                )
+    def _get_selected_commission_lines(self):
+        self.ensure_one()
+        return self.line_ids.filtered('selected').mapped('commission_line_id')
 
-        parts.append('</tbody></table>')
-        total_parts = [
-            f'<strong style="color:#714B67;">{self._format_amount(amount)} {html_escape(currency)}</strong>'
-            for currency, amount in sorted(totals.items())
-        ]
-        if not total_parts:
-            total_parts = ['<span class="text-muted">0,00</span>']
-        parts.append(
-            f'<p style="margin:6px 0 0;padding-top:6px;border-top:1px solid #714B67;">'
-            f'<strong>Total:</strong> {" · ".join(total_parts)}</p>'
+    def _action_reload_wizard(self):
+        self.ensure_one()
+        return {
+            'name': _('Pagar Comisiones'),
+            'type': 'ir.actions.act_window',
+            'res_model': 'commission.billing.wizard',
+            'res_id': self.id,
+            'view_mode': 'form',
+            'target': 'new',
+        }
+
+    def action_select_all(self):
+        self.ensure_one()
+        self.line_ids.write({'selected': True})
+        return self._action_reload_wizard()
+
+    def action_deselect_all(self):
+        self.ensure_one()
+        self.line_ids.write({'selected': False})
+        return self._action_reload_wizard()
+
+    def action_toggle_commission_line(self, commission_line_id):
+        self.ensure_one()
+        wizard_line = self.line_ids.filtered(
+            lambda line: line.commission_line_id.id == commission_line_id
         )
-        parts.append('</div>')
-        return Markup(''.join(parts))
+        if wizard_line:
+            wizard_line.selected = not wizard_line.selected
+        return False
 
     def action_confirm(self):
         self.ensure_one()
-        invoices = self._get_commission_invoices()
-        if not invoices:
-            raise UserError(_('Debe seleccionar al menos una factura de cliente para comisionar.'))
+        selected_lines = self._get_selected_commission_lines()
+        if not selected_lines:
+            raise UserError(_('Debe seleccionar al menos una linea de comision para facturar.'))
 
-        return invoices.action_create_commission_vendor_bills(mode='standard')
+        invoices = selected_lines.mapped('invoice_id')
+        return invoices.action_create_commission_vendor_bills(
+            mode='standard',
+            commission_line_ids=selected_lines.ids,
+        )
