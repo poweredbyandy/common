@@ -5,7 +5,7 @@ from odoo.exceptions import UserError
 class CommissionBillingWizardLine(models.TransientModel):
     _name = 'commission.billing.wizard.line'
     _description = 'Linea seleccionable del wizard de comisiones'
-    _order = 'invoice_date desc, invoice_id, id'
+    _order = 'invoice_id desc, id'
 
     wizard_id = fields.Many2one(
         comodel_name='commission.billing.wizard',
@@ -14,7 +14,11 @@ class CommissionBillingWizardLine(models.TransientModel):
     )
     commission_line_id = fields.Many2one(
         comodel_name='account.move.commission.line',
-        required=True,
+        readonly=True,
+        ondelete='cascade',
+    )
+    adjustment_id = fields.Many2one(
+        comodel_name='account.move.commission.adjustment',
         readonly=True,
         ondelete='cascade',
     )
@@ -23,7 +27,7 @@ class CommissionBillingWizardLine(models.TransientModel):
         default=True,
     )
     invoice_id = fields.Many2one(
-        related='commission_line_id.invoice_id',
+        comodel_name='account.move',
         readonly=True,
     )
     invoice_date = fields.Date(
@@ -31,10 +35,10 @@ class CommissionBillingWizardLine(models.TransientModel):
         readonly=True,
     )
     invoice_name = fields.Char(
-        related='invoice_id.name',
         readonly=True,
     )
     partner_id = fields.Many2one(
+        comodel_name='res.partner',
         related='invoice_id.partner_id',
         readonly=True,
     )
@@ -44,29 +48,34 @@ class CommissionBillingWizardLine(models.TransientModel):
         readonly=True,
     )
     sale_currency_id = fields.Many2one(
+        comodel_name='res.currency',
         related='invoice_id.currency_id',
         readonly=True,
     )
     payment_amount = fields.Monetary(
-        related='commission_line_id.payment_amount',
+        currency_field='currency_id',
         readonly=True,
     )
     commission_percent = fields.Float(
-        related='commission_line_id.commission_percent',
         readonly=True,
     )
     commission_amount = fields.Monetary(
-        related='commission_line_id.commission_amount',
+        currency_field='currency_id',
         readonly=True,
     )
     currency_id = fields.Many2one(
-        related='commission_line_id.currency_id',
+        comodel_name='res.currency',
         readonly=True,
     )
     description = fields.Char(
-        related='commission_line_id.description',
         readonly=True,
     )
+
+    @api.constrains('commission_line_id', 'adjustment_id')
+    def _check_commission_or_adjustment(self):
+        for wizard_line in self:
+            if bool(wizard_line.commission_line_id) == bool(wizard_line.adjustment_id):
+                raise UserError(_('Cada linea del wizard debe tener una comision o un ajuste, no ambos ni ninguno.'))
 
 
 class CommissionBillingWizard(models.TransientModel):
@@ -104,6 +113,34 @@ class CommissionBillingWizard(models.TransientModel):
         string='Moneda Objetivo',
     )
 
+    def _prepare_wizard_line_vals_from_commission_line(self, line):
+        invoice = line.invoice_id
+        return {
+            'commission_line_id': line.id,
+            'invoice_id': invoice.id,
+            'invoice_name': invoice.name or invoice.ref,
+            'payment_amount': line.payment_amount,
+            'commission_percent': line.commission_percent,
+            'commission_amount': line.commission_amount,
+            'currency_id': line.currency_id.id,
+            'description': line.description,
+            'selected': True,
+        }
+
+    def _prepare_wizard_line_vals_from_adjustment(self, adjustment):
+        invoice = adjustment.invoice_id
+        return {
+            'adjustment_id': adjustment.id,
+            'invoice_id': invoice.id,
+            'invoice_name': invoice.name or invoice.ref,
+            'payment_amount': 0.0,
+            'commission_percent': 0.0,
+            'commission_amount': adjustment.amount,
+            'currency_id': adjustment.currency_id.id,
+            'description': adjustment.description,
+            'selected': True,
+        }
+
     @api.model
     def _get_default_invoice_ids(self, default_res=None):
         if default_res and default_res.get('invoice_ids'):
@@ -134,6 +171,7 @@ class CommissionBillingWizard(models.TransientModel):
         )
         if invoices:
             invoices._sync_commission_lines_from_payments()
+        wizard = self.env['commission.billing.wizard'].new(res)
         line_commands = []
         for invoice in invoices.sorted(
             key=lambda move: move.invoice_date or fields.Date.today(),
@@ -143,10 +181,10 @@ class CommissionBillingWizard(models.TransientModel):
                 lambda line: line.state == 'waiting' and not line.vendor_bill_id
             )
             for line in waiting_lines:
-                line_commands.append((0, 0, {
-                    'commission_line_id': line.id,
-                    'selected': True,
-                }))
+                line_commands.append((0, 0, wizard._prepare_wizard_line_vals_from_commission_line(line)))
+            waiting_adjustments = invoice._pba_get_waiting_commission_adjustments()
+            for adjustment in waiting_adjustments:
+                line_commands.append((0, 0, wizard._prepare_wizard_line_vals_from_adjustment(adjustment)))
         res['line_ids'] = line_commands
         return res
 
@@ -165,6 +203,10 @@ class CommissionBillingWizard(models.TransientModel):
     def _get_selected_commission_lines(self):
         self.ensure_one()
         return self.line_ids.filtered('selected').mapped('commission_line_id')
+
+    def _get_selected_adjustments(self):
+        self.ensure_one()
+        return self.line_ids.filtered('selected').mapped('adjustment_id')
 
     def _action_reload_wizard(self):
         self.ensure_one()
@@ -199,10 +241,12 @@ class CommissionBillingWizard(models.TransientModel):
     def action_confirm(self):
         self.ensure_one()
         selected_lines = self._get_selected_commission_lines()
-        if not selected_lines:
+        selected_adjustments = self._get_selected_adjustments()
+        if not selected_lines and not selected_adjustments:
             raise UserError(_('Debe seleccionar al menos una linea de comision para facturar.'))
 
-        invoices = selected_lines.mapped('invoice_id')
+        invoices = selected_lines.mapped('invoice_id') | selected_adjustments.mapped('invoice_id')
         return invoices.with_context(
             pba_commission_line_ids=selected_lines.ids,
+            pba_commission_adjustment_ids=selected_adjustments.ids,
         ).action_create_commission_vendor_bills(mode='standard')

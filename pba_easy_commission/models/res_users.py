@@ -62,12 +62,18 @@ class ResUsers(models.Model):
             waiting_lines = invoice.commission_line_ids.filtered(
                 lambda line: line.state == 'waiting' and not line.vendor_bill_id
             )
-            if waiting_lines:
+            waiting_adjustments = invoice._pba_get_waiting_commission_adjustments()
+            if waiting_lines or waiting_adjustments:
                 pending_by_user[user_id]['count'] += 1
                 for line in waiting_lines:
                     currency = line.currency_id.name
                     pending_by_user[user_id]['totals'][currency] = (
                         pending_by_user[user_id]['totals'].get(currency, 0.0) + line.commission_amount
+                    )
+                for adjustment in waiting_adjustments:
+                    currency = adjustment.currency_id.name
+                    pending_by_user[user_id]['totals'][currency] = (
+                        pending_by_user[user_id]['totals'].get(currency, 0.0) + adjustment.amount
                     )
                 continue
             prepared = invoice._prepare_commission_payment_lines_data()

@@ -293,17 +293,48 @@ class AccountMove(models.Model):
             ),
         )
 
+    def _pba_commission_adjustment_amount_in_invoice_currency(self, adjustment):
+        self.ensure_one()
+        return self._pba_commission_amount_to_invoice_currency(
+            adjustment.amount,
+            adjustment.currency_id,
+            self.invoice_date or fields.Date.context_today(self),
+        )
+
+    def _pba_get_waiting_commission_adjustments(self):
+        self.ensure_one()
+        return self.commission_adjustment_ids.filtered(
+            lambda adj: adj.state == 'waiting' and not adj.vendor_bill_id
+        )
+
+    def _pba_format_commission_preview_line_from_adjustment(self, adjustment):
+        return {
+            'description': adjustment.description,
+            'payment_amount': 0.0,
+            'commission_amount': adjustment.amount,
+            'currency': adjustment.currency_id.name,
+        }
+
     def _commission_pending_amount_live(self):
         self.ensure_one()
         waiting_lines = self.commission_line_ids.filtered(
             lambda line: line.state == 'waiting' and not line.vendor_bill_id
         )
-        if waiting_lines:
-            return sum(
-                self._pba_commission_line_amount_in_invoice_currency(line)
-                for line in waiting_lines
-            )
-        if self.commission_line_ids:
+        waiting_adjustments = self._pba_get_waiting_commission_adjustments()
+        if waiting_lines or waiting_adjustments:
+            total = 0.0
+            if waiting_lines:
+                total += sum(
+                    self._pba_commission_line_amount_in_invoice_currency(line)
+                    for line in waiting_lines
+                )
+            if waiting_adjustments:
+                total += sum(
+                    self._pba_commission_adjustment_amount_in_invoice_currency(adj)
+                    for adj in waiting_adjustments
+                )
+            return total
+        if self.commission_line_ids or self.commission_adjustment_ids:
             return 0.0
         return sum(
             self._pba_commission_prepared_amount_in_invoice_currency(line_data)
@@ -701,6 +732,11 @@ class AccountMove(models.Model):
         inverse_name='invoice_id',
         string='Comisiones por pagos',
     )
+    commission_adjustment_ids = fields.One2many(
+        comodel_name='account.move.commission.adjustment',
+        inverse_name='invoice_id',
+        string='Ajustes manuales de comision',
+    )
     commission_amount_total = fields.Monetary(
         string='Monto Total Comision',
         compute='_compute_commission_amount_total',
@@ -758,6 +794,8 @@ class AccountMove(models.Model):
         'commission_line_ids.currency_id',
         'commission_line_ids.payment_id',
         'commission_line_ids.payment_move_id',
+        'commission_adjustment_ids.amount',
+        'commission_adjustment_ids.currency_id',
         'currency_id',
         'invoice_date',
         'payment_state',
@@ -770,11 +808,19 @@ class AccountMove(models.Model):
         for move in self:
             if move.move_type != 'out_invoice' or move.state != 'posted':
                 move.commission_amount_total = 0.0
-            elif move.commission_line_ids:
-                move.commission_amount_total = sum(
-                    move._pba_commission_line_amount_in_invoice_currency(line)
-                    for line in move.commission_line_ids
-                )
+            elif move.commission_line_ids or move.commission_adjustment_ids:
+                total = 0.0
+                if move.commission_line_ids:
+                    total += sum(
+                        move._pba_commission_line_amount_in_invoice_currency(line)
+                        for line in move.commission_line_ids
+                    )
+                if move.commission_adjustment_ids:
+                    total += sum(
+                        move._pba_commission_adjustment_amount_in_invoice_currency(adj)
+                        for adj in move.commission_adjustment_ids
+                    )
+                move.commission_amount_total = total
             else:
                 move.commission_amount_total = sum(
                     move._pba_commission_prepared_amount_in_invoice_currency(line_data)
@@ -788,6 +834,10 @@ class AccountMove(models.Model):
         'commission_line_ids.payment_move_id',
         'commission_line_ids.state',
         'commission_line_ids.vendor_bill_id',
+        'commission_adjustment_ids.amount',
+        'commission_adjustment_ids.currency_id',
+        'commission_adjustment_ids.state',
+        'commission_adjustment_ids.vendor_bill_id',
         'currency_id',
         'invoice_date',
         'payment_state',
@@ -806,7 +856,7 @@ class AccountMove(models.Model):
             else:
                 move.commission_amount_pending = move._commission_pending_amount_live()
 
-    @api.depends('commission_line_ids.state', 'commission_line_ids.vendor_bill_id.payment_state', 'move_type')
+    @api.depends('commission_line_ids.state', 'commission_line_ids.vendor_bill_id.payment_state', 'commission_adjustment_ids.state', 'commission_adjustment_ids.vendor_bill_id.payment_state', 'move_type')
     def _compute_commission_state(self):
         for move in self:
             effective_states = []
@@ -815,7 +865,12 @@ class AccountMove(models.Model):
                     effective_states.append('paid' if line.vendor_bill_id.payment_state == 'paid' else 'invoiced')
                 else:
                     effective_states.append(line.state)
-            if move.move_type != 'out_invoice' or not move.commission_line_ids:
+            for adjustment in move.commission_adjustment_ids:
+                if adjustment.vendor_bill_id:
+                    effective_states.append('paid' if adjustment.vendor_bill_id.payment_state == 'paid' else 'invoiced')
+                else:
+                    effective_states.append(adjustment.state)
+            if move.move_type != 'out_invoice' or not effective_states:
                 move.commission_state = 'waiting'
             elif all(state == 'paid' for state in effective_states):
                 move.commission_state = 'paid'
@@ -833,6 +888,8 @@ class AccountMove(models.Model):
         'invoice_user_id.partner_id.commission_percent',
         'commission_line_ids.state',
         'commission_line_ids.vendor_bill_id',
+        'commission_adjustment_ids.state',
+        'commission_adjustment_ids.vendor_bill_id',
         'commission_amount_pending',
         'line_ids.matched_debit_ids',
         'line_ids.matched_credit_ids',
@@ -896,12 +953,18 @@ class AccountMove(models.Model):
         waiting_lines = self.commission_line_ids.filtered(
             lambda line: line.state == 'waiting' and not line.vendor_bill_id
         )
-        if waiting_lines:
-            return [
+        waiting_adjustments = self._pba_get_waiting_commission_adjustments()
+        if waiting_lines or waiting_adjustments:
+            line_data = [
                 self._pba_format_commission_preview_line_from_record(line)
                 for line in waiting_lines
             ]
-        if self.commission_line_ids:
+            line_data.extend([
+                self._pba_format_commission_preview_line_from_adjustment(adj)
+                for adj in waiting_adjustments
+            ])
+            return line_data
+        if self.commission_line_ids or self.commission_adjustment_ids:
             return []
         prepared = self._prepare_commission_payment_lines_data()
         return [
@@ -940,6 +1003,22 @@ class AccountMove(models.Model):
             'lines': line_data,
         }
 
+    def action_open_commission_adjustment_wizard(self):
+        self.ensure_one()
+        if self.move_type != 'out_invoice' or self.state != 'posted':
+            raise UserError(_('Solo se pueden registrar ajustes en facturas de cliente confirmadas.'))
+        return {
+            'name': _('Ajuste manual de comision'),
+            'type': 'ir.actions.act_window',
+            'res_model': 'commission.adjustment.wizard',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {
+                'default_invoice_id': self.id,
+                'default_currency_id': self.currency_id.id,
+            },
+        }
+
     def action_open_commission_billing_wizard(self):
         invoices = self._filter_pending_commission_invoices()
         if not invoices:
@@ -967,6 +1046,8 @@ class AccountMove(models.Model):
             commission_line_ids = self.env.context.get('pba_commission_line_ids')
         selected_line_ids = set(commission_line_ids or [])
         filter_by_selection = commission_line_ids is not None
+        selected_adjustment_ids = set(self.env.context.get('pba_commission_adjustment_ids') or [])
+        filter_adjustments_by_selection = 'pba_commission_adjustment_ids' in self.env.context
         if not filter_by_selection:
             out_invoices._pba_rebuild_waiting_commission_lines()
         for move in out_invoices:
@@ -974,6 +1055,7 @@ class AccountMove(models.Model):
                 not filter_by_selection
                 and move.commission_line_ids
                 and all(line.state in ('invoiced', 'paid') for line in move.commission_line_ids)
+                and not move._pba_get_waiting_commission_adjustments()
             ):
                 raise UserError(_('La factura %(invoice)s ya tiene su comision facturada.', invoice=move.name or move.ref or move.id))
             if move.state != 'posted':
@@ -985,7 +1067,10 @@ class AccountMove(models.Model):
             pending_lines = move.commission_line_ids.filtered(lambda l: l.state == 'waiting')
             if filter_by_selection:
                 pending_lines = pending_lines.filtered(lambda l: l.id in selected_line_ids)
-            if not pending_lines:
+            pending_adjustments = move._pba_get_waiting_commission_adjustments()
+            if filter_adjustments_by_selection:
+                pending_adjustments = pending_adjustments.filtered(lambda adj: adj.id in selected_adjustment_ids)
+            if not pending_lines and not pending_adjustments:
                 continue
 
             product = move.company_id.commission_product_id
@@ -1039,19 +1124,61 @@ class AccountMove(models.Model):
                     }
                 grouped_payload[group_key]['line_items'].append({
                     'commission_line': line,
+                    'adjustment': False,
                     'amount': group_currency.round(line_amount),
                     'label': line_label,
                 })
                 grouped_payload[group_key]['source_invoices'] |= line.invoice_id
 
+            for adjustment in pending_adjustments:
+                if mode == 'only_single_currency' and target_currency and adjustment.currency_id != target_currency:
+                    continue
+                if mode == 'convert_to_single':
+                    if not target_currency:
+                        raise UserError(_('Debe definir una moneda objetivo para convertir comisiones.'))
+                    line_amount = adjustment.currency_id._convert(
+                        adjustment.amount,
+                        target_currency,
+                        move.company_id,
+                        fields.Date.context_today(move),
+                    )
+                    group_currency = target_currency
+                else:
+                    line_amount = adjustment.amount
+                    group_currency = adjustment.currency_id
+                line_label = '%s - %s' % (
+                    adjustment.invoice_id.name or adjustment.invoice_id.ref or adjustment.invoice_id.id,
+                    adjustment.description,
+                )
+                group_key = (seller_partner.id, group_currency.id)
+                if group_key not in grouped_payload:
+                    grouped_payload[group_key] = {
+                        'partner': seller_partner,
+                        'currency': group_currency,
+                        'product': product,
+                        'line_items': [],
+                        'source_invoices': self.env['account.move'],
+                    }
+                grouped_payload[group_key]['line_items'].append({
+                    'commission_line': False,
+                    'adjustment': adjustment,
+                    'amount': group_currency.round(line_amount),
+                    'label': line_label,
+                })
+                grouped_payload[group_key]['source_invoices'] |= adjustment.invoice_id
+
         for payload in grouped_payload.values():
             bill_lines = []
             line_group = self.env['account.move.commission.line']
+            adjustment_group = self.env['account.move.commission.adjustment']
             source_invoices = payload['source_invoices']
             source_labels = ', '.join(source_invoices.mapped(lambda inv: inv.name or inv.ref or str(inv.id)))
             for item in payload['line_items']:
-                line = item['commission_line']
-                line_group |= line
+                if item['commission_line']:
+                    line = item['commission_line']
+                    line_group |= line
+                if item['adjustment']:
+                    adjustment_group |= item['adjustment']
                 bill_lines.append(fields.Command.create({
                     'product_id': payload['product'].id,
                     'name': item['label'],
@@ -1073,7 +1200,10 @@ class AccountMove(models.Model):
                 bill_vals['journal_id'] = company.commission_journal_id.id
             bill = self.env['account.move'].create(bill_vals)
             bills |= bill
-            line_group.write({'vendor_bill_id': bill.id, 'state': 'invoiced'})
+            if line_group:
+                line_group.write({'vendor_bill_id': bill.id, 'state': 'invoiced'})
+            if adjustment_group:
+                adjustment_group.write({'vendor_bill_id': bill.id, 'state': 'invoiced'})
 
         if not bills:
             raise UserError(_('No hay lineas de comision pendientes para facturar.'))
@@ -1107,9 +1237,28 @@ class AccountMove(models.Model):
         commission_lines = self.env['account.move.commission.line'].search([
             ('vendor_bill_id', '=', self.id),
         ], order='invoice_id, id')
+        commission_adjustments = self.env['account.move.commission.adjustment'].search([
+            ('vendor_bill_id', '=', self.id),
+        ], order='invoice_id, id')
+        invoice_ids = commission_lines.mapped('invoice_id') | commission_adjustments.mapped('invoice_id')
         invoices_data = []
-        for invoice in commission_lines.mapped('invoice_id'):
+        for invoice in invoice_ids:
             inv_lines = commission_lines.filtered(lambda line: line.invoice_id == invoice)
+            inv_adjustments = commission_adjustments.filtered(lambda adj: adj.invoice_id == invoice)
+            voucher_lines = [{
+                'description': invoice._commission_report_line_description_es(invoice, line=line),
+                'payment_amount': line.payment_amount,
+                'commission_amount': line.commission_amount,
+                'currency': line.currency_id.name,
+            } for line in inv_lines]
+            voucher_lines.extend([{
+                'description': adj.description,
+                'payment_amount': 0.0,
+                'commission_amount': adj.amount,
+                'currency': adj.currency_id.name,
+            } for adj in inv_adjustments])
+            subtotal_lines = sum(line['commission_amount'] for line in voucher_lines)
+            currencies = list({line['currency'] for line in voucher_lines})
             invoices_data.append({
                 'invoice': invoice,
                 'name': invoice.name or invoice.ref or str(invoice.id),
@@ -1118,14 +1267,9 @@ class AccountMove(models.Model):
                 ).display_name,
                 'date': invoice._format_commission_report_date_es(invoice.invoice_date),
                 'percent': invoice.commission_percent or invoice.invoice_user_id.partner_id.commission_percent,
-                'lines': [{
-                    'description': invoice._commission_report_line_description_es(invoice, line=line),
-                    'payment_amount': line.payment_amount,
-                    'commission_amount': line.commission_amount,
-                    'currency': line.currency_id.name,
-                } for line in inv_lines],
-                'subtotal': sum(inv_lines.mapped('commission_amount')),
-                'currency': inv_lines[:1].currency_id.name if len(inv_lines.currency_id) == 1 else self.currency_id.name,
+                'lines': voucher_lines,
+                'subtotal': subtotal_lines,
+                'currency': currencies[0] if len(currencies) == 1 else self.currency_id.name,
             })
         return {
             'vendor_bill': self,
@@ -1158,6 +1302,13 @@ class AccountMove(models.Model):
                     expected_state = 'paid' if line.vendor_bill_id.payment_state == 'paid' else 'invoiced'
                     if line.state != expected_state:
                         line.state = expected_state
+                commission_adjustments = self.env['account.move.commission.adjustment'].search([
+                    ('vendor_bill_id', 'in', vendor_bills.ids),
+                ])
+                for adjustment in commission_adjustments:
+                    expected_state = 'paid' if adjustment.vendor_bill_id.payment_state == 'paid' else 'invoiced'
+                    if adjustment.state != expected_state:
+                        adjustment.state = expected_state
             to_sync = self.filtered(
                 lambda move: move.move_type == 'out_invoice'
                 and move.state == 'posted'
@@ -1177,6 +1328,14 @@ class AccountMove(models.Model):
             ])
             if commission_lines:
                 commission_lines.write({
+                    'vendor_bill_id': False,
+                    'state': 'waiting',
+                })
+            commission_adjustments = self.env['account.move.commission.adjustment'].sudo().search([
+                ('vendor_bill_id', 'in', commission_bills.ids),
+            ])
+            if commission_adjustments:
+                commission_adjustments.write({
                     'vendor_bill_id': False,
                     'state': 'waiting',
                 })

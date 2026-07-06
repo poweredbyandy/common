@@ -19,6 +19,7 @@
                             <field name="commission_amount" string="Comisión"/>
                             <field name="currency_id" string="Moneda"/>
                             <field name="commission_line_id" column_invisible="1" force_save="1"/>
+                            <field name="adjustment_id" column_invisible="1" force_save="1"/>
                             <field name="invoice_id" column_invisible="1"/>
                             <field name="invoice_date" column_invisible="1"/>
                             <field name="sale_currency_id" column_invisible="1"/>

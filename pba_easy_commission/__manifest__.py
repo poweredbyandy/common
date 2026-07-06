@@ -1,6 +1,6 @@
 {
     'name': 'PBA Easy Commission',
-    'version': '18.0.1.0.17',
+    'version': '18.0.1.0.20',
     'summary': 'Comisiones de vendedor basadas en pagos de factura',
     'author': 'andyengit',
     'maintainer': 'andyengit',
@@ -20,6 +20,7 @@
         'views/account_payment_views.xml',
         'views/account_payment_register_views.xml',
         'views/commission_billing_wizard_views.xml',
+        'views/commission_adjustment_wizard_views.xml',
         'views/commission_seller_views.xml',
         'views/commission_menu_views.xml',
         'report/ir_actions_report.xml',
