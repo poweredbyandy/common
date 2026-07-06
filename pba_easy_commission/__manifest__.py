@@ -1,6 +1,6 @@
 {
     'name': 'PBA Easy Commission',
-    'version': '18.0.1.0.13',
+    'version': '18.0.1.0.14',
     'summary': 'Comisiones de vendedor basadas en pagos de factura',
     'author': 'andyengit',
     'maintainer': 'andyengit',
