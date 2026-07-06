@@ -963,6 +963,8 @@ class AccountMove(models.Model):
         out_invoices = self.filtered(lambda move: move.move_type == 'out_invoice' and move.state == 'posted')
         selected_currency_id = selected_currency.id if selected_currency else self.env.context.get('selected_currency_id')
         target_currency = self.env['res.currency'].browse(selected_currency_id) if selected_currency_id else False
+        if commission_line_ids is None:
+            commission_line_ids = self.env.context.get('pba_commission_line_ids')
         selected_line_ids = set(commission_line_ids or [])
         filter_by_selection = commission_line_ids is not None
         if not filter_by_selection:

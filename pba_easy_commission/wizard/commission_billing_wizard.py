@@ -203,7 +203,6 @@ class CommissionBillingWizard(models.TransientModel):
             raise UserError(_('Debe seleccionar al menos una linea de comision para facturar.'))
 
         invoices = selected_lines.mapped('invoice_id')
-        return invoices.action_create_commission_vendor_bills(
-            mode='standard',
-            commission_line_ids=selected_lines.ids,
-        )
+        return invoices.with_context(
+            pba_commission_line_ids=selected_lines.ids,
+        ).action_create_commission_vendor_bills(mode='standard')
