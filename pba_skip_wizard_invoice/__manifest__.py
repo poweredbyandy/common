@@ -1,6 +1,6 @@
 {
     "name": "PBA Confirmar y crear factura sin asistente",
-    "version": "18.0.1.0.0",
+    "version": "18.0.1.0.1",
     "category": "Sales",
     "summary": "Botón en pedido de venta para confirmar, crear y publicar la factura y abrirla",
     "author": "andyengit",

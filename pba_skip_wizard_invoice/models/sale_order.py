@@ -23,7 +23,9 @@ class SaleOrder(models.Model):
             raise UserError(
                 _("No se generó ninguna factura. Revise la política de facturación de las líneas y cantidades a facturar.")
             )
-        invoices.action_post()
+        post_result = invoices.action_post()
+        if isinstance(post_result, dict):
+            return post_result
         self.invalidate_recordset()
         if len(invoices) == 1:
             return {
