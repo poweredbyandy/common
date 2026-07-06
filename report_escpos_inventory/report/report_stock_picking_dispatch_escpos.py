@@ -164,12 +164,25 @@ def _dispatch_move_sort_key(move):
 
 
 def _invoice_ref(picking):
+    if "invoice_ids" in picking._fields and picking.invoice_ids:
+        invs = picking.invoice_ids.filtered(
+            lambda m: m.state == "posted" and m.move_type == "out_invoice"
+        )
+        if invs:
+            if len(invs) == 1:
+                return invs.name or ""
+            invs = invs.sorted(
+                key=lambda m: (m.invoice_date or m.date, m.id), reverse=True
+            )
+            return invs[0].name or ""
     if hasattr(picking, "sale_id") and picking.sale_id:
         invs = picking.sale_id.invoice_ids.filtered(
             lambda m: m.state == "posted" and m.move_type == "out_invoice"
         )
         if invs:
-            invs = invs.sorted(key=lambda m: m.invoice_date or m.date, reverse=True)
+            invs = invs.sorted(
+                key=lambda m: (m.invoice_date or m.date, m.id), reverse=True
+            )
             return invs[0].name or ""
     return picking.origin or ""
 

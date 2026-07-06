@@ -1,6 +1,6 @@
 {
     "name": "Inventario ESC/POS",
-    "version": "18.0.1.30.0",
+    "version": "18.0.1.30.2",
     "category": "Inventory",
     "summary": "Informes ESC/POS o ESC/P Epson matriz para stock (nota de despacho, etc.)",
     "author": "andyengit",
@@ -8,6 +8,7 @@
     "license": "LGPL-3",
     "depends": [
         "sale_stock",
+        "sale_stock_picking_invoice_link",
         "report_escpos_webserial",
         "product_brand",
         "pba_internal_code",
