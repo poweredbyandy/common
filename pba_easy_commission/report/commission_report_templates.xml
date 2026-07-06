@@ -6,9 +6,9 @@
                 <t t-set="report" t-value="report_data.get(partner.id, {})"/>
                 <t t-set="invoices_data" t-value="report.get('invoices', [])"/>
                 <t t-call="web.external_layout" t-att-lang="report_lang">
-                    <div class="article o_report_layout_standard o_table_standard o_pba_comm_pending_report" style="font-size: 11px; line-height: 1.35; color: #212529;">
+                    <div class="article o_report_layout_standard o_table_standard o_pba_comm_pending_report" style="font-size: 13px; line-height: 1.35; color: #212529;">
                         <p style="margin: 0 0 8px; padding-bottom: 6px; border-bottom: 2px solid #714B67;">
-                            <strong style="color: #714B67; font-size: 14px;">Comisiones Pendientes</strong>
+                            <strong style="color: #714B67; font-size: 16px;">Comisiones Pendientes</strong>
                             <span style="color: #6c757d;"> · </span>
                             <strong t-field="partner.name"/>
                             <span style="color: #6c757d;"> · Fecha: <span t-esc="report_date"/></span>
@@ -21,7 +21,7 @@
                             <p style="margin: 0 0 6px;">
                                 <strong t-esc="report.get('invoice_count', 0)"/> factura(s) pendiente(s) de comisionar
                             </p>
-                            <table class="table table-sm table-borderless o_main_table" style="width: 100%; border-collapse: collapse; font-size: 10px;">
+                            <table class="table table-sm table-borderless o_main_table" style="width: 100%; border-collapse: collapse; font-size: 12px;">
                                 <thead>
                                     <tr style="border-bottom: 1px solid #dee2e6; color: #6c757d;">
                                         <th style="text-align: left; padding: 2px 8px 2px 0; font-weight: 600;">Factura</th>
@@ -100,9 +100,9 @@
             <t t-foreach="docs" t-as="bill">
                 <t t-set="voucher" t-value="report_data.get(bill.id, {})"/>
                 <t t-call="web.external_layout" t-att-lang="report_lang">
-                    <div class="article o_report_layout_standard o_table_standard o_pba_comm_voucher_report" style="font-size: 11px; line-height: 1.35; color: #212529;">
+                    <div class="article o_report_layout_standard o_table_standard o_pba_comm_voucher_report" style="font-size: 13px; line-height: 1.35; color: #212529;">
                         <p style="margin: 0 0 8px; padding-bottom: 6px; border-bottom: 2px solid #714B67;">
-                            <strong style="color: #714B67; font-size: 14px;">Comprobante de Pago de Comisiones</strong>
+                            <strong style="color: #714B67; font-size: 16px;">Comprobante de Pago de Comisiones</strong>
                             <span style="color: #6c757d;"> · </span>
                             <strong t-esc="voucher.get('vendor_name')"/>
                             <span style="color: #6c757d;"> · Vendedor: <span t-esc="voucher.get('seller')"/> · Fecha: <span t-esc="voucher.get('vendor_date')"/></span>
@@ -116,8 +116,8 @@
                             <span style="color: #6c757d;"> · Estado de pago: <span t-esc="voucher.get('payment_state')"/></span>
                         </p>
 
-                        <p style="margin: 8px 0 4px; font-weight: 600; color: #495057; font-size: 11px;">Facturas comisionadas</p>
-                        <table class="table table-sm table-borderless o_main_table" style="width: 100%; border-collapse: collapse; font-size: 10px;">
+                        <p style="margin: 8px 0 4px; font-weight: 600; color: #495057; font-size: 13px;">Facturas comisionadas</p>
+                        <table class="table table-sm table-borderless o_main_table" style="width: 100%; border-collapse: collapse; font-size: 12px;">
                             <thead>
                                 <tr style="border-bottom: 1px solid #dee2e6; color: #6c757d;">
                                     <th style="text-align: left; padding: 2px 8px 2px 0; font-weight: 600;">Factura</th>
