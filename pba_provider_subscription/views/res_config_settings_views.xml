@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="res_config_settings_view_form_pba_sla" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.pba.sla</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="base.res_config_settings_view_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <app
+                    string="Customer Support"
+                    name="pba_provider_subscription"
+                    groups="pba_provider_subscription.group_support_manager"
+                >
+                    <block title="SLA by priority" name="pba_sla_settings">
+                        <setting
+                            string="Low priority"
+                            help="Default 2 weeks (336 hours)."
+                        >
+                            <field name="pba_sla_hours_low" />
+                            <div class="text-muted">Hours to resolve</div>
+                        </setting>
+                        <setting
+                            string="Normal priority"
+                            help="Default 1 week (168 hours)."
+                        >
+                            <field name="pba_sla_hours_normal" />
+                            <div class="text-muted">Hours to resolve</div>
+                        </setting>
+                        <setting
+                            string="High priority"
+                            help="Default 2 days (48 hours)."
+                        >
+                            <field name="pba_sla_hours_high" />
+                            <div class="text-muted">Hours to resolve</div>
+                        </setting>
+                        <setting
+                            string="Urgent priority"
+                            help="Default 5 hours."
+                        >
+                            <field name="pba_sla_hours_urgent" />
+                            <div class="text-muted">Hours to resolve</div>
+                        </setting>
+                        <setting
+                            string="Priority mismatch holgura"
+                            help="Extra time when the customer overstates urgency. Default 1 day (24 hours)."
+                        >
+                            <field name="pba_sla_priority_mismatch_hours" />
+                            <div class="text-muted">
+                                Extra hours added to the SLA deadline
+                            </div>
+                        </setting>
+                    </block>
+                </app>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="action_pba_provider_config_settings" model="ir.actions.act_window">
+        <field name="name">SLA Configuration</field>
+        <field name="res_model">res.config.settings</field>
+        <field name="view_mode">form</field>
+        <field name="target">inline</field>
+        <field name="context">{'module': 'pba_provider_subscription'}</field>
+    </record>
+</odoo>

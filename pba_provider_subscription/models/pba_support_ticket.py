@@ -1,4 +1,6 @@
 import base64
+from datetime import timedelta
+
 from markupsafe import Markup
 
 from odoo import api, fields, models, _
@@ -6,7 +8,42 @@ from odoo.exceptions import AccessError, UserError, ValidationError
 
 PBA_ATTACHMENT_MAX_BYTES = 25 * 1024 * 1024
 
+PBA_TICKET_CATEGORIES = [
+    ("consultation", "Consulta"),
+    ("system_down", "Sistema Caído"),
+    ("system_error", "Error de Sistema"),
+    ("access", "Accesos y Permisos"),
+    ("data", "Datos / Reportes"),
+    ("improvement", "Mejora o Solicitud"),
+    ("other", "Otro"),
+]
 
+PBA_PRIORITY_SELECTION = [
+    ("0", "Low"),
+    ("1", "Normal"),
+    ("2", "High"),
+    ("3", "Urgent"),
+]
+
+PBA_PRIORITY_HELP = {
+    "0": (
+        "Consultas, mejoras o ajustes no urgentes que pueden atenderse "
+        "con mayor holgura sin afectar la operación diaria."
+    ),
+    "1": (
+        "Solicitudes o incidencias del día a día que afectan un proceso "
+        "puntual, sin detener la operación general de la empresa."
+    ),
+    "2": (
+        "Errores críticos para el funcionamiento de la empresa, pero la "
+        "operación puede continuar. Requieren atención con un tiempo de "
+        "espera acotado."
+    ),
+    "3": (
+        "Errores de facturación o errores que impiden la operatividad del "
+        "sistema. No deben superar el día."
+    ),
+}
 
 
 class PbaSupportTicket(models.Model):
@@ -51,14 +88,59 @@ class PbaSupportTicket(models.Model):
     )
     client_company_name = fields.Char(string="Client Company Name")
     priority = fields.Selection(
-        [
-            ("0", "Low"),
-            ("1", "Normal"),
-            ("2", "High"),
-            ("3", "Urgent"),
-        ],
+        selection=PBA_PRIORITY_SELECTION,
+        string="Reviewed Priority",
         default="1",
         tracking=True,
+        help="Priority after internal review. May differ from the customer request.",
+    )
+    client_priority = fields.Selection(
+        selection=PBA_PRIORITY_SELECTION,
+        string="Customer Priority",
+        default="1",
+        readonly=True,
+        copy=False,
+        tracking=True,
+        help="Priority declared by the customer when opening the ticket.",
+    )
+    priority_reviewed = fields.Boolean(
+        string="Priority Reviewed",
+        default=False,
+        copy=False,
+        tracking=True,
+    )
+    priority_mismatch = fields.Boolean(
+        string="Priority Mismatch",
+        compute="_compute_sla_deadline",
+        store=True,
+    )
+    sla_hours = fields.Float(
+        string="SLA Hours",
+        compute="_compute_sla_deadline",
+        store=True,
+    )
+    sla_holgura_hours = fields.Float(
+        string="Holgura Hours",
+        compute="_compute_sla_deadline",
+        store=True,
+    )
+    sla_deadline = fields.Datetime(
+        string="SLA Deadline",
+        compute="_compute_sla_deadline",
+        store=True,
+    )
+    sla_estimated_label = fields.Char(
+        string="Estimated Resolution",
+        compute="_compute_sla_deadline",
+        store=True,
+    )
+    category = fields.Selection(
+        selection=PBA_TICKET_CATEGORIES,
+        string="Category",
+        required=True,
+        default="consultation",
+        tracking=True,
+        index=True,
     )
     state = fields.Selection(
         [
@@ -90,15 +172,52 @@ class PbaSupportTicket(models.Model):
         compute="_compute_attachment_count",
         string="Attachment Count",
     )
-    date_pending_approval = fields.Datetime(string="Pending Since", copy=False)
-    date_submitted = fields.Datetime(string="Submitted At", copy=False)
-    date_in_progress = fields.Datetime(string="In Progress At", copy=False)
-    date_resolved = fields.Datetime(string="Resolved At", copy=False)
-    date_cancelled = fields.Datetime(string="Cancelled At", copy=False)
+    date_pending_approval = fields.Datetime(
+        string="Pending Since",
+        copy=False,
+        readonly=True,
+    )
+    date_submitted = fields.Datetime(
+        string="Submitted At",
+        copy=False,
+        readonly=True,
+    )
+    date_in_progress = fields.Datetime(
+        string="In Progress At",
+        copy=False,
+        readonly=True,
+    )
+    date_resolved = fields.Datetime(
+        string="Resolved At",
+        copy=False,
+        readonly=True,
+    )
+    date_cancelled = fields.Datetime(
+        string="Cancelled At",
+        copy=False,
+        readonly=True,
+    )
     stage_entered_at = fields.Datetime(
         string="Current Stage Since",
         copy=False,
+        readonly=True,
         help="Timestamp when the ticket entered its current state.",
+    )
+    wait_label = fields.Char(
+        string="Wait Time",
+        compute="_compute_sla_display",
+    )
+    process_label = fields.Char(
+        string="Process Time",
+        compute="_compute_sla_display",
+    )
+    stage_duration_label = fields.Char(
+        string="Time in Current Stage",
+        compute="_compute_sla_display",
+    )
+    stage_duration_hint = fields.Char(
+        string="SLA Summary",
+        compute="_compute_sla_display",
     )
     rating = fields.Selection(
         [
@@ -110,10 +229,19 @@ class PbaSupportTicket(models.Model):
         ],
         string="Rating",
         copy=False,
+        readonly=True,
         tracking=True,
     )
-    rating_text = fields.Text(string="Rating Comment", copy=False)
-    rating_date = fields.Datetime(string="Rated On", copy=False)
+    rating_text = fields.Text(
+        string="Rating Comment",
+        copy=False,
+        readonly=True,
+    )
+    rating_date = fields.Datetime(
+        string="Rated On",
+        copy=False,
+        readonly=True,
+    )
     is_rated = fields.Boolean(compute="_compute_is_rated", store=True)
 
     @api.depends("attachment_ids")
@@ -126,6 +254,91 @@ class PbaSupportTicket(models.Model):
         for ticket in self:
             ticket.is_rated = bool(ticket.rating)
 
+    @api.depends(
+        "state",
+        "stage_entered_at",
+        "date_submitted",
+        "date_in_progress",
+        "date_resolved",
+        "create_date",
+    )
+    def _compute_sla_display(self):
+        for ticket in self:
+            timings = self._pba_stage_timings(ticket)
+            ticket.wait_label = timings["wait_label"]
+            ticket.process_label = timings["process_label"]
+            ticket.stage_duration_label = timings["stage_duration_label"]
+            ticket.stage_duration_hint = timings["stage_duration_hint"]
+
+    @api.depends(
+        "priority",
+        "client_priority",
+        "priority_reviewed",
+        "create_date",
+        "date_submitted",
+        "company_id.pba_sla_hours_low",
+        "company_id.pba_sla_hours_normal",
+        "company_id.pba_sla_hours_high",
+        "company_id.pba_sla_hours_urgent",
+        "company_id.pba_sla_priority_mismatch_hours",
+    )
+    def _compute_sla_deadline(self):
+        for ticket in self:
+            company = ticket.company_id or self.env.company
+            hours = company._pba_get_sla_hours(ticket.priority or "1")
+            mismatch = bool(
+                ticket.priority_reviewed
+                and ticket.client_priority
+                and ticket.priority
+                and int(ticket.client_priority) > int(ticket.priority)
+            )
+            holgura = company.pba_sla_priority_mismatch_hours if mismatch else 0.0
+            total_hours = (hours or 0.0) + (holgura or 0.0)
+            start = ticket.date_submitted or ticket.create_date
+            deadline = False
+            if start and total_hours:
+                start_dt = (
+                    fields.Datetime.from_string(start)
+                    if isinstance(start, str)
+                    else start
+                )
+                deadline = start_dt + timedelta(hours=total_hours)
+            ticket.sla_hours = hours
+            ticket.sla_holgura_hours = holgura
+            ticket.priority_mismatch = mismatch
+            ticket.sla_deadline = deadline
+            base_label = self._pba_format_sla_hours(hours)
+            if holgura:
+                ticket.sla_estimated_label = _(
+                    "%(base)s (+%(holgura)s holgura)",
+                    base=base_label,
+                    holgura=self._pba_format_sla_hours(holgura),
+                )
+            else:
+                ticket.sla_estimated_label = base_label
+
+    @api.model
+    def _pba_format_sla_hours(self, hours):
+        hours = float(hours or 0.0)
+        if hours <= 0:
+            return "—"
+        if hours < 24:
+            if hours == int(hours):
+                return _("%s h") % int(hours)
+            return _("%(hours).1f h") % {"hours": hours}
+        days = hours / 24.0
+        if days < 7:
+            if days == int(days):
+                return _("%s días") % int(days)
+            return _("%(days).1f días") % {"days": days}
+        weeks = days / 7.0
+        if weeks == int(weeks):
+            weeks_int = int(weeks)
+            if weeks_int == 1:
+                return _("1 semana")
+            return _("%s semanas") % weeks_int
+        return _("%(weeks).1f semanas") % {"weeks": weeks}
+
     @api.model_create_multi
     def create(self, vals_list):
         now = fields.Datetime.now()
@@ -134,6 +347,9 @@ class PbaSupportTicket(models.Model):
                 vals["number"] = (
                     self.env["ir.sequence"].next_by_code("pba.support.ticket") or "/"
                 )
+            priority = vals.get("priority") or "1"
+            vals["priority"] = priority
+            vals.setdefault("client_priority", priority)
             state = vals.get("state") or "pending_approval"
             vals.setdefault("stage_entered_at", now)
             if state == "pending_approval":
@@ -149,11 +365,20 @@ class PbaSupportTicket(models.Model):
         return super().create(vals_list)
 
     def write(self, vals):
+        vals = dict(vals)
+        new_priority = vals.get("priority")
+        to_review = self.browse()
+        if new_priority is not None and "priority_reviewed" not in vals:
+            to_review = self.filtered(
+                lambda ticket: new_priority != ticket.client_priority
+            )
         new_state = vals.get("state")
         changing = (
             self.filtered(lambda ticket: ticket.state != new_state) if new_state else self.browse()
         )
         res = super().write(vals)
+        if to_review:
+            super(PbaSupportTicket, to_review).write({"priority_reviewed": True})
         if new_state and changing:
             now = fields.Datetime.now()
             stage_vals = {"stage_entered_at": now}
@@ -344,6 +569,8 @@ class PbaSupportTicket(models.Model):
     def _pba_ticket_to_dict(self, ticket):
         timings = self._pba_stage_timings(ticket)
         can_rate = ticket.state == "resolved" and not ticket.rating
+        can_attach = ticket.state not in ("resolved", "cancelled")
+        can_remove_attachment = ticket.state in ("pending_approval", "submitted")
         return {
             "id": ticket.id,
             "number": ticket.number,
@@ -351,6 +578,16 @@ class PbaSupportTicket(models.Model):
             "description": ticket.description or "",
             "state": ticket.state,
             "priority": ticket.priority,
+            "client_priority": ticket.client_priority or ticket.priority,
+            "priority_reviewed": bool(ticket.priority_reviewed),
+            "priority_mismatch": bool(ticket.priority_mismatch),
+            "priority_help": PBA_PRIORITY_HELP.get(ticket.priority or "1", ""),
+            "sla_hours": ticket.sla_hours,
+            "sla_holgura_hours": ticket.sla_holgura_hours,
+            "sla_estimated_label": ticket.sla_estimated_label or "",
+            "sla_deadline": fields.Datetime.to_string(ticket.sla_deadline)
+            if ticket.sla_deadline
+            else False,
             "partner_id": ticket.partner_id.id,
             "partner_name": ticket.partner_id.name,
             "contact_name": ticket.contact_name,
@@ -372,6 +609,12 @@ class PbaSupportTicket(models.Model):
             else False,
             "is_rated": bool(ticket.rating),
             "can_rate": can_rate,
+            "can_attach": can_attach,
+            "can_remove_attachment": can_remove_attachment,
+            "category": ticket.category or "consultation",
+            "category_label": dict(PBA_TICKET_CATEGORIES).get(
+                ticket.category or "consultation", ticket.category
+            ),
             "date_submitted": fields.Datetime.to_string(ticket.date_submitted)
             if ticket.date_submitted
             else False,
@@ -461,22 +704,68 @@ class PbaSupportTicket(models.Model):
             raise ValidationError(_("Subject is required."))
         if not values.get("contact_name"):
             raise ValidationError(_("Contact name is required."))
+        category = values.get("category") or "consultation"
+        valid_categories = {item[0] for item in PBA_TICKET_CATEGORIES}
+        if category not in valid_categories:
+            raise ValidationError(_("Invalid ticket category."))
+        description = (values.get("description") or "").strip()
+        if not description:
+            raise ValidationError(_("Description is required."))
+        attachments = values.get("attachments") or []
+        if not attachments:
+            raise ValidationError(
+                _("At least one photo or document is required as evidence.")
+            )
         skip_approval = bool(values.get("skip_approval"))
+        priority = values.get("priority") or "1"
+        if priority not in dict(PBA_PRIORITY_SELECTION):
+            raise ValidationError(_("Invalid priority."))
         vals = {
             "name": values["name"],
-            "description": values.get("description") or "",
+            "description": description,
+            "category": category,
             "partner_id": partner.id,
             "contact_name": values["contact_name"],
             "contact_email": values.get("contact_email") or "",
             "contact_phone": values.get("contact_phone") or "",
             "client_user_login": values.get("client_user_login") or "",
             "client_company_name": values.get("client_company_name") or partner.name,
-            "priority": values.get("priority") or "1",
+            "priority": priority,
+            "client_priority": priority,
+            "priority_reviewed": False,
             "state": "submitted" if skip_approval else "pending_approval",
         }
         ticket = self.sudo().create(vals)
-        self._pba_create_attachments(ticket, values.get("attachments") or [])
+        self._pba_create_attachments(ticket, attachments)
         return self._pba_ticket_to_dict(ticket)
+
+    @api.model
+    def api_get_sla_config(self):
+        self._pba_ensure_portal_access()
+        company = self.env.company
+        priorities = []
+        for key, label in PBA_PRIORITY_SELECTION:
+            hours = company._pba_get_sla_hours(key)
+            priorities.append(
+                {
+                    "key": key,
+                    "label": label,
+                    "hours": hours,
+                    "duration_label": self._pba_format_sla_hours(hours),
+                    "help": PBA_PRIORITY_HELP.get(key, ""),
+                }
+            )
+        mismatch_hours = company.pba_sla_priority_mismatch_hours or 0.0
+        return {
+            "priorities": priorities,
+            "mismatch_hours": mismatch_hours,
+            "mismatch_label": self._pba_format_sla_hours(mismatch_hours),
+            "mismatch_help": _(
+                "If the requested priority is higher than the reviewed one, "
+                "a %(holgura)s resolution holgura is applied.",
+                holgura=self._pba_format_sla_hours(mismatch_hours),
+            ),
+        }
 
     @api.model
     def api_get_messages(self, ticket_id):
@@ -531,10 +820,15 @@ class PbaSupportTicket(models.Model):
         rating = str((values or {}).get("rating") or "")
         if rating not in {"1", "2", "3", "4", "5"}:
             raise ValidationError(_("Rating must be between 1 and 5."))
+        rating_text = ((values or {}).get("rating_text") or "").strip()
+        if len(rating_text) < 20:
+            raise ValidationError(
+                _("The rating comment must have at least 20 characters.")
+            )
         ticket.sudo().write(
             {
                 "rating": rating,
-                "rating_text": (values or {}).get("rating_text") or "",
+                "rating_text": rating_text,
                 "rating_date": fields.Datetime.now(),
             }
         )
@@ -543,7 +837,7 @@ class PbaSupportTicket(models.Model):
                 "<p>%s</p><p>%s</p>"
                 % (
                     _("Customer rating: %s/5") % rating,
-                    (values or {}).get("rating_text") or "",
+                    rating_text,
                 )
             ),
             message_type="comment",
@@ -665,8 +959,27 @@ class PbaSupportTicket(models.Model):
         ticket = self._pba_get_ticket_for_partner(ticket_id)
         if ticket.state not in ("pending_approval", "submitted"):
             raise UserError(_("Only pending or submitted tickets can be edited."))
-        allowed = {"name", "description", "priority", "contact_email", "contact_phone"}
+        allowed = {
+            "name",
+            "description",
+            "priority",
+            "category",
+            "contact_email",
+            "contact_phone",
+        }
         vals = {key: values[key] for key in allowed if key in values}
+        if "category" in vals:
+            valid_categories = {item[0] for item in PBA_TICKET_CATEGORIES}
+            if vals["category"] not in valid_categories:
+                raise ValidationError(_("Invalid ticket category."))
+        if "priority" in vals:
+            if ticket.priority_reviewed:
+                raise UserError(
+                    _("Priority was already reviewed and cannot be changed by the customer.")
+                )
+            if vals["priority"] not in dict(PBA_PRIORITY_SELECTION):
+                raise ValidationError(_("Invalid priority."))
+            vals["client_priority"] = vals["priority"]
         if vals:
             ticket.write(vals)
         self._pba_create_attachments(ticket, values.get("attachments") or [])

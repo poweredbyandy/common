@@ -23,5 +23,20 @@
         sequence="20"
         groups="pba_provider_subscription.group_support_manager"
     />
+    <menuitem
+        id="menu_pba_provider_configuration"
+        name="Configuration"
+        parent="menu_pba_provider_subscription_root"
+        sequence="90"
+        groups="pba_provider_subscription.group_support_manager"
+    />
+    <menuitem
+        id="menu_pba_provider_sla_settings"
+        name="SLA Times"
+        parent="menu_pba_provider_configuration"
+        action="action_pba_provider_config_settings"
+        sequence="10"
+        groups="pba_provider_subscription.group_support_manager"
+    />
 </odoo>
 

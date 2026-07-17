@@ -14,6 +14,7 @@
             >
                 <field name="number" />
                 <field name="name" />
+                <field name="category" />
                 <field name="partner_id" />
                 <field name="contact_name" />
                 <field name="contact_email" optional="show" />
@@ -84,17 +85,11 @@
                             <field name="contact_email" widget="email" />
                             <field name="contact_phone" widget="phone" />
                             <field name="client_user_login" />
+                            <field name="category" />
+                            <field name="client_priority" widget="priority" />
                             <field name="priority" widget="priority" />
-                        </group>
-                        <group string="SLA / Rating">
-                            <field name="stage_entered_at" readonly="1" />
-                            <field name="date_submitted" readonly="1" />
-                            <field name="date_in_progress" readonly="1" />
-                            <field name="date_resolved" readonly="1" />
-                            <field name="rating" />
-                            <field name="rating_text" />
-                            <field name="rating_date" readonly="1" />
-                            <field name="is_rated" invisible="1" />
+                            <field name="priority_reviewed" />
+                            <field name="priority_mismatch" />
                         </group>
                     </group>
                     <notebook>
@@ -104,6 +99,42 @@
                         <page string="Attachments" name="attachments">
                             <field name="attachment_count" invisible="1" />
                             <field name="attachment_ids" widget="many2many_binary" />
+                        </page>
+                        <page string="SLA" name="sla">
+                            <group>
+                                <group string="Resolution target">
+                                    <field name="sla_estimated_label" />
+                                    <field name="sla_deadline" />
+                                    <field name="sla_hours" />
+                                    <field name="sla_holgura_hours" />
+                                    <field name="client_priority" widget="priority" />
+                                    <field name="priority" widget="priority" />
+                                    <field name="priority_reviewed" />
+                                    <field name="priority_mismatch" />
+                                </group>
+                                <group string="Computed from customer flow">
+                                    <field name="stage_duration_hint" />
+                                    <field name="stage_duration_label" />
+                                    <field name="wait_label" />
+                                    <field name="process_label" />
+                                    <field name="stage_entered_at" />
+                                </group>
+                            </group>
+                            <group>
+                                <group string="Stage timestamps">
+                                    <field name="date_pending_approval" />
+                                    <field name="date_submitted" />
+                                    <field name="date_in_progress" />
+                                    <field name="date_resolved" />
+                                    <field name="date_cancelled" />
+                                </group>
+                                <group string="Customer rating">
+                                    <field name="is_rated" invisible="1" />
+                                    <field name="rating" />
+                                    <field name="rating_date" />
+                                    <field name="rating_text" />
+                                </group>
+                            </group>
                         </page>
                     </notebook>
                 </sheet>
@@ -119,6 +150,7 @@
             <search string="Support Tickets">
                 <field name="number" />
                 <field name="name" />
+                <field name="category" />
                 <field name="partner_id" />
                 <field name="contact_name" />
                 <field name="contact_email" />
@@ -164,6 +196,11 @@
                         string="State"
                         name="group_state"
                         context="{'group_by': 'state'}"
+                    />
+                    <filter
+                        string="Category"
+                        name="group_category"
+                        context="{'group_by': 'category'}"
                     />
                     <filter
                         string="Contact"
