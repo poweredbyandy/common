@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <menuitem
+        id="menu_pba_provider_subscription_root"
+        name="Customer Support"
+        web_icon="pba_provider_subscription,static/description/icon.png"
+        sequence="45"
+        groups="pba_provider_subscription.group_support_user"
+    />
+    <menuitem
+        id="menu_pba_support_ticket"
+        name="Tickets"
+        parent="menu_pba_provider_subscription_root"
+        action="pba_support_ticket_action"
+        sequence="10"
+        groups="pba_provider_subscription.group_support_user"
+    />
+</odoo>
