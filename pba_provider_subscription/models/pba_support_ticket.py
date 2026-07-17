@@ -333,10 +333,29 @@ class PbaSupportTicket(models.Model):
         ticket.action_set_submitted()
         return self._pba_ticket_to_dict(ticket)
 
+    def _pba_get_usd_currency(self):
+        return self.env.ref("base.USD", raise_if_not_found=False) or self.env[
+            "res.currency"
+        ].sudo().search([("name", "=", "USD")], limit=1)
+
+    def _pba_amount_to_usd(self, amount, from_currency, company, date):
+        usd = self._pba_get_usd_currency()
+        if not usd:
+            raise UserError(_("USD currency is not available in the provider system."))
+        if not from_currency:
+            from_currency = company.currency_id
+        convert_date = date or fields.Date.context_today(self)
+        if from_currency == usd:
+            return usd.round(amount)
+        return from_currency._convert(amount, usd, company, convert_date)
+
     @api.model
     def api_get_financial_summary(self):
         self._pba_ensure_portal_access()
         partner = self._pba_get_commercial_partner()
+        usd = self._pba_get_usd_currency()
+        if not usd:
+            raise UserError(_("USD currency is not available in the provider system."))
         Move = self.env["account.move"].sudo()
         invoices = Move.search(
             [
@@ -354,9 +373,23 @@ class PbaSupportTicket(models.Model):
             ("payment_state", "in", ("not_paid", "partial", "in_payment")),
         ]
         pending_invoices = Move.search(pending_domain, order="invoice_date_due asc")
-        currency = partner.currency_id or self.env.company.currency_id
         invoice_lines = []
         for invoice in invoices:
+            company = invoice.company_id
+            convert_date = invoice.invoice_date or invoice.date
+            sign = -1.0 if invoice.move_type == "out_refund" else 1.0
+            amount_total_usd = self._pba_amount_to_usd(
+                invoice.amount_total,
+                invoice.currency_id,
+                company,
+                convert_date,
+            )
+            amount_residual_usd = self._pba_amount_to_usd(
+                invoice.amount_residual,
+                invoice.currency_id,
+                company,
+                convert_date,
+            )
             invoice_lines.append(
                 {
                     "id": invoice.id,
@@ -367,17 +400,32 @@ class PbaSupportTicket(models.Model):
                     "invoice_date_due": fields.Date.to_string(invoice.invoice_date_due)
                     if invoice.invoice_date_due
                     else False,
-                    "amount_total": invoice.amount_total,
-                    "amount_residual": invoice.amount_residual,
+                    "amount_total": sign * amount_total_usd,
+                    "amount_residual": sign * amount_residual_usd,
                     "payment_state": invoice.payment_state,
                     "move_type": invoice.move_type,
-                    "currency": invoice.currency_id.name,
+                    "currency": usd.name,
+                    "currency_origin": invoice.currency_id.name,
                 }
             )
         pending_lines = []
         amount_due = 0.0
         for invoice in pending_invoices:
-            amount_due += invoice.amount_residual
+            company = invoice.company_id
+            convert_date = invoice.invoice_date or invoice.date
+            amount_total_usd = self._pba_amount_to_usd(
+                invoice.amount_total,
+                invoice.currency_id,
+                company,
+                convert_date,
+            )
+            amount_residual_usd = self._pba_amount_to_usd(
+                invoice.amount_residual,
+                invoice.currency_id,
+                company,
+                convert_date,
+            )
+            amount_due += amount_residual_usd
             pending_lines.append(
                 {
                     "id": invoice.id,
@@ -388,16 +436,17 @@ class PbaSupportTicket(models.Model):
                     "invoice_date_due": fields.Date.to_string(invoice.invoice_date_due)
                     if invoice.invoice_date_due
                     else False,
-                    "amount_total": invoice.amount_total,
-                    "amount_residual": invoice.amount_residual,
+                    "amount_total": amount_total_usd,
+                    "amount_residual": amount_residual_usd,
                     "payment_state": invoice.payment_state,
-                    "currency": invoice.currency_id.name,
+                    "currency": usd.name,
+                    "currency_origin": invoice.currency_id.name,
                 }
             )
         return {
             "partner_id": partner.id,
             "partner_name": partner.name,
-            "currency": currency.name,
+            "currency": usd.name,
             "invoice_count": len(invoices),
             "pending_count": len(pending_invoices),
             "amount_due": amount_due,
