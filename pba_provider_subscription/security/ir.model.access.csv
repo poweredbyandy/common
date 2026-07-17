@@ -2,3 +2,4 @@ id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_pba_support_ticket_user,pba.support.ticket.user,model_pba_support_ticket,group_support_user,1,1,1,0
 access_pba_support_ticket_manager,pba.support.ticket.manager,model_pba_support_ticket,group_support_manager,1,1,1,1
 access_pba_support_ticket_portal,pba.support.ticket.portal,model_pba_support_ticket,base.group_portal,1,1,1,0
+access_pba_subscription_api_key_wizard_manager,pba.subscription.api.key.wizard.manager,model_pba_subscription_api_key_wizard,group_support_manager,1,1,1,1

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="view_partner_form_inherit_pba_provider_subscription" model="ir.ui.view">
+        <field name="name">res.partner.form.inherit.pba.provider.subscription</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button
+                    name="action_pba_generate_subscription_api_key"
+                    type="object"
+                    class="oe_stat_button"
+                    icon="fa-key"
+                    groups="pba_provider_subscription.group_support_manager"
+                    invisible="not is_company and not parent_id"
+                >
+                    <div class="o_stat_info">
+                        <span class="o_stat_text">API Key</span>
+                        <span class="o_stat_text">Soporte</span>
+                    </div>
+                </button>
+            </xpath>
+        </field>
+    </record>
+</odoo>

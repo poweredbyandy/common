@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="pba_subscription_api_key_wizard_view_form" model="ir.ui.view">
+        <field name="name">pba.subscription.api.key.wizard.view.form</field>
+        <field name="model">pba.subscription.api.key.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Generar API Key del cliente">
+                <field name="state" invisible="1" />
+                <sheet>
+                    <div invisible="state != 'draft'">
+                        <group>
+                            <group>
+                                <field name="partner_id" options="{'no_create': True}" />
+                                <field
+                                    name="user_id"
+                                    domain="[('share', '=', True), ('active', '=', True), ('partner_id', 'child_of', partner_id)]"
+                                    options="{'no_create': True}"
+                                    invisible="create_portal_user"
+                                    required="not create_portal_user"
+                                />
+                                <field name="user_login" invisible="not user_id" />
+                                <field name="create_portal_user" />
+                            </group>
+                            <group>
+                                <field name="key_name" />
+                                <field name="duration" />
+                            </group>
+                        </group>
+                        <group
+                            string="Nuevo usuario portal"
+                            invisible="not create_portal_user"
+                        >
+                            <field name="new_user_name" required="create_portal_user" />
+                            <field name="new_user_login" required="create_portal_user" />
+                            <field name="new_user_email" />
+                        </group>
+                        <group string="API Keys existentes" invisible="not user_id">
+                            <field name="existing_key_ids" nolabel="1" colspan="2">
+                                <list create="false" delete="false" edit="false">
+                                    <field name="name" />
+                                    <field name="create_date" />
+                                    <field name="expiration_date" />
+                                    <button
+                                        name="action_pba_remove"
+                                        type="object"
+                                        string="Eliminar"
+                                        icon="fa-trash"
+                                        groups="pba_provider_subscription.group_support_manager"
+                                    />
+                                </list>
+                            </field>
+                        </group>
+                    </div>
+                    <div invisible="state != 'done'">
+                        <h2>API Key generada</h2>
+                        <p>
+                            Entregue estas credenciales al cliente para configurar
+                            <strong>Soporte Cliente</strong> en su Odoo.
+                        </p>
+                        <group>
+                            <field name="partner_id" readonly="1" />
+                            <field name="user_login" readonly="1" />
+                            <field name="generated_key" widget="CopyClipboardChar" />
+                        </group>
+                        <p class="alert alert-warning" role="alert">
+                            <strong>Importante:</strong>
+                            Esta clave no se volverá a mostrar. Guárdela de forma segura.
+                        </p>
+                    </div>
+                </sheet>
+                <footer>
+                    <button
+                        name="action_generate_key"
+                        type="object"
+                        string="Generar API Key"
+                        class="btn-primary"
+                        invisible="state != 'draft'"
+                        data-hotkey="q"
+                    />
+                    <button
+                        string="Cerrar"
+                        special="cancel"
+                        class="btn-secondary"
+                        data-hotkey="x"
+                    />
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="pba_subscription_api_key_wizard_action" model="ir.actions.act_window">
+        <field name="name">API Keys de clientes</field>
+        <field name="res_model">pba.subscription.api.key.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>

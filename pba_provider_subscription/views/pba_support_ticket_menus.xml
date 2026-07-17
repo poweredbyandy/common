@@ -15,4 +15,13 @@
         sequence="10"
         groups="pba_provider_subscription.group_support_user"
     />
+    <menuitem
+        id="menu_pba_subscription_api_key"
+        name="API Keys de clientes"
+        parent="menu_pba_provider_subscription_root"
+        action="pba_subscription_api_key_wizard_action"
+        sequence="20"
+        groups="pba_provider_subscription.group_support_manager"
+    />
 </odoo>
+
