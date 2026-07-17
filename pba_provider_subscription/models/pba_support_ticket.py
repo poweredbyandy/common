@@ -606,22 +606,24 @@ class PbaSupportTicket(models.Model):
             if ticket.rating:
                 ratings.append(int(ticket.rating))
 
-        def _avg(values):
+        def average(values):
             return round(sum(values) / len(values), 2) if values else 0.0
 
         priority_labels = {
-            "0": _("Low"),
-            "1": _("Normal"),
-            "2": _("High"),
-            "3": _("Urgent"),
+            "0": "Baja",
+            "1": "Normal",
+            "2": "Alta",
+            "3": "Urgente",
         }
         by_priority_stats = []
         for key in ("3", "2", "1", "0"):
             data = by_priority.get(key) or {"wait": [], "process": [], "count": 0}
-            wait_avg = _avg(data["wait"])
-            process_avg = _avg(data["process"])
-            wait_label, _wait_h = self._pba_format_duration(wait_avg * 3600)
-            process_label, _process_h = self._pba_format_duration(process_avg * 3600)
+            wait_avg = average(data["wait"])
+            process_avg = average(data["process"])
+            wait_label, unused_wait = self._pba_format_duration(wait_avg * 3600)
+            process_label, unused_process = self._pba_format_duration(
+                process_avg * 3600
+            )
             by_priority_stats.append(
                 {
                     "priority": key,
@@ -634,12 +636,16 @@ class PbaSupportTicket(models.Model):
                 }
             )
 
-        avg_wait = _avg(wait_hours)
-        avg_process = _avg(process_hours)
-        avg_resolution = _avg(resolution_hours)
-        avg_wait_label, _ = self._pba_format_duration(avg_wait * 3600)
-        avg_process_label, _ = self._pba_format_duration(avg_process * 3600)
-        avg_resolution_label, _ = self._pba_format_duration(avg_resolution * 3600)
+        avg_wait = average(wait_hours)
+        avg_process = average(process_hours)
+        avg_resolution = average(resolution_hours)
+        avg_wait_label, unused_avg_wait = self._pba_format_duration(avg_wait * 3600)
+        avg_process_label, unused_avg_process = self._pba_format_duration(
+            avg_process * 3600
+        )
+        avg_resolution_label, unused_avg_resolution = self._pba_format_duration(
+            avg_resolution * 3600
+        )
         return {
             "avg_wait_hours": avg_wait,
             "avg_wait_label": avg_wait_label,
@@ -647,7 +653,7 @@ class PbaSupportTicket(models.Model):
             "avg_process_label": avg_process_label,
             "avg_resolution_hours": avg_resolution,
             "avg_resolution_label": avg_resolution_label,
-            "avg_rating": _avg(ratings),
+            "avg_rating": average(ratings),
             "rated_count": len(ratings),
             "ticket_count": len(tickets),
             "by_priority": by_priority_stats,
