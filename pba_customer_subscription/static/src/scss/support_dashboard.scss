@@ -590,6 +590,133 @@
         margin-top: 0.5rem;
     }
 
+    .o_pba_stats_perf .o_pba_stat_value {
+        font-size: 1.25rem;
+    }
+
+    .o_pba_priority_avg {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 0.6rem;
+    }
+
+    .o_pba_priority_avg_item {
+        background: rgba(255, 255, 255, 0.88);
+        border: 1px solid var(--pba-line);
+        border-radius: 12px;
+        padding: 0.7rem 0.85rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.2rem;
+        font-size: 0.84rem;
+        color: var(--pba-muted);
+
+        strong {
+            color: var(--pba-ink);
+            font-size: 0.9rem;
+        }
+    }
+
+    .o_pba_stage_box {
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        gap: 0.85rem;
+        align-items: center;
+        padding: 0.85rem 1rem;
+        border: 1px solid var(--pba-line);
+        border-radius: 12px;
+        background: #f7fbfb;
+    }
+
+    .o_pba_stage_time {
+        display: flex;
+        flex-direction: column;
+
+        strong {
+            font-size: 1.15rem;
+            letter-spacing: -0.02em;
+        }
+
+        span {
+            color: var(--pba-muted);
+            font-size: 0.86rem;
+        }
+    }
+
+    .o_pba_stage_meta {
+        display: flex;
+        flex-direction: column;
+        gap: 0.2rem;
+        color: var(--pba-muted);
+        font-size: 0.82rem;
+        text-align: right;
+    }
+
+    .o_pba_chatter {
+        border-top: 1px solid var(--pba-line);
+        padding-top: 1rem;
+    }
+
+    .o_pba_chatter_list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.65rem;
+        max-height: 280px;
+        overflow: auto;
+        margin-bottom: 0.75rem;
+    }
+
+    .o_pba_chatter_item {
+        border: 1px solid var(--pba-line);
+        border-radius: 10px;
+        background: #fff;
+        padding: 0.7rem 0.85rem;
+    }
+
+    .o_pba_chatter_head {
+        display: flex;
+        justify-content: space-between;
+        gap: 0.75rem;
+        margin-bottom: 0.35rem;
+        font-size: 0.82rem;
+        color: var(--pba-muted);
+    }
+
+    .o_pba_chatter_body {
+        font-size: 0.92rem;
+        color: var(--pba-ink);
+
+        p {
+            margin-bottom: 0.35rem;
+        }
+    }
+
+    .o_pba_rating_box {
+        border: 1px solid #cfe3e3;
+        background: #f3fafa;
+        border-radius: 12px;
+        padding: 1rem;
+
+        &.is-done {
+            background: var(--pba-ok-soft);
+            border-color: #b9dfc6;
+        }
+    }
+
+    @media (max-width: 992px) {
+        .o_pba_priority_avg {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .o_pba_stage_box {
+            grid-template-columns: 1fr;
+        }
+
+        .o_pba_stage_meta {
+            text-align: left;
+        }
+    }
+
     @media (max-width: 992px) {
         .o_pba_stats,
         .o_pba_finance_grid {

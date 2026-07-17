@@ -20,7 +20,7 @@
                         </div>
                         <div class="o_pba_hero_actions">
                             <button
-                                t-if="state.context.can_create and state.context.configured and !state.showForm"
+                                t-if="state.context.can_create_role and state.context.configured and !state.showForm"
                                 class="o_pba_btn o_pba_btn_primary"
                                 t-on-click="openCreateForm"
                             >
@@ -75,6 +75,23 @@
                     </div>
 
                     <t t-if="state.context.role and state.context.configured and !state.loading">
+                        <div
+                            t-if="!state.context.can_create and state.context.unrated_ticket_number"
+                            class="o_pba_banner is-warning"
+                        >
+                            <div>
+                                Debe calificar el ticket
+                                <strong t-esc="state.context.unrated_ticket_number"/>
+                                antes de crear uno nuevo.
+                            </div>
+                            <button
+                                class="o_pba_btn o_pba_btn_primary o_pba_btn_sm"
+                                t-on-click="openCreateForm"
+                            >
+                                Calificar ahora
+                            </button>
+                        </div>
+
                         <div class="o_pba_stats">
                             <div class="o_pba_stat">
                                 <div class="o_pba_stat_label">Total</div>
@@ -91,6 +108,45 @@
                             <div class="o_pba_stat">
                                 <div class="o_pba_stat_label">Resueltos</div>
                                 <div class="o_pba_stat_value" t-esc="ticketStats.resolved"/>
+                            </div>
+                        </div>
+
+                        <div t-if="state.performance" class="o_pba_stats o_pba_stats_perf">
+                            <div class="o_pba_stat">
+                                <div class="o_pba_stat_label">Promedio en ser atendidos</div>
+                                <div class="o_pba_stat_value" t-esc="state.performance.avg_wait_label or '—'"/>
+                            </div>
+                            <div class="o_pba_stat">
+                                <div class="o_pba_stat_label">Promedio en proceso</div>
+                                <div class="o_pba_stat_value" t-esc="state.performance.avg_process_label or '—'"/>
+                            </div>
+                            <div class="o_pba_stat">
+                                <div class="o_pba_stat_label">Promedio resolución</div>
+                                <div class="o_pba_stat_value" t-esc="state.performance.avg_resolution_label or '—'"/>
+                            </div>
+                            <div class="o_pba_stat">
+                                <div class="o_pba_stat_label">Calificación promedio</div>
+                                <div class="o_pba_stat_value">
+                                    <t t-if="state.performance.avg_rating">
+                                        <t t-esc="state.performance.avg_rating"/>/5
+                                    </t>
+                                    <t t-else="">—</t>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div t-if="state.performance and state.performance.by_priority" class="o_pba_priority_avg mb-3">
+                            <div
+                                t-foreach="state.performance.by_priority"
+                                t-as="item"
+                                t-key="item.priority"
+                                class="o_pba_priority_avg_item"
+                            >
+                                <strong t-esc="item.label"/>
+                                <span>
+                                    Atención <t t-esc="item.avg_wait_label or '—'"/>
+                                    · Proceso <t t-esc="item.avg_process_label or '—'"/>
+                                </span>
                             </div>
                         </div>
 
@@ -128,6 +184,29 @@
                                     de
                                     <strong t-esc="state.context.company_name"/>.
                                 </p>
+
+                                <div t-if="state.currentTicket" class="o_pba_stage_box mb-3">
+                                    <div>
+                                        <span
+                                            t-att-class="'o_pba_status ' + statusClass(state.currentTicket.state)"
+                                            t-esc="stateLabel(state.currentTicket.state)"
+                                        />
+                                    </div>
+                                    <div class="o_pba_stage_time">
+                                        <strong t-esc="state.currentTicket.stage_duration_label or '—'"/>
+                                        <span t-esc="state.currentTicket.stage_duration_hint or ''"/>
+                                    </div>
+                                    <div class="o_pba_stage_meta">
+                                        <span>
+                                            Espera:
+                                            <t t-esc="state.currentTicket.wait_label or '—'"/>
+                                        </span>
+                                        <span>
+                                            Proceso:
+                                            <t t-esc="state.currentTicket.process_label or '—'"/>
+                                        </span>
+                                    </div>
+                                </div>
 
                                 <div class="o_pba_form_grid">
                                     <div>
@@ -255,6 +334,88 @@
                                     </div>
                                 </div>
 
+                                <div t-if="state.editingId" class="o_pba_chatter mt-3">
+                                    <h3 class="o_pba_section_title">Conversación</h3>
+                                    <div class="o_pba_chatter_list">
+                                        <div t-if="!state.messages.length" class="text-muted small mb-2">
+                                            Aún no hay mensajes.
+                                        </div>
+                                        <div
+                                            t-foreach="state.messages"
+                                            t-as="message"
+                                            t-key="message.id"
+                                            class="o_pba_chatter_item"
+                                        >
+                                            <div class="o_pba_chatter_head">
+                                                <strong t-esc="message.author_name"/>
+                                                <span t-esc="formatDateTime(message.date)"/>
+                                            </div>
+                                            <div class="o_pba_chatter_body" t-out="message.body"/>
+                                        </div>
+                                    </div>
+                                    <div t-if="canComment()" class="o_pba_chatter_composer">
+                                        <textarea
+                                            class="form-control"
+                                            rows="3"
+                                            placeholder="Escriba un mensaje para el proveedor..."
+                                            t-model="state.messageBody"
+                                        />
+                                        <button
+                                            class="o_pba_btn o_pba_btn_primary o_pba_btn_sm mt-2"
+                                            t-on-click="postMessage"
+                                        >
+                                            Enviar mensaje
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div t-if="canRateCurrent()" class="o_pba_rating_box mt-3">
+                                    <h3 class="o_pba_section_title">Calificar atención</h3>
+                                    <p class="text-muted small">
+                                        Su calificación es obligatoria para poder crear nuevos tickets.
+                                    </p>
+                                    <div class="o_pba_field">
+                                        <label>Puntuación</label>
+                                        <select class="form-select" t-model="state.ratingValue">
+                                            <option value="5">5 - Excelente</option>
+                                            <option value="4">4 - Buena</option>
+                                            <option value="3">3 - Regular</option>
+                                            <option value="2">2 - Mala</option>
+                                            <option value="1">1 - Muy mala</option>
+                                        </select>
+                                    </div>
+                                    <div class="o_pba_field">
+                                        <label>Comentario</label>
+                                        <textarea
+                                            class="form-control"
+                                            rows="3"
+                                            placeholder="Cuéntenos su experiencia"
+                                            t-model="state.ratingText"
+                                        />
+                                    </div>
+                                    <button
+                                        class="o_pba_btn o_pba_btn_primary"
+                                        t-on-click="submitRating"
+                                    >
+                                        Enviar calificación
+                                    </button>
+                                </div>
+
+                                <div
+                                    t-if="state.currentTicket and state.currentTicket.is_rated"
+                                    class="o_pba_rating_box is-done mt-3"
+                                >
+                                    <strong>
+                                        Calificado:
+                                        <t t-esc="state.currentTicket.rating"/>/5
+                                    </strong>
+                                    <div
+                                        t-if="state.currentTicket.rating_text"
+                                        class="text-muted"
+                                        t-esc="state.currentTicket.rating_text"
+                                    />
+                                </div>
+
                                 <div class="o_pba_form_actions">
                                     <button
                                         t-if="!state.formReadonly"
@@ -294,6 +455,11 @@
                                     <div class="o_pba_ticket_main">
                                         <div class="o_pba_ticket_number" t-esc="ticket.number"/>
                                         <div class="o_pba_ticket_subject" t-esc="ticket.name"/>
+                                        <div class="o_pba_ticket_stage small text-muted">
+                                            <t t-esc="ticket.stage_duration_hint or ticket.stage_duration_label or ''"/>
+                                            <t t-if="ticket.can_rate"> · Pendiente de calificación</t>
+                                            <t t-if="ticket.is_rated"> · ★ <t t-esc="ticket.rating"/>/5</t>
+                                        </div>
                                     </div>
                                     <div class="o_pba_ticket_contact">
                                         <strong t-esc="ticket.contact_name"/>

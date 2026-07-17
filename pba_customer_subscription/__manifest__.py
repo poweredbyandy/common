@@ -1,6 +1,6 @@
 {
     "name": "PBA Customer Subscription",
-    "version": "18.0.1.4.0",
+    "version": "18.0.1.5.0",
     "category": "Services/Helpdesk",
     "summary": "Dashboard de soporte conectado por RPC al Odoo proveedor",
     "author": "andyengit",

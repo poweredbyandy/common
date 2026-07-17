@@ -1,6 +1,6 @@
 /** @odoo-module **/
 
-import { Component, onWillStart, useRef, useState } from "@odoo/owl";
+import { Component, markup, onWillStart, useRef, useState } from "@odoo/owl";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
 import { _t } from "@web/core/l10n/translation";
@@ -53,14 +53,20 @@ export class PbaSupportDashboard extends Component {
             context: {},
             tickets: [],
             finance: null,
+            performance: null,
             activeTab: "tickets",
             showForm: false,
             editingId: null,
             formReadonly: false,
+            currentTicket: null,
             form: this._emptyForm(),
             existingAttachments: [],
             pendingFiles: [],
             dragOver: false,
+            messages: [],
+            messageBody: "",
+            ratingValue: "5",
+            ratingText: "",
         });
         onWillStart(async () => {
             await this.loadAll();
@@ -152,6 +158,17 @@ export class PbaSupportDashboard extends Component {
         return date.toLocaleDateString();
     }
 
+    formatDateTime(value) {
+        if (!value) {
+            return "";
+        }
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) {
+            return value;
+        }
+        return date.toLocaleString();
+    }
+
     formatFileSize(size) {
         const value = Number(size) || 0;
         if (value < 1024) {
@@ -176,6 +193,21 @@ export class PbaSupportDashboard extends Component {
         return "fa-paperclip";
     }
 
+    stripHtml(value) {
+        const tmp = document.createElement("div");
+        tmp.innerHTML = value || "";
+        return tmp.textContent || tmp.innerText || "";
+    }
+
+    canComment() {
+        const ticket = this.state.currentTicket;
+        return Boolean(ticket && ticket.state !== "cancelled");
+    }
+
+    canRateCurrent() {
+        return Boolean(this.state.currentTicket?.can_rate);
+    }
+
     async loadAll() {
         this.state.loading = true;
         this.state.error = "";
@@ -185,9 +217,15 @@ export class PbaSupportDashboard extends Component {
             if (!context.role || !context.configured) {
                 this.state.tickets = [];
                 this.state.finance = null;
+                this.state.performance = null;
                 return;
             }
-            this.state.tickets = await this.orm.call("pba.customer.support", "get_tickets", []);
+            const [tickets, performance] = await Promise.all([
+                this.orm.call("pba.customer.support", "get_tickets", []),
+                this.orm.call("pba.customer.support", "get_performance_stats", []),
+            ]);
+            this.state.tickets = tickets;
+            this.state.performance = performance;
             if (context.can_view_finance && this.state.activeTab === "finance") {
                 this.state.finance = await this.orm.call(
                     "pba.customer.support",
@@ -221,12 +259,35 @@ export class PbaSupportDashboard extends Component {
     }
 
     openCreateForm() {
+        if (!this.state.context.can_create) {
+            this.notification.add(
+                _t(
+                    "Debe calificar el ticket %s antes de crear uno nuevo.",
+                    this.state.context.unrated_ticket_number || ""
+                ),
+                { type: "warning" }
+            );
+            if (this.state.context.unrated_ticket_id) {
+                const ticket = this.state.tickets.find(
+                    (item) => item.id === this.state.context.unrated_ticket_id
+                );
+                if (ticket) {
+                    this.openTicketForm(ticket);
+                }
+            }
+            return;
+        }
         this.state.editingId = null;
         this.state.formReadonly = false;
+        this.state.currentTicket = null;
         this.state.form = this._emptyForm();
         this.state.existingAttachments = [];
         this.state.pendingFiles = [];
         this.state.dragOver = false;
+        this.state.messages = [];
+        this.state.messageBody = "";
+        this.state.ratingValue = "5";
+        this.state.ratingText = "";
         this.state.showForm = true;
         this.state.activeTab = "tickets";
     }
@@ -234,17 +295,28 @@ export class PbaSupportDashboard extends Component {
     async openTicketForm(ticket) {
         this.state.loading = true;
         try {
-            const detail = await this.orm.call("pba.customer.support", "get_ticket", [ticket.id]);
+            const [detail, messages] = await Promise.all([
+                this.orm.call("pba.customer.support", "get_ticket", [ticket.id]),
+                this.orm.call("pba.customer.support", "get_messages", [ticket.id]),
+            ]);
             this.state.editingId = detail.id;
+            this.state.currentTicket = detail;
             this.state.formReadonly = !this.canEditTicket(detail);
             this.state.form = {
                 name: detail.name || "",
-                description: this._stripHtml(detail.description || ""),
+                description: this.stripHtml(detail.description || ""),
                 priority: detail.priority || "1",
             };
             this.state.existingAttachments = detail.attachments || [];
             this.state.pendingFiles = [];
             this.state.dragOver = false;
+            this.state.messages = (messages || []).map((message) => ({
+                ...message,
+                body: markup(message.body || ""),
+            }));
+            this.state.messageBody = "";
+            this.state.ratingValue = detail.rating || "5";
+            this.state.ratingText = detail.rating_text || "";
             this.state.activeTab = "tickets";
             this.state.showForm = true;
         } catch (error) {
@@ -260,20 +332,19 @@ export class PbaSupportDashboard extends Component {
         this.state.showForm = false;
         this.state.editingId = null;
         this.state.formReadonly = false;
+        this.state.currentTicket = null;
         this.state.form = this._emptyForm();
         this.state.existingAttachments = [];
         this.state.pendingFiles = [];
-    }
-
-    _stripHtml(value) {
-        const tmp = document.createElement("div");
-        tmp.innerHTML = value;
-        return tmp.textContent || tmp.innerText || "";
+        this.state.messages = [];
+        this.state.messageBody = "";
+        this.state.ratingValue = "5";
+        this.state.ratingText = "";
     }
 
     canEditTicket(ticket) {
         const ctx = this.state.context;
-        if (!ctx.can_create) {
+        if (!ctx.can_create_role) {
             return false;
         }
         if (!["pending_approval", "submitted"].includes(ticket.state)) {
@@ -290,7 +361,7 @@ export class PbaSupportDashboard extends Component {
     }
 
     canAttachFiles() {
-        return !this.state.formReadonly && this.state.context.can_create;
+        return !this.state.formReadonly && this.state.context.can_create_role;
     }
 
     openFilePicker() {
@@ -432,7 +503,60 @@ export class PbaSupportDashboard extends Component {
                 attachment.id,
             ]);
             this.state.existingAttachments = ticket.attachments || [];
+            this.state.currentTicket = ticket;
             this.notification.add(_t("Adjunto eliminado."), { type: "success" });
+            await this.loadAll();
+        } catch (error) {
+            this.notification.add(error.data?.message || error.message || _t("Error inesperado"), {
+                type: "danger",
+            });
+        } finally {
+            this.state.loading = false;
+        }
+    }
+
+    async postMessage() {
+        if (!this.state.editingId || !this.state.messageBody.trim()) {
+            this.notification.add(_t("Escriba un mensaje."), { type: "warning" });
+            return;
+        }
+        this.state.loading = true;
+        try {
+            const messages = await this.orm.call("pba.customer.support", "post_message", [
+                this.state.editingId,
+                { body: this.state.messageBody.trim() },
+            ]);
+            this.state.messages = (messages || []).map((message) => ({
+                ...message,
+                body: markup(message.body || ""),
+            }));
+            this.state.messageBody = "";
+            this.notification.add(_t("Mensaje enviado."), { type: "success" });
+
+        } catch (error) {
+            this.notification.add(error.data?.message || error.message || _t("Error inesperado"), {
+                type: "danger",
+            });
+        } finally {
+            this.state.loading = false;
+        }
+    }
+
+    async submitRating() {
+        if (!this.state.editingId) {
+            return;
+        }
+        this.state.loading = true;
+        try {
+            const ticket = await this.orm.call("pba.customer.support", "rate_ticket", [
+                this.state.editingId,
+                {
+                    rating: this.state.ratingValue,
+                    rating_text: this.state.ratingText,
+                },
+            ]);
+            this.state.currentTicket = ticket;
+            this.notification.add(_t("Gracias por su calificación."), { type: "success" });
             await this.loadAll();
         } catch (error) {
             this.notification.add(error.data?.message || error.message || _t("Error inesperado"), {

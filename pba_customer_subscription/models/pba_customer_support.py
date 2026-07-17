@@ -105,10 +105,21 @@ class PbaCustomerSupport(models.TransientModel):
         else:
             role = False
         configured = self._pba_is_configured()
+        create_status = {
+            "can_create": True,
+            "unrated_ticket_id": False,
+            "unrated_ticket_number": False,
+            "unrated_ticket_name": False,
+        }
+        if configured and role:
+            create_status = self._pba_rpc_execute("api_get_create_status")
         return {
             "role": role,
             "configured": configured,
-            "can_create": role in ("user", "helpdesk", "admin"),
+            "can_create": bool(
+                role in ("user", "helpdesk", "admin") and create_status.get("can_create")
+            ),
+            "can_create_role": role in ("user", "helpdesk", "admin"),
             "can_approve": role in ("helpdesk", "admin"),
             "can_view_all": role in ("helpdesk", "admin"),
             "can_view_finance": role == "admin",
@@ -116,6 +127,9 @@ class PbaCustomerSupport(models.TransientModel):
             "company_name": self.env.company.name,
             "user_name": user.name,
             "user_login": user.login,
+            "unrated_ticket_id": create_status.get("unrated_ticket_id"),
+            "unrated_ticket_number": create_status.get("unrated_ticket_number"),
+            "unrated_ticket_name": create_status.get("unrated_ticket_name"),
         }
 
 
@@ -257,3 +271,43 @@ class PbaCustomerSupport(models.TransientModel):
     def get_financial_summary(self):
         self._pba_ensure_group("pba_customer_subscription.group_support_admin")
         return self._pba_rpc_execute("api_get_financial_summary")
+
+    @api.model
+    def get_performance_stats(self):
+        self._pba_get_support_role()
+        return self._pba_rpc_execute("api_get_performance_stats")
+
+    @api.model
+    def get_messages(self, ticket_id):
+        self._pba_get_support_role()
+        return self._pba_rpc_execute("api_get_messages", int(ticket_id))
+
+    @api.model
+    def post_message(self, ticket_id, values):
+        role = self._pba_get_support_role()
+        ticket = self._pba_rpc_execute("api_get_ticket", int(ticket_id))
+        if role == "user" and ticket.get("client_user_login") != self.env.user.login:
+            raise AccessError(_("You can only comment on your own tickets."))
+        payload = {
+            "body": (values or {}).get("body") or "",
+            "author_name": self.env.user.name,
+            "attachments": self._pba_normalize_attachments(
+                (values or {}).get("attachments")
+            ),
+        }
+        return self._pba_rpc_execute("api_post_message", int(ticket_id), payload)
+
+    @api.model
+    def rate_ticket(self, ticket_id, values):
+        role = self._pba_get_support_role()
+        ticket = self._pba_rpc_execute("api_get_ticket", int(ticket_id))
+        if role == "user" and ticket.get("client_user_login") != self.env.user.login:
+            raise AccessError(_("You can only rate your own tickets."))
+        return self._pba_rpc_execute(
+            "api_rate_ticket",
+            int(ticket_id),
+            {
+                "rating": (values or {}).get("rating"),
+                "rating_text": (values or {}).get("rating_text") or "",
+            },
+        )
