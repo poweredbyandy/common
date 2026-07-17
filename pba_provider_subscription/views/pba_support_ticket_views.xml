@@ -91,6 +91,10 @@
                         <page string="Description" name="description">
                             <field name="description" />
                         </page>
+                        <page string="Attachments" name="attachments">
+                            <field name="attachment_count" invisible="1" />
+                            <field name="attachment_ids" widget="many2many_binary" />
+                        </page>
                     </notebook>
                 </sheet>
                 <chatter />

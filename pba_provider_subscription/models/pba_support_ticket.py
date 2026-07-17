@@ -1,5 +1,9 @@
+import base64
+
 from odoo import api, fields, models, _
 from odoo.exceptions import AccessError, UserError, ValidationError
+
+PBA_ATTACHMENT_MAX_BYTES = 25 * 1024 * 1024
 
 
 class PbaSupportTicket(models.Model):
@@ -72,6 +76,23 @@ class PbaSupportTicket(models.Model):
         default=lambda self: self.env.company,
         required=True,
     )
+    attachment_ids = fields.Many2many(
+        "ir.attachment",
+        "pba_support_ticket_ir_attachment_rel",
+        "ticket_id",
+        "attachment_id",
+        string="Attachments",
+    )
+    attachment_count = fields.Integer(
+        compute="_compute_attachment_count",
+        string="Attachment Count",
+    )
+
+    @api.depends("attachment_ids")
+    def _compute_attachment_count(self):
+        for ticket in self:
+            ticket.attachment_count = len(ticket.attachment_ids)
+
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -103,6 +124,77 @@ class PbaSupportTicket(models.Model):
         if not self.env.user.has_group("base.group_portal"):
             raise AccessError(_("Only portal users can use the subscription API."))
 
+    def _pba_get_ticket_for_partner(self, ticket_id):
+        partner = self._pba_get_commercial_partner()
+        ticket = self.sudo().browse(int(ticket_id)).exists()
+        if not ticket or ticket.partner_id != partner:
+            raise AccessError(_("Ticket not found or access denied."))
+        return ticket
+
+    def _pba_attachment_to_dict(self, attachment):
+        mimetype = attachment.mimetype or "application/octet-stream"
+        if mimetype.startswith("image/"):
+            kind = "image"
+        elif mimetype.startswith("video/"):
+            kind = "video"
+        elif mimetype.startswith("audio/"):
+            kind = "audio"
+        else:
+            kind = "file"
+        return {
+            "id": attachment.id,
+            "name": attachment.name,
+            "mimetype": mimetype,
+            "file_size": attachment.file_size or 0,
+            "kind": kind,
+            "create_date": fields.Datetime.to_string(attachment.create_date),
+        }
+
+    def _pba_create_attachments(self, ticket, attachments):
+        if not attachments:
+            return self.env["ir.attachment"]
+        Attachment = self.env["ir.attachment"].sudo()
+        created = Attachment
+        for item in attachments:
+            name = (item or {}).get("name") or _("Attachment")
+            datas = (item or {}).get("datas")
+            mimetype = (item or {}).get("mimetype") or "application/octet-stream"
+            if not datas:
+                raise ValidationError(_("Attachment data is required for %s.") % name)
+            if isinstance(datas, bytes):
+                raw = datas
+                datas_b64 = base64.b64encode(datas).decode()
+            else:
+                datas_b64 = datas
+                try:
+                    raw = base64.b64decode(datas_b64)
+                except Exception as err:
+                    raise ValidationError(
+                        _("Invalid attachment data for %s.") % name
+                    ) from err
+            if len(raw) > PBA_ATTACHMENT_MAX_BYTES:
+                raise UserError(
+                    _(
+                        "Attachment %(name)s exceeds the maximum size of %(size)s MB.",
+                        name=name,
+                        size=PBA_ATTACHMENT_MAX_BYTES // (1024 * 1024),
+                    )
+                )
+            attachment = Attachment.create(
+                {
+                    "name": name,
+                    "datas": datas_b64,
+                    "res_model": self._name,
+                    "res_id": ticket.id,
+                    "type": "binary",
+                    "mimetype": mimetype,
+                }
+            )
+            created |= attachment
+        if created:
+            ticket.sudo().write({"attachment_ids": [(4, att.id) for att in created]})
+        return created
+
     def _pba_ticket_to_dict(self, ticket):
         return {
             "id": ticket.id,
@@ -120,6 +212,11 @@ class PbaSupportTicket(models.Model):
             "client_company_name": ticket.client_company_name or "",
             "create_date": fields.Datetime.to_string(ticket.create_date),
             "write_date": fields.Datetime.to_string(ticket.write_date),
+            "attachment_count": len(ticket.attachment_ids),
+            "attachments": [
+                self._pba_attachment_to_dict(attachment)
+                for attachment in ticket.attachment_ids
+            ],
         }
 
     @api.model
@@ -149,10 +246,7 @@ class PbaSupportTicket(models.Model):
     @api.model
     def api_get_ticket(self, ticket_id):
         self._pba_ensure_portal_access()
-        partner = self._pba_get_commercial_partner()
-        ticket = self.sudo().browse(int(ticket_id)).exists()
-        if not ticket or ticket.partner_id != partner:
-            raise AccessError(_("Ticket not found or access denied."))
+        ticket = self._pba_get_ticket_for_partner(ticket_id)
         return self._pba_ticket_to_dict(ticket)
 
     @api.model
@@ -177,30 +271,63 @@ class PbaSupportTicket(models.Model):
             "state": "submitted" if skip_approval else "pending_approval",
         }
         ticket = self.sudo().create(vals)
+        self._pba_create_attachments(ticket, values.get("attachments") or [])
         return self._pba_ticket_to_dict(ticket)
 
     @api.model
     def api_update_ticket(self, ticket_id, values):
         self._pba_ensure_portal_access()
-        partner = self._pba_get_commercial_partner()
-        ticket = self.sudo().browse(int(ticket_id)).exists()
-        if not ticket or ticket.partner_id != partner:
-            raise AccessError(_("Ticket not found or access denied."))
+        ticket = self._pba_get_ticket_for_partner(ticket_id)
         if ticket.state not in ("pending_approval", "submitted"):
             raise UserError(_("Only pending or submitted tickets can be edited."))
         allowed = {"name", "description", "priority", "contact_email", "contact_phone"}
         vals = {key: values[key] for key in allowed if key in values}
         if vals:
             ticket.write(vals)
+        self._pba_create_attachments(ticket, values.get("attachments") or [])
+        return self._pba_ticket_to_dict(ticket)
+
+    @api.model
+    def api_add_attachments(self, ticket_id, attachments):
+        self._pba_ensure_portal_access()
+        ticket = self._pba_get_ticket_for_partner(ticket_id)
+        if ticket.state in ("resolved", "cancelled"):
+            raise UserError(_("Cannot add attachments to closed tickets."))
+        self._pba_create_attachments(ticket, attachments or [])
+        return self._pba_ticket_to_dict(ticket)
+
+    @api.model
+    def api_get_attachment(self, ticket_id, attachment_id):
+        self._pba_ensure_portal_access()
+        ticket = self._pba_get_ticket_for_partner(ticket_id)
+        attachment = ticket.attachment_ids.filtered(
+            lambda att: att.id == int(attachment_id)
+        )[:1]
+        if not attachment:
+            raise AccessError(_("Attachment not found or access denied."))
+        data = self._pba_attachment_to_dict(attachment)
+        data["datas"] = attachment.datas.decode() if isinstance(attachment.datas, bytes) else attachment.datas
+        return data
+
+    @api.model
+    def api_remove_attachment(self, ticket_id, attachment_id):
+        self._pba_ensure_portal_access()
+        ticket = self._pba_get_ticket_for_partner(ticket_id)
+        if ticket.state not in ("pending_approval", "submitted"):
+            raise UserError(_("Only pending or submitted tickets can remove attachments."))
+        attachment = ticket.attachment_ids.filtered(
+            lambda att: att.id == int(attachment_id)
+        )[:1]
+        if not attachment:
+            raise AccessError(_("Attachment not found or access denied."))
+        ticket.write({"attachment_ids": [(3, attachment.id)]})
+        attachment.unlink()
         return self._pba_ticket_to_dict(ticket)
 
     @api.model
     def api_approve_ticket(self, ticket_id):
         self._pba_ensure_portal_access()
-        partner = self._pba_get_commercial_partner()
-        ticket = self.sudo().browse(int(ticket_id)).exists()
-        if not ticket or ticket.partner_id != partner:
-            raise AccessError(_("Ticket not found or access denied."))
+        ticket = self._pba_get_ticket_for_partner(ticket_id)
         if ticket.state != "pending_approval":
             raise UserError(_("Only tickets pending approval can be approved."))
         ticket.action_set_submitted()
