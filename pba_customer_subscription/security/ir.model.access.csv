@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_pba_customer_support_internal,pba.customer.support.internal,model_pba_customer_support,base.group_user,1,0,0,0
+access_pba_customer_support_user,pba.customer.support.user,model_pba_customer_support,group_support_user,1,0,0,0
+access_pba_customer_support_helpdesk,pba.customer.support.helpdesk,model_pba_customer_support,group_support_helpdesk,1,0,0,0
+access_pba_customer_support_admin,pba.customer.support.admin,model_pba_customer_support,group_support_admin,1,0,0,0

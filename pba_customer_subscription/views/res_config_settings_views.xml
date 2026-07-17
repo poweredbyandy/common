@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="res_config_settings_view_form_inherit" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.pba.customer.subscription</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="base_setup.res_config_settings_view_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <app
+                    data-string="Soporte Cliente"
+                    string="Soporte Cliente"
+                    name="pba_customer_subscription"
+                    groups="pba_customer_subscription.group_support_admin"
+                >
+                    <block title="Conexión con el proveedor" name="pba_provider_connection">
+                        <setting
+                            string="URL del Odoo proveedor"
+                            help="URL base de la instancia Odoo del proveedor."
+                        >
+                            <field name="pba_provider_url" placeholder="https://proveedor.ejemplo.com" />
+                        </setting>
+                        <setting
+                            string="Base de datos del proveedor"
+                            help="Nombre técnico de la base de datos del proveedor."
+                        >
+                            <field name="pba_provider_db" />
+                        </setting>
+                        <setting
+                            string="Usuario portal y API Key"
+                            help="Login del usuario portal y su API Key generada en el Odoo del proveedor."
+                        >
+                            <div class="content-group">
+                                <div class="row mt16">
+                                    <label
+                                        for="pba_provider_login"
+                                        class="col-lg-3"
+                                        string="Usuario"
+                                    />
+                                    <field name="pba_provider_login" class="col-lg-4" />
+                                </div>
+                                <div class="row">
+                                    <label
+                                        for="pba_provider_api_key"
+                                        class="col-lg-3"
+                                        string="API Key"
+                                    />
+                                    <field
+                                        name="pba_provider_api_key"
+                                        class="col-lg-4"
+                                        password="True"
+                                    />
+                                </div>
+                            </div>
+                        </setting>
+                        <setting string="Probar conexión">
+                            <button
+                                name="action_pba_test_provider_connection"
+                                type="object"
+                                string="Probar conexión"
+                                class="btn-secondary"
+                                groups="pba_customer_subscription.group_support_admin"
+                            />
+                        </setting>
+                    </block>
+                </app>
+            </xpath>
+        </field>
+    </record>
+</odoo>

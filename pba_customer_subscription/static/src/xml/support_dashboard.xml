@@ -1,0 +1,421 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+    <t t-name="pba_customer_subscription.SupportDashboard">
+        <div class="o_pba_support_dashboard h-100 overflow-auto">
+            <Layout display="display" className="'o_pba_support_layout'">
+                <div class="o_pba_support_shell">
+                    <div class="o_pba_hero">
+                        <div>
+                            <h1 class="o_pba_hero_title">Soporte</h1>
+                            <p class="o_pba_hero_sub" t-if="state.context.company_name">
+                                <t t-esc="state.context.company_name"/>
+                                <t t-if="state.context.user_name">
+                                    · <t t-esc="state.context.user_name"/>
+                                </t>
+                            </p>
+                            <span t-if="state.context.role" class="o_pba_role_chip">
+                                <i class="fa fa-user-o"/>
+                                <t t-esc="roleLabel(state.context.role)"/>
+                            </span>
+                        </div>
+                        <div class="o_pba_hero_actions">
+                            <button
+                                t-if="state.context.can_create and state.context.configured and !state.showForm"
+                                class="o_pba_btn o_pba_btn_primary"
+                                t-on-click="openCreateForm"
+                            >
+                                Nuevo ticket
+                            </button>
+                            <button
+                                t-if="state.context.role and state.context.configured"
+                                class="o_pba_btn o_pba_btn_ghost"
+                                t-on-click="loadAll"
+                            >
+                                Actualizar
+                            </button>
+                            <button
+                                t-if="state.context.can_configure"
+                                class="o_pba_btn o_pba_btn_ghost"
+                                t-on-click="openSettings"
+                            >
+                                Configurar
+                            </button>
+                        </div>
+                    </div>
+
+                    <div t-if="state.loading" class="o_pba_banner is-info">
+                        <div class="o_pba_loading">
+                            <span class="o_pba_spinner"/>
+                            <span>Cargando soporte...</span>
+                        </div>
+                    </div>
+
+                    <div t-if="state.error" class="o_pba_banner is-danger">
+                        <div t-esc="state.error"/>
+                    </div>
+
+                    <div t-if="!state.loading and !state.context.role" class="o_pba_banner is-warning">
+                        <div>
+                            No tiene acceso a Soporte. Solicite a un administrador que le asigne un grupo.
+                        </div>
+                    </div>
+
+                    <div
+                        t-if="!state.loading and state.context.role and !state.context.configured"
+                        class="o_pba_banner is-warning"
+                    >
+                        <div>La conexión con el proveedor no está configurada.</div>
+                        <button
+                            t-if="state.context.can_configure"
+                            class="o_pba_btn o_pba_btn_primary o_pba_btn_sm"
+                            t-on-click="openSettings"
+                        >
+                            Abrir ajustes
+                        </button>
+                    </div>
+
+                    <t t-if="state.context.role and state.context.configured and !state.loading">
+                        <div class="o_pba_stats">
+                            <div class="o_pba_stat">
+                                <div class="o_pba_stat_label">Total</div>
+                                <div class="o_pba_stat_value" t-esc="ticketStats.total"/>
+                            </div>
+                            <div class="o_pba_stat">
+                                <div class="o_pba_stat_label">Por aprobar</div>
+                                <div class="o_pba_stat_value" t-esc="ticketStats.pending"/>
+                            </div>
+                            <div class="o_pba_stat">
+                                <div class="o_pba_stat_label">En curso</div>
+                                <div class="o_pba_stat_value" t-esc="ticketStats.open"/>
+                            </div>
+                            <div class="o_pba_stat">
+                                <div class="o_pba_stat_label">Resueltos</div>
+                                <div class="o_pba_stat_value" t-esc="ticketStats.resolved"/>
+                            </div>
+                        </div>
+
+                        <div class="o_pba_tabs">
+                            <button
+                                t-att-class="state.activeTab === 'tickets' ? 'o_pba_tab active' : 'o_pba_tab'"
+                                t-on-click="() => this.openTab('tickets')"
+                            >
+                                Tickets
+                            </button>
+                            <button
+                                t-if="state.context.can_view_finance"
+                                t-att-class="state.activeTab === 'finance' ? 'o_pba_tab active' : 'o_pba_tab'"
+                                t-on-click="() => this.openTab('finance')"
+                            >
+                                Facturas y pagos (USD)
+                            </button>
+                        </div>
+
+                        <div t-if="state.showForm" class="o_pba_panel mb-3">
+                            <div class="o_pba_panel_head">
+                                <h2 class="o_pba_panel_title">
+                                    <t t-if="state.editingId and state.formReadonly">Detalle del ticket</t>
+                                    <t t-elif="state.editingId">Editar ticket</t>
+                                    <t t-else="">Nuevo ticket</t>
+                                </h2>
+                                <button class="o_pba_btn o_pba_btn_ghost o_pba_btn_sm" t-on-click="closeForm">
+                                    Cerrar
+                                </button>
+                            </div>
+                            <div class="o_pba_panel_body">
+                                <p class="o_pba_sender_note">
+                                    Se enviará como
+                                    <strong t-esc="state.context.user_name"/>
+                                    de
+                                    <strong t-esc="state.context.company_name"/>.
+                                </p>
+
+                                <div class="o_pba_form_grid">
+                                    <div>
+                                        <div class="o_pba_field">
+                                            <label>Asunto</label>
+                                            <input
+                                                type="text"
+                                                class="form-control"
+                                                placeholder="Resuma el problema o solicitud"
+                                                t-model="state.form.name"
+                                                t-att-readonly="state.formReadonly"
+                                            />
+                                        </div>
+                                        <div class="o_pba_field">
+                                            <label>Descripción</label>
+                                            <textarea
+                                                class="form-control"
+                                                rows="7"
+                                                placeholder="Detalle el contexto, pasos y resultado esperado"
+                                                t-model="state.form.description"
+                                                t-att-readonly="state.formReadonly"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div class="o_pba_field">
+                                            <label>Prioridad</label>
+                                            <select
+                                                class="form-select"
+                                                t-model="state.form.priority"
+                                                t-att-disabled="state.formReadonly"
+                                            >
+                                                <option value="0">Baja</option>
+                                                <option value="1">Normal</option>
+                                                <option value="2">Alta</option>
+                                                <option value="3">Urgente</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="o_pba_field">
+                                            <label>Adjuntos</label>
+                                            <div
+                                                t-if="canAttachFiles()"
+                                                t-att-class="state.dragOver ? 'o_pba_dropzone is-dragover' : 'o_pba_dropzone'"
+                                                t-on-click="openFilePicker"
+                                                t-on-dragover.prevent="onDragOver"
+                                                t-on-dragleave.prevent="onDragLeave"
+                                                t-on-drop.prevent="onDropFiles"
+                                            >
+                                                <strong>Arrastre archivos aquí o haga clic</strong>
+                                                <span>Imágenes, videos, audios y documentos · máx. 25 MB</span>
+                                                <input
+                                                    type="file"
+                                                    class="d-none"
+                                                    multiple="multiple"
+                                                    accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.xls,.xlsx,.txt,.zip,.rar,.csv"
+                                                    t-ref="fileInput"
+                                                    t-on-change="onSelectFiles"
+                                                />
+                                            </div>
+                                            <p t-else="" class="text-muted small mb-0">
+                                                Solo lectura de adjuntos.
+                                            </p>
+
+                                            <div
+                                                t-if="state.existingAttachments.length or state.pendingFiles.length"
+                                                class="o_pba_attachment_list"
+                                            >
+                                                <div
+                                                    t-foreach="state.existingAttachments"
+                                                    t-as="attachment"
+                                                    t-key="attachment.id"
+                                                    class="o_pba_attachment_item"
+                                                >
+                                                    <div class="o_pba_attachment_meta">
+                                                        <i t-att-class="'fa ' + attachmentIcon(attachment.kind)"/>
+                                                        <div class="text-truncate">
+                                                            <div class="text-truncate fw-semibold" t-esc="attachment.name"/>
+                                                            <div class="small text-muted">
+                                                                <t t-esc="formatFileSize(attachment.file_size)"/>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="d-flex gap-1">
+                                                        <button
+                                                            class="o_pba_btn o_pba_btn_ghost o_pba_btn_sm"
+                                                            t-on-click="() => this.downloadAttachment(attachment)"
+                                                        >
+                                                            Descargar
+                                                        </button>
+                                                        <button
+                                                            t-if="canAttachFiles()"
+                                                            class="o_pba_btn o_pba_btn_danger o_pba_btn_sm"
+                                                            t-on-click="() => this.removeExistingAttachment(attachment)"
+                                                        >
+                                                            Quitar
+                                                        </button>
+                                                    </div>
+                                                </div>
+
+                                                <div
+                                                    t-foreach="state.pendingFiles"
+                                                    t-as="file"
+                                                    t-key="file.name + '-' + file.size + '-' + file_index"
+                                                    class="o_pba_attachment_item"
+                                                >
+                                                    <div class="o_pba_attachment_meta">
+                                                        <i class="fa fa-paperclip"/>
+                                                        <div class="text-truncate">
+                                                            <div class="text-truncate fw-semibold" t-esc="file.name"/>
+                                                            <div class="small text-muted">
+                                                                Nuevo · <t t-esc="formatFileSize(file.size)"/>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <button
+                                                        class="o_pba_btn o_pba_btn_danger o_pba_btn_sm"
+                                                        t-on-click="() => this.removePendingFile(file_index)"
+                                                    >
+                                                        Quitar
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="o_pba_form_actions">
+                                    <button
+                                        t-if="!state.formReadonly"
+                                        class="o_pba_btn o_pba_btn_primary"
+                                        t-on-click="saveTicket"
+                                    >
+                                        Guardar ticket
+                                    </button>
+                                    <button class="o_pba_btn o_pba_btn_ghost" t-on-click="closeForm">
+                                        <t t-if="state.formReadonly">Volver</t>
+                                        <t t-else="">Cancelar</t>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div t-if="state.activeTab === 'tickets' and !state.showForm" class="o_pba_panel">
+                            <div class="o_pba_panel_head">
+                                <h2 class="o_pba_panel_title">Tickets</h2>
+                                <span class="text-muted small">
+                                    <t t-esc="ticketStats.total"/> registros
+                                </span>
+                            </div>
+                            <div class="o_pba_ticket_list">
+                                <div t-if="!state.tickets.length" class="o_pba_empty">
+                                    <strong>Sin tickets todavía</strong>
+                                    <span>Cree el primero para contactar a su proveedor.</span>
+                                </div>
+
+                                <div
+                                    t-foreach="state.tickets"
+                                    t-as="ticket"
+                                    t-key="ticket.id"
+                                    class="o_pba_ticket_row"
+                                    t-on-click="() => this.openTicketForm(ticket)"
+                                >
+                                    <div class="o_pba_ticket_main">
+                                        <div class="o_pba_ticket_number" t-esc="ticket.number"/>
+                                        <div class="o_pba_ticket_subject" t-esc="ticket.name"/>
+                                    </div>
+                                    <div class="o_pba_ticket_contact">
+                                        <strong t-esc="ticket.contact_name"/>
+                                        <span class="text-truncate d-block" t-esc="ticket.contact_email or ''"/>
+                                    </div>
+                                    <div class="o_pba_ticket_meta">
+                                        <i class="fa fa-paperclip"/>
+                                        <t t-esc="ticket.attachment_count or 0"/>
+                                    </div>
+                                    <div>
+                                        <span
+                                            t-att-class="'o_pba_priority o_pba_priority_' + (ticket.priority or '1')"
+                                            t-esc="priorityLabel(ticket.priority)"
+                                        />
+                                    </div>
+                                    <div class="d-flex align-items-center gap-2 justify-content-end">
+                                        <span
+                                            t-att-class="'o_pba_status ' + statusClass(ticket.state)"
+                                            t-esc="stateLabel(ticket.state)"
+                                        />
+                                        <button
+                                            t-if="canApproveTicket(ticket)"
+                                            class="o_pba_btn o_pba_btn_success o_pba_btn_sm"
+                                            t-on-click.stop="() => this.approveTicket(ticket)"
+                                        >
+                                            Aprobar
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div t-if="state.activeTab === 'finance' and state.finance" class="o_pba_panel">
+                            <div class="o_pba_panel_head">
+                                <h2 class="o_pba_panel_title">Resumen financiero (USD)</h2>
+                                <span class="text-muted small" t-esc="state.finance.partner_name"/>
+                            </div>
+                            <div class="o_pba_panel_body">
+                                <div class="o_pba_finance_grid">
+                                    <div class="o_pba_stat">
+                                        <div class="o_pba_stat_label">Facturas</div>
+                                        <div class="o_pba_stat_value" t-esc="state.finance.invoice_count"/>
+                                    </div>
+                                    <div class="o_pba_stat">
+                                        <div class="o_pba_stat_label">Pagos pendientes</div>
+                                        <div class="o_pba_stat_value" t-esc="state.finance.pending_count"/>
+                                    </div>
+                                    <div class="o_pba_stat">
+                                        <div class="o_pba_stat_label">Monto adeudado (USD)</div>
+                                        <div
+                                            class="o_pba_stat_value"
+                                            t-esc="formatAmount(state.finance.amount_due, 'USD')"
+                                        />
+                                    </div>
+                                </div>
+
+                                <h3 class="o_pba_section_title">Facturas pendientes (USD)</h3>
+                                <div class="o_pba_panel mb-3">
+                                    <table class="o_pba_finance_table">
+                                        <thead>
+                                            <tr>
+                                                <th>Factura</th>
+                                                <th>Fecha</th>
+                                                <th>Vencimiento</th>
+                                                <th>Pendiente USD</th>
+                                                <th>Estado</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr t-if="!state.finance.pending_invoices.length">
+                                                <td colspan="5" class="text-muted">No hay pagos pendientes.</td>
+                                            </tr>
+                                            <tr
+                                                t-foreach="state.finance.pending_invoices"
+                                                t-as="invoice"
+                                                t-key="invoice.id"
+                                            >
+                                                <td class="fw-semibold" t-esc="invoice.name"/>
+                                                <td t-esc="formatDate(invoice.invoice_date)"/>
+                                                <td t-esc="formatDate(invoice.invoice_date_due)"/>
+                                                <td t-esc="formatAmount(invoice.amount_residual, 'USD')"/>
+                                                <td t-esc="paymentStateLabel(invoice.payment_state)"/>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <h3 class="o_pba_section_title">Facturas recientes (USD)</h3>
+                                <div class="o_pba_panel">
+                                    <table class="o_pba_finance_table">
+                                        <thead>
+                                            <tr>
+                                                <th>Factura</th>
+                                                <th>Fecha</th>
+                                                <th>Total USD</th>
+                                                <th>Pendiente USD</th>
+                                                <th>Estado</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr t-if="!state.finance.invoices.length">
+                                                <td colspan="5" class="text-muted">No hay facturas.</td>
+                                            </tr>
+                                            <tr
+                                                t-foreach="state.finance.invoices"
+                                                t-as="invoice"
+                                                t-key="'all-' + invoice.id"
+                                            >
+                                                <td class="fw-semibold" t-esc="invoice.name"/>
+                                                <td t-esc="formatDate(invoice.invoice_date)"/>
+                                                <td t-esc="formatAmount(invoice.amount_total, 'USD')"/>
+                                                <td t-esc="formatAmount(invoice.amount_residual, 'USD')"/>
+                                                <td t-esc="paymentStateLabel(invoice.payment_state)"/>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </div>
+            </Layout>
+        </div>
+    </t>
+</templates>

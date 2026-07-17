@@ -1,0 +1,645 @@
+.o_pba_support_dashboard {
+    --pba-ink: #15202b;
+    --pba-muted: #5b6b7c;
+    --pba-line: #d7dee7;
+    --pba-surface: #ffffff;
+    --pba-soft: #eef3f7;
+    --pba-accent: #0f6b6b;
+    --pba-accent-soft: #d9efef;
+    --pba-warn: #9a6700;
+    --pba-warn-soft: #fff3cd;
+    --pba-ok: #1f7a3f;
+    --pba-ok-soft: #dff5e7;
+    --pba-danger: #a33b3b;
+    --pba-danger-soft: #f8e3e3;
+    --pba-info: #245b8a;
+    --pba-info-soft: #e4f0fa;
+    --pba-shadow: 0 10px 30px rgba(21, 32, 43, 0.08);
+    --pba-radius: 14px;
+
+    height: 100%;
+    background:
+        radial-gradient(1200px 420px at 0% -10%, rgba(15, 107, 107, 0.12), transparent 60%),
+        radial-gradient(900px 360px at 100% 0%, rgba(36, 91, 138, 0.1), transparent 55%),
+        linear-gradient(180deg, #f4f7fa 0%, #f8fafc 40%, #ffffff 100%);
+    color: var(--pba-ink);
+
+    .o_content {
+        background: transparent;
+    }
+
+    .o_pba_support_shell {
+        max-width: 1180px;
+        margin: 0 auto;
+        padding: 1.25rem 1.25rem 2.5rem;
+    }
+
+    .o_pba_hero {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 1rem 1.5rem;
+        margin-bottom: 1.25rem;
+        animation: o-pba-fade-up 0.35s ease both;
+    }
+
+    .o_pba_hero_title {
+        margin: 0;
+        font-size: clamp(1.8rem, 2.4vw, 2.35rem);
+        font-weight: 700;
+        letter-spacing: -0.035em;
+        line-height: 1.1;
+    }
+
+    .o_pba_hero_sub {
+        margin: 0.35rem 0 0;
+        color: var(--pba-muted);
+        font-size: 0.98rem;
+    }
+
+    .o_pba_role_chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        margin-top: 0.75rem;
+        padding: 0.3rem 0.7rem;
+        border: 1px solid var(--pba-line);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.75);
+        color: var(--pba-muted);
+        font-size: 0.78rem;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+    }
+
+    .o_pba_hero_actions {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .o_pba_btn {
+        border: 1px solid transparent;
+        border-radius: 10px;
+        padding: 0.55rem 0.95rem;
+        font-weight: 600;
+        font-size: 0.92rem;
+        transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+        cursor: pointer;
+
+        &:active {
+            transform: translateY(1px);
+        }
+    }
+
+    .o_pba_btn_primary {
+        background: var(--pba-accent);
+        color: #fff;
+        box-shadow: 0 8px 18px rgba(15, 107, 107, 0.22);
+
+        &:hover {
+            background: #0c5858;
+            color: #fff;
+        }
+    }
+
+    .o_pba_btn_ghost {
+        background: rgba(255, 255, 255, 0.8);
+        border-color: var(--pba-line);
+        color: var(--pba-ink);
+
+        &:hover {
+            background: #fff;
+        }
+    }
+
+    .o_pba_btn_success {
+        background: var(--pba-ok);
+        color: #fff;
+
+        &:hover {
+            background: #176533;
+            color: #fff;
+        }
+    }
+
+    .o_pba_btn_danger {
+        background: transparent;
+        border-color: #e3b8b8;
+        color: var(--pba-danger);
+
+        &:hover {
+            background: var(--pba-danger-soft);
+        }
+    }
+
+    .o_pba_btn_sm {
+        padding: 0.3rem 0.65rem;
+        font-size: 0.8rem;
+        border-radius: 8px;
+    }
+
+    .o_pba_stats {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 0.75rem;
+        margin-bottom: 1.25rem;
+        animation: o-pba-fade-up 0.4s ease both;
+    }
+
+    .o_pba_stat {
+        background: rgba(255, 255, 255, 0.88);
+        border: 1px solid rgba(215, 222, 231, 0.9);
+        border-radius: var(--pba-radius);
+        padding: 0.9rem 1rem;
+        backdrop-filter: blur(6px);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+        &:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--pba-shadow);
+        }
+    }
+
+    .o_pba_stat_label {
+        color: var(--pba-muted);
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+    }
+
+    .o_pba_stat_value {
+        margin-top: 0.2rem;
+        font-size: 1.55rem;
+        font-weight: 700;
+        letter-spacing: -0.03em;
+        line-height: 1.15;
+    }
+
+    .o_pba_tabs {
+        display: inline-flex;
+        gap: 0.25rem;
+        padding: 0.25rem;
+        margin-bottom: 1rem;
+        background: rgba(255, 255, 255, 0.8);
+        border: 1px solid var(--pba-line);
+        border-radius: 12px;
+        animation: o-pba-fade-up 0.45s ease both;
+    }
+
+    .o_pba_tab {
+        border: 0;
+        background: transparent;
+        color: var(--pba-muted);
+        border-radius: 9px;
+        padding: 0.45rem 0.9rem;
+        font-weight: 600;
+        transition: background 0.15s ease, color 0.15s ease;
+
+        &.active {
+            background: var(--pba-accent-soft);
+            color: var(--pba-accent);
+        }
+
+        &:hover:not(.active) {
+            background: var(--pba-soft);
+            color: var(--pba-ink);
+        }
+    }
+
+    .o_pba_panel {
+        background: rgba(255, 255, 255, 0.92);
+        border: 1px solid rgba(215, 222, 231, 0.95);
+        border-radius: calc(var(--pba-radius) + 2px);
+        box-shadow: var(--pba-shadow);
+        overflow: hidden;
+        animation: o-pba-fade-up 0.45s ease both;
+    }
+
+    .o_pba_panel_head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 1rem 1.15rem;
+        border-bottom: 1px solid var(--pba-line);
+        background: linear-gradient(180deg, #fff 0%, #f9fbfd 100%);
+    }
+
+    .o_pba_panel_title {
+        margin: 0;
+        font-size: 1.05rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+    }
+
+    .o_pba_panel_body {
+        padding: 1.15rem;
+    }
+
+    .o_pba_form_grid {
+        display: grid;
+        grid-template-columns: 1.4fr 1fr;
+        gap: 1rem;
+    }
+
+    .o_pba_field {
+        margin-bottom: 0.9rem;
+
+        label {
+            display: block;
+            margin-bottom: 0.35rem;
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--pba-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .form-control,
+        .form-select {
+            border-radius: 10px;
+            border-color: var(--pba-line);
+            padding: 0.65rem 0.8rem;
+            background: #fff;
+
+            &:focus {
+                border-color: var(--pba-accent);
+                box-shadow: 0 0 0 3px rgba(15, 107, 107, 0.15);
+            }
+        }
+    }
+
+    .o_pba_sender_note {
+        margin: 0 0 1rem;
+        padding: 0.75rem 0.9rem;
+        border-left: 3px solid var(--pba-accent);
+        background: var(--pba-accent-soft);
+        border-radius: 0 10px 10px 0;
+        color: #204646;
+        font-size: 0.9rem;
+    }
+
+    .o_pba_dropzone {
+        border: 1.5px dashed #b7c5d3;
+        border-radius: 12px;
+        background: #f8fbfd;
+        padding: 1.1rem;
+        text-align: center;
+        color: var(--pba-muted);
+        transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+        cursor: pointer;
+
+        &:hover,
+        &.is-dragover {
+            border-color: var(--pba-accent);
+            background: var(--pba-accent-soft);
+            color: var(--pba-accent);
+            transform: translateY(-1px);
+        }
+
+        strong {
+            display: block;
+            margin-bottom: 0.2rem;
+            color: inherit;
+        }
+    }
+
+    .o_pba_attachment_list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        margin-top: 0.75rem;
+    }
+
+    .o_pba_attachment_item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        padding: 0.65rem 0.8rem;
+        border: 1px solid var(--pba-line);
+        border-radius: 10px;
+        background: #fff;
+    }
+
+    .o_pba_attachment_meta {
+        display: flex;
+        align-items: center;
+        gap: 0.65rem;
+        min-width: 0;
+
+        i {
+            width: 1.8rem;
+            height: 1.8rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            background: var(--pba-soft);
+            color: var(--pba-accent);
+        }
+    }
+
+    .o_pba_ticket_list {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .o_pba_ticket_row {
+        display: grid;
+        grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr) auto auto auto;
+        gap: 0.85rem;
+        align-items: center;
+        padding: 0.95rem 1.15rem;
+        border-bottom: 1px solid var(--pba-line);
+        cursor: pointer;
+        transition: background 0.15s ease;
+
+        &:hover {
+            background: #f5fafb;
+        }
+
+        &:last-child {
+            border-bottom: 0;
+        }
+    }
+
+    .o_pba_ticket_main {
+        min-width: 0;
+    }
+
+    .o_pba_ticket_number {
+        color: var(--pba-muted);
+        font-size: 0.78rem;
+        font-weight: 700;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+    }
+
+    .o_pba_ticket_subject {
+        margin: 0.15rem 0 0;
+        font-size: 1rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        color: var(--pba-ink);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .o_pba_ticket_contact {
+        min-width: 0;
+        color: var(--pba-muted);
+        font-size: 0.88rem;
+
+        strong {
+            display: block;
+            color: var(--pba-ink);
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+    }
+
+    .o_pba_ticket_meta {
+        display: flex;
+        align-items: center;
+        gap: 0.45rem;
+        color: var(--pba-muted);
+        font-size: 0.82rem;
+        white-space: nowrap;
+    }
+
+    .o_pba_status {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.28rem 0.6rem;
+        border-radius: 8px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.01em;
+        white-space: nowrap;
+    }
+
+    .o_pba_status_pending {
+        background: var(--pba-warn-soft);
+        color: var(--pba-warn);
+    }
+
+    .o_pba_status_submitted,
+    .o_pba_status_progress {
+        background: var(--pba-info-soft);
+        color: var(--pba-info);
+    }
+
+    .o_pba_status_resolved {
+        background: var(--pba-ok-soft);
+        color: var(--pba-ok);
+    }
+
+    .o_pba_status_cancelled {
+        background: #eef1f4;
+        color: #667788;
+    }
+
+    .o_pba_priority {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--pba-muted);
+
+        &::before {
+            content: "";
+            width: 0.5rem;
+            height: 0.5rem;
+            border-radius: 50%;
+            background: currentColor;
+        }
+    }
+
+    .o_pba_priority_0 {
+        color: #6b7c8d;
+    }
+
+    .o_pba_priority_1 {
+        color: var(--pba-info);
+    }
+
+    .o_pba_priority_2 {
+        color: var(--pba-warn);
+    }
+
+    .o_pba_priority_3 {
+        color: var(--pba-danger);
+    }
+
+    .o_pba_empty {
+        padding: 2.5rem 1.5rem;
+        text-align: center;
+        color: var(--pba-muted);
+
+        strong {
+            display: block;
+            margin-bottom: 0.35rem;
+            color: var(--pba-ink);
+            font-size: 1.05rem;
+        }
+    }
+
+    .o_pba_banner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 1rem 1.1rem;
+        border-radius: var(--pba-radius);
+        border: 1px solid var(--pba-line);
+        background: rgba(255, 255, 255, 0.9);
+        margin-bottom: 1rem;
+        animation: o-pba-fade-up 0.3s ease both;
+
+        &.is-warning {
+            border-color: #ead59a;
+            background: #fff9e8;
+            color: #6d5310;
+        }
+
+        &.is-danger {
+            border-color: #e4b4b4;
+            background: #fff1f1;
+            color: #7a2e2e;
+        }
+
+        &.is-info {
+            border-color: #b9d3ea;
+            background: #eef6fd;
+            color: #214c6f;
+        }
+    }
+
+    .o_pba_loading {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 1.25rem;
+        color: var(--pba-muted);
+
+        .o_pba_spinner {
+            width: 1.1rem;
+            height: 1.1rem;
+            border: 2px solid #c9d5e1;
+            border-top-color: var(--pba-accent);
+            border-radius: 50%;
+            animation: o-pba-spin 0.7s linear infinite;
+        }
+    }
+
+    .o_pba_finance_grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 0.75rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .o_pba_finance_table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+
+        th {
+            text-align: left;
+            padding: 0.7rem 0.9rem;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--pba-muted);
+            background: #f7fafc;
+            border-bottom: 1px solid var(--pba-line);
+        }
+
+        td {
+            padding: 0.8rem 0.9rem;
+            border-bottom: 1px solid #eef2f6;
+            font-size: 0.92rem;
+            vertical-align: middle;
+        }
+
+        tr:last-child td {
+            border-bottom: 0;
+        }
+    }
+
+    .o_pba_section_title {
+        margin: 0 0 0.65rem;
+        font-size: 0.95rem;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+    }
+
+    .o_pba_form_actions {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        margin-top: 0.5rem;
+    }
+
+    @media (max-width: 992px) {
+        .o_pba_stats,
+        .o_pba_finance_grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .o_pba_form_grid {
+            grid-template-columns: 1fr;
+        }
+
+        .o_pba_ticket_row {
+            grid-template-columns: 1fr;
+            gap: 0.45rem;
+        }
+    }
+
+    @media (max-width: 640px) {
+        .o_pba_support_shell {
+            padding: 0.85rem 0.85rem 2rem;
+        }
+
+        .o_pba_stats,
+        .o_pba_finance_grid {
+            grid-template-columns: 1fr;
+        }
+
+        .o_pba_hero_actions {
+            width: 100%;
+        }
+
+        .o_pba_btn {
+            flex: 1 1 auto;
+            text-align: center;
+        }
+    }
+}
+
+@keyframes o-pba-fade-up {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes o-pba-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
