@@ -22,6 +22,27 @@
     </template>
 
     <template
+        id="portal_user_dropdown_pba_support"
+        name="Portal user dropdown: Support"
+        inherit_id="portal.user_dropdown"
+        priority="40"
+    >
+        <xpath expr="//*[@id='o_logout_divider']" position="before">
+            <a
+                groups="base.group_portal"
+                href="/my/support"
+                role="menuitem"
+                class="dropdown-item ps-3"
+            >
+                <i
+                    class="fa fa-fw fa-life-ring me-1 small text-primary text-primary-emphasis"
+                />
+                Soporte
+            </a>
+        </xpath>
+    </template>
+
+    <template
         id="portal_breadcrumbs_pba_support"
         name="Portal breadcrumbs: support"
         inherit_id="portal.portal_breadcrumbs"

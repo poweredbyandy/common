@@ -1,6 +1,6 @@
 {
     "name": "PBA Provider Subscription",
-    "version": "18.0.1.12.0",
+    "version": "18.0.1.13.0",
     "category": "Services/Helpdesk",
     "summary": "Tickets de soporte y resumen financiero para clientes conectados por RPC",
     "author": "andyengit",
@@ -27,6 +27,7 @@
     ],
     "assets": {
         "web.assets_frontend": [
+            "pba_provider_subscription/static/src/js/portal_home_counters.js",
             "pba_provider_subscription/static/src/scss/portal_support_dashboard.scss",
             "pba_provider_subscription/static/src/xml/portal_support_dashboard.xml",
             "pba_provider_subscription/static/src/js/portal_support_dashboard.js",
