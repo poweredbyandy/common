@@ -3,3 +3,7 @@ access_pba_support_ticket_user,pba.support.ticket.user,model_pba_support_ticket,
 access_pba_support_ticket_manager,pba.support.ticket.manager,model_pba_support_ticket,group_support_manager,1,1,1,1
 access_pba_support_ticket_portal,pba.support.ticket.portal,model_pba_support_ticket,base.group_portal,1,1,1,0
 access_pba_subscription_api_key_wizard_manager,pba.subscription.api.key.wizard.manager,model_pba_subscription_api_key_wizard,group_support_manager,1,1,1,1
+access_pba_sla_leave_user,pba.sla.leave.user,model_pba_sla_leave,group_support_user,1,0,0,0
+access_pba_sla_leave_manager,pba.sla.leave.manager,model_pba_sla_leave,group_support_manager,1,1,1,1
+access_pba_portal_support_portal,pba.portal.support.portal,model_pba_portal_support,base.group_portal,1,0,0,0
+access_pba_portal_support_user,pba.portal.support.user,model_pba_portal_support,group_support_user,1,0,0,0

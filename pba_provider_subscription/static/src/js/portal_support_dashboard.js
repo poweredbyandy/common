@@ -2,10 +2,8 @@
 
 import { Component, markup, onWillStart, useRef, useState } from "@odoo/owl";
 import { registry } from "@web/core/registry";
-import { useService } from "@web/core/utils/hooks";
+import { rpc } from "@web/core/network/rpc";
 import { _t } from "@web/core/l10n/translation";
-import { standardActionServiceProps } from "@web/webclient/actions/action_service";
-import { Layout } from "@web/search/layout";
 
 const STATE_LABELS = {
     pending_approval: _t("Pendiente de aprobación"),
@@ -114,16 +112,13 @@ function fileToBase64(file) {
     });
 }
 
-export class PbaSupportDashboard extends Component {
-    static template = "pba_customer_subscription.SupportDashboard";
-    static components = { Layout };
-    static props = { ...standardActionServiceProps };
+export class PbaPortalSupportDashboard extends Component {
+    static template = "pba_provider_subscription.PortalSupportDashboard";
+    static props = ["*"];
 
     setup() {
-        this.orm = useService("orm");
-        this.notification = useService("notification");
-        this.action = useService("action");
         this.fileInputRef = useRef("fileInput");
+        this.supportModel = "pba.portal.support";
         this.state = useState({
             loading: true,
             error: "",
@@ -147,6 +142,7 @@ export class PbaSupportDashboard extends Component {
             messageBody: "",
             ratingValue: "5",
             ratingText: "",
+            flash: "",
         });
         onWillStart(async () => {
             await this.loadAll();
@@ -447,7 +443,7 @@ export class PbaSupportDashboard extends Component {
         this.state.loading = true;
         this.state.error = "";
         try {
-            const context = await this.orm.call("pba.customer.support", "get_dashboard_context", []);
+            const context = await this._callSupport("get_dashboard_context", []);
             this.state.context = context;
             if (!context.role || !context.configured) {
                 this.state.tickets = [];
@@ -456,17 +452,13 @@ export class PbaSupportDashboard extends Component {
                 return;
             }
             const [tickets, performance] = await Promise.all([
-                this.orm.call("pba.customer.support", "get_tickets", []),
-                this.orm.call("pba.customer.support", "get_performance_stats", []),
+                this._callSupport("get_tickets", []),
+                this._callSupport("get_performance_stats", []),
             ]);
             this.state.tickets = tickets;
             this.state.performance = performance;
             if (context.can_view_finance && this.state.activeTab === "finance") {
-                this.state.finance = await this.orm.call(
-                    "pba.customer.support",
-                    "get_financial_summary",
-                    []
-                );
+                this.state.finance = await this._callSupport("get_financial_summary", []);
             }
         } catch (error) {
             this.state.error = error.data?.message || error.message || _t("Error inesperado");
@@ -480,11 +472,7 @@ export class PbaSupportDashboard extends Component {
         if (tab === "finance" && this.state.context.can_view_finance && !this.state.finance) {
             this.state.loading = true;
             try {
-                this.state.finance = await this.orm.call(
-                    "pba.customer.support",
-                    "get_financial_summary",
-                    []
-                );
+                this.state.finance = await this._callSupport("get_financial_summary", []);
             } catch (error) {
                 this.state.error = error.data?.message || error.message || _t("Error inesperado");
             } finally {
@@ -495,7 +483,7 @@ export class PbaSupportDashboard extends Component {
 
     openCreateForm() {
         if (!this.state.context.can_create) {
-            this.notification.add(
+            this._notify(
                 _t(
                     "Debe calificar el ticket %s antes de crear uno nuevo.",
                     this.state.context.unrated_ticket_number || ""
@@ -534,8 +522,8 @@ export class PbaSupportDashboard extends Component {
         this.state.loading = true;
         try {
             const [detail, messages] = await Promise.all([
-                this.orm.call("pba.customer.support", "get_ticket", [ticket.id]),
-                this.orm.call("pba.customer.support", "get_messages", [ticket.id]),
+                this._callSupport("get_ticket", [ticket.id]),
+                this._callSupport("get_messages", [ticket.id]),
             ]);
             this.state.editingId = detail.id;
             this.state.currentTicket = detail;
@@ -560,7 +548,7 @@ export class PbaSupportDashboard extends Component {
             this.state.activeTab = "tickets";
             this.state.showForm = true;
         } catch (error) {
-            this.notification.add(error.data?.message || error.message || _t("Error inesperado"), {
+            this._notify(error.data?.message || error.message || _t("Error inesperado"), {
                 type: "danger",
             });
         } finally {
@@ -671,7 +659,7 @@ export class PbaSupportDashboard extends Component {
     async _addFiles(files) {
         for (const file of files) {
             if (file.size > MAX_ATTACHMENT_BYTES) {
-                this.notification.add(
+                this._notify(
                     _t("El archivo %s supera el límite de 25 MB.", file.name),
                     { type: "danger" }
                 );
@@ -695,14 +683,14 @@ export class PbaSupportDashboard extends Component {
         }
         this.state.loading = true;
         try {
-            const ticket = await this.orm.call("pba.customer.support", "add_attachments", [
+            const ticket = await this._callSupport("add_attachments", [
                 this.state.editingId,
                 await this._pendingFilesPayload(),
             ]);
             this.state.pendingFiles = [];
             this.state.existingAttachments = ticket.attachments || [];
             this.state.currentTicket = ticket;
-            this.notification.add(_t("Adjuntos enviados."), { type: "success" });
+            this._notify(_t("Adjuntos enviados."), { type: "success" });
             await this.loadAll();
             if (this.state.editingId) {
                 const detail = this.state.tickets.find((item) => item.id === this.state.editingId);
@@ -716,7 +704,7 @@ export class PbaSupportDashboard extends Component {
                 }
             }
         } catch (error) {
-            this.notification.add(error.data?.message || error.message || _t("Error inesperado"), {
+            this._notify(error.data?.message || error.message || _t("Error inesperado"), {
                 type: "danger",
             });
         } finally {
@@ -742,11 +730,11 @@ export class PbaSupportDashboard extends Component {
 
     async saveTicket() {
         if (!this.state.form.name.trim()) {
-            this.notification.add(_t("El asunto es obligatorio."), { type: "danger" });
+            this._notify(_t("El asunto es obligatorio."), { type: "danger" });
             return;
         }
         if (!this.state.form.category) {
-            this.notification.add(_t("La categoría es obligatoria."), { type: "danger" });
+            this._notify(_t("La categoría es obligatoria."), { type: "danger" });
             return;
         }
         let description = (this.state.form.description || "").trim();
@@ -755,7 +743,7 @@ export class PbaSupportDashboard extends Component {
                 (item) => !(item.answer || "").trim()
             );
             if (unanswered) {
-                this.notification.add(
+                this._notify(
                     _t("Debe responder todas las preguntas de la descripción."),
                     { type: "danger" }
                 );
@@ -766,14 +754,14 @@ export class PbaSupportDashboard extends Component {
             ).trim();
         }
         if (!description) {
-            this.notification.add(
+            this._notify(
                 _t("Complete la descripción respondiendo las preguntas sugeridas."),
                 { type: "danger" }
             );
             return;
         }
         if (!this.state.editingId && !this.state.pendingFiles.length) {
-            this.notification.add(
+            this._notify(
                 _t("Debe adjuntar al menos una foto o documento como evidencia."),
                 { type: "danger" }
             );
@@ -789,19 +777,19 @@ export class PbaSupportDashboard extends Component {
                 attachments: await this._pendingFilesPayload(),
             };
             if (this.state.editingId) {
-                await this.orm.call("pba.customer.support", "update_ticket", [
+                await this._callSupport("update_ticket", [
                     this.state.editingId,
                     values,
                 ]);
-                this.notification.add(_t("Ticket actualizado."), { type: "success" });
+                this._notify(_t("Ticket actualizado."), { type: "success" });
             } else {
-                await this.orm.call("pba.customer.support", "create_ticket", [values]);
-                this.notification.add(_t("Ticket creado."), { type: "success" });
+                await this._callSupport("create_ticket", [values]);
+                this._notify(_t("Ticket creado."), { type: "success" });
             }
             this.closeForm();
             await this.loadAll();
         } catch (error) {
-            this.notification.add(error.data?.message || error.message || _t("Error inesperado"), {
+            this._notify(error.data?.message || error.message || _t("Error inesperado"), {
                 type: "danger",
             });
             this.state.loading = false;
@@ -811,7 +799,7 @@ export class PbaSupportDashboard extends Component {
     async downloadAttachment(attachment) {
         this.state.loading = true;
         try {
-            const data = await this.orm.call("pba.customer.support", "get_attachment", [
+            const data = await this._callSupport("get_attachment", [
                 this.state.editingId,
                 attachment.id,
             ]);
@@ -832,7 +820,7 @@ export class PbaSupportDashboard extends Component {
             link.remove();
             URL.revokeObjectURL(url);
         } catch (error) {
-            this.notification.add(error.data?.message || error.message || _t("Error inesperado"), {
+            this._notify(error.data?.message || error.message || _t("Error inesperado"), {
                 type: "danger",
             });
         } finally {
@@ -846,16 +834,16 @@ export class PbaSupportDashboard extends Component {
         }
         this.state.loading = true;
         try {
-            const ticket = await this.orm.call("pba.customer.support", "remove_attachment", [
+            const ticket = await this._callSupport("remove_attachment", [
                 this.state.editingId,
                 attachment.id,
             ]);
             this.state.existingAttachments = ticket.attachments || [];
             this.state.currentTicket = ticket;
-            this.notification.add(_t("Adjunto eliminado."), { type: "success" });
+            this._notify(_t("Adjunto eliminado."), { type: "success" });
             await this.loadAll();
         } catch (error) {
-            this.notification.add(error.data?.message || error.message || _t("Error inesperado"), {
+            this._notify(error.data?.message || error.message || _t("Error inesperado"), {
                 type: "danger",
             });
         } finally {
@@ -865,12 +853,12 @@ export class PbaSupportDashboard extends Component {
 
     async postMessage() {
         if (!this.state.editingId || !this.state.messageBody.trim()) {
-            this.notification.add(_t("Escriba un mensaje."), { type: "warning" });
+            this._notify(_t("Escriba un mensaje."), { type: "warning" });
             return;
         }
         this.state.loading = true;
         try {
-            const messages = await this.orm.call("pba.customer.support", "post_message", [
+            const messages = await this._callSupport("post_message", [
                 this.state.editingId,
                 { body: this.state.messageBody.trim() },
             ]);
@@ -879,10 +867,10 @@ export class PbaSupportDashboard extends Component {
                 body: markup(message.body || ""),
             }));
             this.state.messageBody = "";
-            this.notification.add(_t("Mensaje enviado."), { type: "success" });
+            this._notify(_t("Mensaje enviado."), { type: "success" });
 
         } catch (error) {
-            this.notification.add(error.data?.message || error.message || _t("Error inesperado"), {
+            this._notify(error.data?.message || error.message || _t("Error inesperado"), {
                 type: "danger",
             });
         } finally {
@@ -896,7 +884,7 @@ export class PbaSupportDashboard extends Component {
         }
         const ratingText = (this.state.ratingText || "").trim();
         if (ratingText.length < 20) {
-            this.notification.add(
+            this._notify(
                 _t("El comentario de la calificación debe tener al menos 20 caracteres."),
                 { type: "danger" }
             );
@@ -904,7 +892,7 @@ export class PbaSupportDashboard extends Component {
         }
         this.state.loading = true;
         try {
-            const ticket = await this.orm.call("pba.customer.support", "rate_ticket", [
+            const ticket = await this._callSupport("rate_ticket", [
                 this.state.editingId,
                 {
                     rating: this.state.ratingValue,
@@ -912,10 +900,10 @@ export class PbaSupportDashboard extends Component {
                 },
             ]);
             this.state.currentTicket = ticket;
-            this.notification.add(_t("Gracias por su calificación."), { type: "success" });
+            this._notify(_t("Gracias por su calificación."), { type: "success" });
             await this.loadAll();
         } catch (error) {
-            this.notification.add(error.data?.message || error.message || _t("Error inesperado"), {
+            this._notify(error.data?.message || error.message || _t("Error inesperado"), {
                 type: "danger",
             });
         } finally {
@@ -926,11 +914,11 @@ export class PbaSupportDashboard extends Component {
     async approveTicket(ticket) {
         this.state.loading = true;
         try {
-            await this.orm.call("pba.customer.support", "approve_ticket", [ticket.id]);
-            this.notification.add(_t("Ticket aprobado y enviado."), { type: "success" });
+            await this._callSupport("approve_ticket", [ticket.id]);
+            this._notify(_t("Ticket aprobado y enviado."), { type: "success" });
             await this.loadAll();
         } catch (error) {
-            this.notification.add(error.data?.message || error.message || _t("Error inesperado"), {
+            this._notify(error.data?.message || error.message || _t("Error inesperado"), {
                 type: "danger",
             });
             this.state.loading = false;
@@ -938,13 +926,7 @@ export class PbaSupportDashboard extends Component {
     }
 
     openSettings() {
-        this.action.doAction({
-            type: "ir.actions.act_window",
-            res_model: "res.config.settings",
-            views: [[false, "form"]],
-            target: "current",
-            context: { module: "pba_customer_subscription" },
-        });
+        return;
     }
 
     formatAmount(amount, currency) {
@@ -966,6 +948,26 @@ export class PbaSupportDashboard extends Component {
             })} ${code}`.trim();
         }
     }
+    async _callSupport(method, args = []) {
+        return rpc("/my/support/call", {
+            method,
+            args,
+        });
+    }
+
+    _notify(message, options = {}) {
+        this.state.flash = message;
+        const type = options.type || "info";
+        if (type === "danger") {
+            this.state.error = message;
+        }
+        setTimeout(() => {
+            if (this.state.flash === message) {
+                this.state.flash = "";
+            }
+        }, 3500);
+    }
+
 }
 
-registry.category("actions").add("pba_customer_subscription_dashboard", PbaSupportDashboard);
+registry.category("public_components").add("pba_provider_subscription.PortalSupportDashboard", PbaPortalSupportDashboard);

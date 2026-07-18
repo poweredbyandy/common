@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <template
+        id="portal_my_home_pba_support"
+        name="Show Support"
+        customize_show="True"
+        inherit_id="portal.portal_my_home"
+        priority="40"
+    >
+        <xpath expr="//div[hasclass('o_portal_docs')]" position="before">
+            <t t-set="portal_service_category_enable" t-value="True" />
+        </xpath>
+        <div id="portal_service_category" position="inside">
+            <t t-call="portal.portal_docs_entry">
+                <t t-set="icon" t-value="'/mail/static/description/icon.png'" />
+                <t t-set="title">Soporte</t>
+                <t t-set="url" t-value="'/my/support'" />
+                <t t-set="text">Tickets, adjuntos, conversación y calificación</t>
+                <t t-set="placeholder_count" t-value="'pba_support_count'" />
+            </t>
+        </div>
+    </template>
+
+    <template
+        id="portal_breadcrumbs_pba_support"
+        name="Portal breadcrumbs: support"
+        inherit_id="portal.portal_breadcrumbs"
+        priority="40"
+    >
+        <xpath expr="//ol[hasclass('o_portal_submenu')]" position="inside">
+            <li
+                t-if="page_name == 'pba_support'"
+                class="breadcrumb-item active"
+            >
+                Soporte
+            </li>
+        </xpath>
+    </template>
+
+    <template id="portal_my_support" name="Portal Support Dashboard">
+        <t t-call="portal.portal_layout">
+            <t t-set="breadcrumbs_searchbar" t-value="True" />
+            <t t-call="portal.portal_searchbar">
+                <t t-set="title">Soporte</t>
+            </t>
+            <div class="o_pba_portal_support_mount">
+                <owl-component name="pba_provider_subscription.PortalSupportDashboard" />
+            </div>
+        </t>
+    </template>
+</odoo>

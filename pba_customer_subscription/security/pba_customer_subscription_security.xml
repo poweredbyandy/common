@@ -40,4 +40,21 @@
             Can view all tickets and financial summary (invoices and pending payments).
         </field>
     </record>
+
+    <record id="pba_customer_ticket_track_rule_user" model="ir.rule">
+        <field name="name">Support track: own tickets</field>
+        <field name="model_id" ref="model_pba_customer_ticket_track" />
+        <field name="domain_force">[('user_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('group_support_user'))]" />
+    </record>
+
+    <record id="pba_customer_ticket_track_rule_helpdesk" model="ir.rule">
+        <field name="name">Support track: helpdesk all</field>
+        <field name="model_id" ref="model_pba_customer_ticket_track" />
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field
+            name="groups"
+            eval="[(4, ref('group_support_helpdesk')), (4, ref('group_support_admin'))]"
+        />
+    </record>
 </odoo>

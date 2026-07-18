@@ -1,10 +1,9 @@
 import base64
-from datetime import timedelta
-
 from markupsafe import Markup
 
 from odoo import api, fields, models, _
 from odoo.exceptions import AccessError, UserError, ValidationError
+from odoo.tools import html_escape
 
 PBA_ATTACHMENT_MAX_BYTES = 25 * 1024 * 1024
 
@@ -281,6 +280,13 @@ class PbaSupportTicket(models.Model):
         "company_id.pba_sla_hours_high",
         "company_id.pba_sla_hours_urgent",
         "company_id.pba_sla_priority_mismatch_hours",
+        "company_id.pba_sla_hour_from",
+        "company_id.pba_sla_hour_to",
+        "company_id.pba_sla_timezone",
+        "company_id.pba_sla_leave_ids",
+        "company_id.pba_sla_leave_ids.date_from",
+        "company_id.pba_sla_leave_ids.date_to",
+        "company_id.pba_sla_leave_ids.active",
     )
     def _compute_sla_deadline(self):
         for ticket in self:
@@ -302,42 +308,47 @@ class PbaSupportTicket(models.Model):
                     if isinstance(start, str)
                     else start
                 )
-                deadline = start_dt + timedelta(hours=total_hours)
+                deadline = company._pba_add_business_hours(start_dt, total_hours)
             ticket.sla_hours = hours
             ticket.sla_holgura_hours = holgura
             ticket.priority_mismatch = mismatch
             ticket.sla_deadline = deadline
-            base_label = self._pba_format_sla_hours(hours)
+            base_label = self._pba_format_sla_hours(hours, company)
             if holgura:
                 ticket.sla_estimated_label = _(
                     "%(base)s (+%(holgura)s holgura)",
                     base=base_label,
-                    holgura=self._pba_format_sla_hours(holgura),
+                    holgura=self._pba_format_sla_hours(holgura, company),
                 )
             else:
                 ticket.sla_estimated_label = base_label
 
     @api.model
-    def _pba_format_sla_hours(self, hours):
+    def _pba_format_sla_hours(self, hours, company=None):
         hours = float(hours or 0.0)
         if hours <= 0:
             return "—"
-        if hours < 24:
+        company = company or self.env.company
+        workday = company._pba_get_workday_hours() or 8.0
+        if hours < workday:
             if hours == int(hours):
-                return _("%s h") % int(hours)
-            return _("%(hours).1f h") % {"hours": hours}
-        days = hours / 24.0
-        if days < 7:
+                return _("%s h laborables") % int(hours)
+            return _("%(hours).1f h laborables") % {"hours": hours}
+        days = hours / workday
+        if days < 5:
             if days == int(days):
-                return _("%s días") % int(days)
-            return _("%(days).1f días") % {"days": days}
-        weeks = days / 7.0
+                days_int = int(days)
+                if days_int == 1:
+                    return _("1 día laborable")
+                return _("%s días laborables") % days_int
+            return _("%(days).1f días laborables") % {"days": days}
+        weeks = days / 5.0
         if weeks == int(weeks):
             weeks_int = int(weeks)
             if weeks_int == 1:
-                return _("1 semana")
-            return _("%s semanas") % weeks_int
-        return _("%(weeks).1f semanas") % {"weeks": weeks}
+                return _("1 semana laborable")
+            return _("%s semanas laborables") % weeks_int
+        return _("%(weeks).1f semanas laborables") % {"weeks": weeks}
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -407,6 +418,17 @@ class PbaSupportTicket(models.Model):
 
     def action_set_submitted(self):
         self.write({"state": "submitted"})
+
+    @api.model
+    def _pba_normalize_description_html(self, description):
+        text = (description or "").strip()
+        if not text:
+            return ""
+        lowered = text.lower()
+        if "<p" in lowered or "<br" in lowered or "<div" in lowered:
+            return text
+        lines = [html_escape(line) for line in text.splitlines()]
+        return Markup("<br/>\n".join(lines))
 
     @api.model
     def _pba_format_duration(self, seconds):
@@ -629,6 +651,8 @@ class PbaSupportTicket(models.Model):
 
     def _pba_message_to_dict(self, message):
         author = message.author_id
+        portal_partner = self.env.user.partner_id
+        from_support = bool(author and author != portal_partner)
         return {
             "id": message.id,
             "body": message.body or "",
@@ -636,6 +660,7 @@ class PbaSupportTicket(models.Model):
             "author_name": author.name if author else (message.email_from or _("System")),
             "author_id": author.id if author else False,
             "message_type": message.message_type,
+            "from_support": from_support,
             "is_note": bool(
                 message.subtype_id
                 and message.subtype_id == self.env.ref(
@@ -708,7 +733,9 @@ class PbaSupportTicket(models.Model):
         valid_categories = {item[0] for item in PBA_TICKET_CATEGORIES}
         if category not in valid_categories:
             raise ValidationError(_("Invalid ticket category."))
-        description = (values.get("description") or "").strip()
+        description = self._pba_normalize_description_html(
+            values.get("description") or ""
+        )
         if not description:
             raise ValidationError(_("Description is required."))
         attachments = values.get("attachments") or []
@@ -751,20 +778,30 @@ class PbaSupportTicket(models.Model):
                     "key": key,
                     "label": label,
                     "hours": hours,
-                    "duration_label": self._pba_format_sla_hours(hours),
+                    "duration_label": self._pba_format_sla_hours(hours, company),
                     "help": PBA_PRIORITY_HELP.get(key, ""),
                 }
             )
         mismatch_hours = company.pba_sla_priority_mismatch_hours or 0.0
+        hour_from = company.pba_sla_hour_from or 9.0
+        hour_to = company.pba_sla_hour_to or 17.0
         return {
             "priorities": priorities,
             "mismatch_hours": mismatch_hours,
-            "mismatch_label": self._pba_format_sla_hours(mismatch_hours),
+            "mismatch_label": self._pba_format_sla_hours(mismatch_hours, company),
             "mismatch_help": _(
                 "If the requested priority is higher than the reviewed one, "
                 "a %(holgura)s resolution holgura is applied.",
-                holgura=self._pba_format_sla_hours(mismatch_hours),
+                holgura=self._pba_format_sla_hours(mismatch_hours, company),
             ),
+            "business_hours": {
+                "weekdays": _("Monday to Friday"),
+                "hour_from": hour_from,
+                "hour_to": hour_to,
+                "label": _("Lunes a Viernes, %(start)02d:00 a %(end)02d:00")
+                % {"start": int(hour_from), "end": int(hour_to)},
+                "timezone": company.pba_sla_timezone or "UTC",
+            },
         }
 
     @api.model
@@ -968,6 +1005,10 @@ class PbaSupportTicket(models.Model):
             "contact_phone",
         }
         vals = {key: values[key] for key in allowed if key in values}
+        if "description" in vals:
+            vals["description"] = self._pba_normalize_description_html(
+                vals.get("description") or ""
+            )
         if "category" in vals:
             valid_categories = {item[0] for item in PBA_TICKET_CATEGORIES}
             if vals["category"] not in valid_categories:

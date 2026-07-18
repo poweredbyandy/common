@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="pba_sla_leave_view_list" model="ir.ui.view">
+        <field name="name">pba.sla.leave.view.list</field>
+        <field name="model">pba.sla.leave</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="name" />
+                <field name="date_from" />
+                <field name="date_to" />
+                <field name="company_id" groups="base.group_multi_company" />
+                <field name="active" />
+            </list>
+        </field>
+    </record>
+
+    <record id="pba_sla_leave_view_form" model="ir.ui.view">
+        <field name="name">pba.sla.leave.view.form</field>
+        <field name="model">pba.sla.leave</field>
+        <field name="arch" type="xml">
+            <form string="Unavailable Day">
+                <sheet>
+                    <group>
+                        <field name="name" />
+                        <field name="date_from" />
+                        <field name="date_to" />
+                        <field name="company_id" groups="base.group_multi_company" />
+                        <field name="active" />
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="pba_sla_leave_action" model="ir.actions.act_window">
+        <field name="name">Unavailable Days</field>
+        <field name="res_model">pba.sla.leave</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Register holidays or unavailable days so SLA deadlines skip them.
+            </p>
+        </field>
+    </record>
+</odoo>

@@ -11,42 +11,62 @@
                     name="pba_provider_subscription"
                     groups="pba_provider_subscription.group_support_manager"
                 >
-                    <block title="SLA by priority" name="pba_sla_settings">
+                    <block title="Business hours" name="pba_sla_business_hours">
+                        <setting
+                            string="Workday start"
+                            help="Default Monday-Friday from 9:00."
+                        >
+                            <field name="pba_sla_hour_from" />
+                        </setting>
+                        <setting
+                            string="Workday end"
+                            help="Default Monday-Friday until 17:00."
+                        >
+                            <field name="pba_sla_hour_to" />
+                        </setting>
+                        <setting
+                            string="Timezone"
+                            help="Used to calculate business hours and deadlines."
+                        >
+                            <field name="pba_sla_timezone" />
+                        </setting>
+                    </block>
+                    <block title="SLA by priority (business hours)" name="pba_sla_settings">
                         <setting
                             string="Low priority"
-                            help="Default 2 weeks (336 hours)."
+                            help="Default 2 business weeks (80h)."
                         >
                             <field name="pba_sla_hours_low" />
-                            <div class="text-muted">Hours to resolve</div>
+                            <div class="text-muted">Business hours to resolve</div>
                         </setting>
                         <setting
                             string="Normal priority"
-                            help="Default 1 week (168 hours)."
+                            help="Default 1 business week (40h)."
                         >
                             <field name="pba_sla_hours_normal" />
-                            <div class="text-muted">Hours to resolve</div>
+                            <div class="text-muted">Business hours to resolve</div>
                         </setting>
                         <setting
                             string="High priority"
-                            help="Default 2 days (48 hours)."
+                            help="Default 2 business days (16h)."
                         >
                             <field name="pba_sla_hours_high" />
-                            <div class="text-muted">Hours to resolve</div>
+                            <div class="text-muted">Business hours to resolve</div>
                         </setting>
                         <setting
                             string="Urgent priority"
-                            help="Default 5 hours."
+                            help="Default 5 business hours."
                         >
                             <field name="pba_sla_hours_urgent" />
-                            <div class="text-muted">Hours to resolve</div>
+                            <div class="text-muted">Business hours to resolve</div>
                         </setting>
                         <setting
                             string="Priority mismatch holgura"
-                            help="Extra time when the customer overstates urgency. Default 1 day (24 hours)."
+                            help="Extra business time when customer overstates urgency. Default 1 business day (8h)."
                         >
                             <field name="pba_sla_priority_mismatch_hours" />
                             <div class="text-muted">
-                                Extra hours added to the SLA deadline
+                                Extra business hours added to the SLA deadline
                             </div>
                         </setting>
                     </block>

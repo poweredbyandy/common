@@ -24,3 +24,15 @@ class ResConfigSettings(models.TransientModel):
         related="company_id.pba_sla_priority_mismatch_hours",
         readonly=False,
     )
+    pba_sla_hour_from = fields.Float(
+        related="company_id.pba_sla_hour_from",
+        readonly=False,
+    )
+    pba_sla_hour_to = fields.Float(
+        related="company_id.pba_sla_hour_to",
+        readonly=False,
+    )
+    pba_sla_timezone = fields.Char(
+        related="company_id.pba_sla_timezone",
+        readonly=False,
+    )

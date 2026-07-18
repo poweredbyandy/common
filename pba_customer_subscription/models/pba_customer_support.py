@@ -111,8 +111,17 @@ class PbaCustomerSupport(models.TransientModel):
             "unrated_ticket_number": False,
             "unrated_ticket_name": False,
         }
+        sla_config = {"priorities": [], "mismatch_hours": 24, "mismatch_label": "1 día"}
         if configured and role:
             create_status = self._pba_rpc_execute("api_get_create_status")
+            sla_config = self._pba_rpc_execute("api_get_sla_config")
+            try:
+                self.env["pba.customer.ticket.track"].sync_user_ticket_replies()
+            except Exception:
+                _logger.debug(
+                    "Support reply notification sync failed",
+                    exc_info=True,
+                )
         return {
             "role": role,
             "configured": configured,
@@ -130,6 +139,7 @@ class PbaCustomerSupport(models.TransientModel):
             "unrated_ticket_id": create_status.get("unrated_ticket_id"),
             "unrated_ticket_number": create_status.get("unrated_ticket_number"),
             "unrated_ticket_name": create_status.get("unrated_ticket_name"),
+            "sla_config": sla_config,
         }
 
 
@@ -190,16 +200,23 @@ class PbaCustomerSupport(models.TransientModel):
         role = self._pba_get_support_role()
         if role not in ("user", "helpdesk", "admin"):
             raise AccessError(_("You cannot create tickets."))
+        attachments = self._pba_normalize_attachments(values.get("attachments"))
+        if not attachments:
+            raise UserError(
+                _("Debe adjuntar al menos una foto o documento como evidencia.")
+            )
+        description = (values.get("description") or "").strip()
+        if not description:
+            raise UserError(_("La descripción es obligatoria."))
         payload = self._pba_contact_payload()
         payload.update(
             {
                 "name": values.get("name"),
-                "description": values.get("description") or "",
+                "description": description,
+                "category": values.get("category") or "consultation",
                 "priority": values.get("priority") or "1",
                 "skip_approval": role in ("helpdesk", "admin"),
-                "attachments": self._pba_normalize_attachments(
-                    values.get("attachments")
-                ),
+                "attachments": attachments,
             }
         )
         return self._pba_rpc_execute("api_create_ticket", payload)
@@ -214,6 +231,7 @@ class PbaCustomerSupport(models.TransientModel):
             "name": values.get("name"),
             "description": values.get("description"),
             "priority": values.get("priority"),
+            "category": values.get("category"),
             "contact_email": values.get("contact_email"),
             "contact_phone": values.get("contact_phone"),
         }
@@ -280,7 +298,13 @@ class PbaCustomerSupport(models.TransientModel):
     @api.model
     def get_messages(self, ticket_id):
         self._pba_get_support_role()
-        return self._pba_rpc_execute("api_get_messages", int(ticket_id))
+        messages = self._pba_rpc_execute("api_get_messages", int(ticket_id))
+        last_id = max((message.get("id") or 0) for message in (messages or [])) if messages else 0
+        self.env["pba.customer.ticket.track"].mark_messages_seen(
+            int(ticket_id),
+            last_id,
+        )
+        return messages
 
     @api.model
     def post_message(self, ticket_id, values):
@@ -295,7 +319,21 @@ class PbaCustomerSupport(models.TransientModel):
                 (values or {}).get("attachments")
             ),
         }
-        return self._pba_rpc_execute("api_post_message", int(ticket_id), payload)
+        messages = self._pba_rpc_execute("api_post_message", int(ticket_id), payload)
+        last_id = max((message.get("id") or 0) for message in (messages or [])) if messages else 0
+        self.env["pba.customer.ticket.track"].mark_messages_seen(
+            int(ticket_id),
+            last_id,
+        )
+        return messages
+
+    @api.model
+    def mark_messages_seen(self, ticket_id, last_message_id=0):
+        self._pba_get_support_role()
+        return self.env["pba.customer.ticket.track"].mark_messages_seen(
+            int(ticket_id),
+            int(last_message_id or 0),
+        )
 
     @api.model
     def rate_ticket(self, ticket_id, values):
@@ -303,11 +341,16 @@ class PbaCustomerSupport(models.TransientModel):
         ticket = self._pba_rpc_execute("api_get_ticket", int(ticket_id))
         if role == "user" and ticket.get("client_user_login") != self.env.user.login:
             raise AccessError(_("You can only rate your own tickets."))
+        rating_text = ((values or {}).get("rating_text") or "").strip()
+        if len(rating_text) < 20:
+            raise UserError(
+                _("El comentario de la calificación debe tener al menos 20 caracteres.")
+            )
         return self._pba_rpc_execute(
             "api_rate_ticket",
             int(ticket_id),
             {
                 "rating": (values or {}).get("rating"),
-                "rating_text": (values or {}).get("rating_text") or "",
+                "rating_text": rating_text,
             },
         )

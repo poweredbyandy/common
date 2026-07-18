@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <templates xml:space="preserve">
-    <t t-name="pba_customer_subscription.SupportDashboard">
-        <div class="o_pba_support_dashboard h-100 overflow-auto">
-            <Layout display="display" className="'o_pba_support_layout'">
+    <t t-name="pba_provider_subscription.PortalSupportDashboard">
+        <div class="o_pba_support_dashboard o_pba_portal_support_dashboard overflow-auto">
                 <div class="o_pba_support_shell">
                     <div class="o_pba_hero">
                         <div>
@@ -33,13 +32,6 @@
                             >
                                 Actualizar
                             </button>
-                            <button
-                                t-if="state.context.can_configure"
-                                class="o_pba_btn o_pba_btn_ghost"
-                                t-on-click="openSettings"
-                            >
-                                Configurar
-                            </button>
                         </div>
                     </div>
 
@@ -52,6 +44,9 @@
 
                     <div t-if="state.error" class="o_pba_banner is-danger">
                         <div t-esc="state.error"/>
+                    </div>
+                    <div t-if="state.flash" class="o_pba_banner is-info">
+                        <div t-esc="state.flash"/>
                     </div>
 
                     <div t-if="!state.loading and !state.context.role" class="o_pba_banner is-warning">
@@ -830,7 +825,6 @@
                         </div>
                     </t>
                 </div>
-            </Layout>
         </div>
     </t>
 </templates>
