@@ -334,13 +334,27 @@ export class PbaPortalSupportDashboard extends Component {
         }));
     }
 
+    isImprovementCategory(category = null) {
+        return (category || this.state.form?.category) === "improvement";
+    }
+
+    ticketHasSla(ticket) {
+        return Boolean(ticket) && ticket.category !== "improvement";
+    }
+
     selectedPriorityEstimate() {
+        if (this.isImprovementCategory()) {
+            return "";
+        }
         const priority = this.state.form?.priority || "1";
         const option = this.priorityOptions.find((item) => item.value === priority);
         return option?.durationLabel || "";
     }
 
     businessHoursLabel() {
+        if (this.isImprovementCategory()) {
+            return "";
+        }
         return this.state.context?.sla_config?.business_hours?.label || "";
     }
 

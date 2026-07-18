@@ -170,11 +170,22 @@
                             <field name="attachment_ids" widget="many2many_binary" />
                         </page>
                         <page string="SLA" name="sla">
-                            <div class="alert alert-info" role="alert">
+                            <div
+                                class="alert alert-info"
+                                role="alert"
+                                invisible="category == 'improvement'"
+                            >
                                 Deadlines use business hours only (Mon-Fri, configured workday)
                                 and skip registered unavailable days.
                             </div>
-                            <group>
+                            <div
+                                class="alert alert-secondary"
+                                role="alert"
+                                invisible="category != 'improvement'"
+                            >
+                                Improvement tickets do not track SLA or elapsed time.
+                            </div>
+                            <group invisible="category == 'improvement'">
                                 <group string="Resolution target">
                                     <field name="sla_estimated_label" />
                                     <field name="sla_deadline" />

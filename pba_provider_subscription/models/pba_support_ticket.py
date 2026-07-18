@@ -253,7 +253,12 @@ class PbaSupportTicket(models.Model):
         for ticket in self:
             ticket.is_rated = bool(ticket.rating)
 
+    def _pba_category_tracks_sla(self, category=None):
+        self.ensure_one()
+        return (category or self.category) != "improvement"
+
     @api.depends(
+        "category",
         "state",
         "stage_entered_at",
         "date_submitted",
@@ -263,6 +268,12 @@ class PbaSupportTicket(models.Model):
     )
     def _compute_sla_display(self):
         for ticket in self:
+            if not ticket._pba_category_tracks_sla():
+                ticket.wait_label = False
+                ticket.process_label = False
+                ticket.stage_duration_label = False
+                ticket.stage_duration_hint = False
+                continue
             timings = self._pba_stage_timings(ticket)
             ticket.wait_label = timings["wait_label"]
             ticket.process_label = timings["process_label"]
@@ -270,6 +281,7 @@ class PbaSupportTicket(models.Model):
             ticket.stage_duration_hint = timings["stage_duration_hint"]
 
     @api.depends(
+        "category",
         "priority",
         "client_priority",
         "priority_reviewed",
@@ -290,6 +302,13 @@ class PbaSupportTicket(models.Model):
     )
     def _compute_sla_deadline(self):
         for ticket in self:
+            if not ticket._pba_category_tracks_sla():
+                ticket.sla_hours = 0.0
+                ticket.sla_holgura_hours = 0.0
+                ticket.priority_mismatch = False
+                ticket.sla_deadline = False
+                ticket.sla_estimated_label = False
+                continue
             company = ticket.company_id or self.env.company
             hours = company._pba_get_sla_hours(ticket.priority or "1")
             mismatch = bool(
@@ -453,6 +472,20 @@ class PbaSupportTicket(models.Model):
         return max((end_dt - start).total_seconds(), 0)
 
     def _pba_stage_timings(self, ticket):
+        if ticket.category == "improvement":
+            return {
+                "stage_entered_at": False,
+                "stage_duration_seconds": 0,
+                "stage_duration_hours": 0,
+                "stage_duration_label": "",
+                "stage_duration_hint": "",
+                "wait_seconds": 0,
+                "wait_hours": 0,
+                "wait_label": "",
+                "process_seconds": 0,
+                "process_hours": 0,
+                "process_label": "",
+            }
         now = fields.Datetime.now()
         wait_seconds = 0
         if ticket.date_submitted:
@@ -915,6 +948,10 @@ class PbaSupportTicket(models.Model):
             "3": {"wait": [], "process": [], "count": 0},
         }
         for ticket in tickets:
+            if ticket.rating:
+                ratings.append(int(ticket.rating))
+            if ticket.category == "improvement":
+                continue
             timings = self._pba_stage_timings(ticket)
             priority = ticket.priority or "1"
             by_priority.setdefault(
@@ -934,8 +971,6 @@ class PbaSupportTicket(models.Model):
                     )
                     / 3600.0
                 )
-            if ticket.rating:
-                ratings.append(int(ticket.rating))
 
         def average(values):
             return round(sum(values) / len(values), 2) if values else 0.0
@@ -1081,12 +1116,29 @@ class PbaSupportTicket(models.Model):
         usd = self._pba_get_usd_currency()
         if not usd:
             raise UserError(_("USD currency is not available in the provider system."))
+        amount = float(amount or 0.0)
+        if not amount:
+            return 0.0
         if not from_currency:
             from_currency = company.currency_id
         convert_date = date or fields.Date.context_today(self)
         if from_currency == usd:
             return usd.round(amount)
-        return from_currency._convert(amount, usd, company, convert_date)
+        try:
+            converted = from_currency._convert(amount, usd, company, convert_date)
+        except Exception:
+            converted = 0.0
+        if converted:
+            return converted
+        # Fallback: keep original amount when rate is missing/zero so UI is not blank.
+        return usd.round(amount)
+
+    def _pba_partner_finance_domain(self, partner):
+        return [
+            "|",
+            ("partner_id", "child_of", partner.id),
+            ("commercial_partner_id", "=", partner.id),
+        ]
 
     @api.model
     def api_get_financial_summary(self):
@@ -1096,17 +1148,17 @@ class PbaSupportTicket(models.Model):
         if not usd:
             raise UserError(_("USD currency is not available in the provider system."))
         Move = self.env["account.move"].sudo()
+        partner_domain = self._pba_partner_finance_domain(partner)
         invoices = Move.search(
-            [
-                ("partner_id", "child_of", partner.id),
+            partner_domain
+            + [
                 ("move_type", "in", ("out_invoice", "out_refund", "out_receipt")),
                 ("state", "=", "posted"),
             ],
             order="invoice_date desc, id desc",
             limit=100,
         )
-        pending_domain = [
-            ("partner_id", "child_of", partner.id),
+        pending_domain = partner_domain + [
             ("move_type", "in", ("out_invoice", "out_receipt")),
             ("state", "=", "posted"),
             ("payment_state", "in", ("not_paid", "partial", "in_payment")),
@@ -1141,6 +1193,8 @@ class PbaSupportTicket(models.Model):
                     else False,
                     "amount_total": sign * amount_total_usd,
                     "amount_residual": sign * amount_residual_usd,
+                    "amount_total_origin": sign * float(invoice.amount_total or 0.0),
+                    "amount_residual_origin": sign * float(invoice.amount_residual or 0.0),
                     "payment_state": invoice.payment_state,
                     "move_type": invoice.move_type,
                     "currency": usd.name,
@@ -1177,18 +1231,64 @@ class PbaSupportTicket(models.Model):
                     else False,
                     "amount_total": amount_total_usd,
                     "amount_residual": amount_residual_usd,
+                    "amount_total_origin": float(invoice.amount_total or 0.0),
+                    "amount_residual_origin": float(invoice.amount_residual or 0.0),
                     "payment_state": invoice.payment_state,
                     "currency": usd.name,
                     "currency_origin": invoice.currency_id.name,
                 }
             )
+
+        Payment = self.env["account.payment"].sudo()
+        payments = Payment.search(
+            [
+                ("partner_id", "child_of", partner.id),
+                ("partner_type", "=", "customer"),
+                ("state", "in", ("in_process", "paid")),
+            ],
+            order="date desc, id desc",
+            limit=100,
+        )
+        payment_lines = []
+        amount_paid = 0.0
+        for payment in payments:
+            company = payment.company_id
+            amount_usd = self._pba_amount_to_usd(
+                payment.amount,
+                payment.currency_id,
+                company,
+                payment.date,
+            )
+            if payment.payment_type == "inbound":
+                amount_paid += amount_usd
+                signed_amount = amount_usd
+            else:
+                signed_amount = -amount_usd
+            payment_lines.append(
+                {
+                    "id": payment.id,
+                    "name": payment.name,
+                    "date": fields.Date.to_string(payment.date) if payment.date else False,
+                    "amount": signed_amount,
+                    "amount_origin": float(payment.amount or 0.0),
+                    "payment_type": payment.payment_type,
+                    "state": payment.state,
+                    "currency": usd.name,
+                    "currency_origin": payment.currency_id.name,
+                    "memo": payment.memo or "",
+                }
+            )
+
         return {
             "partner_id": partner.id,
             "partner_name": partner.name,
             "currency": usd.name,
             "invoice_count": len(invoices),
             "pending_count": len(pending_invoices),
+            "payment_count": len(payments),
             "amount_due": amount_due,
+            "amount_paid": amount_paid,
             "invoices": invoice_lines,
             "pending_invoices": pending_lines,
+            "payments": payment_lines,
         }

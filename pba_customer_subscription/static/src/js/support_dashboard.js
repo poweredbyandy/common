@@ -126,6 +126,7 @@ export class PbaSupportDashboard extends Component {
         this.fileInputRef = useRef("fileInput");
         this.state = useState({
             loading: true,
+            financeLoading: false,
             error: "",
             context: {},
             tickets: [],
@@ -133,7 +134,7 @@ export class PbaSupportDashboard extends Component {
             performance: null,
             activeTab: "tickets",
             ticketFilter: "open",
-            ticketViewMode: "list",
+            ticketViewMode: "kanban",
             showForm: false,
             editingId: null,
             formReadonly: false,
@@ -338,13 +339,27 @@ export class PbaSupportDashboard extends Component {
         }));
     }
 
+    isImprovementCategory(category = null) {
+        return (category || this.state.form?.category) === "improvement";
+    }
+
+    ticketHasSla(ticket) {
+        return Boolean(ticket) && ticket.category !== "improvement";
+    }
+
     selectedPriorityEstimate() {
+        if (this.isImprovementCategory()) {
+            return "";
+        }
         const priority = this.state.form?.priority || "1";
         const option = this.priorityOptions.find((item) => item.value === priority);
         return option?.durationLabel || "";
     }
 
     businessHoursLabel() {
+        if (this.isImprovementCategory()) {
+            return "";
+        }
         return this.state.context?.sla_config?.business_hours?.label || "";
     }
 
@@ -372,6 +387,25 @@ export class PbaSupportDashboard extends Component {
             in_payment: _t("En pago"),
             paid: _t("Pagada"),
             reversed: _t("Revertida"),
+        };
+        return labels[state] || state || "";
+    }
+
+    paymentTypeLabel(paymentType) {
+        const labels = {
+            inbound: _t("Cobro"),
+            outbound: _t("Reembolso"),
+        };
+        return labels[paymentType] || paymentType || "";
+    }
+
+    paymentRecordStateLabel(state) {
+        const labels = {
+            draft: _t("Borrador"),
+            in_process: _t("En proceso"),
+            paid: _t("Pagado"),
+            canceled: _t("Cancelado"),
+            rejected: _t("Rechazado"),
         };
         return labels[state] || state || "";
     }
@@ -455,19 +489,19 @@ export class PbaSupportDashboard extends Component {
                 this.state.performance = null;
                 return;
             }
-            const [tickets, performance] = await Promise.all([
+            const requests = [
                 this.orm.call("pba.customer.support", "get_tickets", []),
                 this.orm.call("pba.customer.support", "get_performance_stats", []),
-            ]);
-            this.state.tickets = tickets;
-            this.state.performance = performance;
-            if (context.can_view_finance && this.state.activeTab === "finance") {
-                this.state.finance = await this.orm.call(
-                    "pba.customer.support",
-                    "get_financial_summary",
-                    []
+            ];
+            if (context.can_view_finance) {
+                requests.push(
+                    this.orm.call("pba.customer.support", "get_financial_summary", [])
                 );
             }
+            const [tickets, performance, finance] = await Promise.all(requests);
+            this.state.tickets = tickets;
+            this.state.performance = performance;
+            this.state.finance = context.can_view_finance ? finance || null : null;
         } catch (error) {
             this.state.error = error.data?.message || error.message || _t("Error inesperado");
         } finally {
@@ -477,8 +511,13 @@ export class PbaSupportDashboard extends Component {
 
     async openTab(tab) {
         this.state.activeTab = tab;
-        if (tab === "finance" && this.state.context.can_view_finance && !this.state.finance) {
-            this.state.loading = true;
+        if (
+            tab === "finance" &&
+            this.state.context.can_view_finance &&
+            !this.state.finance &&
+            !this.state.financeLoading
+        ) {
+            this.state.financeLoading = true;
             try {
                 this.state.finance = await this.orm.call(
                     "pba.customer.support",
@@ -488,7 +527,7 @@ export class PbaSupportDashboard extends Component {
             } catch (error) {
                 this.state.error = error.data?.message || error.message || _t("Error inesperado");
             } finally {
-                this.state.loading = false;
+                this.state.financeLoading = false;
             }
         }
     }

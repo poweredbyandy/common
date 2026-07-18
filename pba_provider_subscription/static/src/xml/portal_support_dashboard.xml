@@ -187,38 +187,40 @@
                                             t-esc="stateLabel(state.currentTicket.state)"
                                         />
                                     </div>
-                                    <div class="o_pba_stage_time">
-                                        <strong t-esc="state.currentTicket.stage_duration_label or '—'"/>
-                                        <span t-esc="state.currentTicket.stage_duration_hint or ''"/>
-                                    </div>
-                                    <div class="o_pba_stage_meta">
-                                        <span>
-                                            Espera:
-                                            <t t-esc="state.currentTicket.wait_label or '—'"/>
-                                        </span>
-                                        <span>
-                                            Proceso:
-                                            <t t-esc="state.currentTicket.process_label or '—'"/>
-                                        </span>
-                                        <span>
-                                            SLA estimado:
-                                            <t t-esc="state.currentTicket.sla_estimated_label or '—'"/>
-                                        </span>
-                                        <span t-if="state.currentTicket.sla_deadline">
-                                            Fecha límite:
-                                            <t t-esc="formatDateTime(state.currentTicket.sla_deadline)"/>
-                                        </span>
-                                    </div>
-                                    <div
-                                        t-if="state.currentTicket.priority_mismatch"
-                                        class="o_pba_sla_mismatch mt-2"
-                                    >
-                                        <i class="fa fa-info-circle"/>
-                                        Se aplicó holgura por diferencia entre la prioridad solicitada
-                                        (<t t-esc="priorityLabel(state.currentTicket.client_priority)"/>)
-                                        y la revisada
-                                        (<t t-esc="priorityLabel(state.currentTicket.priority)"/>).
-                                    </div>
+                                    <t t-if="ticketHasSla(state.currentTicket)">
+                                        <div class="o_pba_stage_time">
+                                            <strong t-esc="state.currentTicket.stage_duration_label or '—'"/>
+                                            <span t-esc="state.currentTicket.stage_duration_hint or ''"/>
+                                        </div>
+                                        <div class="o_pba_stage_meta">
+                                            <span>
+                                                Espera:
+                                                <t t-esc="state.currentTicket.wait_label or '—'"/>
+                                            </span>
+                                            <span>
+                                                Proceso:
+                                                <t t-esc="state.currentTicket.process_label or '—'"/>
+                                            </span>
+                                            <span>
+                                                SLA estimado:
+                                                <t t-esc="state.currentTicket.sla_estimated_label or '—'"/>
+                                            </span>
+                                            <span t-if="state.currentTicket.sla_deadline">
+                                                Fecha límite:
+                                                <t t-esc="formatDateTime(state.currentTicket.sla_deadline)"/>
+                                            </span>
+                                        </div>
+                                        <div
+                                            t-if="state.currentTicket.priority_mismatch"
+                                            class="o_pba_sla_mismatch mt-2"
+                                        >
+                                            <i class="fa fa-info-circle"/>
+                                            Se aplicó holgura por diferencia entre la prioridad solicitada
+                                            (<t t-esc="priorityLabel(state.currentTicket.client_priority)"/>)
+                                            y la revisada
+                                            (<t t-esc="priorityLabel(state.currentTicket.priority)"/>).
+                                        </div>
+                                    </t>
                                 </div>
 
                                 <div class="o_pba_form_grid">
@@ -313,7 +315,7 @@
                                                             </span>
                                                         </span>
                                                         <span
-                                                            t-if="option.durationLabel"
+                                                            t-if="option.durationLabel and !isImprovementCategory()"
                                                             class="o_pba_priority_sla"
                                                         >
                                                             SLA: <t t-esc="option.durationLabel"/>
@@ -338,6 +340,12 @@
                                                     Horario laborable:
                                                     <t t-esc="businessHoursLabel()"/>
                                                 </div>
+                                            </div>
+                                            <div
+                                                t-if="isImprovementCategory()"
+                                                class="o_pba_priority_estimate"
+                                            >
+                                                Las mejoras no tienen SLA ni tiempo estimado.
                                             </div>
                                             <div
                                                 t-if="state.currentTicket and state.currentTicket.priority_reviewed"
@@ -632,7 +640,9 @@
                                         <div class="o_pba_ticket_number" t-esc="ticket.number"/>
                                         <div class="o_pba_ticket_subject" t-esc="ticket.name"/>
                                         <div class="o_pba_ticket_stage small text-muted">
-                                            <t t-esc="ticket.stage_duration_hint or ticket.stage_duration_label or ''"/>
+                                            <t t-if="ticketHasSla(ticket)">
+                                                <t t-esc="ticket.stage_duration_hint or ticket.stage_duration_label or ''"/>
+                                            </t>
                                             <t t-if="ticket.can_rate"> · Pendiente de calificación</t>
                                             <t t-if="ticket.is_rated"> · ★ <t t-esc="ticket.rating"/>/5</t>
                                         </div>
@@ -653,7 +663,11 @@
                                             t-att-class="'o_pba_priority o_pba_priority_' + (ticket.priority or '1')"
                                             t-esc="priorityLabel(ticket.priority)"
                                         />
-                                        <div class="small text-muted" t-esc="ticket.sla_estimated_label or ''"/>
+                                        <div
+                                            t-if="ticketHasSla(ticket)"
+                                            class="small text-muted"
+                                            t-esc="ticket.sla_estimated_label or ''"
+                                        />
                                     </div>
                                     <div class="d-flex align-items-center gap-2 justify-content-end">
                                         <span
@@ -716,10 +730,10 @@
                                             </div>
                                             <div class="small text-muted text-truncate" t-esc="ticket.contact_name"/>
                                             <div
-                                                t-if="ticket.stage_duration_label or ticket.can_rate or ticket.is_rated"
+                                                t-if="(ticketHasSla(ticket) and ticket.stage_duration_label) or ticket.can_rate or ticket.is_rated"
                                                 class="small text-muted mt-1"
                                             >
-                                                <t t-esc="ticket.stage_duration_label or ''"/>
+                                                <t t-if="ticketHasSla(ticket)" t-esc="ticket.stage_duration_label or ''"/>
                                                 <t t-if="ticket.can_rate"> · Calificar</t>
                                                 <t t-if="ticket.is_rated"> · ★ <t t-esc="ticket.rating"/>/5</t>
                                             </div>

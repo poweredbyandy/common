@@ -192,38 +192,40 @@
                                             t-esc="stateLabel(state.currentTicket.state)"
                                         />
                                     </div>
-                                    <div class="o_pba_stage_time">
-                                        <strong t-esc="state.currentTicket.stage_duration_label or '—'"/>
-                                        <span t-esc="state.currentTicket.stage_duration_hint or ''"/>
-                                    </div>
-                                    <div class="o_pba_stage_meta">
-                                        <span>
-                                            Espera:
-                                            <t t-esc="state.currentTicket.wait_label or '—'"/>
-                                        </span>
-                                        <span>
-                                            Proceso:
-                                            <t t-esc="state.currentTicket.process_label or '—'"/>
-                                        </span>
-                                        <span>
-                                            SLA estimado:
-                                            <t t-esc="state.currentTicket.sla_estimated_label or '—'"/>
-                                        </span>
-                                        <span t-if="state.currentTicket.sla_deadline">
-                                            Fecha límite:
-                                            <t t-esc="formatDateTime(state.currentTicket.sla_deadline)"/>
-                                        </span>
-                                    </div>
-                                    <div
-                                        t-if="state.currentTicket.priority_mismatch"
-                                        class="o_pba_sla_mismatch mt-2"
-                                    >
-                                        <i class="fa fa-info-circle"/>
-                                        Se aplicó holgura por diferencia entre la prioridad solicitada
-                                        (<t t-esc="priorityLabel(state.currentTicket.client_priority)"/>)
-                                        y la revisada
-                                        (<t t-esc="priorityLabel(state.currentTicket.priority)"/>).
-                                    </div>
+                                    <t t-if="ticketHasSla(state.currentTicket)">
+                                        <div class="o_pba_stage_time">
+                                            <strong t-esc="state.currentTicket.stage_duration_label or '—'"/>
+                                            <span t-esc="state.currentTicket.stage_duration_hint or ''"/>
+                                        </div>
+                                        <div class="o_pba_stage_meta">
+                                            <span>
+                                                Espera:
+                                                <t t-esc="state.currentTicket.wait_label or '—'"/>
+                                            </span>
+                                            <span>
+                                                Proceso:
+                                                <t t-esc="state.currentTicket.process_label or '—'"/>
+                                            </span>
+                                            <span>
+                                                SLA estimado:
+                                                <t t-esc="state.currentTicket.sla_estimated_label or '—'"/>
+                                            </span>
+                                            <span t-if="state.currentTicket.sla_deadline">
+                                                Fecha límite:
+                                                <t t-esc="formatDateTime(state.currentTicket.sla_deadline)"/>
+                                            </span>
+                                        </div>
+                                        <div
+                                            t-if="state.currentTicket.priority_mismatch"
+                                            class="o_pba_sla_mismatch mt-2"
+                                        >
+                                            <i class="fa fa-info-circle"/>
+                                            Se aplicó holgura por diferencia entre la prioridad solicitada
+                                            (<t t-esc="priorityLabel(state.currentTicket.client_priority)"/>)
+                                            y la revisada
+                                            (<t t-esc="priorityLabel(state.currentTicket.priority)"/>).
+                                        </div>
+                                    </t>
                                 </div>
 
                                 <div class="o_pba_form_grid">
@@ -318,7 +320,7 @@
                                                             </span>
                                                         </span>
                                                         <span
-                                                            t-if="option.durationLabel"
+                                                            t-if="option.durationLabel and !isImprovementCategory()"
                                                             class="o_pba_priority_sla"
                                                         >
                                                             SLA: <t t-esc="option.durationLabel"/>
@@ -343,6 +345,12 @@
                                                     Horario laborable:
                                                     <t t-esc="businessHoursLabel()"/>
                                                 </div>
+                                            </div>
+                                            <div
+                                                t-if="isImprovementCategory()"
+                                                class="o_pba_priority_estimate"
+                                            >
+                                                Las mejoras no tienen SLA ni tiempo estimado.
                                             </div>
                                             <div
                                                 t-if="state.currentTicket and state.currentTicket.priority_reviewed"
@@ -637,7 +645,9 @@
                                         <div class="o_pba_ticket_number" t-esc="ticket.number"/>
                                         <div class="o_pba_ticket_subject" t-esc="ticket.name"/>
                                         <div class="o_pba_ticket_stage small text-muted">
-                                            <t t-esc="ticket.stage_duration_hint or ticket.stage_duration_label or ''"/>
+                                            <t t-if="ticketHasSla(ticket)">
+                                                <t t-esc="ticket.stage_duration_hint or ticket.stage_duration_label or ''"/>
+                                            </t>
                                             <t t-if="ticket.can_rate"> · Pendiente de calificación</t>
                                             <t t-if="ticket.is_rated"> · ★ <t t-esc="ticket.rating"/>/5</t>
                                         </div>
@@ -658,7 +668,11 @@
                                             t-att-class="'o_pba_priority o_pba_priority_' + (ticket.priority or '1')"
                                             t-esc="priorityLabel(ticket.priority)"
                                         />
-                                        <div class="small text-muted" t-esc="ticket.sla_estimated_label or ''"/>
+                                        <div
+                                            t-if="ticketHasSla(ticket)"
+                                            class="small text-muted"
+                                            t-esc="ticket.sla_estimated_label or ''"
+                                        />
                                     </div>
                                     <div class="d-flex align-items-center gap-2 justify-content-end">
                                         <span
@@ -721,10 +735,10 @@
                                             </div>
                                             <div class="small text-muted text-truncate" t-esc="ticket.contact_name"/>
                                             <div
-                                                t-if="ticket.stage_duration_label or ticket.can_rate or ticket.is_rated"
+                                                t-if="(ticketHasSla(ticket) and ticket.stage_duration_label) or ticket.can_rate or ticket.is_rated"
                                                 class="small text-muted mt-1"
                                             >
-                                                <t t-esc="ticket.stage_duration_label or ''"/>
+                                                <t t-if="ticketHasSla(ticket)" t-esc="ticket.stage_duration_label or ''"/>
                                                 <t t-if="ticket.can_rate"> · Calificar</t>
                                                 <t t-if="ticket.is_rated"> · ★ <t t-esc="ticket.rating"/>/5</t>
                                             </div>
@@ -741,91 +755,141 @@
                             </div>
                         </div>
 
-                        <div t-if="state.activeTab === 'finance' and state.finance" class="o_pba_panel">
+                        <div t-if="state.activeTab === 'finance'" class="o_pba_panel">
                             <div class="o_pba_panel_head">
                                 <h2 class="o_pba_panel_title">Resumen financiero (USD)</h2>
-                                <span class="text-muted small" t-esc="state.finance.partner_name"/>
+                                <span
+                                    t-if="state.finance"
+                                    class="text-muted small"
+                                    t-esc="state.finance.partner_name"
+                                />
                             </div>
                             <div class="o_pba_panel_body">
-                                <div class="o_pba_finance_grid">
-                                    <div class="o_pba_stat">
-                                        <div class="o_pba_stat_label">Facturas</div>
-                                        <div class="o_pba_stat_value" t-esc="state.finance.invoice_count"/>
-                                    </div>
-                                    <div class="o_pba_stat">
-                                        <div class="o_pba_stat_label">Pagos pendientes</div>
-                                        <div class="o_pba_stat_value" t-esc="state.finance.pending_count"/>
-                                    </div>
-                                    <div class="o_pba_stat">
-                                        <div class="o_pba_stat_label">Monto adeudado (USD)</div>
-                                        <div
-                                            class="o_pba_stat_value"
-                                            t-esc="formatAmount(state.finance.amount_due, 'USD')"
-                                        />
-                                    </div>
+                                <div t-if="state.financeLoading" class="o_pba_empty">
+                                    Cargando información financiera...
                                 </div>
+                                <div t-elif="!state.finance" class="o_pba_empty">
+                                    No se pudo cargar el resumen financiero.
+                                </div>
+                                <t t-else="">
+                                    <div class="o_pba_finance_grid">
+                                        <div class="o_pba_stat">
+                                            <div class="o_pba_stat_label">Facturas</div>
+                                            <div class="o_pba_stat_value" t-esc="state.finance.invoice_count or 0"/>
+                                        </div>
+                                        <div class="o_pba_stat">
+                                            <div class="o_pba_stat_label">Pendientes</div>
+                                            <div class="o_pba_stat_value" t-esc="state.finance.pending_count or 0"/>
+                                        </div>
+                                        <div class="o_pba_stat">
+                                            <div class="o_pba_stat_label">Adeudado (USD)</div>
+                                            <div
+                                                class="o_pba_stat_value"
+                                                t-esc="formatAmount(state.finance.amount_due or 0)"
+                                            />
+                                        </div>
+                                        <div class="o_pba_stat">
+                                            <div class="o_pba_stat_label">Pagado (USD)</div>
+                                            <div
+                                                class="o_pba_stat_value"
+                                                t-esc="formatAmount(state.finance.amount_paid or 0)"
+                                            />
+                                        </div>
+                                    </div>
 
-                                <h3 class="o_pba_section_title">Facturas pendientes (USD)</h3>
-                                <div class="o_pba_panel mb-3">
-                                    <table class="o_pba_finance_table">
-                                        <thead>
-                                            <tr>
-                                                <th>Factura</th>
-                                                <th>Fecha</th>
-                                                <th>Vencimiento</th>
-                                                <th>Pendiente USD</th>
-                                                <th>Estado</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr t-if="!state.finance.pending_invoices.length">
-                                                <td colspan="5" class="text-muted">No hay pagos pendientes.</td>
-                                            </tr>
-                                            <tr
-                                                t-foreach="state.finance.pending_invoices"
-                                                t-as="invoice"
-                                                t-key="invoice.id"
-                                            >
-                                                <td class="fw-semibold" t-esc="invoice.name"/>
-                                                <td t-esc="formatDate(invoice.invoice_date)"/>
-                                                <td t-esc="formatDate(invoice.invoice_date_due)"/>
-                                                <td t-esc="formatAmount(invoice.amount_residual, 'USD')"/>
-                                                <td t-esc="paymentStateLabel(invoice.payment_state)"/>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
+                                    <h3 class="o_pba_section_title">Facturas pendientes (USD)</h3>
+                                    <div class="o_pba_panel mb-3">
+                                        <table class="o_pba_finance_table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Factura</th>
+                                                    <th>Fecha</th>
+                                                    <th>Vencimiento</th>
+                                                    <th>Pendiente USD</th>
+                                                    <th>Estado</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr t-if="!(state.finance.pending_invoices or []).length">
+                                                    <td colspan="5" class="text-muted">No hay pagos pendientes.</td>
+                                                </tr>
+                                                <tr
+                                                    t-foreach="state.finance.pending_invoices or []"
+                                                    t-as="invoice"
+                                                    t-key="invoice.id"
+                                                >
+                                                    <td class="fw-semibold" t-esc="invoice.name"/>
+                                                    <td t-esc="formatDate(invoice.invoice_date)"/>
+                                                    <td t-esc="formatDate(invoice.invoice_date_due)"/>
+                                                    <td t-esc="formatAmount(invoice.amount_residual)"/>
+                                                    <td t-esc="paymentStateLabel(invoice.payment_state)"/>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
 
-                                <h3 class="o_pba_section_title">Facturas recientes (USD)</h3>
-                                <div class="o_pba_panel">
-                                    <table class="o_pba_finance_table">
-                                        <thead>
-                                            <tr>
-                                                <th>Factura</th>
-                                                <th>Fecha</th>
-                                                <th>Total USD</th>
-                                                <th>Pendiente USD</th>
-                                                <th>Estado</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr t-if="!state.finance.invoices.length">
-                                                <td colspan="5" class="text-muted">No hay facturas.</td>
-                                            </tr>
-                                            <tr
-                                                t-foreach="state.finance.invoices"
-                                                t-as="invoice"
-                                                t-key="'all-' + invoice.id"
-                                            >
-                                                <td class="fw-semibold" t-esc="invoice.name"/>
-                                                <td t-esc="formatDate(invoice.invoice_date)"/>
-                                                <td t-esc="formatAmount(invoice.amount_total, 'USD')"/>
-                                                <td t-esc="formatAmount(invoice.amount_residual, 'USD')"/>
-                                                <td t-esc="paymentStateLabel(invoice.payment_state)"/>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
+                                    <h3 class="o_pba_section_title">Facturas recientes (USD)</h3>
+                                    <div class="o_pba_panel mb-3">
+                                        <table class="o_pba_finance_table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Factura</th>
+                                                    <th>Fecha</th>
+                                                    <th>Total USD</th>
+                                                    <th>Pendiente USD</th>
+                                                    <th>Estado</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr t-if="!(state.finance.invoices or []).length">
+                                                    <td colspan="5" class="text-muted">No hay facturas.</td>
+                                                </tr>
+                                                <tr
+                                                    t-foreach="state.finance.invoices or []"
+                                                    t-as="invoice"
+                                                    t-key="'all-' + invoice.id"
+                                                >
+                                                    <td class="fw-semibold" t-esc="invoice.name"/>
+                                                    <td t-esc="formatDate(invoice.invoice_date)"/>
+                                                    <td t-esc="formatAmount(invoice.amount_total)"/>
+                                                    <td t-esc="formatAmount(invoice.amount_residual)"/>
+                                                    <td t-esc="paymentStateLabel(invoice.payment_state)"/>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <h3 class="o_pba_section_title">Pagos recientes (USD)</h3>
+                                    <div class="o_pba_panel">
+                                        <table class="o_pba_finance_table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Pago</th>
+                                                    <th>Fecha</th>
+                                                    <th>Monto USD</th>
+                                                    <th>Tipo</th>
+                                                    <th>Estado</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr t-if="!(state.finance.payments or []).length">
+                                                    <td colspan="5" class="text-muted">No hay pagos registrados.</td>
+                                                </tr>
+                                                <tr
+                                                    t-foreach="state.finance.payments or []"
+                                                    t-as="payment"
+                                                    t-key="'pay-' + payment.id"
+                                                >
+                                                    <td class="fw-semibold" t-esc="payment.name"/>
+                                                    <td t-esc="formatDate(payment.date)"/>
+                                                    <td t-esc="formatAmount(payment.amount)"/>
+                                                    <td t-esc="paymentTypeLabel(payment.payment_type)"/>
+                                                    <td t-esc="paymentRecordStateLabel(payment.state)"/>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </t>
                             </div>
                         </div>
                     </t>
