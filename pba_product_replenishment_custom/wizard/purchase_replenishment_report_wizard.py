@@ -153,7 +153,7 @@ class PbaPurchaseReplenishmentReportWizard(models.TransientModel):
             )
         headers.append(
             _(
-                "Costo / Costo últ. compra (%s)",
+                "Costo (%s)",
                 self._currency_column_label(self.currency_id),
             )
         )
@@ -211,6 +211,12 @@ class PbaPurchaseReplenishmentReportWizard(models.TransientModel):
         )
 
     def _format_cost_for_currency(self, product, last_line, currency, for_equivalence=False):
+        dp = currency.decimal_places or 2
+        last_cost = self._last_purchase_unit_cost_in_currency(
+            product, last_line, currency
+        )
+        if last_line and last_cost is not None:
+            return f"{last_cost:.{dp}f}"
         tmpl = product.product_tmpl_id
         purchase_rate_date = self._cost_rate_date(product, last_line)
         if for_equivalence:
@@ -222,16 +228,6 @@ class PbaPurchaseReplenishmentReportWizard(models.TransientModel):
             currency,
             rate_date=standard_rate_date,
         )
-        last_cost = self._last_purchase_unit_cost_in_currency(
-            product, last_line, currency
-        )
-        dp = currency.decimal_places or 2
-        if last_line and last_cost is not None and not float_is_zero(
-            standard - last_cost, precision_digits=dp
-        ):
-            return f"{standard:.{dp}f} / {last_cost:.{dp}f}"
-        if last_line and last_cost is not None:
-            return f"{last_cost:.{dp}f}"
         return f"{standard:.{dp}f}"
 
     def _currency_report_label(self):

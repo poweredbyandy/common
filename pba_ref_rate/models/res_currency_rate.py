@@ -76,6 +76,45 @@ class ResCurrencyRate(models.Model):
             return 0.0
         return usd_inv / inv
 
+    @api.model
+    def _pba_normalize_rate_date(self, rate_date):
+        if not rate_date:
+            return fields.Date.context_today(self)
+        return fields.Date.to_date(rate_date)
+
+    @api.model
+    def convert_amount_via_usd_ref(
+        self, amount, from_currency, to_currency, company, rate_date
+    ):
+        usd = self.env.ref("base.USD", raise_if_not_found=False)
+        if (
+            not usd
+            or not from_currency
+            or not to_currency
+            or not company
+            or from_currency == to_currency
+        ):
+            return None
+        root = company.root_id
+        if not root.currency_id or root.currency_id == usd:
+            return None
+        rate_date = self._pba_normalize_rate_date(rate_date)
+        if to_currency == usd and from_currency != usd:
+            rate = self.get_foreign_per_usd_at_date(company, rate_date, from_currency)
+            if not rate:
+                return None
+            return to_currency.round(amount / rate)
+        if from_currency == usd and to_currency != usd:
+            rate = self.get_foreign_per_usd_at_date(company, rate_date, to_currency)
+            if not rate:
+                return None
+            return to_currency.round(amount * rate)
+        from_rate = self.get_foreign_per_usd_at_date(company, rate_date, from_currency)
+        to_rate = self.get_foreign_per_usd_at_date(company, rate_date, to_currency)
+        if not from_rate or not to_rate:
+            return None
+        return to_currency.round((amount / from_rate) * to_rate)
+
     def _vals_apply_foreign_per_usd(self, vals, record=None):
         if not vals.get("foreign_per_usd"):
             return vals

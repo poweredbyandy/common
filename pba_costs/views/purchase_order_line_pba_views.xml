@@ -16,6 +16,17 @@
                     confirm="¿Actualizar el precio de venta (PVP) en la ficha de los productos según las líneas de esta orden?"
                 />
             </xpath>
+            <xpath expr="//page[@name='products']//field[@name='order_line']/list/field[@name='price_unit']" position="after">
+                <field name="pba_cost_pba_currency_id" column_invisible="1" groups="base.group_multi_currency"/>
+                <field
+                    name="pba_price_unit_cost_currency"
+                    optional="show"
+                    readonly="1"
+                    groups="base.group_multi_currency"
+                    widget="monetary"
+                    options="{'currency_field': 'pba_cost_pba_currency_id', 'field_digits': True}"
+                />
+            </xpath>
             <xpath expr="//page[@name='products']//field[@name='order_line']/list/field[@name='discount']" position="after">
                 <field name="pba_cost_pba_currency_id" column_invisible="1" groups="pba_costs.group_pba_product_costs_tab"/>
                 <field name="pba_cost_freight_percent" optional="hide" widget="percentage" groups="pba_costs.group_pba_product_costs_tab"/>
@@ -38,6 +49,16 @@
                 <field name="pba_sale_price_unit" optional="hide" groups="pba_costs.group_pba_product_costs_tab" widget="monetary" options="{'currency_field': 'pba_cost_pba_currency_id', 'field_digits': True}"/>
                 <field name="pba_utility_percent_baseline" column_invisible="1" groups="pba_costs.group_pba_product_costs_tab"/>
                 <field name="pba_sale_price_unit_baseline" column_invisible="1" groups="pba_costs.group_pba_product_costs_tab"/>
+            </xpath>
+            <xpath expr="//page[@name='products']//field[@name='order_line']/form//field[@name='price_unit']" position="after">
+                <field name="pba_cost_pba_currency_id" invisible="1" groups="base.group_multi_currency"/>
+                <field
+                    name="pba_price_unit_cost_currency"
+                    readonly="1"
+                    groups="base.group_multi_currency"
+                    widget="monetary"
+                    options="{'currency_field': 'pba_cost_pba_currency_id', 'field_digits': True}"
+                />
             </xpath>
             <xpath expr="//page[@name='products']//field[@name='order_line']/form//notebook" position="inside">
                 <page string="Costos PBA" name="pba_costs_pol" groups="pba_costs.group_pba_product_costs_tab" invisible="display_type">
