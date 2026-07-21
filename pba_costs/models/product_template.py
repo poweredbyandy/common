@@ -648,6 +648,48 @@ class ProductTemplate(models.Model):
         ):
             self.env.add_to_compute(self._fields[fname], self)
 
+    def _pba_recompute_cost_amounts_from_last_cost(self):
+        amount_fields = [
+            "pba_cost_freight",
+            "pba_cost_tariff",
+            "pba_cost_operative",
+            "pba_cost_nationalization",
+        ]
+        for offset in range(0, len(self), 200):
+            batch = self[offset : offset + 200]
+            batch.invalidate_recordset(["pba_last_cost"] + amount_fields)
+            batch._compute_pba_last_cost()
+            batch._compute_pba_cost_freight()
+            batch._compute_pba_cost_tariff()
+            batch._compute_pba_cost_operative()
+            batch._compute_pba_cost_nationalization()
+            batch.flush_recordset(amount_fields)
+            batch.invalidate_recordset(
+                [
+                    "pba_final_cost",
+                    "pba_suggested_list_price",
+                    "pba_utility_margin_amount",
+                ]
+            )
+        return len(self)
+
+    @api.model
+    def pba_recompute_cost_amounts_from_last_cost(self, template_ids=None):
+        domain = [
+            "|",
+            "|",
+            "|",
+            ("pba_cost_freight_percent", "!=", 0.0),
+            ("pba_cost_tariff_percent", "!=", 0.0),
+            ("pba_cost_operative_percent", "!=", 0.0),
+            ("pba_cost_nationalization_percent", "!=", 0.0),
+        ]
+        if template_ids:
+            records = self.browse(template_ids).exists()
+        else:
+            records = self.search(domain)
+        return records._pba_recompute_cost_amounts_from_last_cost()
+
     def _pba_invalidate_last_sale_price(self):
         if self:
             self.invalidate_recordset(["pba_last_sale_price"])
