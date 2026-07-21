@@ -39,6 +39,6 @@ class SaleOrderLine(models.Model):
             if not multiple:
                 continue
             qty = vals.get("product_uom_qty", 1.0)
-            if not qty or qty == 1.0:
+            if "product_uom_qty" not in vals or qty == 1.0:
                 vals["product_uom_qty"] = multiple
         return super().create(vals_list)

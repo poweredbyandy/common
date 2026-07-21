@@ -52,6 +52,6 @@ class AccountMoveLine(models.Model):
             if not multiple:
                 continue
             qty = vals.get("quantity", 1.0)
-            if not qty or qty == 1.0:
+            if "quantity" not in vals or qty == 1.0:
                 vals["quantity"] = multiple
         return super().create(vals_list)

@@ -11,7 +11,9 @@ class PbaQtyMxMixin(AbstractModel):
     def _pba_qty_mx_is_valid(self, qty, multiple, rounding):
         if not multiple or multiple <= 0:
             return True
-        if float_compare(qty, 0, precision_rounding=rounding) <= 0:
+        if float_is_zero(qty, precision_rounding=rounding):
+            return True
+        if float_compare(qty, 0, precision_rounding=rounding) < 0:
             return False
         if float_compare(qty, multiple, precision_rounding=rounding) < 0:
             return False
