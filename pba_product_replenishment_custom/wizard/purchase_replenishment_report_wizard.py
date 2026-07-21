@@ -153,7 +153,7 @@ class PbaPurchaseReplenishmentReportWizard(models.TransientModel):
             )
         headers.append(
             _(
-                "Costo / Costo últ. compra (%s)",
+                "Costo (%s)",
                 self._currency_column_label(self.currency_id),
             )
         )
@@ -211,6 +211,12 @@ class PbaPurchaseReplenishmentReportWizard(models.TransientModel):
         )
 
     def _format_cost_for_currency(self, product, last_line, currency, for_equivalence=False):
+        dp = currency.decimal_places or 2
+        last_cost = self._last_purchase_unit_cost_in_currency(
+            product, last_line, currency
+        )
+        if last_line and last_cost is not None:
+            return f"{last_cost:.{dp}f}"
         tmpl = product.product_tmpl_id
         purchase_rate_date = self._cost_rate_date(product, last_line)
         if for_equivalence:
@@ -222,16 +228,6 @@ class PbaPurchaseReplenishmentReportWizard(models.TransientModel):
             currency,
             rate_date=standard_rate_date,
         )
-        last_cost = self._last_purchase_unit_cost_in_currency(
-            product, last_line, currency
-        )
-        dp = currency.decimal_places or 2
-        if last_line and last_cost is not None and not float_is_zero(
-            standard - last_cost, precision_digits=dp
-        ):
-            return f"{standard:.{dp}f} / {last_cost:.{dp}f}"
-        if last_line and last_cost is not None:
-            return f"{last_cost:.{dp}f}"
         return f"{standard:.{dp}f}"
 
     def _currency_report_label(self):
@@ -406,22 +402,33 @@ class PbaPurchaseReplenishmentReportWizard(models.TransientModel):
                 {"bold": True, "bg_color": "#E7E6E6", "bottom": 1}
             ),
             "header": workbook.add_format(header_style),
-            "header_order_qty": workbook.add_format(
-                {**header_style, "align": "center"}
+            "header_amount": workbook.add_format(
+                {**header_style, "align": "right"}
             ),
-            "qty": workbook.add_format({"num_format": "#,##0.00"}),
-            "order_qty": workbook.add_format({"align": "center"}),
-            "purchase_qty": workbook.add_format({"num_format": "#,##0.00"}),
+            "header_order_qty": workbook.add_format(
+                {**header_style, "align": "right"}
+            ),
+            "qty": workbook.add_format(
+                {"num_format": "#,##0.00", "align": "right"}
+            ),
+            "order_qty": workbook.add_format({"align": "right"}),
+            "purchase_qty": workbook.add_format(
+                {"num_format": "#,##0.00", "align": "right"}
+            ),
+            "cost": workbook.add_format({"align": "right"}),
             "text": workbook.add_format({"text_wrap": False}),
             "cell": workbook.add_format({}),
         }
         zero_bg = {"bg_color": "#FFF5F5"}
         zero_formats = {
-            "qty": workbook.add_format({**zero_bg, "num_format": "#,##0.00"}),
-            "order_qty": workbook.add_format({**zero_bg, "align": "center"}),
-            "purchase_qty": workbook.add_format(
-                {**zero_bg, "num_format": "#,##0.00"}
+            "qty": workbook.add_format(
+                {**zero_bg, "num_format": "#,##0.00", "align": "right"}
             ),
+            "order_qty": workbook.add_format({**zero_bg, "align": "right"}),
+            "purchase_qty": workbook.add_format(
+                {**zero_bg, "num_format": "#,##0.00", "align": "right"}
+            ),
+            "cost": workbook.add_format({**zero_bg, "align": "right"}),
             "text": workbook.add_format({**zero_bg, "text_wrap": False}),
             "cell": workbook.add_format(zero_bg),
         }
@@ -434,13 +441,23 @@ class PbaPurchaseReplenishmentReportWizard(models.TransientModel):
             1, 0, 1, last_col, self._currency_report_label(), formats["subtitle"]
         )
         worksheet.set_row(1, 20)
+        amount_header_cols = {
+            layout["col_cost"],
+            layout["col_qty"],
+            layout["col_forecast_qty"],
+            layout["col_purchase_qty"],
+            layout["col_suggestion"],
+            layout["col_order_qty"],
+        }
+        amount_header_cols.update(range(4, layout["col_cost"] + 1))
         header_row = 3
         for col_idx, header in enumerate(headers):
-            header_fmt = (
-                formats["header_order_qty"]
-                if col_idx == layout["col_order_qty"]
-                else formats["header"]
-            )
+            if col_idx == layout["col_order_qty"]:
+                header_fmt = formats["header_order_qty"]
+            elif col_idx in amount_header_cols:
+                header_fmt = formats["header_amount"]
+            else:
+                header_fmt = formats["header"]
             worksheet.write(header_row, col_idx, header, header_fmt)
 
         data_row = header_row + 1
@@ -512,6 +529,17 @@ class PbaPurchaseReplenishmentReportWizard(models.TransientModel):
                             float(cell_value),
                             row_formats["purchase_qty"],
                         )
+                    else:
+                        worksheet.write(
+                            data_row,
+                            col_idx,
+                            cell_value,
+                            row_formats["purchase_qty"],
+                        )
+                elif 4 <= col_idx <= layout["col_cost"]:
+                    worksheet.write(
+                        data_row, col_idx, cell_value, row_formats["cost"]
+                    )
                 elif col_idx == layout["col_name"]:
                     worksheet.write(
                         data_row,

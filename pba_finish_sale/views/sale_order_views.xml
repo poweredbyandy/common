@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="sale_order_view_form_pba_finish_sale" model="ir.ui.view">
+        <field name="name">sale.order.form.pba.finish.sale</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header/field[@name='locked']" position="after">
+                <field name="pba_finished" invisible="1"/>
+            </xpath>
+            <xpath expr="//header/button[@name='action_cancel']" position="before">
+                <button
+                    name="action_pba_finish_sale"
+                    type="object"
+                    string="Cerrar venta"
+                    class="btn-secondary"
+                    groups="sales_team.group_sale_salesman"
+                    invisible="state != 'sale' or pba_finished"
+                    confirm="Esta acción no es reversible. El pedido dejará de aparecer por facturar y no se le hará más nada. ¿Desea continuar?"
+                />
+            </xpath>
+            <xpath expr="//header/button[@name='action_unlock']" position="attributes">
+                <attribute name="invisible">not locked or pba_finished</attribute>
+            </xpath>
+            <xpath expr="//div[@name='button_box']" position="before">
+                <div
+                    class="alert alert-info text-center"
+                    role="alert"
+                    invisible="not pba_finished"
+                >
+                    Esta venta está cerrada. No se facturará ni modificará más.
+                </div>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="sale_order_view_tree_pba_finish_sale" model="ir.ui.view">
+        <field name="name">sale.order.list.pba.finish.sale</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.sale_order_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='invoice_status']" position="after">
+                <field name="pba_finished" optional="hide" string="Cerrada"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="sale_order_view_search_pba_finish_sale" model="ir.ui.view">
+        <field name="name">sale.order.search.pba.finish.sale</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_sales_order_filter"/>
+        <field name="arch" type="xml">
+            <xpath expr="//filter[@name='my_sale_orders_filter']" position="after">
+                <filter
+                    string="Ventas cerradas"
+                    name="pba_finished"
+                    domain="[('pba_finished', '=', True)]"
+                />
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -13,7 +13,7 @@ from .pba_constants import (
 _logger = logging.getLogger(__name__)
 
 PBA_COST_IMPORTE_HELP = (
-    "Calculado: costo promedio del producto (standard_price) × % aplicado."
+    "Calculado: último costo del producto (pba_last_cost) × % aplicado."
 )
 
 PBA_COST_HISTORY_TITLES = {
@@ -344,31 +344,31 @@ class ProductTemplate(models.Model):
             round=True,
         )
 
-    @api.depends("standard_price", "pba_cost_freight_percent")
+    @api.depends("pba_last_cost", "pba_cost_freight_percent")
     def _compute_pba_cost_freight(self):
         for rec in self:
-            base = rec.standard_price or 0.0
+            base = rec.pba_last_cost or 0.0
             pct = rec.pba_cost_freight_percent or 0.0
             rec.pba_cost_freight = base * pct
 
-    @api.depends("standard_price", "pba_cost_tariff_percent")
+    @api.depends("pba_last_cost", "pba_cost_tariff_percent")
     def _compute_pba_cost_tariff(self):
         for rec in self:
-            base = rec.standard_price or 0.0
+            base = rec.pba_last_cost or 0.0
             pct = rec.pba_cost_tariff_percent or 0.0
             rec.pba_cost_tariff = base * pct
 
-    @api.depends("standard_price", "pba_cost_operative_percent")
+    @api.depends("pba_last_cost", "pba_cost_operative_percent")
     def _compute_pba_cost_operative(self):
         for rec in self:
-            base = rec.standard_price or 0.0
+            base = rec.pba_last_cost or 0.0
             pct = rec.pba_cost_operative_percent or 0.0
             rec.pba_cost_operative = base * pct
 
-    @api.depends("standard_price", "pba_cost_nationalization_percent")
+    @api.depends("pba_last_cost", "pba_cost_nationalization_percent")
     def _compute_pba_cost_nationalization(self):
         for rec in self:
-            base = rec.standard_price or 0.0
+            base = rec.pba_last_cost or 0.0
             pct = rec.pba_cost_nationalization_percent or 0.0
             rec.pba_cost_nationalization = base * pct
 
@@ -606,9 +606,9 @@ class ProductTemplate(models.Model):
         def z(val):
             return float(val or 0.0)
 
-        base = z(self.standard_price)
+        base = z(self.pba_last_cost)
         return {
-            "pba_last_cost": z(self.pba_last_cost),
+            "pba_last_cost": base,
             "pba_cost_freight": z(self.pba_cost_freight),
             "pba_cost_tariff": z(self.pba_cost_tariff),
             "pba_cost_operative": z(self.pba_cost_operative),
@@ -621,15 +621,74 @@ class ProductTemplate(models.Model):
             "pba_cost_operative_percent": z(self.pba_cost_operative_percent),
             "pba_cost_nationalization_operation_total": base,
             "pba_cost_nationalization_percent": z(self.pba_cost_nationalization_percent),
-            "standard_price": base,
+            "standard_price": z(self.standard_price),
             "list_price": z(self.list_price),
         }
 
     def _pba_invalidate_last_cost(self):
-        if self:
-            self.invalidate_recordset(
-                ["pba_last_cost", "pba_final_cost", "pba_suggested_list_price"]
+        if not self:
+            return
+        self.invalidate_recordset(
+            [
+                "pba_last_cost",
+                "pba_cost_freight",
+                "pba_cost_tariff",
+                "pba_cost_operative",
+                "pba_cost_nationalization",
+                "pba_final_cost",
+                "pba_suggested_list_price",
+                "pba_utility_margin_amount",
+            ]
+        )
+        for fname in (
+            "pba_cost_freight",
+            "pba_cost_tariff",
+            "pba_cost_operative",
+            "pba_cost_nationalization",
+        ):
+            self.env.add_to_compute(self._fields[fname], self)
+
+    def _pba_recompute_cost_amounts_from_last_cost(self):
+        amount_fields = [
+            "pba_cost_freight",
+            "pba_cost_tariff",
+            "pba_cost_operative",
+            "pba_cost_nationalization",
+        ]
+        for offset in range(0, len(self), 200):
+            batch = self[offset : offset + 200]
+            batch.invalidate_recordset(["pba_last_cost"] + amount_fields)
+            batch._compute_pba_last_cost()
+            batch._compute_pba_cost_freight()
+            batch._compute_pba_cost_tariff()
+            batch._compute_pba_cost_operative()
+            batch._compute_pba_cost_nationalization()
+            batch.flush_recordset(amount_fields)
+            batch.invalidate_recordset(
+                [
+                    "pba_final_cost",
+                    "pba_suggested_list_price",
+                    "pba_utility_margin_amount",
+                ]
             )
+        return len(self)
+
+    @api.model
+    def pba_recompute_cost_amounts_from_last_cost(self, template_ids=None):
+        domain = [
+            "|",
+            "|",
+            "|",
+            ("pba_cost_freight_percent", "!=", 0.0),
+            ("pba_cost_tariff_percent", "!=", 0.0),
+            ("pba_cost_operative_percent", "!=", 0.0),
+            ("pba_cost_nationalization_percent", "!=", 0.0),
+        ]
+        if template_ids:
+            records = self.browse(template_ids).exists()
+        else:
+            records = self.search(domain)
+        return records._pba_recompute_cost_amounts_from_last_cost()
 
     def _pba_invalidate_last_sale_price(self):
         if self:

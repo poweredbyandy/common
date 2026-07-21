@@ -71,6 +71,11 @@ class PurchaseOrderLine(models.Model):
         "res.currency",
         compute="_compute_pba_cost_pba_currency_id",
     )
+    pba_price_unit_cost_currency = fields.Monetary(
+        string="Precio unit. (moneda costo)",
+        currency_field="pba_cost_pba_currency_id",
+        compute="_compute_pba_price_unit_cost_currency",
+    )
 
     @api.depends("product_id", "company_id")
     def _compute_pba_cost_pba_currency_id(self):
@@ -82,6 +87,37 @@ class PurchaseOrderLine(models.Model):
                 )
             else:
                 line.pba_cost_pba_currency_id = line.company_id.currency_id
+
+    @api.depends(
+        "display_type",
+        "product_id",
+        "price_unit",
+        "currency_id",
+        "order_id.date_order",
+        "company_id",
+        "pba_cost_pba_currency_id",
+    )
+    def _compute_pba_price_unit_cost_currency(self):
+        for line in self:
+            to_currency = line.pba_cost_pba_currency_id
+            if line.display_type or not to_currency or not line.currency_id:
+                line.pba_price_unit_cost_currency = 0.0
+                continue
+            if line.currency_id == to_currency:
+                line.pba_price_unit_cost_currency = line.price_unit or 0.0
+                continue
+            line_dt = line.order_id.date_order
+            if line_dt:
+                conv_date = line_dt.date() if hasattr(line_dt, "date") else line_dt
+            else:
+                conv_date = fields.Date.context_today(line)
+            line.pba_price_unit_cost_currency = line.currency_id._convert(
+                line.price_unit or 0.0,
+                to_currency,
+                line.company_id,
+                conv_date,
+                round=True,
+            )
 
     @api.depends(
         "display_type",
