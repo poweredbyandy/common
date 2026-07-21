@@ -1,6 +1,6 @@
 {
     "name": "PBA reporte de compras / reposición",
-    "version": "18.0.1.2.4",
+    "version": "18.0.1.2.7",
     "category": "Inventory",
     "summary": "Reporte Excel de compras desde inventario con filtros por categoría, marca y almacén",
     "author": "andyengit",

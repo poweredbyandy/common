@@ -161,6 +161,9 @@ class PbaPurchaseReplenishmentReportWizard(models.TransientModel):
             [
                 "Proveedor",
                 "Existencia",
+                "Backorder",
+                "Proveedor backorder",
+                "Fecha estimada",
                 "Cant.",
                 "Fecha",
                 "Sugerencia",
@@ -175,10 +178,13 @@ class PbaPurchaseReplenishmentReportWizard(models.TransientModel):
             "col_cost": col_cost,
             "col_vendor": col_cost + 1,
             "col_qty": col_cost + 2,
-            "col_purchase_qty": col_cost + 3,
-            "col_purchase_date": col_cost + 4,
-            "col_suggestion": col_cost + 5,
-            "col_order_qty": col_cost + 6,
+            "col_forecast_qty": col_cost + 3,
+            "col_forecast_vendor": col_cost + 4,
+            "col_forecast_date": col_cost + 5,
+            "col_purchase_qty": col_cost + 6,
+            "col_purchase_date": col_cost + 7,
+            "col_suggestion": col_cost + 8,
+            "col_order_qty": col_cost + 9,
         }
 
     def _cost_rate_date(self, product, last_line):
@@ -259,8 +265,66 @@ class PbaPurchaseReplenishmentReportWizard(models.TransientModel):
         line_date = line_dt.date() if hasattr(line_dt, "date") else line_dt
         return format_date(self.env, line_date)
 
+    def _format_forecast_date(self, forecast_dt):
+        if not forecast_dt:
+            return ""
+        forecast_date = (
+            forecast_dt.date() if hasattr(forecast_dt, "date") else forecast_dt
+        )
+        return format_date(self.env, forecast_date)
+
+    def _incoming_move_vendor(self, move):
+        if "purchase_line_id" in move._fields and move.purchase_line_id:
+            partner = move.purchase_line_id.partner_id
+            if partner:
+                return partner
+        return move.partner_id
+
+    def _get_incoming_forecast_by_product(self, product_ids):
+        self.ensure_one()
+        if not product_ids:
+            return {}
+        products = self.env["product.product"].browse(product_ids).with_context(
+            warehouse_id=self.warehouse_id.id
+        )
+        _domain_quant_loc, domain_move_in_loc, _domain_move_out_loc = (
+            products._get_domain_locations()
+        )
+        domain = [
+            ("product_id", "in", product_ids),
+            (
+                "state",
+                "in",
+                ("waiting", "confirmed", "assigned", "partially_available"),
+            ),
+        ] + domain_move_in_loc
+        Move = self.env["stock.move"].with_context(active_test=False)
+        moves = Move.search(domain, order="date asc, id asc")
+        result = {}
+        for move in moves:
+            pid = move.product_id.id
+            info = result.setdefault(
+                pid,
+                {"date": move.date, "vendors": []},
+            )
+            partner = self._incoming_move_vendor(move)
+            if partner:
+                name = partner.display_name
+                if name and name not in info["vendors"]:
+                    info["vendors"].append(name)
+        for info in result.values():
+            info["vendor"] = ", ".join(info.pop("vendors"))
+        return result
+
     def _build_row(
-        self, product, last_line, qty_available, min_qty_by_product, layout
+        self,
+        product,
+        last_line,
+        qty_available,
+        incoming_qty,
+        forecast_info,
+        min_qty_by_product,
+        layout,
     ):
         tmpl = product.product_tmpl_id
         brand = tmpl.product_brand_id
@@ -284,10 +348,23 @@ class PbaPurchaseReplenishmentReportWizard(models.TransientModel):
         suggestion = self._compute_suggestion(
             product, qty_available, min_qty_by_product, last_line
         )
+        rounding = product.uom_id.rounding
+        forecast_qty = (
+            incoming_qty
+            if not float_is_zero(incoming_qty, precision_rounding=rounding)
+            else ""
+        )
+        forecast_info = forecast_info or {}
+        has_backorder = forecast_qty != ""
         row.extend(
             [
                 last_line.order_id.partner_id.display_name if last_line else "",
                 qty_available,
+                forecast_qty,
+                forecast_info.get("vendor", "") if has_backorder else "",
+                self._format_forecast_date(forecast_info.get("date"))
+                if has_backorder
+                else "",
                 last_line.product_qty if last_line else "",
                 self._format_purchase_date(last_line),
                 suggestion,
@@ -314,6 +391,7 @@ class PbaPurchaseReplenishmentReportWizard(models.TransientModel):
         products_ctx = products.with_context(warehouse_id=wh.id)
         last_lines = self._get_last_purchase_lines(products.ids)
         min_qty_by_product = self._get_min_qty_by_product(products.ids)
+        forecast_by_product = self._get_incoming_forecast_by_product(products.ids)
 
         buffer = io.BytesIO()
         workbook = xlsxwriter.Workbook(buffer, {"in_memory": True})
@@ -393,21 +471,29 @@ class PbaPurchaseReplenishmentReportWizard(models.TransientModel):
                 current_category = category_label
 
             last_line = last_lines.get(product.id)
+            incoming_qty = product_wh.incoming_qty
             row_vals = self._build_row(
                 product,
                 last_line,
                 qty_available,
+                incoming_qty,
+                forecast_by_product.get(product.id),
                 min_qty_by_product,
                 layout,
             )
             for col_idx, cell_value in enumerate(row_vals):
-                if col_idx == layout["col_qty"]:
-                    worksheet.write_number(
-                        data_row,
-                        col_idx,
-                        float(cell_value or 0.0),
-                        row_formats["qty"],
-                    )
+                if col_idx in (layout["col_qty"], layout["col_forecast_qty"]):
+                    if col_idx == layout["col_forecast_qty"] and cell_value == "":
+                        worksheet.write(
+                            data_row, col_idx, cell_value, row_formats["cell"]
+                        )
+                    else:
+                        worksheet.write_number(
+                            data_row,
+                            col_idx,
+                            float(cell_value or 0.0),
+                            row_formats["qty"],
+                        )
                 elif col_idx == layout["col_order_qty"]:
                     worksheet.write(
                         data_row,
@@ -446,6 +532,15 @@ class PbaPurchaseReplenishmentReportWizard(models.TransientModel):
         for col_idx in range(4, layout["col_cost"] + 1):
             worksheet.set_column(col_idx, col_idx, 13)
         worksheet.set_column(layout["col_qty"], layout["col_qty"], 13)
+        worksheet.set_column(
+            layout["col_forecast_qty"], layout["col_forecast_qty"], 13
+        )
+        worksheet.set_column(
+            layout["col_forecast_vendor"], layout["col_forecast_vendor"], 22
+        )
+        worksheet.set_column(
+            layout["col_forecast_date"], layout["col_forecast_date"], 14
+        )
         worksheet.set_column(layout["col_vendor"], layout["col_vendor"], 20)
         worksheet.set_column(
             layout["col_purchase_qty"], layout["col_purchase_qty"], 12
