@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="product_product_tree_view_pba_last_purchase" model="ir.ui.view">
+        <field name="name">product.product.list.pba.last.purchase</field>
+        <field name="model">product.product</field>
+        <field name="inherit_id" ref="product.product_product_tree_view"/>
+        <field name="arch" type="xml">
+            <field name="standard_price" position="after">
+                <field
+                    name="pba_last_purchase_partner_id"
+                    string="Proveedor (última compra)"
+                    optional="show"
+                    readonly="1"
+                    groups="pba_product_replenishment_custom.group_pba_last_purchase_variant_list"
+                />
+                <field
+                    name="pba_last_purchase_date"
+                    string="Fecha última compra"
+                    optional="show"
+                    readonly="1"
+                    groups="pba_product_replenishment_custom.group_pba_last_purchase_variant_list"
+                />
+                <field
+                    name="pba_last_purchase_qty"
+                    string="Cantidad (última compra)"
+                    optional="show"
+                    readonly="1"
+                    groups="pba_product_replenishment_custom.group_pba_last_purchase_variant_list"
+                />
+            </field>
+        </field>
+    </record>
+</odoo>

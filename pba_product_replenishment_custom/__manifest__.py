@@ -1,6 +1,6 @@
 {
     "name": "PBA reporte de compras / reposición",
-    "version": "18.0.1.2.9",
+    "version": "18.0.1.3.0",
     "category": "Inventory",
     "summary": "Reporte Excel de compras desde inventario con filtros por categoría, marca y almacén",
     "author": "andyengit",
@@ -14,8 +14,10 @@
         "pba_costs",
     ],
     "data": [
+        "security/pba_product_replenishment_security.xml",
         "security/ir.model.access.csv",
         "views/res_config_settings_views.xml",
+        "views/product_product_views.xml",
         "wizard/purchase_replenishment_report_wizard_views.xml",
         "views/menu_views.xml",
     ],
