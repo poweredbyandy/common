@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-inherit="point_of_sale.PartnerLine" t-inherit-mode="extension">
+        <xpath expr="//div[hasclass('partner-info')]//b" position="after">
+            <div
+                t-if="props.partner.vat"
+                class="text-muted small"
+                t-esc="props.partner.vat"
+            />
+        </xpath>
+        <xpath expr="//tr[hasclass('partner-line')]/td[1]/b" position="after">
+            <div
+                t-if="props.partner.vat"
+                class="text-muted small"
+                t-esc="props.partner.vat"
+            />
+        </xpath>
+    </t>
+</templates>

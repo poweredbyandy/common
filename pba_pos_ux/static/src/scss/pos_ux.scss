@@ -1,0 +1,69 @@
+.pba_pos_ux_section_title {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: $o-gray-700;
+    letter-spacing: 0.02em;
+}
+
+.pads .control-buttons {
+    flex-wrap: wrap;
+
+    .set-partner {
+        flex: 1 0 100%;
+        width: 100%;
+        max-width: 100%;
+        height: auto;
+        min-height: 3rem;
+        white-space: normal !important;
+    }
+}
+
+.actionpad > .d-flex {
+    flex-wrap: wrap;
+
+    .set-partner {
+        flex: 1 0 100%;
+        width: 100%;
+        max-width: 100%;
+        height: auto;
+        min-height: 3rem;
+        white-space: normal !important;
+    }
+}
+
+.payment-buttons {
+    button.js_invoice {
+        display: none !important;
+    }
+
+    .partner-button {
+        width: 100% !important;
+        height: auto;
+        min-height: 3rem;
+        white-space: normal !important;
+        text-overflow: unset;
+
+        .partner-name {
+            white-space: normal;
+            overflow: visible;
+            text-overflow: unset;
+        }
+    }
+}
+
+.modal:has(.pba_pos_ux_force_customer) {
+    .btn-close,
+    .oi-arrow-left[data-bs-dismiss="modal"] {
+        display: none !important;
+    }
+}
+
+.category-list {
+    margin-bottom: map-get($spacers, 4);
+    padding-bottom: map-get($spacers, 3);
+    border-bottom: 1px solid $o-gray-300;
+}
+
+.rightpane .product-list:not(.category-list) {
+    padding-top: map-get($spacers, 3) !important;
+}
