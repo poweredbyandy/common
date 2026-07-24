@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-inherit="point_of_sale.SelectPartnerButton" t-inherit-mode="extension">
+        <xpath expr="//button[hasclass('set-partner')]" position="replace">
+            <button
+                class="set-partner btn btn-light btn-lg lh-sm text-start text-wrap w-100"
+                t-on-click="() => this.pos.selectPartner()"
+            >
+                <t t-if="props.partner">
+                    <div class="text-action text-wrap" t-esc="props.partner.name"/>
+                    <div
+                        t-if="props.partner.vat"
+                        class="small text-muted text-wrap"
+                        t-esc="props.partner.vat"
+                    />
+                </t>
+                <t t-else="">Customer</t>
+            </button>
+        </xpath>
+    </t>
+</templates>

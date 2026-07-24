@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-inherit="point_of_sale.ProductScreen" t-inherit-mode="extension">
+        <xpath expr="//CategorySelector" position="before">
+            <div
+                t-if="!ui.isSmall || !pos.scanning"
+                class="pba_pos_ux_section_title px-2 pt-2"
+            >
+                Categorías
+            </div>
+        </xpath>
+        <xpath expr="//CameraBarcodeScanner" position="before">
+            <div t-if="!pos.scanning" class="pba_pos_ux_section_title px-2">
+                Productos
+            </div>
+        </xpath>
+    </t>
+</templates>

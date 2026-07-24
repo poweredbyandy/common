@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="product_template_form_view_pba_last_cost" model="ir.ui.view">
+        <field name="name">product.template.form.pba.last.cost</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_form_view"/>
+        <field name="priority" eval="1"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='standard_price_uom']" position="after">
+                <label
+                    for="pba_last_cost"
+                    string="Último costo"
+                    id="pba_last_cost_label"
+                    groups="pba_costs.group_pba_product_standard_cost_purchase_tax"
+                    invisible="(id and product_variant_count != 1 and not is_product_variant) or type == 'combo'"
+                />
+                <div
+                    name="pba_last_cost_uom"
+                    groups="pba_costs.group_pba_product_standard_cost_purchase_tax"
+                    invisible="(id and product_variant_count != 1 and not is_product_variant) or type == 'combo'"
+                >
+                    <field
+                        name="pba_last_cost"
+                        class="oe_inline"
+                        widget="monetary"
+                        options="{'currency_field': 'cost_currency_id', 'field_digits': True}"
+                    />
+                    <span groups="uom.group_uom">
+                        por
+                        <field name="uom_name" class="oe_inline"/>
+                    </span>
+                </div>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="product_template_tree_view_pba_last_cost" model="ir.ui.view">
+        <field name="name">product.template.list.pba.last.cost</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_tree_view"/>
+        <field name="priority" eval="1"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='standard_price']" position="after">
+                <field
+                    name="pba_last_cost"
+                    string="Último costo"
+                    optional="show"
+                    groups="pba_costs.group_pba_product_standard_cost_purchase_tax"
+                    widget="monetary"
+                    options="{'currency_field': 'cost_currency_id', 'field_digits': True}"
+                    readonly="1"
+                />
+                <field
+                    name="pba_final_cost"
+                    string="Costo final"
+                    optional="hide"
+                    groups="pba_costs.group_pba_product_costs_tab"
+                    widget="monetary"
+                    options="{'currency_field': 'cost_currency_id', 'field_digits': True}"
+                />
+            </xpath>
+        </field>
+    </record>
+
+    <record id="product_variant_easy_edit_view_pba_last_cost" model="ir.ui.view">
+        <field name="name">product.product.form.easy.pba.last.cost</field>
+        <field name="model">product.product</field>
+        <field name="inherit_id" ref="product.product_variant_easy_edit_view"/>
+        <field name="priority" eval="1"/>
+        <field name="arch" type="xml">
+            <xpath expr="//group[@name='pricing']//div[field[@name='standard_price']]" position="after">
+                <label
+                    for="pba_last_cost"
+                    string="Último costo"
+                    id="pba_last_cost_label"
+                    groups="pba_costs.group_pba_product_standard_cost_purchase_tax"
+                />
+                <div
+                    name="pba_last_cost_uom"
+                    class="o_row"
+                    groups="pba_costs.group_pba_product_standard_cost_purchase_tax"
+                >
+                    <field
+                        name="pba_last_cost"
+                        class="oe_inline"
+                        widget="monetary"
+                        options="{'currency_field': 'cost_currency_id', 'field_digits': True}"
+                    />
+                </div>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="product_product_tree_view_pba_last_cost" model="ir.ui.view">
+        <field name="name">product.product.list.pba.last.cost</field>
+        <field name="model">product.product</field>
+        <field name="inherit_id" ref="product.product_product_tree_view"/>
+        <field name="priority" eval="1"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='standard_price']" position="after">
+                <field
+                    name="pba_last_cost"
+                    string="Último costo"
+                    optional="show"
+                    groups="pba_costs.group_pba_product_standard_cost_purchase_tax"
+                    widget="monetary"
+                    options="{'currency_field': 'cost_currency_id', 'field_digits': True}"
+                    readonly="1"
+                />
+                <field
+                    name="pba_final_cost"
+                    string="Costo final"
+                    optional="hide"
+                    groups="pba_costs.group_pba_product_costs_tab"
+                    widget="monetary"
+                    options="{'currency_field': 'cost_currency_id', 'field_digits': True}"
+                />
+            </xpath>
+        </field>
+    </record>
+</odoo>
