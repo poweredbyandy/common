@@ -1,3 +1,2 @@
-Some users need to maintain product master data (names, categories, attributes,
-images, etc.) without being salespeople or purchasers, and without permission
-to archive or permanently remove products from the catalog.
+Some users only need to maintain product photos (main image and website gallery)
+without access to pricing, taxes, product type or other master-data changes.
