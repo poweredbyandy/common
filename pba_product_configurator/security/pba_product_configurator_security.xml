@@ -9,9 +9,14 @@
         <field name="name">PBA: Configurador de productos</field>
         <field name="category_id" ref="module_category_pba_product_configurator"/>
         <field name="comment">
-            Permite crear y editar productos e información de producto.
-            No permite archivar ni eliminar. No otorga permisos de venta ni compra.
+            Permite gestionar la foto principal y las fotos del sitio web del producto.
+            Muestra nombre, referencia y código interno en solo lectura.
+            No permite crear, archivar ni eliminar productos.
+            Solo ve la app Product Configurator (sin Contactos ni otras apps).
+            Asignar este grupo solo a usuarios dedicados a esa tarea.
         </field>
+
+
         <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
     </record>
 </odoo>

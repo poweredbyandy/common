@@ -3,15 +3,21 @@
     <record id="product_template_action_configurator" model="ir.actions.act_window">
         <field name="name">Products</field>
         <field name="res_model">product.template</field>
-        <field name="view_mode">kanban,list,form</field>
-        <field name="context">{}</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="product_template_view_search_pba_configurator"/>
+        <field
+            name="view_ids"
+            eval="[(5, 0, 0),
+                   (0, 0, {'view_mode': 'list', 'view_id': ref('product_template_view_list_pba_configurator')}),
+                   (0, 0, {'view_mode': 'form', 'view_id': ref('product_template_view_form_pba_configurator')})]"
+        />
+        <field name="context">{'create': False, 'delete': False}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
-                Create a new product
+                No products found
             </p>
             <p>
-                Configure product information. This role does not sell or purchase;
-                it only creates and edits products.
+                Open a product to update its main photo and website photos.
             </p>
         </field>
     </record>
@@ -30,39 +36,5 @@
         parent="menu_pba_product_configurator_root"
         action="product_template_action_configurator"
         sequence="10"
-    />
-
-    <menuitem
-        id="menu_pba_product_configurator_variants"
-        name="Product Variants"
-        parent="menu_pba_product_configurator_root"
-        action="product.product_normal_action"
-        groups="product.group_product_variant"
-        sequence="20"
-    />
-
-    <menuitem
-        id="menu_pba_product_configurator_categories"
-        name="Product Categories"
-        parent="menu_pba_product_configurator_root"
-        action="product.product_category_action_form"
-        sequence="30"
-    />
-
-    <menuitem
-        id="menu_pba_product_configurator_attributes"
-        name="Attributes"
-        parent="menu_pba_product_configurator_root"
-        action="product.attribute_action"
-        groups="product.group_product_variant"
-        sequence="40"
-    />
-
-    <menuitem
-        id="menu_pba_product_configurator_tags"
-        name="Product Tags"
-        parent="menu_pba_product_configurator_root"
-        action="product.product_tag_action"
-        sequence="50"
     />
 </odoo>
