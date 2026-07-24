@@ -7,14 +7,8 @@ class ProductConfiguratorRestrictMixin(models.AbstractModel):
     _description = "Product Configurator Restrictions"
 
     def _pba_is_restricted_product_configurator(self):
-        user = self.env.user
-        return (
-            user.has_group(
-                "pba_product_configurator.group_pba_product_configurator"
-            )
-            and not user.has_group("base.group_system")
-            and not user.has_group("product.group_product_manager")
-        )
+        return self.env.user._pba_is_product_configurator_only()
+
 
     def _pba_get_allowed_write_fields(self):
         return {"image_1920", "product_template_image_ids"}
