@@ -15,7 +15,7 @@ class IrUiMenu(models.Model):
         )
         if not root:
             return menus.browse()
-        allowed = self.sudo().with_context(ir.ui.menu.full_list=True).search(
-            [("id", "child_of", root.id)]
-        )
+        allowed = self.sudo().with_context(
+            {"ir.ui.menu.full_list": True}
+        ).search([("id", "child_of", root.id)])
         return menus & allowed
