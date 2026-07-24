@@ -1,6 +1,6 @@
 {
     "name": "PBA Configurador de productos",
-    "version": "18.0.1.3.0",
+    "version": "18.0.1.3.1",
     "category": "Inventory/Inventory",
     "summary": (
         "Permiso para gestionar fotos de producto y del sitio web; "
