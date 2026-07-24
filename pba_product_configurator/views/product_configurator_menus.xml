@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="product_template_action_configurator" model="ir.actions.act_window">
+        <field name="name">Products</field>
+        <field name="res_model">product.template</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create a new product
+            </p>
+            <p>
+                Configure product information. This role does not sell or purchase;
+                it only creates and edits products.
+            </p>
+        </field>
+    </record>
+
+    <menuitem
+        id="menu_pba_product_configurator_root"
+        name="Product Configurator"
+        web_icon="product,static/description/icon.png"
+        groups="pba_product_configurator.group_pba_product_configurator"
+        sequence="45"
+    />
+
+    <menuitem
+        id="menu_pba_product_configurator_products"
+        name="Products"
+        parent="menu_pba_product_configurator_root"
+        action="product_template_action_configurator"
+        sequence="10"
+    />
+
+    <menuitem
+        id="menu_pba_product_configurator_variants"
+        name="Product Variants"
+        parent="menu_pba_product_configurator_root"
+        action="product.product_normal_action"
+        groups="product.group_product_variant"
+        sequence="20"
+    />
+
+    <menuitem
+        id="menu_pba_product_configurator_categories"
+        name="Product Categories"
+        parent="menu_pba_product_configurator_root"
+        action="product.product_category_action_form"
+        sequence="30"
+    />
+
+    <menuitem
+        id="menu_pba_product_configurator_attributes"
+        name="Attributes"
+        parent="menu_pba_product_configurator_root"
+        action="product.attribute_action"
+        groups="product.group_product_variant"
+        sequence="40"
+    />
+
+    <menuitem
+        id="menu_pba_product_configurator_tags"
+        name="Product Tags"
+        parent="menu_pba_product_configurator_root"
+        action="product.product_tag_action"
+        sequence="50"
+    />
+</odoo>
