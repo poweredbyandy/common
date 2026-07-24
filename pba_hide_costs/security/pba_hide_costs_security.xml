@@ -2,7 +2,7 @@
 <odoo>
     <record id="module_category_pba_hide_costs" model="ir.module.category">
         <field name="name">PBA Costos producto</field>
-        <field name="description">Control de visibilidad del costo estándar en productos.</field>
+        <field name="description">Control de visibilidad del costo estándar y último costo en productos.</field>
         <field name="sequence">96</field>
     </record>
     <record id="group_pba_product_cost_visible" model="res.groups">

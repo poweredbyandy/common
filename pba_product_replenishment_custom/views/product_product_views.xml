@@ -3,9 +3,9 @@
     <record id="product_product_tree_view_pba_last_purchase" model="ir.ui.view">
         <field name="name">product.product.list.pba.last.purchase</field>
         <field name="model">product.product</field>
-        <field name="inherit_id" ref="product.product_product_tree_view"/>
+        <field name="inherit_id" ref="pba_costs.product_product_tree_view_pba_last_cost"/>
         <field name="arch" type="xml">
-            <field name="standard_price" position="after">
+            <field name="pba_last_cost" position="after">
                 <field
                     name="pba_last_purchase_partner_id"
                     string="Proveedor (última compra)"
