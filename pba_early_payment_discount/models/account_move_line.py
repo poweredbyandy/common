@@ -50,3 +50,37 @@ class AccountMoveLine(models.Model):
 
         for invoice_line in candidate_invoice_lines:
             invoice_line.epd_needed = result_per_invoice_line.get(invoice_line, False)
+
+    def _get_installments_data(self, payment_currency=None, payment_date=None, next_payment_date=None):
+        installments = super()._get_installments_data(
+            payment_currency=payment_currency,
+            payment_date=payment_date,
+            next_payment_date=next_payment_date,
+        )
+        move = self.move_id
+        if len(move) != 1:
+            return installments
+        sign = move.direction_sign
+        for installment in installments:
+            if installment.get("type") != "early_payment_discount":
+                continue
+            line = installment["line"]
+            if line.currency_id.compare_amounts(
+                abs(line.amount_residual_currency), abs(line.amount_currency)
+            ) >= 0:
+                continue
+            full_discount_currency = line.amount_currency - line.discount_amount_currency
+            full_discount = line.balance - line.discount_balance
+            amount_residual_currency = line.amount_residual_currency - full_discount_currency
+            amount_residual = line.amount_residual - full_discount
+            installment.update(
+                {
+                    "amount_residual_currency": amount_residual_currency,
+                    "amount_residual": amount_residual,
+                    "amount_residual_currency_unsigned": -sign * amount_residual_currency,
+                    "amount_residual_unsigned": -sign * amount_residual,
+                    "discount_amount_currency": full_discount_currency,
+                    "discount_amount": full_discount,
+                }
+            )
+        return installments

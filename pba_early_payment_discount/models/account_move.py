@@ -2,7 +2,7 @@ from collections import defaultdict
 
 from odoo import Command, _, api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
-from odoo.tools import frozendict
+from odoo.tools import frozendict, format_amount
 from odoo.tools.float_utils import float_compare, float_is_zero
 
 
@@ -60,6 +60,8 @@ class AccountMove(models.Model):
 
     @api.depends(
         "state",
+        "amount_residual",
+        "currency_id",
         "reconciled_payment_ids",
         "line_ids.matched_debit_ids",
         "line_ids.matched_credit_ids",
@@ -71,10 +73,69 @@ class AccountMove(models.Model):
                 move.pba_can_edit_early_payment_discount = False
             elif move.state == "draft":
                 move.pba_can_edit_early_payment_discount = True
-            elif move.state == "posted" and not move._pba_has_invoice_payments():
+            elif move.state == "posted" and not move.currency_id.is_zero(
+                abs(move.amount_residual)
+            ):
                 move.pba_can_edit_early_payment_discount = True
             else:
                 move.pba_can_edit_early_payment_discount = False
+
+    def _pba_get_early_payment_discount_amount(self, percent=None):
+        self.ensure_one()
+        currency = self.currency_id
+        if percent is None:
+            percent = self._pba_get_effective_early_discount_percent()
+        if float_is_zero(percent or 0.0, precision_digits=6):
+            return 0.0
+        percentage = (percent or 0.0) / 100.0
+        term = self.invoice_payment_term_id
+        computation = term.early_pay_discount_computation if term else "excluded"
+        if computation == "included":
+            return currency.round(abs(self.amount_total) * percentage)
+        return currency.round(abs(self.amount_untaxed) * percentage)
+
+    def _pba_assert_early_payment_discount_fits_residual(self, percent=None):
+        for move in self.filtered(lambda m: m.is_invoice(True) and m.state == "posted"):
+            discount = move._pba_get_early_payment_discount_amount(percent=percent)
+            if move.currency_id.is_zero(discount):
+                continue
+            residual = abs(move.amount_residual)
+            if move.currency_id.compare_amounts(discount, residual) > 0:
+                raise UserError(
+                    _(
+                        "El descuento por pronto pago (%(discount)s) no puede ser mayor "
+                        "que el monto restante de la factura (%(residual)s).",
+                        discount=format_amount(move.env, discount, move.currency_id),
+                        residual=format_amount(move.env, residual, move.currency_id),
+                    )
+                )
+
+    def _pba_is_eligible_for_early_payment_discount_with_payments(
+        self, payment_currency, reference_date
+    ):
+        self.ensure_one()
+        payment_terms = self.line_ids.filtered(
+            lambda line: line.display_type == "payment_term"
+        )
+        if not (
+            self.currency_id == payment_currency
+            and self.move_type in self._early_payment_discount_move_types()
+            and self.invoice_payment_term_id.early_discount
+            and (
+                not reference_date
+                or not self.invoice_date
+                or (
+                    (existing_discount_date := fields.first(payment_terms).discount_date)
+                    and reference_date <= existing_discount_date
+                )
+            )
+        ):
+            return False
+        residual = abs(self.amount_residual)
+        if self.currency_id.is_zero(residual):
+            return False
+        discount = self._pba_get_early_payment_discount_amount()
+        return self.currency_id.compare_amounts(discount, residual) <= 0
 
     @api.constrains(
         "pba_early_payment_discount_percent",
@@ -104,6 +165,8 @@ class AccountMove(models.Model):
                     raise ValidationError(
                         "Los días de pronto pago deben ser mayores que cero cuando hay descuento."
                     )
+                if move.state == "posted":
+                    move._pba_assert_early_payment_discount_fits_residual()
 
     def _pba_get_partner_early_payment_discount_values(self):
         self.ensure_one()
@@ -310,7 +373,11 @@ class AccountMove(models.Model):
         if self._pba_early_payment_discount_is_disabled():
             return False
         payment_currency = self._pba_get_early_payment_discount_payment_currency(currency)
-        return super()._is_eligible_for_early_payment_discount(
+        if not self._pba_has_invoice_payments():
+            return super()._is_eligible_for_early_payment_discount(
+                payment_currency, reference_date
+            )
+        return self._pba_is_eligible_for_early_payment_discount_with_payments(
             payment_currency, reference_date
         )
 
@@ -394,11 +461,20 @@ class AccountMove(models.Model):
                     "No tiene permiso para modificar el descuento por pronto pago en facturas."
                 )
             for move in invoices.filtered(lambda m: m.state == "posted"):
-                if move._pba_has_invoice_payments():
+                if move.currency_id.is_zero(abs(move.amount_residual)):
                     raise UserError(
-                        "No se puede modificar el descuento por pronto pago "
-                        "cuando la factura tiene pagos registrados."
+                        _(
+                            "No se puede modificar el descuento por pronto pago "
+                            "cuando la factura no tiene monto restante."
+                        )
                     )
+                new_percent = vals.get(
+                    "pba_early_payment_discount_percent",
+                    move.pba_early_payment_discount_percent,
+                )
+                move._pba_assert_early_payment_discount_fits_residual(
+                    percent=new_percent
+                )
         res = super().write(vals)
         if {"partner_id", "invoice_payment_term_id"} & set(vals):
             self.filtered(
