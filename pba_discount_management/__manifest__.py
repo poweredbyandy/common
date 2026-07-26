@@ -1,6 +1,6 @@
 {
     "name": "PBA Discount Management",
-    "version": "18.0.1.1.0",
+    "version": "18.0.1.2.0",
     "summary": "Límites de descuento por compañía, contacto y permisos de descuento global",
     "category": "Sales",
     "author": "andyengit",
@@ -10,6 +10,8 @@
         "sale_management",
         "account",
         "l10n_ve_reports",
+        "l10n_ve_seniat",
+        "l10n_ve_seniat_sale",
     ],
     "data": [
         "security/pba_discount_management_groups.xml",

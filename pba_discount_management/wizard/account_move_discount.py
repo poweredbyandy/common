@@ -172,7 +172,7 @@ class AccountMoveDiscount(models.TransientModel):
             discount_percentage, total_base_amount
         )
 
-        return self.env["account.move.line"].create(
+        lines = self.env["account.move.line"].create(
             {
                 "move_id": move.id,
                 "product_id": discount_product.id,
@@ -184,6 +184,36 @@ class AccountMoveDiscount(models.TransientModel):
                 "sequence": 9999,
             }
         )
+        move.pba_discount_legacy = True
+        return lines
+
+    def _pba_apply_seniat_discount(self):
+        self.ensure_one()
+        move = self.move_id
+        reason = self.env["l10n.ve.discount.reason"]._l10n_ve_get_default()
+        if not reason:
+            raise UserError(_("Configure a Venezuela discount reason before applying discounts."))
+        if self.discount_type == "so_discount":
+            amount = move.currency_id.round(
+                sum(move._l10n_ve_global_discount_subtotal_by_taxes().values())
+                * self.discount_percentage
+            )
+            discount_type = "percentage"
+            discount_percentage = self.discount_percentage
+        else:
+            amount = self.discount_amount
+            discount_type = "fixed"
+            discount_percentage = 0.0
+        self.env["l10n.ve.account.move.discount"].create(
+            {
+                "move_id": move.id,
+                "reason_id": reason.id,
+                "amount": amount,
+                "discount_type": discount_type,
+                "discount_percentage": discount_percentage,
+            }
+        )
+        return {"type": "ir.actions.act_window_close"}
 
     def action_apply_discount(self):
         self.ensure_one()
@@ -194,8 +224,6 @@ class AccountMoveDiscount(models.TransientModel):
             raise UserError(_("Discount can only be changed on draft documents."))
         if not move.is_sale_document(include_receipts=True):
             raise UserError(_("This wizard only applies to customer invoices and credit notes."))
-
-        move._pba_get_customer_invoice_discount_lines().unlink()
 
         prec = self.env["decimal.precision"].precision_get("Discount")
         if self.discount_type == "so_discount":
@@ -216,5 +244,9 @@ class AccountMoveDiscount(models.TransientModel):
         else:
             raise UserError(_("This discount mode is not available."))
 
+        if not move.pba_discount_legacy:
+            return self._pba_apply_seniat_discount()
+
+        move._pba_get_customer_invoice_discount_lines().unlink()
         self._create_discount_lines()
         return {"type": "ir.actions.act_window_close"}

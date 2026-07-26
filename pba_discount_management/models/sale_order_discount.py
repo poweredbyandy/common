@@ -54,6 +54,36 @@ class SaleOrderDiscount(models.TransientModel):
             return 0.0
         return self.discount_amount / so_amount
 
+    def _pba_validate_policy_limits(self):
+        self.ensure_one()
+        policy = self.env["pba.discount.policy"]
+        order = self.sale_order_id
+        partner = order.partner_id
+        company = order.company_id
+        if order.pba_discount_legacy or order.country_code != "VE":
+            if self.discount_type == "sol_discount":
+                raise UserError(_("This discount mode is not available."))
+            if self.discount_type == "so_discount":
+                policy._pba_raise_if_ratio_over_limit(
+                    self.discount_percentage, company, partner
+                )
+            elif self.discount_type == "amount":
+                ratio = self._pba_get_fixed_discount_ratio()
+                if float_compare(ratio, 1.0, precision_digits=6) > 0:
+                    raise UserError(_("The fixed discount exceeds the order total."))
+                policy._pba_raise_if_ratio_over_limit(ratio, company, partner)
+            return
+        mode = self.l10n_ve_discount_mode
+        if mode == "percentage":
+            policy._pba_raise_if_ratio_over_limit(
+                self.discount_percentage, company, partner
+            )
+        elif mode == "amount":
+            ratio = self._pba_get_fixed_discount_ratio()
+            if float_compare(ratio, 1.0, precision_digits=6) > 0:
+                raise UserError(_("The fixed discount exceeds the order total."))
+            policy._pba_raise_if_ratio_over_limit(ratio, company, partner)
+
     def _create_discount_lines(self):
         self.ensure_one()
         discount_product = self._get_discount_product()
@@ -116,23 +146,17 @@ class SaleOrderDiscount(models.TransientModel):
             ]
         )
         discount_lines.write({"name": description})
+        order.pba_discount_legacy = True
         return discount_lines
 
     def action_apply_discount(self):
         self.ensure_one()
         policy = self.env["pba.discount.policy"]
         policy._pba_require_global_discount_rights()
-        if self.discount_type == "sol_discount":
-            raise UserError(_("This discount mode is not available."))
+        self._pba_validate_policy_limits()
         order = self.sale_order_id
-        partner = order.partner_id
-        company = order.company_id
-        if self.discount_type == "so_discount":
-            policy._pba_raise_if_ratio_over_limit(self.discount_percentage, company, partner)
-        elif self.discount_type == "amount":
-            ratio = self._pba_get_fixed_discount_ratio()
-            if float_compare(ratio, 1.0, precision_digits=6) > 0:
-                raise UserError(_("The fixed discount exceeds the order total."))
-            policy._pba_raise_if_ratio_over_limit(ratio, company, partner)
-        order.order_line.filtered(lambda line: line._is_discount_line()).unlink()
+        if order.pba_discount_legacy:
+            order.order_line.filtered(lambda line: line._is_discount_line()).unlink()
+            self.with_company(self.company_id)._create_discount_lines()
+            return {"type": "ir.actions.act_window_close"}
         return super().action_apply_discount()

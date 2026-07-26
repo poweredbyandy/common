@@ -31,12 +31,17 @@ class AccountMoveLine(models.Model):
     @api.constrains("product_id", "display_type", "move_id")
     def _pba_check_single_discount_line(self):
         policy = self.env["pba.discount.policy"]
+        moves = self.env["account.move"]
         for line in self.filtered(lambda l: l._pba_is_customer_invoice_discount_line()):
             move = line.move_id
-            other_discount_lines = move._pba_get_customer_invoice_discount_lines().filtered(
-                lambda l: l.id != line.id
-            )
-            policy._pba_raise_if_multiple_discount_lines(1 + len(other_discount_lines))
+            if not move.pba_discount_legacy and not move.l10n_ve_global_discount_ids:
+                move.pba_discount_legacy = True
+            if not move.pba_discount_legacy:
+                continue
+            moves |= move
+        for move in moves:
+            discount_lines = move._pba_get_customer_invoice_discount_lines()
+            policy._pba_raise_if_multiple_discount_lines(len(discount_lines))
 
     def _pba_is_customer_invoice_product_line(self):
         self.ensure_one()

@@ -29,12 +29,17 @@ class SaleOrderLine(models.Model):
     @api.constrains("product_id", "order_id")
     def _pba_check_single_discount_line(self):
         policy = self.env["pba.discount.policy"]
+        orders = self.env["sale.order"]
         for line in self.filtered(lambda l: l._is_discount_line()):
             order = line.order_id
-            other_discount_lines = order.order_line.filtered(
-                lambda l: l._is_discount_line() and l.id != line.id
-            )
-            policy._pba_raise_if_multiple_discount_lines(1 + len(other_discount_lines))
+            if not order.pba_discount_legacy and not order.l10n_ve_global_discount_ids:
+                order.pba_discount_legacy = True
+            if not order.pba_discount_legacy:
+                continue
+            orders |= order
+        for order in orders:
+            discount_lines = order.order_line.filtered(lambda l: l._is_discount_line())
+            policy._pba_raise_if_multiple_discount_lines(len(discount_lines))
 
     @api.constrains("discount")
     def _pba_forbid_line_discount(self):
