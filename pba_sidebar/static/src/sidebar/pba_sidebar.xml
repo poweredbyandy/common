@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="pba_sidebar.PbaSidebar">
+        <t t-if="isVisible">
+            <aside class="o_pba_sidebar" t-att-class="{ 'o_pba_sidebar_closed': !state.isOpen }">
+                <t t-if="!state.isOpen">
+                    <div
+                        class="o_pba_sidebar_hotzone"
+                        t-on-mouseenter="onHotzoneEnter"
+                        t-on-mouseleave="onHotzoneLeave"
+                    />
+                    <button
+                        type="button"
+                        class="o_pba_sidebar_open_hint"
+                        t-att-class="{ 'o_pba_sidebar_open_hint_visible': local.showOpenHint }"
+                        t-on-click="openSidebar"
+                        t-on-mouseenter="onHotzoneEnter"
+                        t-on-mouseleave="onHotzoneLeave"
+                        title="Abrir sidebar"
+                        t-att-aria-hidden="local.showOpenHint ? 'false' : 'true'"
+                    >
+                        <i class="fa fa-angle-right"/>
+                    </button>
+                </t>
+
+                <div t-if="state.isOpen" class="o_pba_sidebar_panel d-flex flex-column h-100">
+                    <header class="o_pba_sidebar_header">
+                        <div class="o_pba_sidebar_brand">
+                            <img
+                                class="o_pba_sidebar_company_logo"
+                                t-att-src="companyLogoUrl"
+                                t-att-alt="companyName"
+                                t-att-title="companyName"
+                            />
+                        </div>
+                        <button
+                            type="button"
+                            class="o_pba_sidebar_icon_btn o_pba_sidebar_close"
+                            t-on-click="toggleSidebar"
+                            title="Cerrar sidebar"
+                        >
+                            <i class="fa fa-angle-left"/>
+                        </button>
+                    </header>
+
+                    <section class="o_pba_sidebar_section o_pba_sidebar_apps d-flex flex-column flex-grow-1">
+                        <div class="o_pba_sidebar_section_header">
+                            <span class="o_pba_sidebar_section_label">
+                                <i class="fa fa-th"/>
+                                Aplicaciones
+                            </span>
+                            <button
+                                type="button"
+                                class="o_pba_sidebar_chip_btn"
+                                t-att-class="{ 'o_pba_sidebar_chip_btn_active': state.isReordering }"
+                                t-on-click="toggleReorder"
+                                t-att-title="state.isReordering ? 'Terminar configuración' : 'Configurar orden'"
+                            >
+                                <i t-att-class="state.isReordering ? 'fa fa-check' : 'fa fa-sort'"/>
+                                <span>
+                                    <t t-if="state.isReordering">Listo</t>
+                                    <t t-else="">Orden</t>
+                                </span>
+                            </button>
+                        </div>
+                        <div t-if="state.isReordering" class="o_pba_sidebar_hint_text">
+                            Arrastra las aplicaciones para cambiar el orden.
+                        </div>
+                        <ul t-ref="appsList" class="o_pba_sidebar_apps_list list-unstyled mb-0 flex-grow-1 overflow-auto">
+                            <t t-foreach="state.apps" t-as="app" t-key="app.id">
+                                <li
+                                    class="o_pba_sidebar_app"
+                                    t-att-class="{ 'o_pba_sidebar_app_reordering': state.isReordering }"
+                                    t-att-data-menu-xmlid="app.xmlid"
+                                    t-on-click="() => this.onAppClick(app)"
+                                >
+                                    <span t-if="state.isReordering" class="o_pba_sidebar_app_handle oi oi-draggable"/>
+                                    <t t-if="app.webIconData">
+                                        <img class="o_pba_sidebar_app_icon" t-att-src="app.webIconData" t-att-alt="app.label"/>
+                                    </t>
+                                    <t t-elif="app.webIcon">
+                                        <span
+                                            class="o_pba_sidebar_app_icon o_pba_sidebar_app_icon_fa"
+                                            t-att-style="'background-color:' + app.webIcon.backgroundColor + ';color:' + app.webIcon.color"
+                                        >
+                                            <i t-att-class="app.webIcon.iconClass"/>
+                                        </span>
+                                    </t>
+                                    <t t-else="">
+                                        <img class="o_pba_sidebar_app_icon" src="/web/static/img/default_icon_app.png" t-att-alt="app.label"/>
+                                    </t>
+                                    <span class="o_pba_sidebar_app_label text-truncate" t-esc="app.label"/>
+                                </li>
+                            </t>
+                        </ul>
+                    </section>
+
+                    <section class="o_pba_sidebar_section o_pba_sidebar_history d-flex flex-column flex-grow-1">
+                        <div class="o_pba_sidebar_section_header">
+                            <span class="o_pba_sidebar_section_label">
+                                <i class="fa fa-history"/>
+                                Historial
+                            </span>
+                            <button
+                                t-if="state.history.length"
+                                type="button"
+                                class="o_pba_sidebar_icon_btn"
+                                t-on-click="clearHistory"
+                                title="Limpiar historial"
+                            >
+                                <i class="fa fa-trash-o"/>
+                            </button>
+                        </div>
+                        <ul class="o_pba_sidebar_history_list list-unstyled mb-0 flex-grow-1 overflow-auto">
+                            <t t-if="!state.history.length">
+                                <li class="o_pba_sidebar_empty" t-esc="historyEmptyLabel"/>
+                            </t>
+                            <t t-foreach="state.history" t-as="entry" t-key="entry.id + '_' + entry.timestamp">
+                                <li
+                                    class="o_pba_sidebar_history_item text-truncate"
+                                    t-on-click="() => this.onHistoryClick(entry)"
+                                    t-att-title="entry.displayName"
+                                >
+                                    <t t-esc="entry.displayName"/>
+                                </li>
+                            </t>
+                        </ul>
+                    </section>
+                </div>
+            </aside>
+        </t>
+    </t>
+
+</templates>

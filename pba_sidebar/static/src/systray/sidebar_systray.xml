@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="pba_sidebar.Systray">
+        <div t-if="isVisible" class="o_pba_sidebar_systray d-flex align-items-center">
+            <a
+                href="#"
+                class="o_nav_entry"
+                t-att-class="{ active: state.isOpen }"
+                t-on-click.prevent="onClick"
+                title="Sidebar"
+            >
+                <i class="fa fa-columns"/>
+            </a>
+        </div>
+    </t>
+
+</templates>

@@ -1,0 +1,353 @@
+:root {
+    --o-pba-sidebar-width: 300px;
+    --o-pba-sidebar-bg: #f7f8fa;
+    --o-pba-sidebar-surface: #ffffff;
+    --o-pba-sidebar-border: #{rgba($o-gray-900, 0.08)};
+    --o-pba-sidebar-text: #{$o-gray-900};
+    --o-pba-sidebar-muted: #{$o-gray-600};
+    --o-pba-sidebar-hover: #{rgba($o-brand-primary, 0.08)};
+    --o-pba-sidebar-active: #{rgba($o-brand-primary, 0.14)};
+    --o-pba-sidebar-radius: 0.75rem;
+    --o-pba-sidebar-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+}
+
+.o_pba_sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 1050;
+    display: none;
+    width: var(--o-pba-sidebar-width);
+    pointer-events: none;
+
+    @include media-breakpoint-up(md) {
+        display: block;
+    }
+
+    &.o_pba_sidebar_closed {
+        width: 0;
+    }
+}
+
+.o_pba_sidebar_hotzone {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 1051;
+    width: 12px;
+    pointer-events: auto;
+}
+
+.o_pba_sidebar_open_hint {
+    position: fixed;
+    top: 50%;
+    left: 0;
+    z-index: 1052;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 64px;
+    padding: 0;
+    border: 0;
+    border-radius: 0 1rem 1rem 0;
+    background: linear-gradient(180deg, lighten($o-brand-primary, 4%), $o-brand-primary);
+    color: color-contrast($o-brand-primary);
+    opacity: 0;
+    transform: translate(-110%, -50%);
+    pointer-events: none;
+    transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.25s ease;
+    box-shadow: 4px 0 18px rgba(15, 23, 42, 0.16);
+
+    i {
+        font-size: 1.3rem;
+        animation: o-pba-sidebar-hint-pulse 1.15s ease-in-out infinite;
+    }
+
+    &.o_pba_sidebar_open_hint_visible {
+        opacity: 1;
+        transform: translate(0, -50%);
+        pointer-events: auto;
+    }
+}
+
+@keyframes o-pba-sidebar-hint-pulse {
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+    50% {
+        transform: translateX(4px);
+    }
+}
+
+.o_pba_sidebar_panel {
+    display: flex;
+    width: var(--o-pba-sidebar-width);
+    height: 100%;
+    pointer-events: auto;
+    background:
+        radial-gradient(120% 60% at 0% 0%, rgba($o-brand-primary, 0.08), transparent 55%),
+        linear-gradient(180deg, var(--o-pba-sidebar-surface) 0%, var(--o-pba-sidebar-bg) 100%);
+    border-right: 1px solid var(--o-pba-sidebar-border);
+    box-shadow: var(--o-pba-sidebar-shadow);
+    animation: o-pba-sidebar-panel-in 0.22s ease;
+}
+
+@keyframes o-pba-sidebar-panel-in {
+    from {
+        opacity: 0.4;
+        transform: translateX(-12px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.o_pba_sidebar_header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    flex: 0 0 auto;
+    padding: 1rem 0.9rem 0.85rem;
+}
+
+.o_pba_sidebar_brand {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+    flex: 1 1 auto;
+}
+
+.o_pba_sidebar_company_logo {
+    display: block;
+    max-width: 100%;
+    max-height: 2.5rem;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    object-position: left center;
+}
+
+.o_pba_sidebar_icon_btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    padding: 0;
+    border: 0;
+    border-radius: 0.65rem;
+    background: rgba($o-gray-900, 0.04);
+    color: var(--o-pba-sidebar-muted);
+    transition: background-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
+
+    &:hover,
+    &:focus {
+        background: var(--o-pba-sidebar-hover);
+        color: $o-brand-primary;
+        transform: translateY(-1px);
+    }
+}
+
+.o_pba_sidebar_close {
+    font-size: 1.15rem;
+}
+
+.o_pba_sidebar_section {
+    min-height: 0;
+    padding: 0 0.65rem 0.65rem;
+}
+
+.o_pba_sidebar_apps,
+.o_pba_sidebar_history {
+    flex: 1 1 50%;
+}
+
+.o_pba_sidebar_apps {
+    border-bottom: 1px solid var(--o-pba-sidebar-border);
+    margin-bottom: 0.15rem;
+    padding-bottom: 0.75rem;
+}
+
+.o_pba_sidebar_section_header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0.35rem 0.35rem 0.55rem;
+}
+
+.o_pba_sidebar_section_label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--o-pba-sidebar-muted);
+
+    i {
+        opacity: 0.85;
+    }
+}
+
+.o_pba_sidebar_chip_btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.28rem 0.65rem;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    background: rgba($o-gray-900, 0.04);
+    color: var(--o-pba-sidebar-muted);
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1;
+    transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+
+    &:hover,
+    &:focus {
+        background: var(--o-pba-sidebar-hover);
+        color: $o-brand-primary;
+    }
+
+    &.o_pba_sidebar_chip_btn_active {
+        background: $o-brand-primary;
+        color: color-contrast($o-brand-primary);
+        border-color: transparent;
+        box-shadow: 0 4px 12px rgba($o-brand-primary, 0.25);
+    }
+}
+
+.o_pba_sidebar_hint_text {
+    margin: 0 0.35rem 0.5rem;
+    padding: 0.55rem 0.7rem;
+    border-radius: 0.65rem;
+    background: rgba($o-brand-primary, 0.07);
+    color: darken($o-brand-primary, 8%);
+    font-size: 0.75rem;
+}
+
+.o_pba_sidebar_apps_list,
+.o_pba_sidebar_history_list {
+    padding: 0.1rem 0.2rem;
+    scrollbar-width: thin;
+    scrollbar-color: rgba($o-gray-900, 0.2) transparent;
+
+    &::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: rgba($o-gray-900, 0.18);
+        border-radius: 999px;
+    }
+}
+
+.o_pba_sidebar_app {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    margin-bottom: 0.2rem;
+    padding: 0.55rem 0.65rem;
+    border-radius: var(--o-pba-sidebar-radius);
+    cursor: pointer;
+    color: var(--o-pba-sidebar-text);
+    transition: background-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+
+    &:hover {
+        background: var(--o-pba-sidebar-hover);
+        transform: translateX(2px);
+    }
+
+    &:active {
+        background: var(--o-pba-sidebar-active);
+    }
+
+    &.o_pba_sidebar_app_reordering {
+        cursor: default;
+        background: var(--o-pba-sidebar-surface);
+        border: 1px dashed rgba($o-brand-primary, 0.25);
+
+        &:hover {
+            transform: none;
+        }
+    }
+}
+
+.o_pba_sidebar_app_handle {
+    cursor: grab;
+    flex: 0 0 auto;
+    color: var(--o-pba-sidebar-muted);
+}
+
+.o_pba_sidebar_app_icon {
+    width: 2rem;
+    height: 2rem;
+    flex: 0 0 auto;
+    border-radius: 0.55rem;
+    object-fit: cover;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+}
+
+.o_pba_sidebar_app_icon_fa {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+}
+
+.o_pba_sidebar_app_label {
+    font-size: 0.88rem;
+    font-weight: 600;
+}
+
+.o_pba_sidebar_history_item {
+    margin-bottom: 0.15rem;
+    padding: 0.55rem 0.7rem;
+    border-radius: var(--o-pba-sidebar-radius);
+    cursor: pointer;
+    color: var(--o-pba-sidebar-text);
+    font-size: 0.86rem;
+    transition: background-color 0.15s ease, transform 0.15s ease;
+
+    &:hover {
+        background: var(--o-pba-sidebar-hover);
+        transform: translateX(2px);
+    }
+}
+
+.o_pba_sidebar_empty {
+    margin: 0.35rem;
+    padding: 1rem 0.85rem;
+    border-radius: var(--o-pba-sidebar-radius);
+    background: rgba($o-gray-900, 0.03);
+    color: var(--o-pba-sidebar-muted);
+    font-size: 0.8rem;
+    text-align: center;
+}
+
+@include media-breakpoint-up(md) {
+    body.o_web_client {
+        transition: padding-left 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+        box-sizing: border-box;
+    }
+
+    body.o_web_client.o_pba_sidebar_open {
+        padding-left: var(--o-pba-sidebar-width);
+    }
+
+    body.o_web_client.o_pba_sidebar_open > .o_navbar,
+    body.o_web_client.o_pba_sidebar_open > .o_main_navbar,
+    body.o_web_client.o_pba_sidebar_open > .o_action_manager {
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+}
