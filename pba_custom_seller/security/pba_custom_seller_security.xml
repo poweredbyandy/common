@@ -6,24 +6,55 @@
         <field name="sequence">25</field>
     </record>
 
+    <record id="module_category_pba_custom_seller_access" model="ir.module.category">
+        <field name="name">Limited Seller</field>
+        <field name="parent_id" ref="module_category_pba_custom_seller"/>
+        <field name="sequence">1</field>
+    </record>
+
+    <record id="module_category_pba_custom_seller_qty" model="ir.module.category">
+        <field name="name">Stock Quantities</field>
+        <field name="parent_id" ref="module_category_pba_custom_seller"/>
+        <field name="sequence">2</field>
+    </record>
+
+    <record id="module_category_pba_custom_seller_confirm" model="ir.module.category">
+        <field name="name">Confirm Quotations</field>
+        <field name="parent_id" ref="module_category_pba_custom_seller"/>
+        <field name="sequence">3</field>
+    </record>
+
+    <record id="module_category_pba_custom_seller_hide_zero" model="ir.module.category">
+        <field name="name">Hide Zero Price Products</field>
+        <field name="parent_id" ref="module_category_pba_custom_seller"/>
+        <field name="sequence">4</field>
+    </record>
+
     <record id="group_pba_custom_seller" model="res.groups">
         <field name="name">PBA: Custom Seller</field>
-        <field name="category_id" ref="module_category_pba_custom_seller"/>
+        <field name="category_id" ref="module_category_pba_custom_seller_access"/>
         <field name="comment">Limited seller: own contacts and products from visible pricelists only. Assign this group only to restricted sellers, not to managers.</field>
         <field name="implied_ids" eval="[(4, ref('sales_team.group_sale_salesman')), (4, ref('product.group_product_pricelist'))]"/>
     </record>
 
     <record id="group_pba_custom_seller_see_qty" model="res.groups">
         <field name="name">PBA: Custom Seller see stock quantities</field>
-        <field name="category_id" ref="module_category_pba_custom_seller"/>
+        <field name="category_id" ref="module_category_pba_custom_seller_qty"/>
         <field name="comment">Allows custom sellers to see on-hand / forecasted stock quantities.</field>
         <field name="implied_ids" eval="[(4, ref('group_pba_custom_seller'))]"/>
     </record>
 
     <record id="group_pba_custom_seller_confirm_so" model="res.groups">
         <field name="name">PBA: Custom Seller confirm quotations</field>
-        <field name="category_id" ref="module_category_pba_custom_seller"/>
+        <field name="category_id" ref="module_category_pba_custom_seller_confirm"/>
         <field name="comment">Allows custom sellers to confirm sale quotations.</field>
+        <field name="implied_ids" eval="[(4, ref('group_pba_custom_seller'))]"/>
+    </record>
+
+    <record id="group_pba_custom_seller_hide_zero" model="res.groups">
+        <field name="name">No mostrar productos en 0</field>
+        <field name="category_id" ref="module_category_pba_custom_seller_hide_zero"/>
+        <field name="comment">Hides products whose price is 0 on the seller's visible pricelists.</field>
         <field name="implied_ids" eval="[(4, ref('group_pba_custom_seller'))]"/>
     </record>
 

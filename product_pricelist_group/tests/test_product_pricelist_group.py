@@ -229,4 +229,16 @@ class TestProductPricelistGroup(TransactionCase):
             ._get_partner_pricelist_multi(partner.ids)
         )
         self.assertNotEqual(resolved[partner.id], self.pricelist_b)
-        self.assertTrue(resolved[partner.id]._filtered_access("read"))
+        visible = (
+            self.env["product.pricelist"]
+            .with_user(self.user_a)
+            .search([("id", "=", resolved[partner.id].id)])
+        )
+        self.assertTrue(visible)
+
+    def test_restricted_base_readable_from_dependent_pricelist(self):
+        env_a = self.env["product.pricelist"].with_user(self.user_a)
+        self.assertFalse(env_a.search([("id", "=", self.pricelist_base.id)]))
+        base = self.pricelist_base.with_user(self.user_a)
+        self.assertTrue(base.has_access("read"))
+        self.assertEqual(base.read(["name"])[0]["name"], self.pricelist_base.name)

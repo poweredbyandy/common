@@ -16,4 +16,25 @@
             </xpath>
         </field>
     </record>
+
+    <record id="product_pricelist_view_tree_group_ids" model="ir.ui.view">
+        <field name="name">product.pricelist.list.group.ids</field>
+        <field name="model">product.pricelist</field>
+        <field name="inherit_id" ref="product.product_pricelist_view_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//list" position="attributes">
+                <attribute name="multi_edit">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='name']" position="after">
+                <field
+                    name="group_ids"
+                    widget="many2many_tags"
+                    options="{'no_create': True}"
+                    domain="[('id', 'not in', [ %(base.group_user)d, %(base.group_portal)d, %(base.group_public)d ])]"
+                    optional="show"
+                    placeholder="Empty = visible to everyone"
+                />
+            </xpath>
+        </field>
+    </record>
 </odoo>

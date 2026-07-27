@@ -1,6 +1,6 @@
 {
     "name": "Product Pricelist Groups",
-    "version": "18.0.1.10.0",
+    "version": "18.0.1.16.0",
     "category": "Product",
     "summary": "Restrict pricelist visibility: empty=public, groups=only those groups",
     "author": "andyengit",

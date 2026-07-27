@@ -7,9 +7,10 @@ class ProductTemplate(models.Model):
 
     @api.model
     def _search(self, domain, offset=0, limit=None, order=None):
-        restrict = self.env.user._pba_custom_seller_allowed_template_domain()
-        if restrict is not None:
-            domain = expression.AND([domain or [], restrict])
+        if not self.env.context.get("pba_skip_product_restrict"):
+            restrict = self.env.user._pba_custom_seller_allowed_template_domain()
+            if restrict is not None:
+                domain = expression.AND([domain or [], restrict])
         return super()._search(domain, offset=offset, limit=limit, order=order)
 
     def _compute_quantities(self):

@@ -11,6 +11,8 @@ class TestPbaCustomSeller(TransactionCase):
         super().setUpClass()
         cls.custom_seller_group = cls.env.ref("pba_custom_seller.group_pba_custom_seller")
         cls.see_qty_group = cls.env.ref("pba_custom_seller.group_pba_custom_seller_see_qty")
+        # Isolate from staging/public pricelists visible to the same groups.
+        cls.env["product.pricelist"].search([]).write({"active": False})
 
         cls.user_seller = new_test_user(
             cls.env,
@@ -100,7 +102,54 @@ class TestPbaCustomSeller(TransactionCase):
         )
         self.assertEqual(products, self.product_in)
 
-    def test_global_pricelist_shows_all_products(self):
+    def test_products_ignore_other_group_pricelists_via_env_user(self):
+        """env.user is sudoed; foreign pricelists must still be excluded."""
+        other_group = self.env["res.groups"].create({"name": "PBA Other Pricelist Group"})
+        self.env["product.pricelist"].create(
+            {
+                "name": "Other Group Pricelist",
+                "group_ids": [Command.set([other_group.id])],
+                "item_ids": [
+                    Command.create(
+                        {
+                            "applied_on": "1_product",
+                            "product_tmpl_id": self.product_out.product_tmpl_id.id,
+                            "compute_price": "fixed",
+                            "fixed_price": 20.0,
+                        }
+                    )
+                ],
+            }
+        )
+        products = (
+            self.env["product.product"]
+            .with_user(self.user_seller)
+            .search([("id", "in", [self.product_in.id, self.product_out.id])])
+        )
+        self.assertEqual(products, self.product_in)
+        # env.user is always sudoed; allowed products must still respect ir.rules
+        allowed = self.env(user=self.user_seller).user._pba_custom_seller_allowed_products()
+        self.assertIn(self.product_in, allowed)
+        self.assertNotIn(self.product_out, allowed)
+
+    def test_specific_items_win_over_global_rule(self):
+        self.env["product.pricelist.item"].create(
+            {
+                "pricelist_id": self.pricelist.id,
+                "applied_on": "3_global",
+                "compute_price": "formula",
+                "price_discount": 0.0,
+            }
+        )
+        products = (
+            self.env["product.product"]
+            .with_user(self.user_seller)
+            .search([("id", "in", [self.product_in.id, self.product_out.id])])
+        )
+        self.assertEqual(products, self.product_in)
+
+    def test_only_global_pricelist_shows_all_products(self):
+        self.pricelist.item_ids.unlink()
         self.env["product.pricelist.item"].create(
             {
                 "pricelist_id": self.pricelist.id,
@@ -115,6 +164,43 @@ class TestPbaCustomSeller(TransactionCase):
             .search([("id", "in", [self.product_in.id, self.product_out.id])])
         )
         self.assertEqual(set(products.ids), {self.product_in.id, self.product_out.id})
+
+    def test_hide_zero_price_products_group(self):
+        product_zero = self.env["product.product"].create(
+            {
+                "name": "Seller Zero Price Product",
+                "list_price": 30.0,
+                "type": "consu",
+            }
+        )
+        self.env["product.pricelist.item"].create(
+            {
+                "pricelist_id": self.pricelist.id,
+                "applied_on": "1_product",
+                "product_tmpl_id": product_zero.product_tmpl_id.id,
+                "compute_price": "fixed",
+                "fixed_price": 0.0,
+            }
+        )
+        user_hide_zero = new_test_user(
+            self.env,
+            login="pba_custom_seller_hide_zero",
+            groups="base.group_user,pba_custom_seller.group_pba_custom_seller_hide_zero",
+        )
+        products = (
+            self.env["product.product"]
+            .with_user(user_hide_zero)
+            .search(
+                [
+                    (
+                        "id",
+                        "in",
+                        [self.product_in.id, self.product_out.id, product_zero.id],
+                    )
+                ]
+            )
+        )
+        self.assertEqual(products, self.product_in)
 
     def test_stock_qty_hidden_without_group(self):
         self.product_in.with_user(self.env.ref("base.user_admin")).write({})

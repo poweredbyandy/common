@@ -15,6 +15,8 @@ class TestPbaCustomSellerPermissions(TransactionCase):
         cls.see_all_pricelists = cls.env.ref(
             "product_pricelist_group.group_product_pricelist_all"
         )
+        # Isolate from staging/public pricelists visible to the same groups.
+        cls.env["product.pricelist"].search([]).write({"active": False})
 
         cls.user_salesman = new_test_user(
             cls.env,
