@@ -60,6 +60,30 @@ class TestPbaCustomSeller(TransactionCase):
         )
         self.assertEqual(partners, self.partner_own)
 
+    def test_partner_visible_when_assigned_on_sale_order(self):
+        self.env["sale.order"].create(
+            {
+                "partner_id": self.partner_other.id,
+                "user_id": self.user_seller.id,
+                "order_line": [
+                    Command.create(
+                        {
+                            "product_id": self.product_in.id,
+                            "product_uom_qty": 1.0,
+                        }
+                    )
+                ],
+            }
+        )
+        partners = (
+            self.env["res.partner"]
+            .with_user(self.user_seller)
+            .search([("id", "in", [self.partner_own.id, self.partner_other.id])])
+        )
+        self.assertEqual(
+            set(partners.ids), {self.partner_own.id, self.partner_other.id}
+        )
+
     def test_internal_user_partners_visible(self):
         partners = (
             self.env["res.partner"]

@@ -37,4 +37,15 @@
         <field name="perm_create" eval="True"/>
         <field name="perm_unlink" eval="True"/>
     </record>
+
+    <record id="res_partner_rule_pba_custom_seller_sale_orders" model="ir.rule">
+        <field name="name">PBA Custom Seller: partners on assigned sale orders</field>
+        <field name="model_id" ref="base.model_res_partner"/>
+        <field name="domain_force">['|', '|', ('sale_order_ids.user_id', '=', user.id), ('pba_sale_order_as_invoice_ids.user_id', '=', user.id), ('pba_sale_order_as_shipping_ids.user_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('group_pba_custom_seller'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
 </odoo>

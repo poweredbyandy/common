@@ -150,6 +150,40 @@ class TestPbaCustomSellerPermissions(TransactionCase):
         )
         self.assertEqual(partners, self.partner_custom)
 
+    def test_custom_seller_sees_partner_of_assigned_sale_order(self):
+        self.env["sale.order"].create(
+            {
+                "partner_id": self.partner_salesman.id,
+                "user_id": self.user_custom.id,
+                "pricelist_id": self.pricelist_restricted.id,
+                "order_line": [
+                    Command.create(
+                        {
+                            "product_id": self.product_in.id,
+                            "product_uom_qty": 1.0,
+                        }
+                    )
+                ],
+            }
+        )
+        partners = (
+            self.env["res.partner"]
+            .with_user(self.user_custom)
+            .search(
+                [
+                    (
+                        "id",
+                        "in",
+                        [self.partner_custom.id, self.partner_salesman.id],
+                    )
+                ]
+            )
+        )
+        self.assertEqual(
+            set(partners.ids),
+            {self.partner_custom.id, self.partner_salesman.id},
+        )
+
     def test_salesman_sees_all_products(self):
         products = (
             self.env["product.product"]
