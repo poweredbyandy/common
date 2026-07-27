@@ -14,6 +14,17 @@ class ProductPricelist(models.Model):
         "If you set one or more groups, only users that belong to at least "
         "one of those groups can see and use it.",
     )
+    visibility_restricted = fields.Boolean(
+        string="Visibility Restricted",
+        compute="_compute_visibility_restricted",
+        store=True,
+        index=True,
+    )
+
+    @api.depends("group_ids")
+    def _compute_visibility_restricted(self):
+        for pricelist in self:
+            pricelist.visibility_restricted = bool(pricelist.group_ids)
 
     def _get_accessible_pricelist(self):
         accessible = self._filtered_access("read")

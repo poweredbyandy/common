@@ -114,6 +114,7 @@ class TestProductPricelistGroup(TransactionCase):
         )
 
     def test_public_pricelist_visible_to_everyone(self):
+        self.assertFalse(self.pricelist_public.visibility_restricted)
         for user in (self.user_a, self.user_b, self.user_plain):
             pricelists = (
                 self.env["product.pricelist"]
@@ -121,6 +122,13 @@ class TestProductPricelistGroup(TransactionCase):
                 .search([("id", "=", self.pricelist_public.id)])
             )
             self.assertEqual(pricelists, self.pricelist_public)
+            self.assertTrue(
+                self.pricelist_public.with_user(user).has_access("read")
+            )
+
+    def test_restricted_pricelist_sets_visibility_flag(self):
+        self.assertTrue(self.pricelist_a.visibility_restricted)
+        self.assertTrue(self.pricelist_b.visibility_restricted)
 
     def test_restricted_pricelist_visible_only_to_group(self):
         visible_a = (

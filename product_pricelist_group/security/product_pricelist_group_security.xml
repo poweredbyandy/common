@@ -16,11 +16,16 @@
         <field name="implied_ids" eval="[(4, ref('group_product_pricelist_all'))]"/>
     </record>
 
+    <!--
+        Use stored boolean instead of ('group_ids', '=', False): empty M2M
+        domains in ir.rule are unreliable and blocked public pricelists.
+    -->
     <record id="product_pricelist_group_rule_user" model="ir.rule">
         <field name="name">Pricelist: empty=public, else matching groups</field>
         <field name="model_id" ref="product.model_product_pricelist"/>
-        <field name="domain_force">['|', ('group_ids', '=', False), ('group_ids', 'in', user.groups_id.ids)]</field>
+        <field name="domain_force">['|', ('visibility_restricted', '=', False), ('group_ids', 'in', user.groups_id.ids)]</field>
         <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+        <field name="active" eval="True"/>
     </record>
 
     <record id="product_pricelist_group_rule_manager" model="ir.rule">
@@ -34,8 +39,9 @@
     <record id="product_pricelist_item_group_rule_user" model="ir.rule">
         <field name="name">Pricelist item: empty=public, else matching groups</field>
         <field name="model_id" ref="product.model_product_pricelist_item"/>
-        <field name="domain_force">['|', ('pricelist_id.group_ids', '=', False), ('pricelist_id.group_ids', 'in', user.groups_id.ids)]</field>
+        <field name="domain_force">['|', ('pricelist_id.visibility_restricted', '=', False), ('pricelist_id.group_ids', 'in', user.groups_id.ids)]</field>
         <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+        <field name="active" eval="True"/>
     </record>
 
     <record id="product_pricelist_item_group_rule_manager" model="ir.rule">
@@ -44,21 +50,5 @@
         <field name="domain_force">[(1, '=', 1)]</field>
         <field name="groups" eval="[(6, 0, [ref('group_product_pricelist_all')])]"/>
         <field name="active" eval="True"/>
-    </record>
-
-    <record id="product_pricelist_group_rule_on_my_orders" model="ir.rule">
-        <field name="name">Pricelist: used on my sale orders</field>
-        <field name="model_id" ref="product.model_product_pricelist"/>
-        <field name="active" eval="False"/>
-        <field name="groups" eval="[(5, 0, 0)]"/>
-        <field name="domain_force">[(0, '=', 1)]</field>
-    </record>
-
-    <record id="product_pricelist_item_group_rule_on_my_orders" model="ir.rule">
-        <field name="name">Pricelist item: used on my sale orders</field>
-        <field name="model_id" ref="product.model_product_pricelist_item"/>
-        <field name="active" eval="False"/>
-        <field name="groups" eval="[(5, 0, 0)]"/>
-        <field name="domain_force">[(0, '=', 1)]</field>
     </record>
 </odoo>
