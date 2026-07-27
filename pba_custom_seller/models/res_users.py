@@ -67,6 +67,15 @@ class ResUsers(models.Model):
             self._pba_custom_seller_pricelist_ids()
         )
 
+    def _pba_custom_seller_default_pricelist(self):
+        """Preferred visible pricelist for partners / sale orders."""
+        self.ensure_one()
+        pricelists = self._pba_custom_seller_pricelists()
+        if not pricelists:
+            return self.env["product.pricelist"]
+        preferred = pricelists.filtered("visibility_restricted")
+        return (preferred or pricelists)[:1]
+
     def _pba_custom_seller_pricelist_items(self):
         self.ensure_one()
         cache = self._pba_request_cache()

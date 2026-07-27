@@ -1,6 +1,6 @@
 {
     "name": "PBA Custom Seller",
-    "version": "18.0.1.8.0",
+    "version": "18.0.1.10.0",
     "category": "Sales",
     "summary": "Limited seller: own contacts, SO contacts, pricelist products, optional qty/confirm/hide zero",
     "author": "andyengit",

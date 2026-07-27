@@ -202,6 +202,29 @@ class TestPbaCustomSellerPermissions(TransactionCase):
         )
         self.assertEqual(products, self.product_in)
 
+    def test_custom_seller_sale_order_uses_visible_pricelist(self):
+        foreign_group = self.env["res.groups"].create({"name": "PBA Foreign PL Group"})
+        foreign_pricelist = self.env["product.pricelist"].create(
+            {
+                "name": "PBA Foreign Main Pricelist",
+                "group_ids": [Command.set([foreign_group.id])],
+            }
+        )
+        partner = self.env["res.partner"].create(
+            {
+                "name": "Customer With Foreign Pricelist",
+                "user_id": self.user_custom.id,
+                "property_product_pricelist": foreign_pricelist.id,
+            }
+        )
+        order = (
+            self.env["sale.order"]
+            .with_user(self.user_custom)
+            .create({"partner_id": partner.id})
+        )
+        self.assertEqual(order.pricelist_id, self.pricelist_restricted)
+        order.pricelist_id.with_user(self.user_custom).check_access("read")
+
     def test_salesman_sees_public_and_not_restricted_without_group(self):
         pricelists = (
             self.env["product.pricelist"]

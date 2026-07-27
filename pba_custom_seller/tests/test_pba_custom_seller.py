@@ -62,6 +62,20 @@ class TestPbaCustomSeller(TransactionCase):
         )
         self.assertEqual(partners, self.partner_own)
 
+    def test_custom_seller_can_create_partner_without_user_id(self):
+        partner = (
+            self.env["res.partner"]
+            .with_user(self.user_seller)
+            .create({"name": "New Customer Without Salesperson"})
+        )
+        self.assertEqual(partner.user_id, self.user_seller)
+        self.assertEqual(partner.property_product_pricelist, self.pricelist)
+        self.assertTrue(
+            self.env["res.partner"]
+            .with_user(self.user_seller)
+            .search([("id", "=", partner.id)])
+        )
+
     def test_partner_visible_when_assigned_on_sale_order(self):
         self.env["sale.order"].create(
             {
