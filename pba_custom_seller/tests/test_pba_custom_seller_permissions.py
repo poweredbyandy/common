@@ -105,6 +105,17 @@ class TestPbaCustomSellerPermissions(TransactionCase):
             }
         )
 
+        warehouse = cls.env["stock.warehouse"].search(
+            [("company_id", "=", cls.env.company.id)], limit=1
+        )
+        cls.env["stock.quant"].with_context(inventory_mode=True).create(
+            {
+                "product_id": cls.product_in.id,
+                "location_id": warehouse.lot_stock_id.id,
+                "inventory_quantity": 25.0,
+            }
+        ).action_apply_inventory()
+
     def test_salesman_sees_all_partners(self):
         partners = (
             self.env["res.partner"]
@@ -211,6 +222,80 @@ class TestPbaCustomSellerPermissions(TransactionCase):
 
     def test_custom_seller_with_qty_group_can_see_stock_qty(self):
         self.assertTrue(self.user_custom_qty._pba_can_see_stock_qty())
+
+    def test_salesman_sees_qty_widget_on_sale_line(self):
+        order = (
+            self.env["sale.order"]
+            .with_user(self.user_salesman)
+            .create(
+                {
+                    "partner_id": self.partner_salesman.id,
+                    "pricelist_id": self.pricelist_public.id,
+                    "user_id": self.user_salesman.id,
+                    "order_line": [
+                        Command.create(
+                            {
+                                "product_id": self.product_in.id,
+                                "product_uom_qty": 1.0,
+                            }
+                        )
+                    ],
+                }
+            )
+        )
+        line = order.order_line
+        self.assertTrue(line.display_qty_widget)
+        self.assertGreater(line.free_qty_today, 0.0)
+
+    def test_custom_seller_hides_qty_widget_on_sale_line(self):
+        order = (
+            self.env["sale.order"]
+            .with_user(self.user_custom)
+            .create(
+                {
+                    "partner_id": self.partner_custom.id,
+                    "pricelist_id": self.pricelist_restricted.id,
+                    "user_id": self.user_custom.id,
+                    "order_line": [
+                        Command.create(
+                            {
+                                "product_id": self.product_in.id,
+                                "product_uom_qty": 1.0,
+                            }
+                        )
+                    ],
+                }
+            )
+        )
+        line = order.order_line
+        self.assertFalse(line.display_qty_widget)
+        self.assertEqual(line.free_qty_today, 0.0)
+        self.assertEqual(line.qty_available_today, 0.0)
+        self.assertEqual(line.virtual_available_at_date, 0.0)
+
+    def test_custom_seller_with_qty_group_sees_qty_widget_on_sale_line(self):
+        order = (
+            self.env["sale.order"]
+            .with_user(self.user_custom_qty)
+            .create(
+                {
+                    "partner_id": self.partner_custom.id,
+                    "pricelist_id": self.pricelist_restricted.id,
+                    "user_id": self.user_custom_qty.id,
+                    "order_line": [
+                        Command.create(
+                            {
+                                "product_id": self.product_in.id,
+                                "product_uom_qty": 1.0,
+                            }
+                        )
+                    ],
+                }
+            )
+        )
+        line = order.order_line.with_user(self.user_custom_qty)
+        self.assertTrue(line.display_qty_widget)
+        self.assertGreater(line.free_qty_today, 0.0)
 
     def test_salesman_can_confirm_sale_order(self):
         order = (

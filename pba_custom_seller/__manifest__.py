@@ -1,6 +1,6 @@
 {
     "name": "PBA Custom Seller",
-    "version": "18.0.1.1.0",
+    "version": "18.0.1.2.0",
     "category": "Sales",
     "summary": "Limited seller: own contacts, products from pricelists, optional stock qty and SO confirm",
     "author": "andyengit",
@@ -8,6 +8,7 @@
     "license": "LGPL-3",
     "depends": [
         "sale_management",
+        "sale_stock",
         "stock",
         "product_pricelist_group",
     ],
