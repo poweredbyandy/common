@@ -6,7 +6,13 @@
         <field name="inherit_id" ref="product.product_pricelist_view"/>
         <field name="arch" type="xml">
             <xpath expr="//group[@name='pricelist_settings']" position="inside">
-                <field name="group_ids" widget="many2many_tags" options="{'no_create': True}"/>
+                <field
+                    name="group_ids"
+                    widget="many2many_tags"
+                    options="{'no_create': True}"
+                    domain="[('id', 'not in', [ %(base.group_user)d, %(base.group_portal)d, %(base.group_public)d ])]"
+                    placeholder="Empty = visible to everyone"
+                />
             </xpath>
         </field>
     </record>
