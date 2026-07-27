@@ -1,7 +1,7 @@
 {
     "name": "PBA Menú catálogo de productos",
     "icon": "/pba_product_catalog_menu/static/description/icon.png",
-    "version": "18.0.1.1.0",
+    "version": "18.0.1.2.0",
     "category": "Sales",
     "summary": "Menú principal Catálogo para consultar productos sin crear un pedido.",
     "author": "andyengit",

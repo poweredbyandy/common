@@ -9,7 +9,7 @@
     <record id="group_product_pricelist_all" model="res.groups">
         <field name="name">See all pricelists</field>
         <field name="category_id" ref="module_category_product_pricelist_group"/>
-        <field name="comment">Bypass: users in this group can see every pricelist. Implied by Settings.</field>
+        <field name="comment">Users in this group can see and use every pricelist, including restricted ones. Implied by Settings.</field>
     </record>
 
     <record id="base.group_system" model="res.groups">
@@ -17,15 +17,27 @@
     </record>
 
     <!--
-        Global rule (applies to everyone, including admins unless sudo/bypass):
-        - no visibility groups => visible to all internal users
-        - with visibility groups => only users that belong to at least one of them
+        Empty group_ids => public.
+        With groups => only those groups.
+        See all (Settings) has a separate rule [(1,'=',1)] that ORs with this one.
     -->
     <record id="product_pricelist_group_rule_user" model="ir.rule">
         <field name="name">Pricelist: empty=public, else matching groups</field>
         <field name="model_id" ref="product.model_product_pricelist"/>
         <field name="domain_force">['|', ('group_ids', '=', False), ('group_ids', 'in', user.groups_id.ids)]</field>
-        <field name="groups" eval="[(5, 0, 0)]"/>
+        <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
+    <record id="product_pricelist_group_rule_manager" model="ir.rule">
+        <field name="name">Pricelist: see all</field>
+        <field name="model_id" ref="product.model_product_pricelist"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(6, 0, [ref('group_product_pricelist_all')])]"/>
+        <field name="active" eval="True"/>
         <field name="perm_read" eval="True"/>
         <field name="perm_write" eval="True"/>
         <field name="perm_create" eval="True"/>
@@ -36,27 +48,22 @@
         <field name="name">Pricelist item: empty=public, else matching groups</field>
         <field name="model_id" ref="product.model_product_pricelist_item"/>
         <field name="domain_force">['|', ('pricelist_id.group_ids', '=', False), ('pricelist_id.group_ids', 'in', user.groups_id.ids)]</field>
-        <field name="groups" eval="[(5, 0, 0)]"/>
+        <field name="groups" eval="[(4, ref('base.group_user'))]"/>
         <field name="perm_read" eval="True"/>
         <field name="perm_write" eval="True"/>
         <field name="perm_create" eval="True"/>
         <field name="perm_unlink" eval="True"/>
     </record>
 
-    <!-- Keep XML ids; deactivate old non-global bypass rules (replaced by _search sudo). -->
-    <record id="product_pricelist_group_rule_manager" model="ir.rule">
-        <field name="name">Pricelist: see all (deprecated)</field>
-        <field name="model_id" ref="product.model_product_pricelist"/>
-        <field name="domain_force">[(1, '=', 1)]</field>
-        <field name="groups" eval="[(6, 0, [ref('group_product_pricelist_all')])]"/>
-        <field name="active" eval="False"/>
-    </record>
-
     <record id="product_pricelist_item_group_rule_manager" model="ir.rule">
-        <field name="name">Pricelist item: see all (deprecated)</field>
+        <field name="name">Pricelist item: see all</field>
         <field name="model_id" ref="product.model_product_pricelist_item"/>
         <field name="domain_force">[(1, '=', 1)]</field>
         <field name="groups" eval="[(6, 0, [ref('group_product_pricelist_all')])]"/>
-        <field name="active" eval="False"/>
+        <field name="active" eval="True"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
     </record>
 </odoo>

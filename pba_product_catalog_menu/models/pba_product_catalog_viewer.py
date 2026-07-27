@@ -22,7 +22,6 @@ class PbaProductCatalogViewer(models.Model):
         "product.pricelist",
         string="Lista de precios",
         compute="_compute_pricelist_id",
-        store=True,
     )
     currency_id = fields.Many2one(
         "res.currency",
@@ -41,7 +40,10 @@ class PbaProductCatalogViewer(models.Model):
     def _compute_pricelist_id(self):
         for viewer in self:
             user = viewer.user_id
-            company = viewer.company_id
+            company = viewer.company_id or self.env.company
+            if not user:
+                viewer.pricelist_id = False
+                continue
             partner = user.partner_id.with_company(company)
             pricelist_env = self.env["product.pricelist"].with_user(user).with_company(
                 company
@@ -49,6 +51,8 @@ class PbaProductCatalogViewer(models.Model):
             pricelist_map = pricelist_env._get_partner_pricelist_multi(partner.ids)
             pricelist = pricelist_map.get(partner.id)
             if pricelist and not pricelist.with_user(user)._filtered_access("read"):
+                pricelist = pricelist_env.search([], limit=1)
+            elif not pricelist:
                 pricelist = pricelist_env.search([], limit=1)
             viewer.pricelist_id = pricelist
 
