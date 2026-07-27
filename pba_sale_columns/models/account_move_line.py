@@ -39,8 +39,12 @@ class AccountMoveLine(models.Model):
         if self.product_id:
             lang = self.move_id.partner_id.lang or self.env.lang
             product = self.product_id.with_context(lang=lang, display_default_code=False)
-            product_name = (product.name or "").strip()
+            product_name = (product.display_name or product.name or "").strip()
         text = self._pba_build_product_line_text(product_name)
-        if text:
-            return text
-        return (self.name or "").strip()
+        if not text:
+            return super().l10n_ve_report_line_description()
+        if self._l10n_ve_line_is_exempt_for_report():
+            text = text.rstrip()
+            if not text.endswith("(E)"):
+                text = f"{text} (E)"
+        return text

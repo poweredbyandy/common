@@ -38,11 +38,11 @@ class SaleOrderLine(models.Model):
         self.ensure_one()
         if self.display_type or self.is_downpayment or self.product_type == "combo":
             return super().l10n_ve_report_line_description()
-        product_name = ""
-        if self.product_id:
-            lang = self.order_id._get_lang()
-            product = self.product_id.with_context(lang=lang, display_default_code=False)
-            product_name = (product.name or "").strip()
+        if not self.product_id:
+            return super().l10n_ve_report_line_description()
+        lang = self.order_id._get_lang()
+        product = self.product_id.with_context(lang=lang, display_default_code=False)
+        product_name = (product.display_name or product.name or "").strip()
         text = self._pba_build_product_line_text(product_name)
         if not text:
             return super().l10n_ve_report_line_description()
