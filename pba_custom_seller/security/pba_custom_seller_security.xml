@@ -9,7 +9,7 @@
     <record id="group_pba_custom_seller" model="res.groups">
         <field name="name">PBA: Custom Seller</field>
         <field name="category_id" ref="module_category_pba_custom_seller"/>
-        <field name="comment">Limited seller: own contacts and products from allowed pricelists only.</field>
+        <field name="comment">Limited seller: own contacts and products from visible pricelists only. Assign this group only to restricted sellers, not to managers.</field>
         <field name="implied_ids" eval="[(4, ref('sales_team.group_sale_salesman')), (4, ref('product.group_product_pricelist'))]"/>
     </record>
 

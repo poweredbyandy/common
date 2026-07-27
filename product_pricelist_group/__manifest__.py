@@ -1,12 +1,12 @@
 {
     "name": "Product Pricelist Groups",
-    "version": "18.0.1.9.0",
+    "version": "18.0.1.10.0",
     "category": "Product",
     "summary": "Restrict pricelist visibility: empty=public, groups=only those groups",
     "author": "andyengit",
     "maintainer": "andyengit",
     "license": "LGPL-3",
-    "depends": ["product", "sales_team"],
+    "depends": ["product"],
     "data": [
         "security/product_pricelist_group_security.xml",
         "views/product_pricelist_views.xml",

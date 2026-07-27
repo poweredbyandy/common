@@ -30,6 +30,7 @@ class ResUsers(models.Model):
         return self.has_group("pba_custom_seller.group_pba_custom_seller_confirm_so")
 
     def _pba_custom_seller_pricelist_items(self):
+        """Items from pricelists visible to this user (public + their groups)."""
         self.ensure_one()
         pricelists = self.env["product.pricelist"].search([("active", "=", True)])
         if not pricelists:

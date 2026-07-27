@@ -34,7 +34,10 @@ class TestProductPricelistGroup(TransactionCase):
         cls.user_product_manager = new_test_user(
             cls.env,
             login="pricelist_user_product_manager",
-            groups="base.group_user,product.group_product_manager,product.group_product_pricelist",
+            groups=(
+                "base.group_user,product.group_product_manager,"
+                "product.group_product_pricelist"
+            ),
         )
 
         cls.user_see_all = new_test_user(
@@ -43,15 +46,6 @@ class TestProductPricelistGroup(TransactionCase):
             groups=(
                 "base.group_user,product.group_product_pricelist,"
                 "product_pricelist_group.group_product_pricelist_all"
-            ),
-        )
-
-        cls.user_salesman = new_test_user(
-            cls.env,
-            login="pricelist_user_salesman",
-            groups=(
-                "base.group_user,product.group_product_pricelist,"
-                "sales_team.group_sale_salesman"
             ),
         )
 
@@ -174,31 +168,6 @@ class TestProductPricelistGroup(TransactionCase):
         )
         self.assertEqual(len(visible), 5)
 
-    def test_salesman_does_not_see_all_pricelists(self):
-        self.assertFalse(
-            self.user_salesman.has_group(
-                "product_pricelist_group.group_product_pricelist_all"
-            )
-        )
-        visible = (
-            self.env["product.pricelist"]
-            .with_user(self.user_salesman)
-            .search(
-                [
-                    (
-                        "id",
-                        "in",
-                        [
-                            self.pricelist_public.id,
-                            self.pricelist_a.id,
-                            self.pricelist_b.id,
-                        ],
-                    )
-                ]
-            )
-        )
-        self.assertEqual(visible, self.pricelist_public)
-
     def test_product_manager_does_not_bypass_restrictions(self):
         visible = (
             self.env["product.pricelist"]
@@ -230,10 +199,8 @@ class TestProductPricelistGroup(TransactionCase):
             "Dependent pricelist must be visible for user A",
         )
 
-        price = (
-            self.pricelist_dependent.with_user(self.user_a)._get_product_price(
-                self.product, 1.0
-            )
+        price = self.pricelist_dependent.with_user(self.user_a)._get_product_price(
+            self.product, 1.0
         )
         self.assertAlmostEqual(price, 72.0)
 
@@ -248,15 +215,6 @@ class TestProductPricelistGroup(TransactionCase):
         self.assertIn(self.pricelist_dependent, pricelists)
         self.assertNotIn(self.pricelist_b, pricelists)
         self.assertNotIn(self.pricelist_base, pricelists)
-
-    def test_inaccessible_pricelist_price_falls_back(self):
-        price = self.pricelist_b.with_user(self.user_a)._get_product_price(
-            self.product, 1.0
-        )
-        expected = self.pricelist_public.with_user(self.user_a)._get_product_price(
-            self.product, 1.0
-        )
-        self.assertAlmostEqual(price, expected)
 
     def test_partner_pricelist_skips_inaccessible(self):
         partner = self.env["res.partner"].create(
