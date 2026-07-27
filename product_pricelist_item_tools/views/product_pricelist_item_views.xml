@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="product_pricelist_item_tree_view_discount" model="ir.ui.view">
+        <field name="name">product.pricelist.item.list.discount</field>
+        <field name="model">product.pricelist.item</field>
+        <field name="inherit_id" ref="product.product_pricelist_item_tree_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//list" position="attributes">
+                <attribute name="multi_edit">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='price']" position="after">
+                <field name="compute_price" optional="hide"/>
+                <field name="percent_price" optional="show" string="Discount %"/>
+                <field name="price_discount" optional="show" string="Formula Discount %"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -40,13 +40,16 @@ class PbaProductCatalogViewer(models.Model):
     @api.depends("user_id", "user_id.partner_id.property_product_pricelist", "company_id")
     def _compute_pricelist_id(self):
         for viewer in self:
-            partner = viewer.user_id.partner_id.with_company(viewer.company_id)
-            pricelist = partner.property_product_pricelist
-            if not pricelist:
-                pricelist_map = self.env["product.pricelist"].with_company(
-                    viewer.company_id
-                )._get_partner_pricelist_multi(partner.ids)
-                pricelist = pricelist_map.get(partner.id)
+            user = viewer.user_id
+            company = viewer.company_id
+            partner = user.partner_id.with_company(company)
+            pricelist_env = self.env["product.pricelist"].with_user(user).with_company(
+                company
+            )
+            pricelist_map = pricelist_env._get_partner_pricelist_multi(partner.ids)
+            pricelist = pricelist_map.get(partner.id)
+            if pricelist and not pricelist.with_user(user)._filtered_access("read"):
+                pricelist = pricelist_env.search([], limit=1)
             viewer.pricelist_id = pricelist
 
     @api.model
@@ -85,11 +88,19 @@ class PbaProductCatalogViewer(models.Model):
     def _get_product_catalog_record_lines(self, product_ids, child_field=False, **kwargs):
         return {}
 
+    def _get_catalog_pricelist(self):
+        self.ensure_one()
+        pricelist = self.pricelist_id
+        if pricelist and not pricelist.has_access("read"):
+            pricelist = self.env["product.pricelist"].search([], limit=1)
+        return pricelist
+
     def _get_product_catalog_order_data(self, products, **kwargs):
         self.ensure_one()
         res = super()._get_product_catalog_order_data(products, **kwargs)
-        if self.pricelist_id:
-            prices = self.pricelist_id._get_products_price(
+        pricelist = self._get_catalog_pricelist()
+        if pricelist:
+            prices = pricelist._get_products_price(
                 products,
                 quantity=1.0,
                 date=fields.Datetime.now(),
@@ -110,9 +121,10 @@ class PbaProductCatalogViewer(models.Model):
     def _update_order_line_info(self, product_id, quantity, **kwargs):
         self.ensure_one()
         product = self.env["product.product"].browse(product_id)
-        if not self.pricelist_id:
+        pricelist = self._get_catalog_pricelist()
+        if not pricelist:
             return product.lst_price
-        return self.pricelist_id._get_product_price(
+        return pricelist._get_product_price(
             product,
             quantity=quantity or 1.0,
             date=fields.Datetime.now(),
@@ -121,7 +133,12 @@ class PbaProductCatalogViewer(models.Model):
 
     def _get_action_add_from_catalog_extra_context(self):
         self.ensure_one()
-        currency = self.currency_id or self.company_id.currency_id
+        pricelist = self._get_catalog_pricelist()
+        currency = (
+            pricelist.currency_id
+            if pricelist
+            else self.company_id.currency_id
+        )
         return {
             **super()._get_action_add_from_catalog_extra_context(),
             "order_id": self.id,
