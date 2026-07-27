@@ -26,8 +26,13 @@ class MailWhatsappMixin(models.AbstractModel):
     def _pba_whatsapp_search_model_templates(self, extra_domain=None):
         self.ensure_one()
         company = self._pba_whatsapp_get_record_company()
+        model = self.env["ir.model"].sudo().search(
+            [("model", "=", self._name)], limit=1
+        )
+        if not model:
+            return self.env["mail.whatsapp.template"]
         domain = [
-            ("model_id.model", "=", self._name),
+            ("model_id", "=", model.id),
             ("state", "in", ("approved", "pending")),
         ]
         gateway = company.whatsapp_gateway_id

@@ -1,6 +1,6 @@
 {
     "name": "Product Pricelist Groups",
-    "version": "18.0.1.3.0",
+    "version": "18.0.1.4.0",
     "category": "Product",
     "summary": "Restrict pricelist visibility and usage by security groups",
     "author": "andyengit",

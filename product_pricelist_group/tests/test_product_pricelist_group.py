@@ -166,8 +166,8 @@ class TestProductPricelistGroup(TransactionCase):
         )
         self.assertEqual(len(visible), 5)
 
-    def test_salesman_sees_all_pricelists(self):
-        self.assertTrue(
+    def test_salesman_does_not_see_all_pricelists(self):
+        self.assertFalse(
             self.user_salesman.has_group(
                 "product_pricelist_group.group_product_pricelist_all"
             )
@@ -184,14 +184,12 @@ class TestProductPricelistGroup(TransactionCase):
                             self.pricelist_public.id,
                             self.pricelist_a.id,
                             self.pricelist_b.id,
-                            self.pricelist_base.id,
-                            self.pricelist_dependent.id,
                         ],
                     )
                 ]
             )
         )
-        self.assertEqual(len(visible), 5)
+        self.assertEqual(visible, self.pricelist_public)
 
     def test_product_manager_does_not_bypass_restrictions(self):
         visible = (

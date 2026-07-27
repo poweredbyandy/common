@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_order_form_pba_custom_seller_confirm" model="ir.ui.view">
+        <field name="name">sale.order.form.pba.custom.seller.confirm</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@id='action_confirm']" position="attributes">
+                <attribute name="groups">!pba_custom_seller.group_pba_custom_seller</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_confirm'][@invisible=&quot;state != 'draft'&quot;]" position="attributes">
+                <attribute name="groups">!pba_custom_seller.group_pba_custom_seller</attribute>
+            </xpath>
+            <xpath expr="//button[@id='action_confirm']" position="after">
+                <button
+                    name="action_confirm"
+                    id="action_confirm_pba_custom_seller"
+                    data-hotkey="q"
+                    string="Confirm"
+                    class="btn-primary"
+                    type="object"
+                    context="{'validate_analytic': True}"
+                    invisible="state != 'sent'"
+                    groups="pba_custom_seller.group_pba_custom_seller_confirm_so"
+                />
+                <button
+                    name="action_confirm"
+                    data-hotkey="q"
+                    string="Confirm"
+                    type="object"
+                    context="{'validate_analytic': True}"
+                    invisible="state != 'draft'"
+                    groups="pba_custom_seller.group_pba_custom_seller_confirm_so"
+                />
+            </xpath>
+        </field>
+    </record>
+</odoo>
