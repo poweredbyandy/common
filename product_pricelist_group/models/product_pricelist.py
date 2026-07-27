@@ -12,9 +12,7 @@ class ProductPricelist(models.Model):
         string="Visibility Groups",
         help="Leave empty so every internal user can see this pricelist. "
         "If you set one or more groups, only users that belong to at least "
-        "one of those groups can see and use it. "
-        "Do not assign 'Internal User' or broad Sales groups if you want "
-        "a real restriction.",
+        "one of those groups can see and use it.",
     )
 
     def _get_accessible_pricelist(self):
@@ -36,11 +34,16 @@ class ProductPricelist(models.Model):
 
     @api.model
     def _get_partner_pricelist_multi(self, partner_ids):
-        result = super()._get_partner_pricelist_multi(partner_ids)
+        result = super(ProductPricelist, self.sudo())._get_partner_pricelist_multi(
+            partner_ids
+        )
         fallback = self.search([], limit=1)
         for partner_id, pricelist in list(result.items()):
-            if pricelist and not pricelist._filtered_access("read"):
+            if not pricelist:
                 result[partner_id] = fallback
+                continue
+            accessible = self.browse(pricelist.ids)._filtered_access("read")
+            result[partner_id] = accessible[:1] if accessible else fallback
         return result
 
     def _get_products_price(self, products, *args, **kwargs):

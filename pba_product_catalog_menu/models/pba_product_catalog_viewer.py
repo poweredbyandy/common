@@ -36,7 +36,7 @@ class PbaProductCatalogViewer(models.Model):
         ),
     ]
 
-    @api.depends("user_id", "user_id.partner_id.property_product_pricelist", "company_id")
+    @api.depends("user_id", "user_id.partner_id", "company_id")
     def _compute_pricelist_id(self):
         for viewer in self:
             user = viewer.user_id
@@ -50,7 +50,7 @@ class PbaProductCatalogViewer(models.Model):
             )
             pricelist_map = pricelist_env._get_partner_pricelist_multi(partner.ids)
             pricelist = pricelist_map.get(partner.id)
-            if pricelist and not pricelist.with_user(user)._filtered_access("read"):
+            if pricelist and not pricelist.with_user(user).has_access("read"):
                 pricelist = pricelist_env.search([], limit=1)
             elif not pricelist:
                 pricelist = pricelist_env.search([], limit=1)
