@@ -31,4 +31,5 @@ class StockLocation(models.Model):
             self.env["product.product"].invalidate_model(
                 ["free_qty"]
             )
+            self.env["stock.quant"].invalidate_model(["available_quantity"])
         return result
