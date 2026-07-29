@@ -5,6 +5,11 @@ from odoo.osv import expression
 class ProductProduct(models.Model):
     _inherit = "product.product"
 
+    def _search_qty_available(self, operator, value):
+        if self.env.context.get("search_available_free_quantity"):
+            return self._search_free_qty(operator, value)
+        return super()._search_qty_available(operator, value)
+
     def _compute_quantities_dict(
         self,
         lot_id,

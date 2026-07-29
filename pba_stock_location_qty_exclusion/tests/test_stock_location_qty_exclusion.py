@@ -104,6 +104,30 @@ class TestStockLocationQuantityExclusion(TransactionCase):
         )
         self.assertEqual(matching_product, self.product)
 
+        availability_context = {
+            "location": self.excluded_location.id,
+            "search_available_free_quantity": True,
+        }
+        matching_product = self.env["product.product"].with_context(
+            availability_context
+        ).search(
+            [
+                ("id", "=", self.product.id),
+                ("qty_available", ">", 0.0),
+            ]
+        )
+        self.assertFalse(matching_product)
+
+        matching_template = self.env["product.template"].with_context(
+            availability_context
+        ).search(
+            [
+                ("id", "=", self.product.product_tmpl_id.id),
+                ("qty_available", ">", 0.0),
+            ]
+        )
+        self.assertFalse(matching_template)
+
     def test_location_domain_keeps_on_hand_quantity(self):
         self.excluded_location.exclude_from_available_quantity = True
 
