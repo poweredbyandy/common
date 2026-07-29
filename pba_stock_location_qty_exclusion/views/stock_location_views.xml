@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_location_form" model="ir.ui.view">
+        <field name="name">stock.location.form</field>
+        <field name="model">stock.location</field>
+        <field name="inherit_id" ref="stock.view_location_form"/>
+        <field name="arch" type="xml">
+            <field name="replenish_location" position="after">
+                <field
+                    name="exclude_from_available_quantity"
+                    groups="stock.group_stock_manager"
+                />
+            </field>
+        </field>
+    </record>
+
+    <record id="view_location_tree2" model="ir.ui.view">
+        <field name="name">stock.location.list</field>
+        <field name="model">stock.location</field>
+        <field name="inherit_id" ref="stock.view_location_tree2"/>
+        <field name="arch" type="xml">
+            <field name="is_empty" position="after">
+                <field
+                    name="exclude_from_available_quantity"
+                    optional="hide"
+                    groups="stock.group_stock_manager"
+                />
+            </field>
+        </field>
+    </record>
+
+    <record id="view_location_search" model="ir.ui.view">
+        <field name="name">stock.location.search</field>
+        <field name="model">stock.location</field>
+        <field name="inherit_id" ref="stock.view_location_search"/>
+        <field name="arch" type="xml">
+            <filter name="empty_location" position="after">
+                <filter
+                    name="excluded_from_available_quantity"
+                    string="Excluded from Available Quantity"
+                    domain="[('exclude_from_available_quantity', '=', True)]"
+                />
+            </filter>
+        </field>
+    </record>
+</odoo>
