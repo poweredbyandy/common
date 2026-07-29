@@ -1,6 +1,6 @@
 {
     "name": "PBA Stock Location Quantity Exclusion",
-    "version": "18.0.1.0.2",
+    "version": "18.0.1.0.3",
     "category": "Inventory/Inventory",
     "summary": "Excluye ubicaciones del cálculo de cantidad disponible",
     "author": "andyengit",
@@ -10,7 +10,6 @@
         "stock",
     ],
     "data": [
-        "views/product_views.xml",
         "views/stock_location_views.xml",
     ],
     "installable": True,

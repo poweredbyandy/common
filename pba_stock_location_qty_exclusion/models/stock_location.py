@@ -6,8 +6,9 @@ class StockLocation(models.Model):
     _inherit = "stock.location"
 
     exclude_from_available_quantity = fields.Boolean(
-        help="Exclude this location and all its sublocations from product free "
-        "quantity calculations without changing quantity on hand.",
+        help="Exclude this location and all its sublocations from product "
+        "quantity on hand and free quantity calculations. Physical quants "
+        "remain visible when opening product quantities.",
     )
 
     @api.model
@@ -29,7 +30,21 @@ class StockLocation(models.Model):
         result = super().write(values)
         if "exclude_from_available_quantity" in values:
             self.env["product.product"].invalidate_model(
-                ["free_qty"]
+                [
+                    "qty_available",
+                    "free_qty",
+                    "incoming_qty",
+                    "outgoing_qty",
+                    "virtual_available",
+                ]
+            )
+            self.env["product.template"].invalidate_model(
+                [
+                    "qty_available",
+                    "incoming_qty",
+                    "outgoing_qty",
+                    "virtual_available",
+                ]
             )
             self.env["stock.quant"].invalidate_model(["available_quantity"])
         return result

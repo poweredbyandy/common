@@ -30,6 +30,12 @@ class TestStockLocationQuantityExclusion(TransactionCase):
                 "is_storable": True,
             }
         )
+        cls.excluded_only_product = cls.env["product.product"].create(
+            {
+                "name": "Excluded Only Product",
+                "is_storable": True,
+            }
+        )
         quant_model = cls.env["stock.quant"]
         quant_model._update_available_quantity(
             cls.product,
@@ -45,6 +51,11 @@ class TestStockLocationQuantityExclusion(TransactionCase):
             cls.product,
             cls.excluded_child_location,
             9.0,
+        )
+        quant_model._update_available_quantity(
+            cls.excluded_only_product,
+            cls.excluded_location,
+            3.0,
         )
         quant_model._update_reserved_quantity(
             cls.product,
@@ -69,29 +80,51 @@ class TestStockLocationQuantityExclusion(TransactionCase):
 
         self.excluded_location.exclude_from_available_quantity = True
 
-        self.assertEqual(self.product.qty_available, 18.0)
+        self.assertEqual(self.product.qty_available, 5.0)
         self.assertEqual(self.product.free_qty, 4.0)
-        self.assertEqual(self.product.virtual_available, 18.0)
-        self.assertEqual(self.product.product_tmpl_id.qty_available, 18.0)
+        self.assertEqual(self.product.virtual_available, 5.0)
+        self.assertEqual(self.product.product_tmpl_id.qty_available, 5.0)
         product_at_excluded_location = self.product.with_context(
             location=self.excluded_location.id
         )
-        self.assertEqual(product_at_excluded_location.qty_available, 13.0)
+        self.assertEqual(product_at_excluded_location.qty_available, 0.0)
         self.assertEqual(product_at_excluded_location.free_qty, 0.0)
 
     def test_excludes_only_selected_subtree(self):
         self.excluded_child_location.exclude_from_available_quantity = True
 
-        self.assertEqual(self.product.qty_available, 18.0)
+        self.assertEqual(self.product.qty_available, 9.0)
         self.assertEqual(self.product.free_qty, 7.0)
 
-    def test_quantity_searches_use_separate_values(self):
+    def test_excluded_only_stock_is_not_available(self):
+        self.excluded_location.exclude_from_available_quantity = True
+
+        self.assertEqual(self.excluded_only_product.qty_available, 0.0)
+        self.assertEqual(self.excluded_only_product.free_qty, 0.0)
+
+        matching_product = self.env["product.product"].search(
+            [
+                ("id", "=", self.excluded_only_product.id),
+                ("qty_available", ">", 0.0),
+            ]
+        )
+        self.assertFalse(matching_product)
+
+        matching_template = self.env["product.template"].search(
+            [
+                ("id", "=", self.excluded_only_product.product_tmpl_id.id),
+                ("qty_available", ">", 0.0),
+            ]
+        )
+        self.assertFalse(matching_template)
+
+    def test_quantity_searches_use_excluded_values(self):
         self.excluded_location.exclude_from_available_quantity = True
 
         matching_product = self.env["product.product"].search(
             [
                 ("id", "=", self.product.id),
-                ("qty_available", "=", 18.0),
+                ("qty_available", "=", 5.0),
             ]
         )
         self.assertEqual(matching_product, self.product)
@@ -104,31 +137,7 @@ class TestStockLocationQuantityExclusion(TransactionCase):
         )
         self.assertEqual(matching_product, self.product)
 
-        availability_context = {
-            "location": self.excluded_location.id,
-            "search_available_free_quantity": True,
-        }
-        matching_product = self.env["product.product"].with_context(
-            availability_context
-        ).search(
-            [
-                ("id", "=", self.product.id),
-                ("qty_available", ">", 0.0),
-            ]
-        )
-        self.assertFalse(matching_product)
-
-        matching_template = self.env["product.template"].with_context(
-            availability_context
-        ).search(
-            [
-                ("id", "=", self.product.product_tmpl_id.id),
-                ("qty_available", ">", 0.0),
-            ]
-        )
-        self.assertFalse(matching_template)
-
-    def test_location_domain_keeps_on_hand_quantity(self):
+    def test_location_domain_excludes_quantity(self):
         self.excluded_location.exclude_from_available_quantity = True
 
         quant_domain = self.product._get_domain_locations_new(
@@ -138,7 +147,7 @@ class TestStockLocationQuantityExclusion(TransactionCase):
             [("product_id", "=", self.product.id)] + quant_domain
         )
 
-        self.assertEqual(sum(quants.mapped("quantity")), 18.0)
+        self.assertEqual(sum(quants.mapped("quantity")), 5.0)
 
     def test_product_quant_action_shows_excluded_stock(self):
         self.excluded_location.exclude_from_available_quantity = True
@@ -151,8 +160,16 @@ class TestStockLocationQuantityExclusion(TransactionCase):
             ]
         )
 
-        self.assertEqual(self.product.qty_available, 18.0)
+        self.assertEqual(self.product.qty_available, 5.0)
         self.assertEqual(sum(quants.mapped("quantity")), 18.0)
+        self.assertIn(
+            self.excluded_location,
+            quants.location_id,
+        )
+        self.assertIn(
+            self.excluded_child_location,
+            quants.location_id,
+        )
         available_by_location = {}
         for quant in quants:
             available_by_location.setdefault(quant.location_id.id, 0.0)
