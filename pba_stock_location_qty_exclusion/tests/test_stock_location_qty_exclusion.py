@@ -114,6 +114,20 @@ class TestStockLocationQuantityExclusion(TransactionCase):
 
         self.assertEqual(sum(quants.mapped("quantity")), 5.0)
 
+    def test_product_quant_action_shows_excluded_stock(self):
+        self.excluded_location.exclude_from_available_quantity = True
+
+        action = self.product.action_open_quants()
+        quants = self.env["stock.quant"].with_context(action["context"]).search(
+            [
+                ("product_id", "=", self.product.id),
+                ("on_hand", "=", True),
+            ]
+        )
+
+        self.assertEqual(self.product.qty_available, 5.0)
+        self.assertEqual(sum(quants.mapped("quantity")), 18.0)
+
     def test_quant_operations_keep_excluded_stock(self):
         available_quantity = self.env["stock.quant"]._get_available_quantity(
             self.product,

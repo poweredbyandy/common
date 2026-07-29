@@ -9,8 +9,14 @@ class ProductProduct(models.Model):
         quant_domain, move_in_domain, move_out_domain = (
             super()._get_domain_locations_new(location_ids)
         )
+        if self.env.context.get("include_excluded_location_quants"):
+            return quant_domain, move_in_domain, move_out_domain
         location_model = self.env["stock.location"]
         exclusion_domain = location_model._get_available_quantity_exclusion_domain()
         if exclusion_domain:
             quant_domain = expression.AND([quant_domain, exclusion_domain])
         return quant_domain, move_in_domain, move_out_domain
+
+    def action_open_quants(self):
+        products = self.with_context(include_excluded_location_quants=True)
+        return super(ProductProduct, products).action_open_quants()
