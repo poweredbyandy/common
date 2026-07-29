@@ -5,18 +5,56 @@ from odoo.osv import expression
 class ProductProduct(models.Model):
     _inherit = "product.product"
 
-    def _get_domain_locations_new(self, location_ids):
-        quant_domain, move_in_domain, move_out_domain = (
-            super()._get_domain_locations_new(location_ids)
+    def _compute_quantities_dict(
+        self,
+        lot_id,
+        owner_id,
+        package_id,
+        from_date=False,
+        to_date=False,
+    ):
+        quantities = super()._compute_quantities_dict(
+            lot_id,
+            owner_id,
+            package_id,
+            from_date=from_date,
+            to_date=to_date,
         )
-        if self.env.context.get("include_excluded_location_quants"):
-            return quant_domain, move_in_domain, move_out_domain
         location_model = self.env["stock.location"]
-        exclusion_domain = location_model._get_available_quantity_exclusion_domain()
-        if exclusion_domain:
-            quant_domain = expression.AND([quant_domain, exclusion_domain])
-        return quant_domain, move_in_domain, move_out_domain
+        excluded_location_domain = (
+            location_model._get_excluded_available_quantity_domain()
+        )
+        if not excluded_location_domain:
+            return quantities
 
-    def action_open_quants(self):
-        products = self.with_context(include_excluded_location_quants=True)
-        return super(ProductProduct, products).action_open_quants()
+        location_domain = self._get_domain_locations()[0]
+        quant_domain = expression.AND(
+            [
+                [("product_id", "in", self.ids)],
+                location_domain,
+                excluded_location_domain,
+            ]
+        )
+        if lot_id is not None:
+            quant_domain.append(("lot_id", "=", lot_id))
+        if owner_id is not None:
+            quant_domain.append(("owner_id", "=", owner_id))
+        if package_id is not None:
+            quant_domain.append(("package_id", "=", package_id))
+
+        excluded_quantities = {
+            product.id: quantity - reserved_quantity
+            for product, quantity, reserved_quantity in self.env[
+                "stock.quant"
+            ]._read_group(
+                quant_domain,
+                ["product_id"],
+                ["quantity:sum", "reserved_quantity:sum"],
+            )
+        }
+        for product in self:
+            quantities[product.id]["free_qty"] -= excluded_quantities.get(
+                product._origin.id,
+                0.0,
+            )
+        return quantities

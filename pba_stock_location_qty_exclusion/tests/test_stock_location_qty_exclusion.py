@@ -69,27 +69,29 @@ class TestStockLocationQuantityExclusion(TransactionCase):
 
         self.excluded_location.exclude_from_available_quantity = True
 
-        self.assertEqual(self.product.qty_available, 5.0)
+        self.assertEqual(self.product.qty_available, 18.0)
         self.assertEqual(self.product.free_qty, 4.0)
-        self.assertEqual(self.product.product_tmpl_id.qty_available, 5.0)
+        self.assertEqual(self.product.virtual_available, 18.0)
+        self.assertEqual(self.product.product_tmpl_id.qty_available, 18.0)
         product_at_excluded_location = self.product.with_context(
             location=self.excluded_location.id
         )
-        self.assertEqual(product_at_excluded_location.qty_available, 0.0)
+        self.assertEqual(product_at_excluded_location.qty_available, 13.0)
+        self.assertEqual(product_at_excluded_location.free_qty, 0.0)
 
     def test_excludes_only_selected_subtree(self):
         self.excluded_child_location.exclude_from_available_quantity = True
 
-        self.assertEqual(self.product.qty_available, 9.0)
+        self.assertEqual(self.product.qty_available, 18.0)
         self.assertEqual(self.product.free_qty, 7.0)
 
-    def test_qty_available_search_uses_exclusion(self):
+    def test_quantity_searches_use_separate_values(self):
         self.excluded_location.exclude_from_available_quantity = True
 
         matching_product = self.env["product.product"].search(
             [
                 ("id", "=", self.product.id),
-                ("qty_available", "=", 5.0),
+                ("qty_available", "=", 18.0),
             ]
         )
         self.assertEqual(matching_product, self.product)
@@ -97,12 +99,12 @@ class TestStockLocationQuantityExclusion(TransactionCase):
         matching_product = self.env["product.product"].search(
             [
                 ("id", "=", self.product.id),
-                ("qty_available", ">", 5.0),
+                ("free_qty", "=", 4.0),
             ]
         )
-        self.assertFalse(matching_product)
+        self.assertEqual(matching_product, self.product)
 
-    def test_direct_location_domain_uses_exclusion(self):
+    def test_location_domain_keeps_on_hand_quantity(self):
         self.excluded_location.exclude_from_available_quantity = True
 
         quant_domain = self.product._get_domain_locations_new(
@@ -112,7 +114,7 @@ class TestStockLocationQuantityExclusion(TransactionCase):
             [("product_id", "=", self.product.id)] + quant_domain
         )
 
-        self.assertEqual(sum(quants.mapped("quantity")), 5.0)
+        self.assertEqual(sum(quants.mapped("quantity")), 18.0)
 
     def test_product_quant_action_shows_excluded_stock(self):
         self.excluded_location.exclude_from_available_quantity = True
@@ -125,7 +127,7 @@ class TestStockLocationQuantityExclusion(TransactionCase):
             ]
         )
 
-        self.assertEqual(self.product.qty_available, 5.0)
+        self.assertEqual(self.product.qty_available, 18.0)
         self.assertEqual(sum(quants.mapped("quantity")), 18.0)
 
     def test_quant_operations_keep_excluded_stock(self):

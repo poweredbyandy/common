@@ -3,4 +3,5 @@ goods in internal locations while preserving their physical inventory records.
 
 These quantities should remain traceable without increasing the amount shown as
 available on products. This module separates those two needs by excluding
-configured location subtrees only from product availability calculations.
+configured location subtrees only from the free quantity while keeping them in
+the quantity on hand.
