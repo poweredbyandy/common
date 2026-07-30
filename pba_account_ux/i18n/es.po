@@ -1,0 +1,318 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* pba_account_ux
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-07-30 03:30+0000\n"
+"PO-Revision-Date: 2026-07-30 03:30+0000\n"
+"Last-Translator: andyengit\n"
+"Language-Team: Spanish\n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n == 1) ? 0 : ((n != 0 && n % 1000000 == 0) ? 1 : 2);\n"
+
+#. module: pba_account_ux
+#: model:ir.model.fields.selection,name:pba_account_ux.selection__account_journal__bank_reconciliation_status__not_configured
+#: model_terms:ir.ui.view,arch_db:pba_account_ux.view_account_journal_form_bank_reconciliation
+msgid "Accounts Not Configured"
+msgstr "Cuentas no configuradas"
+
+#. module: pba_account_ux
+#: model_terms:ir.ui.view,arch_db:pba_account_ux.view_account_journal_bank_reconciliation_wizard_form
+msgid "Apply"
+msgstr "Aplicar"
+
+#. module: pba_account_ux
+#: model:ir.actions.act_window,name:pba_account_ux.action_account_journal_bank_reconciliation_wizard
+#: model:ir.model.fields.selection,name:pba_account_ux.selection__account_journal__bank_reconciliation_status__with_reconciliation
+#: model_terms:ir.ui.view,arch_db:pba_account_ux.view_account_journal_bank_reconciliation_wizard_form
+#: model_terms:ir.ui.view,arch_db:pba_account_ux.view_account_journal_form_bank_reconciliation
+#. odoo-python
+#: code:addons/pba_account_ux/models/account_journal.py:0
+#: code:addons/pba_account_ux/wizard/account_journal_bank_reconciliation_wizard.py:0
+msgid "Bank Reconciliation"
+msgstr "Conciliación bancaria"
+
+#. module: pba_account_ux
+#: model:ir.model.fields,field_description:pba_account_ux.field_account_journal__bank_reconciliation_status
+msgid "Bank Reconciliation Status"
+msgstr "Estado de conciliación bancaria"
+
+#. module: pba_account_ux
+#. odoo-python
+#: code:addons/pba_account_ux/wizard/account_journal_bank_reconciliation_wizard.py:0
+msgid "Bank reconciliation can only be configured on bank or cash journals."
+msgstr "La conciliación bancaria solo se puede configurar en diarios de banco o efectivo."
+
+#. module: pba_account_ux
+#. odoo-python
+#: code:addons/pba_account_ux/wizard/account_journal_bank_reconciliation_wizard.py:0
+msgid "Bank reconciliation disabled on journal %(journal)s. Payment methods now use the journal account."
+msgstr "Conciliación bancaria deshabilitada en el diario %(journal)s. Los métodos de pago usan ahora la cuenta del diario."
+
+#. module: pba_account_ux
+#. odoo-python
+#: code:addons/pba_account_ux/wizard/account_journal_bank_reconciliation_wizard.py:0
+msgid "Bank reconciliation enabled on journal %(journal)s."
+msgstr "Conciliación bancaria habilitada en el diario %(journal)s."
+
+#. module: pba_account_ux
+#: model_terms:ir.ui.view,arch_db:pba_account_ux.view_account_journal_bank_reconciliation_wizard_form
+msgid "Cancel"
+msgstr "Cancelar"
+
+#. module: pba_account_ux
+#. odoo-python
+#: code:addons/pba_account_ux/models/account_payment.py:0
+msgid "Configure the outstanding payments/receipts account on the %(method)s payment method of journal %(journal)s before generating the entry for payment %(payment)s."
+msgstr "Configure la cuenta de pagos/recibos pendientes en el método de pago %(method)s del diario %(journal)s antes de generar el asiento del pago %(payment)s."
+
+#. module: pba_account_ux
+#. odoo-python
+#: code:addons/pba_account_ux/wizard/account_journal_bank_reconciliation_wizard.py:0
+msgid "Configure the journal account before setting bank reconciliation."
+msgstr "Configure la cuenta del diario antes de definir la conciliación bancaria."
+
+#. module: pba_account_ux
+#: model:ir.model.fields,field_description:pba_account_ux.field_account_journal_bank_reconciliation_wizard__current_status
+msgid "Current Status"
+msgstr "Estado actual"
+
+#. module: pba_account_ux
+#: model:ir.model.fields,field_description:pba_account_ux.field_account_journal_bank_reconciliation_wizard__enable_bank_reconciliation
+msgid "Enable Bank Reconciliation"
+msgstr "Habilitar conciliación bancaria"
+
+#. module: pba_account_ux
+#: model_terms:ir.ui.view,arch_db:pba_account_ux.view_account_journal_bank_reconciliation_wizard_form
+msgid "Existing accounts with these names are reused; otherwise they are created."
+msgstr "Si ya existen cuentas con estos nombres se reutilizan; de lo contrario se crean."
+
+#. module: pba_account_ux
+#: model:ir.actions.server,name:pba_account_ux.action_account_payment_generate_missing_move
+#: model_terms:ir.ui.view,arch_db:pba_account_ux.view_account_payment_form_generate_move
+msgid "Generate Journal Entry"
+msgstr "Generar asiento contable"
+
+#. module: pba_account_ux
+#: model:ir.model.fields,help:pba_account_ux.field_account_journal_bank_reconciliation_wizard__enable_bank_reconciliation
+msgid "If enabled, outstanding receipts and payments accounts are created (or reused) and assigned to the payment methods. If disabled, the journal account is used on all payment methods."
+msgstr "Si está habilitado, se crean (o reutilizan) las cuentas de recibos y pagos pendientes y se asignan a los métodos de pago. Si está deshabilitado, se usa la cuenta del diario en todos los métodos de pago."
+
+#. module: pba_account_ux
+#: model_terms:ir.ui.view,arch_db:pba_account_ux.view_account_journal_bank_reconciliation_wizard_form
+msgid "Incoming and outgoing payment methods will use the journal account. Payments will post directly without outstanding accounts."
+msgstr "Los métodos de pago entrantes y salientes usarán la cuenta del diario. Los pagos se contabilizarán directamente sin cuentas pendientes."
+
+#. module: pba_account_ux
+#: model:ir.model.fields,field_description:pba_account_ux.field_account_journal_bank_reconciliation_wizard__journal_id
+msgid "Journal"
+msgstr "Diario"
+
+#. module: pba_account_ux
+#: model:ir.model.fields,field_description:pba_account_ux.field_account_journal_bank_reconciliation_wizard__journal_account_id
+msgid "Journal Account"
+msgstr "Cuenta del diario"
+
+#. module: pba_account_ux
+#. odoo-python
+#: code:addons/pba_account_ux/models/account_payment.py:0
+msgid "Journal entries generated"
+msgstr "Asientos contables generados"
+
+#. module: pba_account_ux
+#: model:ir.model.fields.selection,name:pba_account_ux.selection__account_journal__bank_reconciliation_status__without_reconciliation
+#: model_terms:ir.ui.view,arch_db:pba_account_ux.view_account_journal_form_bank_reconciliation
+msgid "No Bank Reconciliation"
+msgstr "Sin conciliación bancaria"
+
+#. module: pba_account_ux
+#: model:ir.model.fields,field_description:pba_account_ux.field_account_journal_bank_reconciliation_wizard__payment_account_name
+msgid "Outstanding Payments Account"
+msgstr "Cuenta de pagos pendientes"
+
+#. module: pba_account_ux
+#. odoo-python
+#: code:addons/pba_account_ux/wizard/account_journal_bank_reconciliation_wizard.py:0
+msgid "Outstanding Payments (%s)"
+msgstr "Pagos pendientes (%s)"
+
+#. module: pba_account_ux
+#: model:ir.model.fields,field_description:pba_account_ux.field_account_journal_bank_reconciliation_wizard__receipt_account_name
+msgid "Outstanding Receipts Account"
+msgstr "Cuenta de recibos pendientes"
+
+#. module: pba_account_ux
+#. odoo-python
+#: code:addons/pba_account_ux/wizard/account_journal_bank_reconciliation_wizard.py:0
+msgid "Outstanding Receipts (%s)"
+msgstr "Recibos pendientes (%s)"
+
+#. module: pba_account_ux
+#. odoo-python
+#: code:addons/pba_account_ux/models/account_payment.py:0
+msgid "There are no payments without a journal entry to process."
+msgstr "No hay pagos sin asiento contable para procesar."
+
+#. module: pba_account_ux
+#. odoo-python
+#: code:addons/pba_account_ux/wizard/account_journal_bank_reconciliation_wizard.py:0
+msgid "Add at least one incoming or outgoing payment method on journal %(journal)s."
+msgstr "Añada al menos un método de pago entrante o saliente en el diario %(journal)s."
+
+#. module: pba_account_ux
+#: model_terms:ir.ui.view,arch_db:pba_account_ux.view_account_journal_bank_reconciliation_wizard_form
+msgid "Accounts to use"
+msgstr "Cuentas a utilizar"
+
+#. module: pba_account_ux
+#: model:ir.model,name:pba_account_ux.model_account_journal_bank_reconciliation_wizard
+msgid "Configure Bank Reconciliation on Journal"
+msgstr "Configurar conciliación bancaria en el diario"
+
+#. module: pba_account_ux
+#: model:ir.model,name:pba_account_ux.model_account_journal
+msgid "Journal"
+msgstr "Diario"
+
+#. module: pba_account_ux
+#: model:ir.model,name:pba_account_ux.model_account_payment
+msgid "Payments"
+msgstr "Pagos"
+
+#. module: pba_account_ux
+#. odoo-python
+#: code:addons/pba_account_ux/models/account_payment.py:0
+msgid "%(count)s payment(s) now have a journal entry."
+msgstr "%(count)s pago(s) tienen ahora asiento contable."
+
+#. module: pba_account_ux
+#: model:ir.actions.act_window,name:pba_account_ux.action_account_group
+#: model:ir.ui.menu,name:pba_account_ux.menu_action_account_group
+#: model_terms:ir.ui.view,arch_db:pba_account_ux.view_account_search_group_panel
+msgid "Account Groups"
+msgstr "Grupos de cuentas"
+
+#. module: pba_account_ux
+#. odoo-python
+#: code:addons/pba_account_ux/models/account_account.py:0
+msgid "Operation not supported"
+msgstr "Operación no soportada"
+
+#. module: pba_account_ux
+#. odoo-python
+#: code:addons/pba_account_ux/models/account_account.py:0
+msgid "Ungrouped"
+msgstr "Sin grupo"
+
+#. module: pba_account_ux
+#: model:ir.model.fields,field_description:pba_account_ux.field_account_account__group_label
+msgid "Account Group"
+msgstr "Grupo de cuenta"
+
+#. module: pba_account_ux
+#. odoo-javascript
+#: code:addons/pba_account_ux/static/src/components/account_group_search_panel/account_group_search_panel.xml:0
+msgid "All"
+msgstr "Todos"
+
+#. module: pba_account_ux
+#. odoo-javascript
+#: code:addons/pba_account_ux/static/src/components/account_group_search_panel/account_group_search_panel.xml:0
+msgid "Create Group"
+msgstr "Crear grupo"
+
+#. module: pba_account_ux
+#: model:ir.actions.act_window,name:pba_account_ux.action_account_account_create_group_wizard
+#. odoo-python
+#: code:addons/pba_account_ux/models/account_account.py:0
+msgid "Create Account Group"
+msgstr "Crear grupo de cuentas"
+
+#. module: pba_account_ux
+#: model:ir.model.fields,field_description:pba_account_ux.field_account_account_create_group_wizard__name
+msgid "Group Name"
+msgstr "Nombre del grupo"
+
+#. module: pba_account_ux
+#: model:ir.model.fields,field_description:pba_account_ux.field_account_account_create_group_wizard__code_prefix_start
+msgid "Code Prefix From"
+msgstr "Prefijo desde"
+
+#. module: pba_account_ux
+#: model:ir.model.fields,field_description:pba_account_ux.field_account_account_create_group_wizard__code_prefix_end
+msgid "Code Prefix To"
+msgstr "Prefijo hasta"
+
+#. module: pba_account_ux
+#. odoo-python
+#: code:addons/pba_account_ux/wizard/account_account_create_group_wizard.py:0
+msgid "Account Group Created"
+msgstr "Grupo de cuentas creado"
+
+#. module: pba_account_ux
+#. odoo-python
+#: code:addons/pba_account_ux/wizard/account_account_create_group_wizard.py:0
+msgid "Group %(group)s was created and linked to matching accounts."
+msgstr "Se creó el grupo %(group)s y se vinculó a las cuentas coincidentes."
+
+#. module: pba_account_ux
+#. odoo-python
+#: code:addons/pba_account_ux/models/account_account.py:0
+msgid "Set an account code before creating a group."
+msgstr "Defina el código de la cuenta antes de crear un grupo."
+
+#. module: pba_account_ux
+#. odoo-python
+#: code:addons/pba_account_ux/models/account_account.py:0
+msgid "Account %(account)s already belongs to group %(group)s."
+msgstr "La cuenta %(account)s ya pertenece al grupo %(group)s."
+
+#. module: pba_account_ux
+#. odoo-python
+#: code:addons/pba_account_ux/wizard/account_account_create_group_wizard.py:0
+msgid "Code prefixes are required."
+msgstr "Los prefijos de código son obligatorios."
+
+#. module: pba_account_ux
+#. odoo-python
+#: code:addons/pba_account_ux/wizard/account_account_create_group_wizard.py:0
+msgid "The starting and ending code prefixes must have the same length."
+msgstr "Los prefijos de inicio y fin deben tener la misma longitud."
+
+#. module: pba_account_ux
+#. odoo-python
+#: code:addons/pba_account_ux/wizard/account_account_create_group_wizard.py:0
+msgid "The starting code prefix must be lower than or equal to the ending one."
+msgstr "El prefijo inicial debe ser menor o igual que el final."
+
+#. module: pba_account_ux
+#. odoo-python
+#: code:addons/pba_account_ux/wizard/account_account_create_group_wizard.py:0
+msgid "An account group with prefix %(prefix)s already exists: %(group)s."
+msgstr "Ya existe un grupo de cuentas con el prefijo %(prefix)s: %(group)s."
+
+#. module: pba_account_ux
+#: model_terms:ir.ui.view,arch_db:pba_account_ux.view_account_account_create_group_wizard_form
+msgid "New Group"
+msgstr "Nuevo grupo"
+
+#. module: pba_account_ux
+#: model:ir.model,name:pba_account_ux.model_account_account_create_group_wizard
+msgid "Create Account Group from Account"
+msgstr "Crear grupo de cuentas desde una cuenta"
+
+#. module: pba_account_ux
+#: model:ir.actions.act_window,help:pba_account_ux.action_account_group
+msgid "Create an account group"
+msgstr "Crear un grupo de cuentas"
+
+#. module: pba_account_ux
+#: model:ir.actions.act_window,help:pba_account_ux.action_account_group
+msgid "Account groups organize the chart of accounts by code prefixes."
+msgstr "Los grupos de cuentas organizan el plan de cuentas por prefijos de código."

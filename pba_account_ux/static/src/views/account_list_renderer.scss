@@ -1,0 +1,11 @@
+.o_list_renderer {
+    &.o_pba_has_creating_account {
+        tr.o_pba_creating_account_row > td {
+            position: sticky;
+            top: var(--pba-creating-sticky-top, 7rem);
+            z-index: calc(var(--sticky-header-zindex, 1) + 1);
+            background-color: var(--table-bg);
+            box-shadow: 0 1px 0 #{$border-color}, 0 -1px 0 #{$border-color};
+        }
+    }
+}

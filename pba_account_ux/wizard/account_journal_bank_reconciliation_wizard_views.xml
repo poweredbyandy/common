@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_account_journal_bank_reconciliation_wizard_form" model="ir.ui.view">
+        <field name="name">account.journal.bank.reconciliation.wizard.form</field>
+        <field name="model">account.journal.bank.reconciliation.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Bank Reconciliation">
+                <group>
+                    <group>
+                        <field name="journal_id"/>
+                        <field name="journal_account_id"/>
+                        <field name="current_status" widget="badge"
+                            decoration-success="current_status == 'with_reconciliation'"
+                            decoration-warning="current_status == 'without_reconciliation'"
+                            decoration-danger="current_status == 'not_configured'"/>
+                    </group>
+                    <group>
+                        <field name="enable_bank_reconciliation"/>
+                    </group>
+                </group>
+                <group string="Accounts to use" invisible="not enable_bank_reconciliation">
+                    <field name="receipt_account_name" readonly="1"/>
+                    <field name="payment_account_name" readonly="1"/>
+                    <div colspan="2" class="text-muted">
+                        Existing accounts with these names are reused; otherwise they are created.
+                    </div>
+                </group>
+                <group string="Accounts to use" invisible="enable_bank_reconciliation">
+                    <div colspan="2" class="text-muted">
+                        Incoming and outgoing payment methods will use the journal account.
+                        Payments will post directly without outstanding accounts.
+                    </div>
+                </group>
+                <footer>
+                    <button
+                        name="action_apply"
+                        string="Apply"
+                        type="object"
+                        class="btn-primary"
+                        data-hotkey="q"
+                    />
+                    <button string="Cancel" special="cancel" data-hotkey="x"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_account_journal_bank_reconciliation_wizard" model="ir.actions.act_window">
+        <field name="name">Bank Reconciliation</field>
+        <field name="res_model">account.journal.bank.reconciliation.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>

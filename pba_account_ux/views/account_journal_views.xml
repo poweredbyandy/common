@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_account_journal_form_bank_reconciliation" model="ir.ui.view">
+        <field name="name">account.journal.view.form.bank.reconciliation</field>
+        <field name="model">account.journal</field>
+        <field name="inherit_id" ref="account.view_account_journal_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <field name="bank_reconciliation_status" invisible="1"/>
+                <button
+                    name="action_open_bank_reconciliation_status"
+                    type="object"
+                    class="oe_stat_button"
+                    icon="fa-exchange"
+                    invisible="type not in ('bank', 'cash') or bank_reconciliation_status != 'with_reconciliation'"
+                    groups="account.group_account_invoice"
+                >
+                    <div class="o_stat_info">
+                        <span class="o_stat_text text-success">Bank Reconciliation</span>
+                    </div>
+                </button>
+                <button
+                    name="action_open_bank_reconciliation_status"
+                    type="object"
+                    class="oe_stat_button"
+                    icon="fa-exchange"
+                    invisible="type not in ('bank', 'cash') or bank_reconciliation_status != 'without_reconciliation'"
+                    groups="account.group_account_invoice"
+                >
+                    <div class="o_stat_info">
+                        <span class="o_stat_text text-warning">No Bank Reconciliation</span>
+                    </div>
+                </button>
+                <button
+                    name="action_open_bank_reconciliation_status"
+                    type="object"
+                    class="oe_stat_button"
+                    icon="fa-exclamation-triangle"
+                    invisible="type not in ('bank', 'cash') or bank_reconciliation_status != 'not_configured'"
+                    groups="account.group_account_invoice"
+                >
+                    <div class="o_stat_info">
+                        <span class="o_stat_text text-danger">Accounts Not Configured</span>
+                    </div>
+                </button>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_account_journal_tree_bank_reconciliation" model="ir.ui.view">
+        <field name="name">account.journal.view.list.bank.reconciliation</field>
+        <field name="model">account.journal</field>
+        <field name="inherit_id" ref="account.view_account_journal_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='type']" position="after">
+                <field
+                    name="bank_reconciliation_status"
+                    widget="badge"
+                    optional="show"
+                    decoration-success="bank_reconciliation_status == 'with_reconciliation'"
+                    decoration-warning="bank_reconciliation_status == 'without_reconciliation'"
+                    decoration-danger="bank_reconciliation_status == 'not_configured'"
+                />
+            </xpath>
+        </field>
+    </record>
+</odoo>

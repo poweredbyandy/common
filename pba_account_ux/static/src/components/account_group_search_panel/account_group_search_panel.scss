@@ -1,0 +1,14 @@
+.o_pba_account_group_panel {
+    min-width: 220px;
+    max-width: 320px;
+
+    .o_search_panel_category_value.active {
+        background-color: rgba(0, 0, 0, 0.05);
+        border-radius: 0.25rem;
+    }
+
+    .o_pba_create_group_btn {
+        font-size: 0.75rem;
+        line-height: 1.2;
+    }
+}

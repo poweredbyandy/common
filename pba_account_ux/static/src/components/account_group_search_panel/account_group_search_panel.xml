@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="pba_account_ux.AccountGroupSearchPanel">
+        <t t-if="!state.sidebarExpanded">
+            <div class="bg-view h-100 o_search_panel_sidebar cursor-pointer d-print-none" t-on-click="() => this.toggleSidebar()">
+                <div class="d-flex">
+                    <button class="btn btn-light btn-sm m-1 mb-2 p-2">
+                        <i class="fa fa-fw fa-angle-double-right"/>
+                    </button>
+                </div>
+            </div>
+        </t>
+        <t t-else="">
+            <div class="o_search_panel flex-grow-0 flex-shrink-0 h-100 pb-5 bg-view overflow-auto position-relative account_root o_pba_account_group_panel pe-1 ps-3"
+                 t-ref="root">
+                <button class="btn btn-light btn-sm end-0 m-2 position-absolute px-2 py-1 top-0 z-1" t-on-click="() => this.toggleSidebar()">
+                    <i class="fa fa-fw fa-angle-double-left"/>
+                </button>
+                <section class="o_search_panel_section o_search_panel_category">
+                    <ul class="list-group d-block o_search_panel_field px-2 px-md-0 mt-4">
+                        <li class="o_search_panel_category_value list-group-item py-1 cursor-pointer border-0 pe-0"
+                            t-att-class="{ 'active fw-bold': state.selectedKey === 'all' }"
+                            t-on-click="() => this.selectAll()">
+                            <header class="o_search_panel_label d-flex align-items-center overflow-hidden w-100 cursor-pointer mb-0">
+                                <span class="o_search_panel_label_title text-truncate">All</span>
+                            </header>
+                        </li>
+                        <li t-foreach="state.items" t-as="item" t-key="item.type + '-' + item.id"
+                            class="o_search_panel_category_value list-group-item py-1 cursor-pointer border-0 pe-0"
+                            t-att-class="{ 'active fw-bold': this.isSelected(item) }"
+                            t-on-click="() => this.onItemClick(item)">
+                            <header class="o_search_panel_label d-flex align-items-center overflow-hidden w-100 cursor-pointer mb-0 gap-1">
+                                <span class="o_search_panel_label_title text-truncate flex-grow-1"
+                                      t-att-class="{ 'text-muted': item.type === 'missing_group' }"
+                                      t-esc="item.label"/>
+                                <button t-if="this.showCreateButton(item)"
+                                        class="btn btn-link btn-sm p-0 text-nowrap o_pba_create_group_btn"
+                                        t-on-click.stop="(ev) => this.onCreateGroup(item, ev)"
+                                        title="Create Group">
+                                    <i class="fa fa-plus"/> Create Group
+                                </button>
+                            </header>
+                        </li>
+                    </ul>
+                </section>
+            </div>
+        </t>
+    </t>
+</templates>

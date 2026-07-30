@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_account_account_create_group_wizard_form" model="ir.ui.view">
+        <field name="name">account.account.create.group.wizard.form</field>
+        <field name="model">account.account.create.group.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Create Account Group">
+                <group>
+                    <group string="Account">
+                        <field name="account_id" invisible="1"/>
+                        <field name="account_code"/>
+                        <field name="account_name"/>
+                    </group>
+                    <group string="New Group">
+                        <field name="name" placeholder="e.g. Prepaid Taxes"/>
+                        <label for="code_prefix_start" string="Code Prefix"/>
+                        <div class="o_row">
+                            <field name="code_prefix_start" class="oe_inline"/>
+                            <span class="oe_inline"> - </span>
+                            <field name="code_prefix_end" class="oe_inline"/>
+                        </div>
+                    </group>
+                </group>
+                <footer>
+                    <button
+                        name="action_create_group"
+                        string="Create Group"
+                        type="object"
+                        class="btn-primary"
+                        data-hotkey="q"
+                    />
+                    <button string="Cancel" special="cancel" data-hotkey="x"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_account_account_create_group_wizard" model="ir.actions.act_window">
+        <field name="name">Create Account Group</field>
+        <field name="res_model">account.account.create.group.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>

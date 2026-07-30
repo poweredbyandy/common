@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_account_payment_form_generate_move" model="ir.ui.view">
+        <field name="name">account.payment.view.form.generate.move</field>
+        <field name="model">account.payment</field>
+        <field name="inherit_id" ref="account.view_account_payment_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header/button[@name='action_validate']" position="after">
+                <field name="show_generate_missing_move" invisible="1"/>
+                <button
+                    name="action_generate_missing_move"
+                    string="Generate Journal Entry"
+                    type="object"
+                    class="oe_highlight"
+                    groups="account.group_account_invoice"
+                    invisible="not show_generate_missing_move"
+                />
+            </xpath>
+        </field>
+    </record>
+
+    <record id="action_account_payment_generate_missing_move" model="ir.actions.server">
+        <field name="name">Generate Journal Entry</field>
+        <field name="model_id" ref="account.model_account_payment"/>
+        <field name="binding_model_id" ref="account.model_account_payment"/>
+        <field name="binding_view_types">list</field>
+        <field name="groups_id" eval="[(4, ref('account.group_account_invoice'))]"/>
+        <field name="state">code</field>
+        <field name="code">
+action = records.action_generate_missing_move()
+        </field>
+    </record>
+</odoo>

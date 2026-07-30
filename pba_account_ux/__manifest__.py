@@ -1,0 +1,31 @@
+{
+    "name": "PBA Account UX",
+    "version": "18.0.1.7.8",
+    "category": "Accounting",
+    "summary": "UX contable: asientos faltantes en pagos y estado de conciliación en diarios",
+    "author": "andyengit",
+    "maintainer": "andyengit",
+    "license": "LGPL-3",
+    "depends": ["account"],
+    "data": [
+        "security/ir.model.access.csv",
+        "wizard/account_journal_bank_reconciliation_wizard_views.xml",
+        "wizard/account_account_create_group_wizard_views.xml",
+        "views/account_journal_views.xml",
+        "views/account_payment_views.xml",
+        "views/account_group_views.xml",
+        "views/account_account_views.xml",
+    ],
+    "assets": {
+        "web.assets_backend": [
+            "pba_account_ux/static/src/components/account_group_search_panel/account_group_search_panel.js",
+            "pba_account_ux/static/src/components/account_group_search_panel/account_group_search_panel.xml",
+            "pba_account_ux/static/src/components/account_group_search_panel/account_group_search_panel.scss",
+            "pba_account_ux/static/src/views/account_list_renderer.js",
+            "pba_account_ux/static/src/views/account_list_renderer.scss",
+            "pba_account_ux/static/src/views/account_list_view.js",
+        ],
+    },
+    "installable": True,
+    "application": False,
+}

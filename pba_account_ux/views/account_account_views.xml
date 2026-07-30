@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_account_search_group_panel" model="ir.ui.view">
+        <field name="name">account.account.search.group.panel</field>
+        <field name="model">account.account</field>
+        <field name="inherit_id" ref="account.view_account_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="//searchpanel" position="replace">
+                <searchpanel class="account_root w-auto">
+                    <field
+                        name="group_id"
+                        string="Account Groups"
+                        icon="fa-filter"
+                        limit="0"
+                        hierarchize="1"
+                    />
+                </searchpanel>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_account_list_group_label" model="ir.ui.view">
+        <field name="name">account.account.list.group.label</field>
+        <field name="model">account.account</field>
+        <field name="inherit_id" ref="account.view_account_list"/>
+        <field name="arch" type="xml">
+            <xpath expr="//list" position="attributes">
+                <attribute name="js_class">pba_account_list</attribute>
+                <attribute name="editable">top</attribute>
+                <attribute name="limit">500</attribute>
+            </xpath>
+            <xpath expr="//field[@name='group_id']" position="attributes">
+                <attribute name="column_invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='group_id']" position="after">
+                <field
+                    name="group_label"
+                    decoration-muted="not group_id"
+                    decoration-bf="group_id"
+                />
+                <button
+                    name="action_open_create_account_group"
+                    type="object"
+                    string="Create Group"
+                    icon="fa-plus"
+                    class="btn-link"
+                    groups="account.group_account_manager"
+                    invisible="group_id or not code"
+                />
+            </xpath>
+        </field>
+    </record>
+</odoo>
