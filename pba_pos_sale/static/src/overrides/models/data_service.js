@@ -5,14 +5,16 @@ import { patch } from "@web/core/utils/patch";
 
 patch(PosData.prototype, {
     sanitizeData() {
-        const orders = this.models["pos.order"] || [];
-        const order_to_delete = orders.filter((order) =>
-            (order.lines || []).some((line) => line?.is_reward_line && !line.coupon_id)
-        );
-        for (const order of order_to_delete) {
-            const lines = order.lines || [];
-            for (let i = lines.length - 1; i >= 0; i--) {
-                lines[i].delete();
+        const orders = [...(this.models["pos.order"] || [])];
+        for (const order of orders) {
+            if (!order.lines) {
+                this.localDeleteCascade(order);
+                continue;
+            }
+            if (order.lines.some((line) => line?.is_reward_line && !line.coupon_id)) {
+                for (let i = order.lines.length - 1; i >= 0; i--) {
+                    order.lines[i].delete();
+                }
             }
         }
     },

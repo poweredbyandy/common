@@ -1,6 +1,6 @@
 {
     "name": "PBA POS Sale",
-    "version": "18.0.1.0.5",
+    "version": "18.0.1.0.6",
     "category": "Point of Sale",
     "summary": "Generar presupuestos (cotizaciones) desde el punto de venta.",
     "author": "andyengit",
@@ -10,6 +10,8 @@
     "depends": [
         "point_of_sale",
         "sale",
+        "currency_pos",
+        "l10n_ve_pos_igtf",
     ],
     "assets": {
         "point_of_sale._assets_pos": [

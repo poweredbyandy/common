@@ -108,9 +108,6 @@ patch(ControlButtons.prototype, {
                 );
                 return;
             }
-            if (order.uiState) {
-                order.uiState.displayed = false;
-            }
             this.pos.afterOrderDeletion();
             if (this.props.close) {
                 this.props.close();
