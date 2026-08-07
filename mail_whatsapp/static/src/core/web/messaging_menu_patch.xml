@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates>
+    <t t-name="mail_whatsapp.MessagingMenu.content" t-inherit="mail.MessagingMenu.content" t-inherit-mode="extension">
+        <xpath expr="//button[contains(@class, 'o-mail-MessagingMenu-headerFilter')][last()]" position="after">
+            <button
+                class="o-mail-MessagingMenu-headerFilter btn btn-link px-2 py-1 m-1 lh-1"
+                t-att-class="store.discuss.activeTab === 'whatsapp' ? 'fw-bold o-active' : 'text-muted'"
+                type="button"
+                role="tab"
+                t-on-click="() => store.discuss.activeTab = 'whatsapp'"
+            >
+                <i class="fa fa-whatsapp me-1"/>WhatsApp
+            </button>
+        </xpath>
+        <xpath expr="//t[contains(@t-foreach, 'threads')]//*[contains(@t-set-slot, 'icon')]" position="inside">
+            <ThreadIcon t-if="thread.channel_type === 'whatsapp'" className="'o-mail-whatsapp-threadIcon rounded-circle align-items-center bg-inherit position-absolute top-100 start-100 translate-middle mt-n1 ms-n1'" thread="thread" />
+        </xpath>
+    </t>
+</templates>
+

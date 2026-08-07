@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="mail_activity_type_whatsapp_followup" model="mail.activity.type">
+        <field name="is_whatsapp_followup" eval="True"/>
+    </record>
+</odoo>

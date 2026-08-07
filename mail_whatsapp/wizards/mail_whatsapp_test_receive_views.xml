@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="mail_whatsapp_test_receive_view_form" model="ir.ui.view">
+        <field name="name">mail.whatsapp.test.receive.view.form</field>
+        <field name="model">mail.whatsapp.test.receive</field>
+        <field name="arch" type="xml">
+            <form string="Simulate Incoming WhatsApp Message">
+                <div class="alert alert-info" role="alert">
+                    Prefer the movable browser window action. This form is kept
+                    as fallback.
+                </div>
+                <group>
+                    <field name="wa_account_id" />
+                    <field
+                        name="sender_phone"
+                        placeholder="584121234567"
+                    />
+                    <field name="sender_name" />
+                    <field name="body" />
+                </group>
+                <footer>
+                    <button
+                        name="action_simulate_receive"
+                        type="object"
+                        string="Simulate Incoming Message"
+                        class="btn-primary"
+                    />
+                    <button special="cancel" string="Cancel" />
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record
+        id="mail_whatsapp_open_simulate_receive_action"
+        model="ir.actions.client"
+    >
+        <field name="name">Simulate Incoming Message</field>
+        <field name="tag">mail_whatsapp_open_simulate_receive</field>
+        <field name="target">current</field>
+    </record>
+</odoo>

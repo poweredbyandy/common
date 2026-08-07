@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="mail_whatsapp_followup_view_form" model="ir.ui.view">
+        <field name="name">mail.whatsapp.followup.view.form</field>
+        <field name="model">mail.whatsapp.followup</field>
+        <field name="arch" type="xml">
+            <form string="Programar seguimiento WhatsApp">
+                <group>
+                    <field name="res_model" invisible="1"/>
+                    <field name="res_id" invisible="1"/>
+                    <field name="show_interest" invisible="1"/>
+                    <field name="delay_days"/>
+                    <field name="date_deadline"/>
+                    <field name="user_id" widget="many2one_avatar_user"/>
+                    <field name="activity_type_id"/>
+                </group>
+                <group string="Intereses" invisible="not show_interest">
+                    <field
+                        name="interest"
+                        nolabel="1"
+                        placeholder="¿En qué estuvo interesado/a?"
+                        colspan="2"
+                    />
+                </group>
+                <group string="Mensaje de seguimiento">
+                    <field name="message_body" nolabel="1" colspan="2"/>
+                </group>
+                <footer>
+                    <button
+                        name="action_schedule"
+                        type="object"
+                        string="Programar seguimiento"
+                        class="btn-primary"
+                        data-hotkey="q"
+                    />
+                    <button string="Cancelar" special="cancel" data-hotkey="x"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

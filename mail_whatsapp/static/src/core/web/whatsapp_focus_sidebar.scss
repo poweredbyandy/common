@@ -1,0 +1,71 @@
+.o-mail-whatsapp-FocusSidebar {
+    min-height: 0;
+}
+
+.o-mail-whatsapp-FocusTags {
+    max-height: 4.5rem;
+    overflow: hidden;
+}
+
+.o-mail-whatsapp-FocusTagChip,
+.o-mail-whatsapp-FocusTagMore {
+    max-width: 100%;
+    cursor: pointer;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
+.o-mail-whatsapp-FocusTagsMenu {
+    min-width: 12rem;
+    max-width: 18rem;
+    max-height: 16rem;
+    overflow: auto;
+}
+
+.o-mail-whatsapp-FocusSection {
+    z-index: 1;
+}
+
+.o-mail-whatsapp-FocusMessage {
+    .o-mail-whatsapp-FocusMessage-body {
+        white-space: nowrap;
+
+        b {
+            font-weight: 700;
+        }
+    }
+}
+
+.o-mail-whatsapp-FocusAvatar {
+    width: 42px;
+    height: 42px;
+}
+
+.o-mail-whatsapp-FocusItem {
+    &.o-active {
+        background-color: rgba(0, 0, 0, 0.06) !important;
+    }
+
+    &.o-unread .text-muted {
+        opacity: 0.9;
+    }
+}
+
+.o-mail-DiscussSidebar.o-compact {
+    .o-mail-whatsapp-FocusSidebar {
+        .o-mail-whatsapp-FocusSearch,
+        .o-mail-whatsapp-FocusTags {
+            display: none;
+        }
+
+        .o-mail-whatsapp-FocusItem {
+            justify-content: center;
+            padding-inline: 0.25rem !important;
+
+            > .min-w-0 {
+                display: none;
+            }
+        }
+    }
+}

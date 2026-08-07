@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates>
+    <t t-name="mail_whatsapp.Chatter" t-inherit="mail.Chatter" t-inherit-mode="extension">
+        <xpath expr="//button[contains(@class, 'o-mail-Chatter-sendMessage')]" position="replace">
+            <button class="o-mail-Chatter-sendMessage btn text-nowrap me-1" t-att-class="{
+                'btn-primary': state.composerType === 'message',
+                'btn-secondary': state.composerType !== 'message',
+                'active': state.composerType === 'message',
+                'my-2': !props.compactHeight
+            }" t-att-disabled="!state.thread.canPostMessage and props.threadId" data-hotkey="m" t-on-click="() => this.toggleComposer('message')">
+                Send message
+            </button>
+        </xpath>
+        <xpath expr="//button[contains(@class, 'o-mail-Chatter-logNote')]" position="replace">
+            <button class="o-mail-Chatter-logNote btn text-nowrap me-1" t-att-class="{
+                'btn-primary active': state.composerType === 'note',
+                'btn-secondary': state.composerType !== 'note',
+                'my-2': !props.compactHeight
+            }" t-att-disabled="!state.thread.canPostMessage and props.threadId" data-hotkey="shift+m" t-on-click="() => this.toggleComposer('note')">
+                Log note
+            </button>
+        </xpath>
+        <xpath expr="//button[contains(@class, 'o-mail-Chatter-logNote')]" position="after">
+            <button
+                t-if="state.thread.canSendWhatsapp"
+                class="o-mail-Chatter-whatsapp btn text-nowrap me-1"
+                t-att-class="{
+                    'btn-primary active': state.composerType === 'whatsapp',
+                    'btn-secondary': state.composerType !== 'whatsapp',
+                    'my-2': !props.compactHeight
+                }"
+                t-att-disabled="(!state.thread.canPostMessage and props.threadId) or state.whatsappLoading"
+                data-hotkey="shift+w"
+                t-on-click="toggleWhatsappComposer"
+                title="Send WhatsApp Message"
+                aria-label="Send WhatsApp Message"
+            >
+                <i class="fa fa-whatsapp me-1" t-att-class="{'text-success': state.composerType !== 'whatsapp'}"/>
+                WhatsApp
+            </button>
+        </xpath>
+        <xpath expr="//SuggestedRecipientsList[@styleString]" position="attributes">
+            <attribute name="t-if">state.composerType === 'message' and state.thread.recipients.length > 0</attribute>
+        </xpath>
+        <xpath expr="//Composer" position="replace">
+            <t t-if="state.composerType === 'whatsapp' and state.thread.composer">
+                <div class="o-mail-Chatter-whatsappComposer px-3 pt-3 pb-2">
+                    <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                        <span class="badge rounded-pill" t-att-class="{
+                            'text-bg-success': state.thread.composer.whatsappWindowActive,
+                            'text-bg-warning': !state.thread.composer.whatsappWindowActive,
+                        }">
+                            <t t-if="state.thread.composer.whatsappWindowActive">24h open</t>
+                            <t t-else="">24h closed</t>
+                        </span>
+                        <select
+                            class="form-select form-select-sm o-mail-Chatter-whatsappTemplate flex-grow-1"
+                            style="max-width: 22rem;"
+                            t-att-value="state.thread.composer.whatsappTemplateId or ''"
+                            t-on-change="onWhatsappTemplateChange"
+                        >
+                            <option
+                                value=""
+                                t-if="state.thread.composer.whatsappWindowActive"
+                            >
+                                Message
+                            </option>
+                            <option
+                                value=""
+                                t-if="!state.thread.composer.whatsappWindowActive"
+                                disabled="1"
+                            >
+                                Select a template…
+                            </option>
+                            <t t-foreach="state.thread.composer.whatsappTemplates" t-as="template" t-key="template.id">
+                                <option
+                                    t-att-value="template.id"
+                                    t-att-selected="template.id === state.thread.composer.whatsappTemplateId"
+                                    t-esc="template.name"
+                                />
+                            </t>
+                        </select>
+                    </div>
+                    <t t-if="state.thread.composer.whatsappTemplateId">
+                        <div class="o-mail-Chatter-whatsappPreview border rounded-3 bg-view p-3 mb-2">
+                            <div class="text-muted small mb-1">Template preview</div>
+                            <div class="o-mail-Chatter-whatsappPreviewBody" t-out="whatsappSelectedTemplatePreview"/>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <button
+                                class="btn btn-primary"
+                                t-att-disabled="state.whatsappSending or !state.thread.composer.whatsappTemplateId"
+                                t-on-click="sendWhatsappTemplate"
+                            >
+                                Send WhatsApp
+                            </button>
+                        </div>
+                    </t>
+                    <Composer
+                        t-else=""
+                        composer="state.thread.composer"
+                        autofocus="true"
+                        className="'pt-2'"
+                        mode="'extended'"
+                        onPostCallback.bind="onPostCallback"
+                        onCloseFullComposerCallback.bind="onCloseFullComposerCallback"
+                        dropzoneRef="rootRef"
+                        type="'whatsapp'"
+                        allowUpload="false"
+                        showFullComposer="false"
+                        t-key="props.threadId"
+                    />
+                </div>
+            </t>
+            <Composer
+                t-else=""
+                composer="state.thread.composer"
+                autofocus="true"
+                className="state.composerType === 'message' ? '' : 'pt-4'"
+                mode="'extended'"
+                onPostCallback.bind="onPostCallback"
+                onCloseFullComposerCallback.bind="onCloseFullComposerCallback"
+                dropzoneRef="rootRef"
+                type="state.composerType"
+                t-key="props.threadId"
+            />
+        </xpath>
+    </t>
+</templates>

@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+    <t t-name="mail_whatsapp.EmbeddedSignupAction">
+        <div class="o_mail_whatsapp_embedded_signup p-4">
+            <h2 class="mb-3">Connect WhatsApp (Coexistence)</h2>
+            <p class="text-muted mb-3">
+                Uses Facebook Login for Business / Embedded Signup with
+                <code>response_type=code</code> (required). The default SDK
+                <code>response_type=token</code> is not supported in this flow.
+            </p>
+
+            <div t-if="state.loading" class="alert alert-info">
+                Loading configuration…
+            </div>
+
+            <div t-if="!state.loading and !state.configured" class="alert alert-warning">
+                <p class="mb-2">
+                    Missing Meta credentials. Configure them first, then come back here.
+                </p>
+                <ul class="mb-3">
+                    <t t-foreach="state.missing" t-as="item" t-key="item">
+                        <li t-esc="item"/>
+                    </t>
+                </ul>
+                <button
+                    type="button"
+                    class="btn btn-primary me-2"
+                    t-on-click="onOpenSettings"
+                >
+                    Open WhatsApp Settings
+                </button>
+                <button
+                    type="button"
+                    class="btn btn-secondary"
+                    t-on-click="onRetry"
+                >
+                    Retry
+                </button>
+            </div>
+
+            <div t-if="state.error" class="alert alert-danger" t-esc="state.error"/>
+
+            <div t-if="state.sdkReady" class="mb-3">
+                <div class="alert alert-success">
+                    <div><strong>Facebook SDK ready.</strong></div>
+                    <div class="mt-2">
+                        <strong>Active Meta App:</strong>
+                        <code t-esc="state.config.environment or 'test'"/>
+                        <t t-if="state.config.app_id">
+                            (App ID: <code t-esc="state.config.app_id"/>)
+                        </t>
+                    </div>
+                    <div class="mt-2">
+                        <strong>Config ID:</strong>
+                        <code t-esc="state.config.config_id or '-'"/>
+                    </div>
+                    <div class="mt-2">
+                        <strong>FB.getLoginStatus:</strong>
+                        <t t-if="state.fbStatusChecking"> checking…</t>
+                        <t t-else="">
+                            <code t-esc="state.fbStatus or 'unknown'"/>
+                            <t t-if="state.fbUserId">
+                                (userID: <code t-esc="state.fbUserId"/>)
+                            </t>
+                        </t>
+                    </div>
+                    <button
+                        type="button"
+                        class="btn btn-link btn-sm p-0 mt-2"
+                        t-on-click="onCheckLoginStatus"
+                        t-att-disabled="state.fbStatusChecking"
+                    >
+                        Refresh login status
+                    </button>
+                </div>
+
+                <div class="mb-3 border rounded p-3">
+                    <strong>/me/permissions</strong>
+                    <div class="text-muted small mb-2">
+                        Available when a Facebook user session exists in the browser.
+                        Embedded Signup itself returns an authorization
+                        <code>code</code> exchanged on the server.
+                    </div>
+                    <t t-if="state.permissionsLoading">
+                        <div class="text-muted">Loading permissions…</div>
+                    </t>
+                    <t t-elif="!state.permissions.length">
+                        <div class="text-muted">
+                            No browser permission data yet. Use Continue with Facebook below.
+                        </div>
+                    </t>
+                    <t t-else="">
+                        <div class="mb-2">
+                            <span class="badge text-bg-success me-1">Granted</span>
+                            <t t-foreach="state.grantedPermissions" t-as="perm" t-key="perm">
+                                <code class="me-1" t-esc="perm"/>
+                            </t>
+                            <t t-if="!state.grantedPermissions.length">
+                                <span class="text-muted">none</span>
+                            </t>
+                        </div>
+                        <div class="mb-2">
+                            <span class="badge text-bg-warning me-1">Declined</span>
+                            <t t-foreach="state.declinedPermissions" t-as="perm" t-key="perm">
+                                <code class="me-1" t-esc="perm"/>
+                            </t>
+                            <t t-if="!state.declinedPermissions.length">
+                                <span class="text-muted">none</span>
+                            </t>
+                        </div>
+                    </t>
+                    <button
+                        type="button"
+                        class="btn btn-link btn-sm p-0 me-3"
+                        t-on-click="onRefreshPermissions"
+                        t-att-disabled="state.permissionsLoading"
+                    >
+                        Refresh permissions
+                    </button>
+                    <button
+                        type="button"
+                        class="btn btn-warning btn-sm"
+                        t-on-click="onRerequestDeclinedPermissions"
+                        t-att-disabled="!hasDeclinedPermissions or state.rerequesting or state.connecting"
+                    >
+                        <t t-if="state.rerequesting">Re-asking…</t>
+                        <t t-else="">Re-ask via Embedded Signup</t>
+                    </button>
+                </div>
+
+                <div class="mt-3">
+                    <strong>WhatsApp Embedded Signup (Coexistence)</strong>
+                    <div class="text-muted small mb-2">
+                        <code>FB.login</code> with
+                        <code>config_id</code>,
+                        <code>response_type=code</code>,
+                        <code>override_default_response_type=true</code>
+                        and
+                        <code>featureType=whatsapp_business_app_onboarding</code>.
+                    </div>
+                    <button
+                        type="button"
+                        class="btn btn-primary"
+                        t-on-click="onConnect"
+                        t-att-disabled="state.loading or state.connecting or !state.sdkReady or !state.configured"
+                    >
+                        <t t-if="state.connecting">Connecting…</t>
+                        <t t-else="">Continue with Facebook (Coexistence)</t>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </t>
+</templates>

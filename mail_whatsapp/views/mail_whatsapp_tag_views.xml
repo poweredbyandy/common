@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="mail_whatsapp_tag_view_tree" model="ir.ui.view">
+        <field name="name">mail.whatsapp.tag.view.list</field>
+        <field name="model">mail.whatsapp.tag</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="name"/>
+                <field name="color" widget="color_picker"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="mail_whatsapp_tag_action" model="ir.actions.act_window">
+        <field name="name">Tags</field>
+        <field name="res_model">mail.whatsapp.tag</field>
+        <field name="view_mode">list</field>
+    </record>
+</odoo>

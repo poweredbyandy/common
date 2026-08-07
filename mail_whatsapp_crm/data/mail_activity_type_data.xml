@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="mail_activity_type_whatsapp_interest_followup" model="mail.activity.type">
+        <field name="name">WhatsApp CRM Interest Follow-up</field>
+        <field name="summary">WhatsApp CRM follow-up on customer interest</field>
+        <field name="icon">fa-comments</field>
+        <field name="res_model">crm.lead</field>
+        <field name="delay_count">3</field>
+        <field name="delay_unit">days</field>
+        <field name="delay_from">current_date</field>
+        <field name="category">default</field>
+        <field name="decoration_type">warning</field>
+        <field name="is_whatsapp_followup" eval="True"/>
+        <field name="default_note" type="html">
+            <p>
+                Seguimiento WhatsApp CRM con plantilla dinámica de intereses.
+            </p>
+        </field>
+    </record>
+</odoo>

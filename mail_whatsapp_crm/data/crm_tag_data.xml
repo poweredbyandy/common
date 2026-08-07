@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="crm_tag_whatsapp" model="crm.tag">
+        <field name="name">WhatsApp</field>
+        <field name="color" eval="10"/>
+    </record>
+</odoo>

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="mail_whatsapp_crm.WhatsappCrmPanel">
+        <ActionPanel title.translate="CRM" resizable="false" icon="'fa fa-handshake-o'">
+            <div
+                class="d-flex flex-column flex-grow-1 bg-inherit"
+                t-att-class="{ 'o-mail-Discuss-threadActionPopover w-100': props.hasSizeConstraints }"
+            >
+                <button
+                    type="button"
+                    class="btn btn-link text-start text-reset px-2 py-2 d-flex align-items-center gap-2"
+                    t-on-click="onCreateCrm"
+                >
+                    <i class="fa fa-fw fa-plus"/>
+                    <span>Crear CRM</span>
+                </button>
+                <button
+                    type="button"
+                    class="btn btn-link text-start text-reset px-2 py-2 d-flex align-items-center gap-2"
+                    t-on-click="onOpenCrm"
+                >
+                    <i class="fa fa-fw fa-external-link"/>
+                    <span>Abrir CRM</span>
+                </button>
+                <button
+                    type="button"
+                    class="btn btn-link text-start text-reset px-2 py-2 d-flex align-items-center gap-2"
+                    t-on-click="onPinChatBubble"
+                >
+                    <i class="fa fa-fw fa-comments"/>
+                    <span>Fijar burbuja</span>
+                </button>
+            </div>
+        </ActionPanel>
+    </t>
+</templates>

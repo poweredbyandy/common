@@ -1,0 +1,160 @@
+.o_mail_whatsapp_dashboard {
+    --wa-green: #25d366;
+    --wa-green-dark: #128c7e;
+    --wa-green-soft: rgba(37, 211, 102, 0.12);
+    --wa-blue-soft: rgba(13, 110, 253, 0.1);
+    --wa-amber-soft: rgba(255, 193, 7, 0.14);
+    --wa-slate-soft: rgba(108, 117, 125, 0.12);
+
+    .o_mail_whatsapp_dashboard_sheet {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .o_mail_whatsapp_dashboard_logo {
+        width: 52px;
+        height: 52px;
+        border-radius: 14px;
+        background: var(--wa-green);
+        color: #fff;
+        font-size: 1.85rem;
+        box-shadow: 0 4px 12px rgba(37, 211, 102, 0.35);
+
+        .fa-whatsapp {
+            line-height: 1;
+        }
+    }
+
+    .o_mail_whatsapp_dashboard_title {
+        font-size: 1.75rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+    }
+
+    .o_mail_whatsapp_dashboard_filters {
+        background: var(--o-view-background-color, #fff);
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    }
+
+    .o_mail_whatsapp_kpi {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+        min-height: 148px;
+        padding: 1.1rem 1.15rem;
+        border: 1px solid var(--border-color, #dee2e6);
+        border-radius: 0.85rem;
+        background: var(--o-view-background-color, #fff);
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+        transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+        text-align: left;
+
+        &:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        &.btn {
+            --btn-border-color: var(--border-color, #dee2e6);
+            --btn-hover-border-color: var(--wa-green);
+            --btn-hover-bg: var(--o-view-background-color, #fff);
+            --btn-hover-color: inherit;
+        }
+    }
+
+    .o_mail_whatsapp_kpi_icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 2.25rem;
+        height: 2.25rem;
+        margin-bottom: 0.35rem;
+        border-radius: 999px;
+        font-size: 1rem;
+    }
+
+    .o_mail_whatsapp_kpi_label {
+        color: var(--body-color-muted, #6c757d);
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+    }
+
+    .o_mail_whatsapp_kpi_value {
+        font-size: 2rem;
+        font-weight: 700;
+        line-height: 1.15;
+        letter-spacing: -0.03em;
+
+        .o_field_widget,
+        span {
+            font: inherit;
+        }
+    }
+
+    .o_mail_whatsapp_kpi_hint {
+        margin-top: auto;
+        color: var(--body-color-muted, #6c757d);
+        font-size: 0.8rem;
+    }
+
+    .o_mail_whatsapp_kpi_received {
+        border-color: rgba(37, 211, 102, 0.35);
+
+        .o_mail_whatsapp_kpi_icon {
+            background: var(--wa-green-soft);
+            color: var(--wa-green-dark);
+        }
+
+        .o_mail_whatsapp_kpi_value {
+            color: var(--wa-green-dark);
+        }
+    }
+
+    .o_mail_whatsapp_kpi_sent {
+        border-color: rgba(13, 110, 253, 0.28);
+
+        .o_mail_whatsapp_kpi_icon {
+            background: var(--wa-blue-soft);
+            color: #0d6efd;
+        }
+
+        .o_mail_whatsapp_kpi_value {
+            color: #0d6efd;
+        }
+    }
+
+    .o_mail_whatsapp_kpi_response {
+        .o_mail_whatsapp_kpi_icon {
+            background: var(--wa-amber-soft);
+            color: #b58100;
+        }
+
+        .o_mail_whatsapp_kpi_value {
+            color: #8a6500;
+        }
+    }
+
+    .o_mail_whatsapp_kpi_total {
+        .o_mail_whatsapp_kpi_icon {
+            background: var(--wa-slate-soft);
+            color: #495057;
+        }
+    }
+
+    .o_mail_whatsapp_dashboard_panel {
+        background: var(--o-view-background-color, #fff);
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+        overflow: hidden;
+    }
+
+    .o_mail_whatsapp_dashboard_panel_header {
+        background: rgba(0, 0, 0, 0.02);
+    }
+
+    .o_list_view .o_data_row:hover {
+        background: var(--wa-green-soft);
+    }
+}

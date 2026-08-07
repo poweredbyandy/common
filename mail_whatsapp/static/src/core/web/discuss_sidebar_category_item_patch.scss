@@ -1,0 +1,25 @@
+.o-mail-DiscussSidebarChannel.o-mail-whatsapp-sidebarChannel {
+    align-items: flex-start !important;
+
+    .o-mail-DiscussSidebarChannel-itemMain {
+        align-items: flex-start !important;
+        justify-content: flex-start;
+        flex-grow: 1;
+        min-width: 0;
+        text-align: left;
+    }
+
+    .o-mail-DiscussSidebarChannel-itemName {
+        text-align: left;
+    }
+
+    .o-mail-whatsapp-sidebarNumber {
+        font-size: 0.7rem;
+    }
+
+    .o-mail-DiscussSidebarChannel-badge,
+    .o-mail-DiscussSidebarChannel-commands,
+    > .fa-bell-slash {
+        margin-top: 0.35rem;
+    }
+}

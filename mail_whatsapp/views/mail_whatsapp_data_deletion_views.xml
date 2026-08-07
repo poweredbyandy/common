@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="mail_whatsapp_data_deletion_view_list" model="ir.ui.view">
+        <field name="name">mail.whatsapp.data.deletion.view.list</field>
+        <field name="model">mail.whatsapp.data.deletion</field>
+        <field name="arch" type="xml">
+            <list create="0" edit="0" delete="0">
+                <field name="confirmation_code" />
+                <field name="facebook_user_id" />
+                <field name="state" />
+                <field name="create_date" />
+                <field name="status_url" widget="url" />
+            </list>
+        </field>
+    </record>
+
+    <record id="mail_whatsapp_data_deletion_view_form" model="ir.ui.view">
+        <field name="name">mail.whatsapp.data.deletion.view.form</field>
+        <field name="model">mail.whatsapp.data.deletion</field>
+        <field name="arch" type="xml">
+            <form create="0" edit="0" delete="0">
+                <sheet>
+                    <group>
+                        <field name="name" />
+                        <field name="confirmation_code" />
+                        <field name="facebook_user_id" />
+                        <field name="state" />
+                        <field name="status_url" widget="url" />
+                        <field name="status_message" />
+                        <field name="create_date" />
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="mail_whatsapp_data_deletion_action" model="ir.actions.act_window">
+        <field name="name">Data Deletion Requests</field>
+        <field name="res_model">mail.whatsapp.data.deletion</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

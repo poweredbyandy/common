@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="mail_whatsapp_test_send_view_form" model="ir.ui.view">
+        <field name="name">mail.whatsapp.test.send.view.form</field>
+        <field name="model">mail.whatsapp.test.send</field>
+        <field name="arch" type="xml">
+            <form string="Send WhatsApp Test Message">
+                <group>
+                    <field name="wa_account_id" readonly="1" />
+                    <field
+                        name="phone_number"
+                        placeholder="584121234567"
+                    />
+                    <field name="body" />
+                </group>
+                <footer>
+                    <button
+                        name="action_send"
+                        type="object"
+                        string="Send Test Message"
+                        class="btn-primary"
+                    />
+                    <button special="cancel" string="Cancel" />
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

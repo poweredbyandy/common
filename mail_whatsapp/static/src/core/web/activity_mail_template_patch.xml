@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+    <t t-inherit="mail.ActivityMailTemplate" t-inherit-mode="extension">
+        <xpath expr="//i[hasclass('fa-envelope-o')]" position="replace">
+            <i
+                t-att-class="props.activity.is_whatsapp_followup ? 'fa fa-comments' : 'fa fa-envelope-o'"
+                t-att-title="props.activity.is_whatsapp_followup ? 'WhatsApp' : 'Mail'"
+                role="img"
+            />
+        </xpath>
+    </t>
+</templates>

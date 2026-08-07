@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates>
+    <t t-name="mail_whatsapp.WhatsappFocusSidebar">
+        <div class="o-mail-whatsapp-FocusSidebar d-flex flex-column flex-grow-1 min-h-0 px-2 pb-2">
+            <div class="o-mail-whatsapp-FocusSearch position-relative mb-2">
+                <i class="fa fa-search position-absolute top-50 start-0 translate-middle-y ms-2 text-muted"/>
+                <input
+                    type="search"
+                    class="form-control form-control-sm ps-4"
+                    placeholder="Search name, mobile, tags, messages…"
+                    t-att-value="state.search"
+                    t-on-input="onSearchInput"
+                />
+                <i
+                    t-if="state.searching"
+                    class="fa fa-circle-o-notch fa-spin position-absolute top-50 end-0 translate-middle-y me-2 text-muted"
+                />
+            </div>
+            <div
+                t-if="allFilterTags.length"
+                class="o-mail-whatsapp-FocusTags d-flex flex-wrap align-items-center gap-1 mb-2"
+            >
+                <button
+                    t-foreach="visibleFilterTags"
+                    t-as="filter"
+                    t-key="filter.id"
+                    type="button"
+                    class="o-mail-whatsapp-FocusTagChip badge rounded-pill fw-normal"
+                    t-att-class="{
+                        'text-bg-200 text-muted border': filter.color === false and !isFilterSelected(filter.id),
+                        'text-bg-primary border-0': filter.color === false and isFilterSelected(filter.id),
+                        'border-0': filter.color !== false,
+                        'o-selected': isFilterSelected(filter.id),
+                    }"
+                    t-attf-class="{{ filter.color !== false ? 'o_tag o_badge o_tag_color_' + filter.color : '' }}"
+                    t-att-title="filter.label"
+                    t-att-aria-pressed="isFilterSelected(filter.id) ? 'true' : 'false'"
+                    t-on-click="() => this.toggleFilter(filter.id)"
+                >
+                    <t t-esc="filter.label"/>
+                    <i t-if="isFilterSelected(filter.id) and filter.color !== false" class="fa fa-check ms-1"/>
+                </button>
+                <Dropdown
+                    t-if="moreTagsCount > 0"
+                    state="moreTagsDropdown"
+                    position="'bottom-start'"
+                    menuClass="'o-mail-whatsapp-FocusTagsMenu p-1 shadow-sm'"
+                >
+                    <button
+                        type="button"
+                        class="o-mail-whatsapp-FocusTagMore badge rounded-pill fw-normal text-bg-200 text-muted border"
+                        t-att-class="{ 'text-bg-primary text-white border-0': hasOverflowFilterSelected }"
+                        t-att-title="moreTagsCount + ' more tags'"
+                    >
+                        +<t t-esc="moreTagsCount"/>
+                    </button>
+                    <t t-set-slot="content">
+                        <div class="o-mail-whatsapp-FocusTagsMenu-list d-flex flex-column gap-1 p-1">
+                            <button
+                                t-foreach="overflowFilterTags"
+                                t-as="filter"
+                                t-key="filter.id"
+                                type="button"
+                                class="btn btn-light btn-sm d-flex align-items-center gap-2 text-start px-2 py-1"
+                                t-on-click="() => this.toggleFilter(filter.id)"
+                            >
+                                <span
+                                    class="badge rounded-pill fw-normal border-0 text-truncate"
+                                    t-att-class="{
+                                        'text-bg-200 text-muted border': filter.color === false,
+                                    }"
+                                    t-attf-class="{{ filter.color !== false ? 'o_tag o_badge o_tag_color_' + filter.color : '' }}"
+                                    t-esc="filter.label"
+                                />
+                                <span class="flex-grow-1"/>
+                                <i
+                                    t-if="isFilterSelected(filter.id)"
+                                    class="fa fa-check text-success"
+                                />
+                            </button>
+                        </div>
+                    </t>
+                </Dropdown>
+            </div>
+            <div class="o-mail-whatsapp-FocusList flex-grow-1 overflow-auto">
+                <t t-if="state.loading and !filteredThreads.length">
+                    <div class="text-muted small text-center py-4 px-2">
+                        <i class="fa fa-circle-o-notch fa-spin me-1"/>
+                        Loading chats…
+                    </div>
+                </t>
+                <t t-elif="!hasResults">
+                    <div class="text-muted small text-center fst-italic py-4 px-2">
+                        No WhatsApp chats found.
+                    </div>
+                </t>
+
+                <button
+                    t-foreach="filteredThreads"
+                    t-as="thread"
+                    t-key="thread.localId"
+                    type="button"
+                    class="o-mail-whatsapp-FocusItem btn btn-light border-0 w-100 d-flex align-items-start text-start gap-2 px-2 py-2 mb-1 rounded-2"
+                    t-att-class="{
+                        'o-active bg-view': thread.eq(store.discuss.thread),
+                        'o-unread': thread.selfMember?.message_unread_counter > 0 and !thread.isMuted,
+                    }"
+                    t-on-click="() => this.openThread(thread)"
+                >
+                    <div class="o-mail-whatsapp-FocusAvatar flex-shrink-0 rounded-circle overflow-hidden bg-inherit">
+                        <img class="w-100 h-100 o_object_fit_cover" t-att-src="thread.avatarUrl" alt=""/>
+                    </div>
+                    <div class="min-w-0 flex-grow-1">
+                        <div class="d-flex align-items-center gap-1">
+                            <span
+                                class="text-truncate flex-grow-1"
+                                t-att-class="thread.selfMember?.message_unread_counter > 0 and !thread.isMuted ? 'fw-bolder' : ''"
+                                t-esc="thread.displayName"
+                            />
+                            <span
+                                t-if="getPreviewTime(thread)"
+                                class="smaller text-muted flex-shrink-0"
+                                t-esc="getPreviewTime(thread)"
+                            />
+                        </div>
+                        <div
+                            t-if="thread.whatsappNumber"
+                            class="smaller text-muted text-truncate"
+                            t-esc="thread.whatsappNumber"
+                        />
+                        <div
+                            t-if="thread.whatsappSidebarTags.length"
+                            class="d-flex flex-wrap gap-1 mt-1"
+                        >
+                            <span
+                                t-foreach="thread.whatsappSidebarTags"
+                                t-as="tag"
+                                t-key="tag.id"
+                                class="badge rounded-pill fw-normal"
+                                t-att-class="{
+                                    'text-bg-200 text-muted border': tag.color === false,
+                                }"
+                                t-attf-class="{{ tag.color !== false ? 'o_tag o_badge o_tag_color_' + tag.color + ' border-0' : '' }}"
+                                t-att-title="tag.title"
+                                t-esc="tag.label"
+                            />
+                        </div>
+                        <div class="d-flex align-items-center gap-1 mt-1 min-w-0">
+                            <span
+                                t-if="getPreview(thread)"
+                                class="small text-muted text-truncate flex-grow-1"
+                                t-esc="getPreview(thread)"
+                            />
+                            <span t-else="" class="flex-grow-1"/>
+                            <span
+                                t-if="thread.importantCounter > 0"
+                                class="badge rounded-pill o-discuss-badge flex-shrink-0"
+                                t-esc="thread.importantCounter"
+                            />
+                        </div>
+                    </div>
+                </button>
+
+                <t t-if="messageHits.length">
+                    <div class="o-mail-whatsapp-FocusSection sticky-top o-mail-discussSidebarBgColor pt-2 pb-1 mt-2">
+                        <div class="o-mail-whatsapp-FocusSection-title smaller text-uppercase text-muted fw-bolder px-1">
+                            <t t-esc="messagesSectionTitle"/>
+                        </div>
+                        <hr class="my-1 border-secondary opacity-25"/>
+                    </div>
+                    <button
+                        t-foreach="messageHits"
+                        t-as="hit"
+                        t-key="hit.id"
+                        type="button"
+                        class="o-mail-whatsapp-FocusItem o-mail-whatsapp-FocusMessage btn btn-light border-0 w-100 d-flex align-items-start text-start gap-2 px-2 py-2 mb-1 rounded-2"
+                        t-on-click="() => this.openMessage(hit)"
+                    >
+                        <div class="o-mail-whatsapp-FocusAvatar flex-shrink-0 rounded-circle overflow-hidden bg-inherit">
+                            <img class="w-100 h-100 o_object_fit_cover" t-att-src="getMessageAvatarUrl(hit)" alt=""/>
+                        </div>
+                        <div class="min-w-0 flex-grow-1">
+                            <div class="d-flex align-items-center gap-1">
+                                <span class="text-truncate flex-grow-1 fw-normal" t-esc="hit.channel_name"/>
+                                <span
+                                    t-if="formatHitDate(hit)"
+                                    class="smaller text-muted flex-shrink-0"
+                                    t-esc="formatHitDate(hit)"
+                                />
+                            </div>
+                            <div
+                                t-if="hit.author_name"
+                                class="smaller text-muted text-truncate fw-normal"
+                                t-esc="hit.author_name"
+                            />
+                            <div class="o-mail-whatsapp-FocusMessage-body small text-truncate mt-1 fw-normal" t-out="highlightMatch(hit.body)"/>
+                        </div>
+                    </button>
+                </t>
+
+                <div
+                    class="o-mail-whatsapp-FocusLoadMore py-2 text-center"
+                    t-att-class="{ 'd-none': !state.hasMore }"
+                    t-ref="load-more"
+                >
+                    <t t-if="state.loadingMore">
+                        <i class="fa fa-circle-o-notch fa-spin text-muted"/>
+                    </t>
+                    <t t-else="">
+                        <span class="smaller text-muted">Scroll to load more</span>
+                    </t>
+                </div>
+            </div>
+        </div>
+    </t>
+</templates>

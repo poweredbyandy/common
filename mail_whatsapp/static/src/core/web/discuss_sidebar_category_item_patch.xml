@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates>
+    <t t-name="mail_whatsapp.DiscussSidebarChannel.main" t-inherit="mail.DiscussSidebarChannel.main" t-inherit-mode="extension">
+        <xpath expr="//ThreadIcon" position="attributes">
+            <attribute name="t-if" add="or thread.channel_type === 'whatsapp'" separator=" "/>
+        </xpath>
+        <xpath expr="//span[hasclass('o-mail-DiscussSidebarChannel-itemName')]" position="replace">
+            <div
+                t-if="!store.discuss.isSidebarCompact"
+                class="o-mail-DiscussSidebarChannel-itemName mx-2 min-w-0 flex-grow-1 text-start"
+            >
+                <div
+                    class="text-truncate text-start"
+                    t-att-class="thread.selfMember?.message_unread_counter > 0 and !thread.isMuted ? 'o-item-unread fw-bolder' : 'text-muted'"
+                    t-esc="thread.displayName"
+                />
+                <div
+                    t-if="thread.channel_type === 'whatsapp' and thread.whatsappNumber"
+                    class="o-mail-whatsapp-sidebarNumber text-truncate text-muted smaller lh-1 mt-1 text-start"
+                    t-esc="thread.whatsappNumber"
+                />
+                <div
+                    t-if="thread.channel_type === 'whatsapp' and thread.whatsappSidebarTags.length"
+                    class="o-mail-whatsapp-sidebarTags d-flex flex-wrap gap-1 mt-1 justify-content-start"
+                >
+                    <span
+                        t-foreach="thread.whatsappSidebarTags"
+                        t-as="tag"
+                        t-key="tag.id"
+                        class="badge rounded-pill fw-normal o-mail-whatsapp-sidebarTag"
+                        t-att-class="{
+                            'text-bg-200 text-muted border': tag.color === false,
+                        }"
+                        t-attf-class="{{ tag.color !== false ? 'o_tag o_badge o_tag_color_' + tag.color + ' border-0' : '' }}"
+                        t-att-title="tag.title"
+                        t-esc="tag.label"
+                    />
+                </div>
+            </div>
+        </xpath>
+    </t>
+</templates>

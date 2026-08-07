@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="mail_whatsapp_message_view_list" model="ir.ui.view">
+        <field name="name">mail.whatsapp.message.view.list</field>
+        <field name="model">mail.whatsapp.message</field>
+        <field name="arch" type="xml">
+            <list string="WhatsApp Messages" create="0" edit="0">
+                <field name="message_date"/>
+                <field name="message_type"/>
+                <field name="state"/>
+                <field name="author_id"/>
+                <field name="contact_partner_id"/>
+                <field name="mobile_number"/>
+                <field name="wa_account_id" optional="show"/>
+                <field name="channel_id" optional="hide"/>
+                <field name="body" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="mail_whatsapp_message_view_form" model="ir.ui.view">
+        <field name="name">mail.whatsapp.message.view.form</field>
+        <field name="model">mail.whatsapp.message</field>
+        <field name="arch" type="xml">
+            <form string="WhatsApp Message" create="0" edit="0">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="message_date"/>
+                            <field name="message_type"/>
+                            <field name="state"/>
+                            <field name="author_id"/>
+                            <field name="contact_partner_id"/>
+                        </group>
+                        <group>
+                            <field name="mobile_number"/>
+                            <field name="wa_account_id"/>
+                            <field name="channel_id"/>
+                            <field name="wa_template_id"/>
+                            <field name="msg_uid"/>
+                        </group>
+                    </group>
+                    <group string="Body">
+                        <field name="body" nolabel="1" colspan="2"/>
+                    </group>
+                    <group string="Buttons" invisible="not buttons_data">
+                        <field name="buttons_data" nolabel="1" colspan="2"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="mail_whatsapp_message_view_graph" model="ir.ui.view">
+        <field name="name">mail.whatsapp.message.view.graph</field>
+        <field name="model">mail.whatsapp.message</field>
+        <field name="arch" type="xml">
+            <graph string="WhatsApp Messages" type="line" sample="1">
+                <field name="message_date" interval="day"/>
+                <field name="message_type"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="mail_whatsapp_message_view_pivot" model="ir.ui.view">
+        <field name="name">mail.whatsapp.message.view.pivot</field>
+        <field name="model">mail.whatsapp.message</field>
+        <field name="arch" type="xml">
+            <pivot string="WhatsApp Messages" sample="1">
+                <field name="message_date" interval="day" type="row"/>
+                <field name="message_type" type="col"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="mail_whatsapp_message_view_search" model="ir.ui.view">
+        <field name="name">mail.whatsapp.message.view.search</field>
+        <field name="model">mail.whatsapp.message</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="mobile_number"/>
+                <field name="author_id"/>
+                <field name="contact_partner_id"/>
+                <field name="wa_account_id"/>
+                <filter
+                    name="filter_inbound"
+                    string="Received"
+                    domain="[('message_type', '=', 'inbound')]"
+                />
+                <filter
+                    name="filter_outbound"
+                    string="Sent"
+                    domain="[('message_type', '=', 'outbound')]"
+                />
+                <separator/>
+                <filter
+                    name="filter_message_date"
+                    string="Message Date"
+                    date="message_date"
+                />
+                <group>
+                    <filter
+                        name="group_date"
+                        string="Date"
+                        context="{'group_by': 'message_date:day'}"
+                    />
+                    <filter
+                        name="group_type"
+                        string="Type"
+                        context="{'group_by': 'message_type'}"
+                    />
+                    <filter
+                        name="group_author"
+                        string="Author"
+                        context="{'group_by': 'author_id'}"
+                    />
+                    <filter
+                        name="group_contact"
+                        string="Contact"
+                        context="{'group_by': 'contact_partner_id'}"
+                    />
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="mail_whatsapp_message_action" model="ir.actions.act_window">
+        <field name="name">Messages</field>
+        <field name="res_model">mail.whatsapp.message</field>
+        <field name="view_mode">list,graph,pivot,form</field>
+        <field name="context">{}</field>
+    </record>
+</odoo>

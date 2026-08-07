@@ -1,0 +1,351 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="mail_whatsapp_account_view_list" model="ir.ui.view">
+        <field name="name">mail.whatsapp.account.view.list</field>
+        <field name="model">mail.whatsapp.account</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name" />
+                <field name="setup_mode" />
+                <field name="display_phone_number" />
+                <field name="phone_uid" optional="hide" />
+                <field name="account_uid" optional="hide" />
+                <field name="is_coexistence" />
+                <field name="coexistence_sync_state" />
+                <field
+                    name="allowed_company_ids"
+                    widget="many2many_tags"
+                    groups="base.group_multi_company"
+                    optional="hide"
+                />
+            </list>
+        </field>
+    </record>
+
+    <record id="mail_whatsapp_account_view_form" model="ir.ui.view">
+        <field name="name">mail.whatsapp.account.view.form</field>
+        <field name="model">mail.whatsapp.account</field>
+        <field name="arch" type="xml">
+            <form string="WhatsApp Business Account">
+                <header>
+                    <button
+                        name="action_test_connection"
+                        type="object"
+                        string="Test Credentials"
+                        class="btn-primary"
+                        invisible="not phone_uid or not token or not account_uid"
+                        groups="mail_whatsapp.group_mail_whatsapp_admin"
+                    />
+                    <button
+                        name="action_open_test_send"
+                        type="object"
+                        string="Send Test Message"
+                        invisible="not phone_uid or not token or phone_uid == 'demo_phone_number_id'"
+                        groups="mail_whatsapp.group_mail_whatsapp_admin"
+                    />
+                    <button
+                        name="action_open_test_receive"
+                        type="object"
+                        string="Simulate Incoming Message"
+                        invisible="not phone_uid"
+                        groups="mail_whatsapp.group_mail_whatsapp_admin"
+                        class="btn-secondary"
+                    />
+                    <button
+                        name="action_open_embedded_signup"
+                        type="object"
+                        string="Connect with Facebook Login"
+                        class="btn-primary"
+                        groups="mail_whatsapp.group_mail_whatsapp_admin"
+                        invisible="phone_uid and token and setup_mode == 'embedded_signup'"
+                    />
+                    <button
+                        name="action_open_templates"
+                        type="object"
+                        string="Templates"
+                    />
+                    <button
+                        name="action_sync_templates"
+                        type="object"
+                        string="Sync Templates"
+                        invisible="not phone_uid or not token or phone_uid == 'demo_phone_number_id'"
+                        groups="mail_whatsapp.group_mail_whatsapp_admin"
+                    />
+                    <button
+                        name="action_sync_coexistence_data"
+                        type="object"
+                        string="Sync Coexistence Data"
+                        invisible="not phone_uid or not is_coexistence"
+                        groups="mail_whatsapp.group_mail_whatsapp_admin"
+                    />
+                    <button
+                        name="action_refresh_coexistence_status"
+                        type="object"
+                        string="Refresh Status"
+                        invisible="not phone_uid or not token"
+                        groups="mail_whatsapp.group_mail_whatsapp_admin"
+                    />
+                    <field
+                        name="coexistence_sync_state"
+                        widget="statusbar"
+                        statusbar_visible="pending,contacts,history,done"
+                    />
+                </header>
+                <sheet>
+                    <widget
+                        name="web_ribbon"
+                        title="Archived"
+                        bg_color="text-bg-danger"
+                        invisible="active"
+                    />
+                    <div class="oe_title">
+                        <label for="name" />
+                        <h1>
+                            <field
+                                name="name"
+                                placeholder='e.g. "Acme Inc. Business Account"'
+                            />
+                        </h1>
+                    </div>
+                    <notebook>
+                        <page string="Configuration" name="configuration">
+                            <group>
+                                <group string="Setup">
+                                    <field name="active" invisible="1" />
+                                    <field name="setup_mode" widget="radio" />
+                                    <div
+                                        colspan="2"
+                                        class="text-muted"
+                                        invisible="setup_mode != 'manual'"
+                                    >
+                                        Paste credentials from Meta App Dashboard → WhatsApp → API Setup.
+                                        If the number is only on WhatsApp Business App (mobile), Cloud API
+                                        coexistence requires Meta onboarding; manual mode works when the
+                                        number is already registered on Cloud API.
+                                    </div>
+                                </group>
+                                <group string="Credentials">
+                                    <field
+                                        name="account_uid"
+                                        required="setup_mode == 'manual'"
+                                        placeholder="WABA ID"
+                                    />
+                                    <field
+                                        name="phone_uid"
+                                        required="setup_mode == 'manual'"
+                                        placeholder="Phone Number ID"
+                                    />
+                                    <field name="display_phone_number" />
+                                    <field
+                                        name="token"
+                                        password="True"
+                                        required="setup_mode == 'manual'"
+                                        groups="mail_whatsapp.group_mail_whatsapp_admin"
+                                    />
+                                </group>
+                                <group
+                                    string="Meta App (from Settings)"
+                                    groups="mail_whatsapp.group_mail_whatsapp_admin"
+                                >
+                                    <div colspan="2" class="text-muted">
+                                        App ID / Secret se toman de
+                                        <strong>Settings → WhatsApp → Meta Environment</strong>.
+                                        Solo se guardan aquí como copia; no hace falta
+                                        rellenarlos a mano salvo un override puntual.
+                                    </div>
+                                    <field
+                                        name="app_uid"
+                                        placeholder="Auto from Settings"
+                                    />
+                                    <field
+                                        name="app_secret"
+                                        password="True"
+                                        placeholder="Auto from Settings"
+                                    />
+                                </group>
+                                <group string="Coexistence">
+                                    <field name="is_on_biz_app" readonly="1" />
+                                    <field name="platform_type" readonly="1" />
+                                    <field name="is_coexistence" readonly="1" />
+                                    <field
+                                        name="facebook_user_id"
+                                        readonly="1"
+                                        groups="mail_whatsapp.group_mail_whatsapp_admin"
+                                    />
+                                    <field
+                                        name="coexistence_synced_at"
+                                        readonly="1"
+                                    />
+                                    <field
+                                        name="coexistence_request_ids"
+                                        readonly="1"
+                                        groups="mail_whatsapp.group_mail_whatsapp_admin"
+                                    />
+                                </group>
+                                <group string="Webhook">
+                                    <field
+                                        name="callback_url"
+                                        widget="CopyClipboardURL"
+                                    />
+                                    <field
+                                        name="webhook_verify_token"
+                                        widget="CopyClipboardChar"
+                                        groups="mail_whatsapp.group_mail_whatsapp_admin"
+                                    />
+                                </group>
+                                <group string="Notifications">
+                                    <field
+                                        name="notify_user_ids"
+                                        widget="many2many_tags"
+                                    />
+                                    <field
+                                        name="allowed_company_ids"
+                                        widget="many2many_tags"
+                                        groups="base.group_multi_company"
+                                    />
+                                </group>
+                            </group>
+                        </page>
+                        <page
+                            string="Pruebas"
+                            name="api_tests"
+                            groups="mail_whatsapp.group_mail_whatsapp_admin"
+                        >
+                            <div class="alert alert-info" role="alert">
+                                <p class="mb-1">
+                                    <strong>Settings → Meta Environment</strong> elige la app Meta
+                                    (Demo / Test / Production).
+                                    <strong>Esta cuenta</strong> guarda el WABA/token con el que
+                                    se llaman las APIs.
+                                </p>
+                                <p class="mb-1">
+                                    Para App Review: Settings en <strong>Test</strong> o
+                                    <strong>Production</strong> (no Demo), y ejecuta las pruebas
+                                    en una cuenta Cloud API real (no la cuenta Demo).
+                                </p>
+                                <p class="mb-0">
+                                    Cubren <code>public_profile</code>, <code>email</code>,
+                                    <code>business_management</code>,
+                                    <code>whatsapp_business_management</code> y
+                                    <code>whatsapp_business_messaging</code>.
+                                    Tokens ocultos en request/response.
+                                </p>
+                            </div>
+                            <div
+                                class="alert alert-warning"
+                                role="alert"
+                                invisible="not is_demo_account"
+                            >
+                                Estás en la cuenta Demo local. Cambia a tu cuenta real
+                                (conectada con Facebook Login o credenciales manuales Test/Production)
+                                para generar uso en Meta.
+                            </div>
+                            <group>
+                                <group>
+                                    <field name="is_demo_account" invisible="1"/>
+                                    <field name="api_test_meta_environment"/>
+                                    <field name="api_test_phone" placeholder="+58412..."/>
+                                    <field name="api_test_success_count"/>
+                                    <field name="api_test_error_count"/>
+                                    <field name="api_test_pending_count"/>
+                                </group>
+                                <group>
+                                    <button
+                                        name="action_prepare_api_tests"
+                                        type="object"
+                                        string="Preparar pruebas"
+                                        class="btn-secondary"
+                                    />
+                                    <button
+                                        name="action_run_all_api_tests"
+                                        type="object"
+                                        string="Ejecutar todas"
+                                        class="btn-primary"
+                                        invisible="not phone_uid or not token or not account_uid or is_demo_account"
+                                    />
+                                </group>
+                            </group>
+                            <field name="api_test_ids" nolabel="1" colspan="2">
+                                <list
+                                    create="0"
+                                    delete="0"
+                                    decoration-success="state == 'success'"
+                                    decoration-danger="state == 'error'"
+                                    decoration-muted="state == 'skipped'"
+                                    decoration-warning="state == 'pending'"
+                                >
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="name"/>
+                                    <field name="permission"/>
+                                    <field name="method"/>
+                                    <field name="endpoint"/>
+                                    <field name="state"/>
+                                    <field name="http_status" string="HTTP"/>
+                                    <field name="duration_ms" string="ms"/>
+                                    <field name="last_run"/>
+                                    <field name="error_message" optional="show"/>
+                                    <button
+                                        name="action_run"
+                                        type="object"
+                                        string="Ejecutar"
+                                        icon="fa-play"
+                                        class="btn-link"
+                                    />
+                                </list>
+                                <form string="API Test Detail">
+                                    <group>
+                                        <group>
+                                            <field name="name"/>
+                                            <field name="permission"/>
+                                            <field name="method"/>
+                                            <field name="endpoint"/>
+                                        </group>
+                                        <group>
+                                            <field name="state"/>
+                                            <field name="http_status"/>
+                                            <field name="duration_ms"/>
+                                            <field name="last_run"/>
+                                            <field name="error_message"/>
+                                        </group>
+                                    </group>
+                                    <group string="Request">
+                                        <field name="request_data" nolabel="1" colspan="2" widget="text"/>
+                                    </group>
+                                    <group string="Response">
+                                        <field name="response_data" nolabel="1" colspan="2" widget="text"/>
+                                    </group>
+                                </form>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter />
+            </form>
+        </field>
+    </record>
+
+    <record id="mail_whatsapp_account_action" model="ir.actions.act_window">
+        <field name="name">WhatsApp Accounts</field>
+        <field name="res_model">mail.whatsapp.account</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No WhatsApp accounts yet
+            </p>
+            <p>
+                Open an account and use
+                <strong>Connect with Facebook Login</strong>
+                only when you need to link a Meta / WhatsApp Business number.
+            </p>
+        </field>
+    </record>
+
+    <record
+        id="action_mail_whatsapp_embedded_signup"
+        model="ir.actions.client"
+    >
+        <field name="name">Connect with Embedded Signup</field>
+        <field name="tag">mail_whatsapp_embedded_signup</field>
+        <field name="target">new</field>
+    </record>
+</odoo>

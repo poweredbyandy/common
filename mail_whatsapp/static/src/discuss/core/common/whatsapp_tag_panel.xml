@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="mail_whatsapp.WhatsappTagPanel">
+        <ActionPanel title.translate="Add Tags" resizable="false" icon="'fa fa-tags'">
+            <div
+                class="d-flex flex-column flex-grow-1 bg-inherit"
+                t-att-class="{ 'o-mail-Discuss-threadActionPopover w-100': props.hasSizeConstraints }"
+            >
+                <div class="d-flex flex-wrap gap-1 mb-2" t-if="props.thread.whatsappTags?.length">
+                    <span
+                        t-foreach="props.thread.whatsappTags"
+                        t-as="tag"
+                        t-key="tag.id"
+                        class="o_tag position-relative d-inline-flex align-items-center user-select-none mw-100 o_badge badge rounded-pill border-0"
+                        t-attf-class="o_tag_color_{{tag.color or 0}}"
+                    >
+                        <div class="o_tag_badge_text text-truncate" t-esc="tag.name"/>
+                        <button
+                            class="o_tag_badge_remove btn p-0 border-0 ms-1"
+                            type="button"
+                            title="Remove"
+                            t-att-disabled="state.saving"
+                            t-on-click="() => this.onToggleTag(tag)"
+                        >
+                            <i class="oi oi-close"/>
+                        </button>
+                    </span>
+                </div>
+                <input
+                    class="form-control form-control-sm mb-2"
+                    t-ref="input"
+                    placeholder="Search or create a tag…"
+                    t-att-value="state.query"
+                    t-att-disabled="state.saving"
+                    t-on-input="onInput"
+                    t-on-keydown="onKeydown"
+                />
+                <ul class="list-group list-group-flush border-0 overflow-auto flex-grow-1 mb-0">
+                    <button
+                        t-if="canCreate"
+                        type="button"
+                        class="list-group-item list-group-item-action border-0 px-2 py-1 text-start"
+                        t-att-disabled="state.saving"
+                        t-on-click="onCreateTag"
+                    >
+                        <i class="fa fa-plus me-1"/>
+                        Create "<t t-esc="state.query.trim()"/>"
+                    </button>
+                    <t t-foreach="filteredTags" t-as="tag" t-key="tag.id">
+                        <button
+                            type="button"
+                            class="list-group-item list-group-item-action border-0 px-2 py-1 d-flex align-items-center gap-2"
+                            t-att-disabled="state.saving"
+                            t-on-click="() => this.onToggleTag(tag)"
+                        >
+                            <span
+                                class="o_tag o_badge badge rounded-pill border-0"
+                                t-attf-class="o_tag_color_{{tag.color or 0}}"
+                                t-esc="tag.name"
+                            />
+                            <span class="flex-grow-1"/>
+                            <i
+                                t-if="selectedTagIds.has(tag.id)"
+                                class="fa fa-check text-success"
+                            />
+                        </button>
+                    </t>
+                    <div
+                        t-if="!filteredTags.length and !canCreate"
+                        class="small text-muted fst-italic px-1 py-2"
+                    >
+                        No tags found.
+                    </div>
+                </ul>
+            </div>
+        </ActionPanel>
+    </t>
+</templates>

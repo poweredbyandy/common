@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+    <t t-inherit="mail.Activity" t-inherit-mode="extension">
+        <xpath expr="//div[hasclass('o-mail-Activity-mailTemplates')]" position="before">
+            <div t-if="props.activity.is_whatsapp_followup" class="o-mail-Activity-whatsappFollowup mb-1">
+                <i class="fa fa-comments" title="WhatsApp" role="img"/>
+                <span class="ms-2">WhatsApp Follow-up:</span>
+                <button
+                    class="btn btn-link py-0"
+                    t-on-click="onClickWhatsappFollowupSend"
+                >
+                    Send Now
+                </button>
+            </div>
+        </xpath>
+    </t>
+</templates>

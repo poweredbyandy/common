@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="crm_lead_view_form_whatsapp" model="ir.ui.view">
+        <field name="name">crm.lead.form.whatsapp</field>
+        <field name="model">crm.lead</field>
+        <field name="inherit_id" ref="crm.crm_lead_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button
+                    name="action_whatsapp_schedule_followup"
+                    type="object"
+                    string="Seguimiento WhatsApp"
+                    class="btn-secondary"
+                    groups="sales_team.group_sale_salesman"
+                />
+
+            </xpath>
+            <xpath expr="//page[@name='internal_notes']" position="before">
+                <page string="WhatsApp" name="whatsapp">
+                    <group>
+                        <group string="Intereses">
+                            <field
+                                name="whatsapp_interest"
+                                nolabel="1"
+                                placeholder="¿En qué estuvo interesado/a?"
+                                colspan="2"
+                            />
+                        </group>
+                        <group string="Origen">
+                            <field name="whatsapp_channel_id" readonly="1"/>
+                            <field name="medium_id"/>
+                            <field name="tag_ids" widget="many2many_tags" options="{'color_field': 'color'}"/>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="crm_lead_view_form_whatsapp_quick" model="ir.ui.view">
+        <field name="name">crm.lead.form.whatsapp.quick</field>
+        <field name="model">crm.lead</field>
+        <field name="priority">99</field>
+        <field name="arch" type="xml">
+            <form string="CRM WhatsApp">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="partner_id"/>
+                            <field name="contact_name"/>
+                            <field name="mobile" widget="phone"/>
+                            <field name="email_from" widget="email"/>
+                            <field name="user_id" widget="many2one_avatar_user"/>
+                        </group>
+                        <group>
+                            <field name="medium_id"/>
+                            <field name="tag_ids" widget="many2many_tags" options="{'color_field': 'color'}"/>
+                            <field name="whatsapp_channel_id" readonly="1"/>
+                            <field name="team_id"/>
+                        </group>
+                    </group>
+                    <group string="Intereses">
+                        <field
+                            name="whatsapp_interest"
+                            nolabel="1"
+                            placeholder="¿En qué estuvo interesado/a?"
+                            colspan="2"
+                        />
+                    </group>
+                    <group string="Notas internas">
+                        <field name="description" nolabel="1" colspan="2"/>
+                    </group>
+                </sheet>
+                <footer>
+                    <button string="Guardar" special="save" class="btn-primary" data-hotkey="q"/>
+                    <button string="Descartar" special="cancel" data-hotkey="x"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>
+

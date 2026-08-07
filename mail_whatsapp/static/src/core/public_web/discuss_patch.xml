@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates>
+    <t t-name="mail_whatsapp.Discuss" t-inherit="mail.Discuss" t-inherit-mode="extension">
+        <xpath expr="//AutoresizeInput[contains(@className, 'o-mail-Discuss-threadName')]" position="after">
+            <div
+                t-if="thread.channel_type === 'whatsapp' and thread.whatsappSidebarTags.length"
+                class="o-mail-whatsapp-discussHeaderTags d-flex flex-wrap align-items-center gap-1 ms-2"
+            >
+                <span
+                    t-foreach="thread.whatsappSidebarTags"
+                    t-as="tag"
+                    t-key="tag.id"
+                    class="badge rounded-pill fw-normal"
+                    t-att-class="{
+                        'text-bg-200 text-muted border': tag.color === false,
+                    }"
+                    t-attf-class="{{ tag.color !== false ? 'o_tag o_badge o_tag_color_' + tag.color + ' border-0' : '' }}"
+                    t-att-title="tag.title"
+                    t-esc="tag.label"
+                />
+            </div>
+        </xpath>
+    </t>
+</templates>

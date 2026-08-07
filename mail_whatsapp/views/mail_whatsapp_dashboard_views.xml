@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="mail_whatsapp_dashboard_view_form" model="ir.ui.view">
+        <field name="name">mail.whatsapp.dashboard.view.form</field>
+        <field name="model">mail.whatsapp.dashboard</field>
+        <field name="arch" type="xml">
+            <form
+                string="WhatsApp Dashboard"
+                class="o_mail_whatsapp_dashboard"
+                create="0"
+                delete="0"
+                duplicate="0"
+            >
+                <sheet class="o_mail_whatsapp_dashboard_sheet">
+                    <field name="name" invisible="1"/>
+                    <field name="avg_response_seconds" invisible="1"/>
+
+                    <div class="o_mail_whatsapp_dashboard_header d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+                        <div class="d-flex align-items-center gap-3 min-w-0">
+                            <div
+                                class="o_mail_whatsapp_dashboard_logo flex-shrink-0 d-inline-flex align-items-center justify-content-center"
+                                title="WhatsApp"
+                            >
+                                <i class="fa fa-whatsapp" title="WhatsApp"/>
+                            </div>
+                            <div class="min-w-0">
+                                <h1 class="o_mail_whatsapp_dashboard_title mb-0">
+                                    <span class="text-success">WhatsApp</span>
+                                    Dashboard
+                                </h1>
+                                <div class="text-muted small">
+                                    Activity overview for your WhatsApp conversations
+                                </div>
+                            </div>
+                        </div>
+                        <button
+                            name="action_refresh"
+                            type="object"
+                            string="Refresh"
+                            class="btn btn-primary o_mail_whatsapp_dashboard_refresh"
+                            icon="fa-refresh"
+                        />
+                    </div>
+
+                    <div class="o_mail_whatsapp_dashboard_filters border rounded-3 p-3 mb-4">
+                        <div class="row g-3 align-items-end">
+                            <div class="col-12 col-md-3">
+                                <label class="o_form_label" for="date_from">From</label>
+                                <field name="date_from" nolabel="1" class="w-100"/>
+                            </div>
+                            <div class="col-12 col-md-3">
+                                <label class="o_form_label" for="date_to">To</label>
+                                <field name="date_to" nolabel="1" class="w-100"/>
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <label class="o_form_label" for="wa_account_id">Account</label>
+                                <field
+                                    name="wa_account_id"
+                                    nolabel="1"
+                                    class="w-100"
+                                    options="{'no_create': True}"
+                                    placeholder="All accounts"
+                                />
+                            </div>
+                            <div class="col-12 col-md-2">
+                                <button
+                                    name="action_refresh"
+                                    type="object"
+                                    string="Apply"
+                                    class="btn btn-secondary w-100"
+                                    icon="fa-filter"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row o_mail_whatsapp_dashboard_kpis g-3 mb-4">
+                        <div class="col-12 col-sm-6 col-xl-3">
+                            <button
+                                name="action_open_received"
+                                type="object"
+                                class="o_mail_whatsapp_kpi o_mail_whatsapp_kpi_received btn w-100 text-start"
+                            >
+                                <div class="o_mail_whatsapp_kpi_icon" title="Received">
+                                    <i class="fa fa-download" title="Received"/>
+                                </div>
+                                <div class="o_mail_whatsapp_kpi_label">Messages Received</div>
+                                <div class="o_mail_whatsapp_kpi_value">
+                                    <field name="messages_received" nolabel="1"/>
+                                </div>
+                                <div class="o_mail_whatsapp_kpi_hint">Inbound WhatsApp</div>
+                            </button>
+                        </div>
+                        <div class="col-12 col-sm-6 col-xl-3">
+                            <button
+                                name="action_open_sent"
+                                type="object"
+                                class="o_mail_whatsapp_kpi o_mail_whatsapp_kpi_sent btn w-100 text-start"
+                            >
+                                <div class="o_mail_whatsapp_kpi_icon" title="Sent">
+                                    <i class="fa fa-upload" title="Sent"/>
+                                </div>
+                                <div class="o_mail_whatsapp_kpi_label">Messages Sent</div>
+                                <div class="o_mail_whatsapp_kpi_value">
+                                    <field name="messages_sent" nolabel="1"/>
+                                </div>
+                                <div class="o_mail_whatsapp_kpi_hint">Outbound WhatsApp</div>
+                            </button>
+                        </div>
+                        <div class="col-12 col-sm-6 col-xl-3">
+                            <div class="o_mail_whatsapp_kpi o_mail_whatsapp_kpi_response">
+                                <div class="o_mail_whatsapp_kpi_icon" title="Response time">
+                                    <i class="fa fa-clock-o" title="Response time"/>
+                                </div>
+                                <div class="o_mail_whatsapp_kpi_label">Avg. Response Time</div>
+                                <div class="o_mail_whatsapp_kpi_value">
+                                    <field name="avg_response_time_display" nolabel="1"/>
+                                </div>
+                                <div class="o_mail_whatsapp_kpi_hint">
+                                    Based on
+                                    <field name="responded_conversations" nolabel="1"/>
+                                    replies
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-sm-6 col-xl-3">
+                            <div class="o_mail_whatsapp_kpi o_mail_whatsapp_kpi_total">
+                                <div class="o_mail_whatsapp_kpi_icon" title="Total">
+                                    <i class="fa fa-comments" title="Total"/>
+                                </div>
+                                <div class="o_mail_whatsapp_kpi_label">Total Messages</div>
+                                <div class="o_mail_whatsapp_kpi_value">
+                                    <field name="messages_total" nolabel="1"/>
+                                </div>
+                                <div class="o_mail_whatsapp_kpi_hint">Received + Sent</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-12 col-lg-6">
+                            <div class="o_mail_whatsapp_dashboard_panel border rounded-3 h-100">
+                                <div class="o_mail_whatsapp_dashboard_panel_header d-flex align-items-center gap-2 px-3 py-3 border-bottom">
+                                    <i class="fa fa-pencil text-primary" title="Top Writers"/>
+                                    <span class="fw-bold">Top Writers</span>
+                                </div>
+                                <div class="p-2">
+                                    <field name="writer_line_ids" nolabel="1" mode="list">
+                                        <list create="0" delete="0" edit="0" no_open="1">
+                                            <field name="sequence" string="#"/>
+                                            <field name="partner_id" string="Agent" widget="many2one_avatar"/>
+                                            <field name="message_count" string="Messages"/>
+                                            <field name="line_type" column_invisible="1"/>
+                                        </list>
+                                    </field>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-lg-6">
+                            <div class="o_mail_whatsapp_dashboard_panel border rounded-3 h-100">
+                                <div class="o_mail_whatsapp_dashboard_panel_header d-flex align-items-center gap-2 px-3 py-3 border-bottom">
+                                    <i class="fa fa-users text-success" title="Top Contacts"/>
+                                    <span class="fw-bold">Top Contacts</span>
+                                </div>
+                                <div class="p-2">
+                                    <field name="contact_line_ids" nolabel="1" mode="list">
+                                        <list create="0" delete="0" edit="0" no_open="1">
+                                            <field name="sequence" string="#"/>
+                                            <field name="partner_id" string="Contact" widget="many2one_avatar"/>
+                                            <field name="message_count" string="Messages"/>
+                                            <field name="line_type" column_invisible="1"/>
+                                        </list>
+                                    </field>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="mail_whatsapp_dashboard_action" model="ir.actions.server">
+        <field name="name">WhatsApp Dashboard</field>
+        <field name="model_id" ref="model_mail_whatsapp_dashboard"/>
+        <field name="state">code</field>
+        <field name="code">
+action = model.action_open_dashboard()
+        </field>
+    </record>
+</odoo>

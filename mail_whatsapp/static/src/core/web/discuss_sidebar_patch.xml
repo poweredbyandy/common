@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates>
+    <t t-name="mail_whatsapp.DiscussSidebar.startMeetingButton" t-inherit="mail.DiscussSidebar.startMeetingButton" t-inherit-mode="extension">
+        <xpath expr="//button" position="attributes">
+            <attribute name="class" remove="mx-5" add="justify-content-center" separator=" "/>
+        </xpath>
+    </t>
+
+    <t t-name="mail_whatsapp.WhatsappFocusButton">
+        <button
+            type="button"
+            class="o-mail-whatsapp-FocusBtn btn d-inline-flex align-items-center justify-content-center rounded"
+            t-att-class="{
+                'o-active': store.discuss.whatsappFocus,
+                'btn-sm': !store.discuss.isSidebarCompact,
+                'py-2': store.discuss.isSidebarCompact,
+            }"
+            title="WhatsApp Focus"
+            t-att-aria-pressed="store.discuss.whatsappFocus ? 'true' : 'false'"
+            t-on-click="toggleWhatsappFocus"
+        >
+            <i class="fa fa-whatsapp fa-lg"/>
+        </button>
+    </t>
+
+    <t t-name="mail_whatsapp.DiscussSidebar" t-inherit="mail.DiscussSidebar" t-inherit-mode="extension">
+        <xpath expr="//Dropdown[.//t[@t-call='mail.DiscussSidebar.startMeetingButton']]" position="replace">
+            <t t-if="store.discuss.isSidebarCompact">
+                <Dropdown
+                    state="meetingFloating"
+                    position="'right-start'"
+                    menuClass="'o-mail-DiscussSidebar-floatingMenu bg-100 border border-secondary p-2 mx-2 my-0 min-w-0 shadow-sm'"
+                    manual="true"
+                >
+                    <t t-call="mail.DiscussSidebar.startMeetingButton"/>
+                    <t t-set-slot="content">
+                        <div t-ref="meeting-floating">
+                            <span class="text-muted user-select-none" t-esc="startMeetingText"/>
+                        </div>
+                    </t>
+                </Dropdown>
+                <div class="o-mail-whatsapp-focusControls d-flex justify-content-center mx-2">
+                    <t t-call="mail_whatsapp.WhatsappFocusButton"/>
+                </div>
+            </t>
+        </xpath>
+        <xpath expr="//t[@t-call='mail.DiscussSidebar.startMeetingButton'][not(ancestor::Dropdown)]" position="replace">
+            <div
+                t-else=""
+                class="o-mail-whatsapp-focusControls d-flex flex-column align-items-stretch gap-2 mx-5"
+            >
+                <t t-call="mail.DiscussSidebar.startMeetingButton"/>
+                <t t-call="mail_whatsapp.WhatsappFocusButton"/>
+            </div>
+        </xpath>
+        <xpath expr="//t[@t-foreach='discussSidebarItems']" position="replace">
+            <div t-att-class="{ 'd-none': !store.discuss.whatsappFocus }" class="o-mail-whatsapp-FocusSidebarHost d-flex flex-column flex-grow-1 min-h-0">
+                <WhatsappFocusSidebar t-key="'whatsapp_focus_sidebar'"/>
+            </div>
+            <t t-if="!store.discuss.whatsappFocus" t-foreach="discussSidebarItems" t-as="item" t-key="item_index" t-component="item"/>
+        </xpath>
+    </t>
+</templates>

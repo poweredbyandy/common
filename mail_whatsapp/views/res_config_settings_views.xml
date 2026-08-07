@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.mail.whatsapp</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="base_setup.res_config_settings_view_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <app
+                    data-string="WhatsApp"
+                    string="WhatsApp"
+                    name="mail_whatsapp"
+                    logo="/mail_whatsapp/static/src/img/whatsapp_logo.png"
+                    groups="mail_whatsapp.group_mail_whatsapp_admin"
+                >
+                    <block
+                        title="Active Meta App Environment"
+                        name="mail_whatsapp_meta_environment"
+                    >
+                        <setting
+                            string="Active Meta App"
+                            help="Demo: local simulation without Meta Test/Production credentials. Test/Production: use the corresponding Meta App IDs."
+                        >
+                            <field
+                                name="mail_whatsapp_meta_environment"
+                                widget="radio"
+                                options="{'horizontal': true}"
+                            />
+                            <field name="mail_whatsapp_is_demo" invisible="1" />
+                            <div class="text-muted mt-2">
+                                Active App ID:
+                                <field
+                                    name="mail_whatsapp_active_meta_app_id"
+                                    readonly="1"
+                                    class="oe_inline"
+                                />
+                            </div>
+                        </setting>
+                    </block>
+
+                    <block
+                        title="Demo Mode"
+                        name="mail_whatsapp_meta_demo"
+                        invisible="not mail_whatsapp_is_demo"
+                    >
+                        <setting
+                            string="Local WhatsApp simulation"
+                            help="Demo does not use Meta Test App data or Cloud API. Saving Settings creates a Demo WhatsApp account. Use Simulate Incoming Message to verify Odoo receives WhatsApp-like messages in Discuss."
+                        >
+                            <div class="content-group">
+                                <div class="mt-2 text-muted">
+                                    No Meta App ID / Secret / Config ID required.
+                                </div>
+                                <button
+                                    name="action_mail_whatsapp_open_demo_receive"
+                                    type="object"
+                                    string="Simulate Incoming Message"
+                                    class="btn btn-primary mt-3"
+                                    icon="fa-whatsapp"
+                                />
+                            </div>
+                        </setting>
+                    </block>
+
+                    <block
+                        title="Test Meta App"
+                        name="mail_whatsapp_meta_test"
+                        invisible="mail_whatsapp_is_demo"
+                    >
+                        <setting
+                            string="Test Meta App ID"
+                            help="App ID from your Meta Test / Development app."
+                        >
+                            <field name="mail_whatsapp_meta_test_app_id" />
+                        </setting>
+                        <setting
+                            string="Test Meta App Secret"
+                            help="App Secret from your Meta Test / Development app."
+                        >
+                            <field
+                                name="mail_whatsapp_meta_test_app_secret"
+                                password="True"
+                            />
+                        </setting>
+                        <setting
+                            string="Test Embedded Signup Configuration ID"
+                            help="Configuration ID created under the Test Meta App."
+                        >
+                            <field
+                                name="mail_whatsapp_meta_test_embedded_signup_config_id"
+                            />
+                        </setting>
+                    </block>
+
+                    <block
+                        title="Production Meta App"
+                        name="mail_whatsapp_meta_production"
+                        invisible="mail_whatsapp_is_demo"
+                    >
+                        <setting
+                            string="Production Meta App ID"
+                            help="App ID from your Meta Live / Production app."
+                        >
+                            <field name="mail_whatsapp_meta_production_app_id" />
+                        </setting>
+                        <setting
+                            string="Production Meta App Secret"
+                            help="App Secret from your Meta Live / Production app."
+                        >
+                            <field
+                                name="mail_whatsapp_meta_production_app_secret"
+                                password="True"
+                            />
+                        </setting>
+                        <setting
+                            string="Production Embedded Signup Configuration ID"
+                            help="Configuration ID created under the Production Meta App."
+                        >
+                            <field
+                                name="mail_whatsapp_meta_production_embedded_signup_config_id"
+                            />
+                        </setting>
+                    </block>
+
+                    <block
+                        title="Meta Legal URLs (App Dashboard → Settings → Basic)"
+                        name="mail_whatsapp_legal"
+                    >
+                        <setting
+                            string="Terms of Service URL"
+                            help="Required by Meta to switch the app to Live mode. Paste in App Dashboard → Settings → Basic → Terms of Service URL."
+                        >
+                            <field
+                                name="mail_whatsapp_terms_url"
+                                widget="CopyClipboardChar"
+                                readonly="1"
+                                placeholder="Set web.base.url first"
+                            />
+                        </setting>
+                        <setting
+                            string="Privacy Policy URL"
+                            help="Required by Meta Platform Terms. Must be public, crawlable, non-geoblocked, and explain data use + deletion. Paste in Settings → Basic → Privacy Policy URL."
+                        >
+                            <field
+                                name="mail_whatsapp_privacy_url"
+                                widget="CopyClipboardChar"
+                                readonly="1"
+                                placeholder="Set web.base.url first"
+                            />
+                        </setting>
+                        <setting
+                            string="User Data Deletion Instructions URL"
+                            help="Optional/recommended in Settings → Basic → User data deletion. Can be instructions URL (this page) and/or the Data Deletion Callback URL below."
+                        >
+                            <field
+                                name="mail_whatsapp_user_data_deletion_url"
+                                widget="CopyClipboardChar"
+                                readonly="1"
+                                placeholder="Set web.base.url first"
+                            />
+                        </setting>
+                    </block>
+
+                    <block title="Shared / Callbacks" name="mail_whatsapp_shared">
+                        <setting
+                            string="Graph API Version"
+                            help="Example: v23.0"
+                        >
+                            <field name="mail_whatsapp_api_version" />
+                        </setting>
+                        <setting
+                            string="Webhook Verify Token"
+                            help="Token Meta will send when verifying the webhook callback URL."
+                        >
+                            <field
+                                name="mail_whatsapp_webhook_verify_token"
+                                password="True"
+                            />
+                        </setting>
+                        <setting
+                            string="WhatsApp Webhook URL"
+                            help="Paste this URL in Meta App Dashboard → WhatsApp → Configuration (both Test and Production apps if needed). Built from Settings → System Parameters → web.base.url."
+                        >
+                            <field
+                                name="mail_whatsapp_webhook_url"
+                                widget="CopyClipboardChar"
+                                readonly="1"
+                                placeholder="Set web.base.url first"
+                            />
+                        </setting>
+                        <setting
+                            string="Facebook Data Deletion Callback URL"
+                            help="Paste this URL in Meta App Dashboard → Settings → Basic → Data deletion request URL. Built from web.base.url."
+                        >
+                            <field
+                                name="mail_whatsapp_data_deletion_url"
+                                widget="CopyClipboardChar"
+                                readonly="1"
+                                placeholder="Set web.base.url first"
+                            />
+                        </setting>
+                        <setting
+                            string="Facebook Deauthorize Callback URL"
+                            help="Paste this URL in Meta App Dashboard → Settings → Advanced → Deauthorize Callback URL. Built from web.base.url."
+                        >
+                            <field
+                                name="mail_whatsapp_deauthorize_url"
+                                widget="CopyClipboardChar"
+                                readonly="1"
+                                placeholder="Set web.base.url first"
+                            />
+                        </setting>
+                    </block>
+                </app>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="mail_whatsapp_action_settings" model="ir.actions.act_window">
+        <field name="name">WhatsApp Settings</field>
+        <field name="res_model">res.config.settings</field>
+        <field name="view_mode">form</field>
+        <field name="target">current</field>
+        <field name="context">{'module': 'mail_whatsapp'}</field>
+    </record>
+</odoo>
