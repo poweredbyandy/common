@@ -112,21 +112,13 @@ patch(ControlButtons.prototype, {
                 order.uiState.displayed = false;
             }
             this.pos.afterOrderDeletion();
-            const currentOrder = this.pos.get_order();
-            if (currentOrder) {
-                if (!currentOrder.lines) {
-                    currentOrder.lines = [];
-                }
-                if (!currentOrder.payment_ids) {
-                    currentOrder.payment_ids = [];
-                }
-            }
             if (this.props.close) {
                 this.props.close();
             }
             this.notification.add(_t("Quotation %s created successfully.", result.name), {
                 type: "success",
             });
+
         } catch (error) {
             this.dialog.add(AlertDialog, {
                 title: _t("Error"),

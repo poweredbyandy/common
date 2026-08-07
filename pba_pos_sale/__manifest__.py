@@ -1,6 +1,6 @@
 {
     "name": "PBA POS Sale",
-    "version": "18.0.1.0.4",
+    "version": "18.0.1.0.5",
     "category": "Point of Sale",
     "summary": "Generar presupuestos (cotizaciones) desde el punto de venta.",
     "author": "andyengit",
