@@ -5,7 +5,84 @@ import { PosStore } from "@point_of_sale/app/store/pos_store";
 import { makeAwaitable } from "@point_of_sale/app/store/make_awaitable_dialog";
 import { patch } from "@web/core/utils/patch";
 
+const PRODUCT_LIST_VIEW_KEY = "pba_pos_ux_product_list_view";
+
+function readSavedProductListView() {
+    const candidates = [
+        window.sessionStorage.getItem(PRODUCT_LIST_VIEW_KEY),
+        window.localStorage.getItem(PRODUCT_LIST_VIEW_KEY),
+        window.localStorage.getItem("productListView"),
+    ];
+    for (const value of candidates) {
+        if (value === "grid" || value === "list") {
+            return value;
+        }
+    }
+    return "grid";
+}
+
+function persistProductListView(view) {
+    window.sessionStorage.setItem(PRODUCT_LIST_VIEW_KEY, view);
+    window.localStorage.setItem(PRODUCT_LIST_VIEW_KEY, view);
+    window.localStorage.setItem("productListView", view);
+}
+
 patch(PosStore.prototype, {
+    async setup() {
+        await super.setup(...arguments);
+        this.productListView = readSavedProductListView();
+    },
+
+    get productListViewMode() {
+        const viewMode = this.productListView || "grid";
+        const switching = this.productListViewSwitching ? " pba_pos_ux_view_switching" : "";
+        if (viewMode === "grid") {
+            return `d-grid gap-2${switching}`;
+        }
+        return `list pba_pos_ux_product_list_mode${switching}`;
+    },
+
+    get productViewMode() {
+        const viewMode = this.productListView || "grid";
+        if (viewMode === "grid") {
+            return "flex-column";
+        }
+        return "flex-row align-items-center pba_pos_ux_product_list_item";
+    },
+
+    async setProductListView(view) {
+        if (
+            !["grid", "list"].includes(view) ||
+            this.productListView === view ||
+            this.productListViewSwitching
+        ) {
+            return;
+        }
+        const listEl = document.querySelector(".rightpane .product-list:not(.category-list)");
+        const maxScrollBefore = listEl
+            ? Math.max(listEl.scrollHeight - listEl.clientHeight, 0)
+            : 0;
+        const scrollRatio = listEl && maxScrollBefore
+            ? listEl.scrollTop / maxScrollBefore
+            : 0;
+
+        this.productListViewSwitching = true;
+        await new Promise((resolve) => setTimeout(resolve, 110));
+
+        persistProductListView(view);
+        this.productListView = view;
+
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+
+        const nextList = document.querySelector(".rightpane .product-list:not(.category-list)");
+        if (nextList) {
+            const maxScrollAfter = Math.max(nextList.scrollHeight - nextList.clientHeight, 0);
+            nextList.scrollTop = scrollRatio * maxScrollAfter;
+        }
+        this.productListViewSwitching = false;
+    },
+
     createNewOrder(data = {}) {
         const order = super.createNewOrder({ ...data, to_invoice: true });
         if (!order.is_to_invoice()) {

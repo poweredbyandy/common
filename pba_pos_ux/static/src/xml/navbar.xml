@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-inherit="point_of_sale.Navbar" t-inherit-mode="extension">
+        <xpath expr="//div[hasclass('pos-centerheader')]" position="attributes">
+            <attribute name="class" add="d-none" separator=" "/>
+        </xpath>
+        <xpath expr="//Input" position="attributes">
+            <attribute name="placeholder.translate">Buscar productos (nombre, codigo... use *)</attribute>
+            <attribute name="class">'p-0 flex-grow-1 pba_pos_ux_product_search'</attribute>
+        </xpath>
+    </t>
+</templates>

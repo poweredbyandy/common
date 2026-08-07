@@ -10,8 +10,34 @@
             </div>
         </xpath>
         <xpath expr="//CameraBarcodeScanner" position="before">
-            <div t-if="!pos.scanning" class="pba_pos_ux_section_title px-2">
-                Productos
+            <div t-if="!pos.scanning" class="pba_pos_ux_products_header">
+                <span class="pba_pos_ux_section_title">Productos</span>
+                <div class="pba_pos_ux_product_view_toggle" role="group" aria-label="Vista de productos">
+                    <button
+                        type="button"
+                        class="pba_pos_ux_view_btn"
+                        t-att-class="{'active': (pos.productListView || 'grid') === 'grid'}"
+                        t-att-disabled="pos.productListViewSwitching"
+                        t-on-click.stop="() => pos.setProductListView('grid')"
+                        title="Vista cards"
+                        aria-label="Vista cards"
+                    >
+                        <i class="fa fa-th-large" aria-hidden="true"/>
+                        <span>Cards</span>
+                    </button>
+                    <button
+                        type="button"
+                        class="pba_pos_ux_view_btn"
+                        t-att-class="{'active': pos.productListView === 'list'}"
+                        t-att-disabled="pos.productListViewSwitching"
+                        t-on-click.stop="() => pos.setProductListView('list')"
+                        title="Vista lista"
+                        aria-label="Vista lista"
+                    >
+                        <i class="fa fa-list" aria-hidden="true"/>
+                        <span>Lista</span>
+                    </button>
+                </div>
             </div>
         </xpath>
     </t>

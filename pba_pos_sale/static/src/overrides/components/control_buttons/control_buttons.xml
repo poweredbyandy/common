@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-name="pba_pos_sale.ControlButtons" t-inherit="point_of_sale.ControlButtons" t-inherit-mode="extension">
+        <xpath expr="//t[@t-if='props.showRemainingButtons']/div/OrderlineNoteButton" position="after">
+            <button
+                t-att-class="buttonClass"
+                t-att-disabled="!this.pos.get_order() || this.pos.get_order().is_empty()"
+                t-on-click="() => this.onClickGenerateQuotation()">
+                <i class="fa fa-file-text-o me-1" role="img" aria-label="Generar Presupuesto" title="Generar Presupuesto"/>
+                Generar Presupuesto
+            </button>
+        </xpath>
+    </t>
+</templates>

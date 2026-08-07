@@ -37,8 +37,26 @@
     outline-offset: 1px;
 }
 
-.product-list.list .o_pba_pos_qty_badge {
+.product:not(:has(> .product-img)) > .o_pba_pos_qty_badge {
     position: static;
-    margin-inline-end: 0.35rem;
+    top: auto;
+    left: auto;
+    z-index: auto;
+    align-self: flex-start;
+    max-width: calc(100% - 1rem);
+    margin: 0.45rem 0.5rem 0;
+    box-shadow: none;
+}
+
+.product-list.list .o_pba_pos_qty_badge,
+.product-list.pba_pos_ux_product_list_mode .o_pba_pos_qty_badge,
+.product.pba_pos_ux_product_list_item > .o_pba_pos_qty_badge {
+    position: static;
+    top: auto;
+    left: auto;
+    z-index: auto;
+    align-self: center;
+    max-width: 4.5rem;
+    margin: 0;
     box-shadow: none;
 }
