@@ -1,12 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates id="template" xml:space="preserve">
     <t t-inherit="point_of_sale.Navbar" t-inherit-mode="extension">
+        <xpath expr="//button[@t-if=&quot;isBarcodeScannerSupported() and pos.mainScreen.component.name == 'ProductScreen'&quot;]" position="attributes">
+            <attribute name="t-if">isBarcodeScannerSupported() and pos.mainScreen.component?.name == 'ProductScreen'</attribute>
+        </xpath>
         <xpath expr="//div[hasclass('pos-centerheader')]" position="attributes">
             <attribute name="class" add="d-none" separator=" "/>
         </xpath>
         <xpath expr="//Input" position="attributes">
             <attribute name="placeholder.translate">Buscar productos (nombre, codigo... use *)</attribute>
             <attribute name="class">'p-0 flex-grow-1 pba_pos_ux_product_search'</attribute>
+        </xpath>
+        <xpath expr="//div[hasclass('oe_status')]" position="replace">
+            <div
+                t-if="this.pos.data.network.offline or this.pos.data.network.loading or pbaPendingOrderCount"
+                class="oe_status btn btn-light btn-lg lh-lg h-100"
+                t-att-class="{'pe-none': !this.pos.data.network.unsyncData.length}"
+                t-on-click="onSyncNotificationClick"
+            >
+                <span
+                    t-if="pbaPendingOrderCount"
+                    class="badge text-bg-warning rounded-pill me-1 pba_pos_ux_pending_count"
+                    t-esc="pbaPendingOrderCount"
+                    title="Pending orders"
+                />
+                <span t-elif="this.pos.data.network.unsyncData.length > 0" t-esc="this.pos.data.network.unsyncData.length"/>
+                <div t-if="this.pos.data.network.offline" class="fa fa-fw fa-chain-broken text-danger"/>
+                <div t-elif="this.pos.data.network.loading" class="fa fa-fw fa-spin fa-circle-o-notch text-warning"/>
+                <div t-elif="pbaPendingOrderCount" class="fa fa-fw fa-cloud-upload text-warning"/>
+            </div>
         </xpath>
     </t>
 </templates>

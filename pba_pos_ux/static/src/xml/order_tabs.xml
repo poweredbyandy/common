@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-inherit="point_of_sale.OrderTabs" t-inherit-mode="extension">
+        <xpath expr="//ListContainer" position="before">
+            <button
+                type="button"
+                class="btn btn-secondary me-1 pba_pos_ux_orders_btn"
+                t-on-click="() => this.openOrdersList()"
+                title="Pedidos"
+            >
+                <i class="fa fa-fw fa-list" aria-hidden="true"/>
+                <span t-if="!ui.isSmall" class="pba_pos_ux_orders_btn_label">Pedidos</span>
+            </button>
+            <button
+                t-if="canOpenQuotation"
+                type="button"
+                class="btn btn-secondary me-1 pba_pos_ux_orders_btn pba_pos_sale_quotation_btn"
+                t-on-click="() => this.onClickQuotation()"
+                title="Cotizaciones/Orden"
+            >
+                <i class="fa fa-fw fa-link" aria-hidden="true"/>
+                <span t-if="!ui.isSmall" class="pba_pos_ux_orders_btn_label">Cotizaciones/Orden</span>
+            </button>
+        </xpath>
+        <xpath expr="//button[contains(@class, 'btn-lg')]" position="replace">
+            <button
+                t-attf-class="{{pos.get_order()?.uuid === order.uuid ? 'btn-secondary active' : ''}}"
+                class="btn btn-lg btn-secondary text-truncate mx-1 pba_pos_ux_order_tab"
+                style="min-width: 4rem;"
+                t-att-title="order.getName()"
+                t-on-click="() => this.selectFloatingOrder(order)"
+            >
+                <span t-esc="order.getName()"/>
+            </button>
+        </xpath>
+    </t>
+</templates>

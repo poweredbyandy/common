@@ -1,6 +1,6 @@
 {
     "name": "PBA POS Sale",
-    "version": "18.0.1.0.7",
+    "version": "18.0.1.0.17",
     "category": "Point of Sale",
     "summary": "Generar presupuestos (cotizaciones) desde el punto de venta.",
     "author": "andyengit",
@@ -9,14 +9,17 @@
     "license": "LGPL-3",
     "depends": [
         "point_of_sale",
+        "pos_sale",
         "sale",
         "currency_pos",
         "l10n_ve_pos_igtf",
+        "pba_pos_ux",
     ],
     "assets": {
         "point_of_sale._assets_pos": [
             "pba_pos_sale/static/src/overrides/models/data_service.js",
             "pba_pos_sale/static/src/overrides/models/pos_order.js",
+            "pba_pos_sale/static/src/overrides/models/pos_store.js",
             "pba_pos_sale/static/src/overrides/components/control_buttons/control_buttons.js",
             "pba_pos_sale/static/src/overrides/components/control_buttons/control_buttons.xml",
         ],

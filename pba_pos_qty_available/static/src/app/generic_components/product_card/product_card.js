@@ -22,19 +22,11 @@ patch(ProductCard.prototype, {
     },
 
     get orderedQty() {
-        let qty = 0;
         const productId = this.props.product?.id;
-        if (!productId || !this.pos) {
-            return qty;
+        if (!productId || !this.pos?.getOrderedQtyForProduct) {
+            return 0;
         }
-        for (const order of this.pos.get_open_orders()) {
-            for (const line of order.get_orderlines()) {
-                if (line.product_id?.id === productId) {
-                    qty += line.get_quantity();
-                }
-            }
-        }
-        return qty;
+        return this.pos.getOrderedQtyForProduct(productId);
     },
 
     get availableQty() {

@@ -5,6 +5,18 @@
     letter-spacing: 0.02em;
 }
 
+.pba_pos_ux_orders_btn {
+    display: inline-flex;
+    align-items: center;
+    align-self: center;
+    gap: 0.2rem;
+    white-space: nowrap;
+
+    .pba_pos_ux_orders_btn_label {
+        font-weight: 500;
+    }
+}
+
 .pads .control-buttons {
     flex-wrap: wrap;
 
@@ -146,17 +158,90 @@
 }
 
 .pos-topheader {
+    --pba-pos-navbar-control-height: 2rem;
+    --pba-pos-navbar-font-size: 0.8125rem;
+
+    &.navbar-height {
+        height: 46px;
+        min-height: 46px;
+        padding-top: 0.15rem !important;
+        padding-bottom: 0.15rem !important;
+    }
+
     .pos-centerheader {
         display: none !important;
         width: 0 !important;
     }
 
     .pos-leftheader:not(.pos-nav-small) {
-        width: 32%;
+        width: 36%;
+        min-width: 0;
+        gap: 0.2rem;
     }
 
     .pos-rightheader:not(.pos-nav-small) {
-        width: 68%;
+        width: 64%;
+    }
+
+    .pos-leftheader,
+    .status-buttons {
+        .btn.btn-lg,
+        .btn {
+            --bs-btn-padding-y: 0.2rem;
+            --bs-btn-padding-x: 0.45rem;
+            --bs-btn-font-size: var(--pba-pos-navbar-font-size);
+            --bs-btn-line-height: 1.2;
+            --bs-btn-border-radius: 0.35rem;
+            min-height: var(--pba-pos-navbar-control-height);
+            height: var(--pba-pos-navbar-control-height);
+            padding: 0.2rem 0.45rem;
+            font-size: var(--pba-pos-navbar-font-size);
+            line-height: 1.2;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .fa-lg {
+            font-size: 1rem;
+            line-height: 1;
+        }
+
+        .fa-fw {
+            width: 1.1em;
+        }
+    }
+
+    .list-plus-btn,
+    .pba_pos_ux_orders_btn {
+        flex-shrink: 0;
+        min-width: var(--pba-pos-navbar-control-height);
+    }
+
+    .list-container-items .btn {
+        min-width: 3rem !important;
+        max-width: 6.5rem;
+        padding-left: 0.4rem !important;
+        padding-right: 0.4rem !important;
+    }
+
+    .cashier-name {
+        gap: 0.35rem !important;
+        max-width: 9rem;
+
+        .avatar {
+            height: 18px !important;
+            width: 18px;
+        }
+
+        .username {
+            font-size: var(--pba-pos-navbar-font-size);
+            max-width: 6rem;
+        }
+    }
+
+    .status-buttons {
+        gap: 0.25rem !important;
     }
 
     .pba_pos_ux_product_search {
@@ -167,12 +252,27 @@
         .input-group,
         .input-container {
             width: 100%;
+            min-height: var(--pba-pos-navbar-control-height);
         }
 
-        .input-container input {
-            min-width: 14rem !important;
+        .input-group-text,
+        .input-container .input-group-text {
+            padding: 0.2rem 0.4rem;
+            font-size: var(--pba-pos-navbar-font-size);
+            min-height: var(--pba-pos-navbar-control-height);
+        }
+
+        .input-container input,
+        input {
+            min-width: 9rem !important;
+            min-height: var(--pba-pos-navbar-control-height) !important;
+            height: var(--pba-pos-navbar-control-height) !important;
             flex: 1 1 auto;
             width: 100%;
+            padding-top: 0.2rem !important;
+            padding-bottom: 0.2rem !important;
+            font-size: var(--pba-pos-navbar-font-size) !important;
+            line-height: 1.2 !important;
         }
     }
 }
@@ -233,12 +333,28 @@
     }
 }
 
+.product.pba_pos_ux_list_selected {
+    outline: 2px solid $o-action;
+    outline-offset: -2px;
+    background: rgba($o-action, 0.12) !important;
+    background-color: rgba($o-action, 0.12) !important;
+    --bs-btn-bg: #{rgba($o-action, 0.12)};
+    z-index: 1;
+}
+
 .product-list.list,
 .product-list.pba_pos_ux_product_list_mode {
     display: flex;
     flex-direction: column;
     gap: 0;
     grid-template-columns: none;
+
+    .product.pba_pos_ux_list_selected {
+        background: rgba($o-action, 0.16) !important;
+        background-color: rgba($o-action, 0.16) !important;
+        --bs-btn-bg: #{rgba($o-action, 0.16)};
+        border-color: $o-action !important;
+    }
 
     .product.pba_pos_ux_product_list_item {
         --bs-btn-bg: transparent;
@@ -478,4 +594,79 @@
             font-size: 0.7rem;
         }
     }
+}
+
+.pba_pos_ux_order_tab {
+    line-height: 1.1;
+
+    &.pba_pos_ux_order_locked {
+        border-color: #f0ad4e;
+    }
+}
+
+.pba_pos_ux_order_status_slot {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.75rem;
+    min-height: 1.75rem;
+    flex-shrink: 0;
+}
+
+.pba_pos_ux_order_status_text {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.75rem;
+    min-height: 1.75rem;
+    line-height: 1.1;
+}
+
+.pba_pos_ux_order_lock_avatar_wrap {
+    position: relative;
+    display: inline-flex;
+    width: 1.35rem;
+    height: 1.35rem;
+    flex-shrink: 0;
+
+    .pba_pos_ux_order_lock_avatar {
+        width: 100%;
+        height: 100%;
+    }
+
+    img.pba_pos_ux_order_lock_avatar {
+        position: absolute;
+        inset: 0;
+        object-fit: cover;
+        border: 1px solid #f0ad4e;
+    }
+
+    .pba_pos_ux_order_lock_avatar_initial {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-size: 0.7rem;
+        font-weight: 700;
+        line-height: 1;
+        border: 1px solid #f0ad4e;
+        user-select: none;
+    }
+}
+
+.pba_pos_ux_ticket_order_locked .pba_pos_ux_order_lock_avatar_wrap {
+    width: 1.75rem;
+    height: 1.75rem;
+
+    .pba_pos_ux_order_lock_avatar_initial {
+        font-size: 0.85rem;
+    }
+}
+
+.pba_pos_ux_pending_count {
+    vertical-align: middle;
+}
+
+.pba_pos_ux_no_order {
+    min-height: 12rem;
 }

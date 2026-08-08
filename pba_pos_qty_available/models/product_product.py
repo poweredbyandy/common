@@ -7,6 +7,14 @@ _PBA_FREE_QTY_RPC_LIMIT = 200
 class ProductProduct(models.Model):
     _inherit = "product.product"
 
+    def _get_archived_combinations_per_product_tmpl_id(self, product_tmpl_ids):
+        product_templates = self.env["product.template"].browse(
+            product_tmpl_ids
+        ).filtered("attribute_line_ids")
+        return super()._get_archived_combinations_per_product_tmpl_id(
+            product_templates.ids
+        )
+
     @api.model
     def _load_pos_data_fields(self, config_id):
         fields = super()._load_pos_data_fields(config_id)

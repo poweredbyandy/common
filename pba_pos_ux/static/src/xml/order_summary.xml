@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-inherit="point_of_sale.OrderSummary" t-inherit-mode="extension">
+        <xpath expr="//OrderWidget" position="replace">
+            <OrderWidget
+                lines="pbaOrderLines"
+                t-slot-scope="scope"
+                class="'bg-light'"
+                taxTotals="pbaHasActiveOrder ? currentOrder.taxTotals : false"
+                generalNote="pbaHasActiveOrder ? (currentOrder.general_note or '') : ''"
+            >
+                <t t-set="line" t-value="scope.line"/>
+                <Orderline
+                    line="line.getDisplayData()"
+                    t-if="line.order_id"
+                    t-on-click="(event) => this.clickLine(event, line)"
+                    class="{ ...line.getDisplayClasses(), 'selected' : line.isSelected() }"
+                >
+                    <t t-set-slot="product-name">
+                        <i
+                            t-if="line.get_product()?.isTracked()"
+                            t-on-click.stop="() => this.editPackLotLines(line)"
+                            role="img"
+                            t-attf-class="{{ line.has_valid_product_lot() ? 'text-success' : 'text-danger'}} fa fa-list line-lot-icon ms-1"
+                            t-attf-title="{{ line.has_valid_product_lot() ? 'Valid product lot' : 'Invalid product lot'}}"
+                        />
+                    </t>
+                </Orderline>
+                <t t-set-slot="details"/>
+                <t t-set-slot="emptyCart">
+                    <div class="d-flex flex-column align-items-center justify-content-center flex-grow-1 bg-100 rounded-3 gap-3 pba_pos_ux_no_order">
+                        <i class="fa fa-shopping-cart fa-4x text-muted" aria-hidden="true"/>
+                        <p t-if="!pbaHasActiveOrder" class="text-muted text-center px-3 mb-0" t-esc="pbaNoOrderMessage"/>
+                        <p t-else="" class="text-muted text-center px-3 mb-0" t-esc="pbaEmptyOrderMessage"/>
+                    </div>
+                </t>
+            </OrderWidget>
+        </xpath>
+    </t>
+</templates>

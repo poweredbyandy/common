@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-inherit="point_of_sale.TicketScreen" t-inherit-mode="extension">
+        <xpath expr="//div[hasclass('leftpane')]//t[@t-if=&quot;_selectedSyncedOrder?.get_orderlines()?.length&quot;]" position="attributes">
+            <attribute name="t-if">_selectedSyncedOrder and (!_selectedSyncedOrder.finalized or _selectedSyncedOrder.get_orderlines()?.length)</attribute>
+        </xpath>
+        <xpath expr="//div[hasclass('order-row') and not(hasclass('mobileOrderList'))]" position="attributes">
+            <attribute name="t-att-title">getOrderLockLabel(order) or false</attribute>
+            <attribute name="t-att-class">{
+                'highlight bg-primary text-white': isHighlighted(order),
+                'pba_pos_ux_ticket_order_locked': isOrderOccupied(order),
+            }</attribute>
+        </xpath>
+        <xpath expr="//div[hasclass('mobileOrderList') and hasclass('order-row')]" position="attributes">
+            <attribute name="t-att-title">getOrderLockLabel(order) or false</attribute>
+            <attribute name="t-att-class">{
+                'highlight bg-primary text-white': isHighlighted(order),
+                'pba_pos_ux_ticket_order_locked': isOrderOccupied(order),
+            }</attribute>
+        </xpath>
+        <xpath expr="//div[hasclass('order-row') and not(hasclass('mobileOrderList'))]//div[hasclass('col') and hasclass('narrow')]" position="replace">
+            <div class="col narrow p-2 d-flex align-items-center">
+                <div class="pba_pos_ux_order_status_slot">
+                    <t t-if="isOrderOccupied(order)">
+                        <t t-set="lockAvatar" t-value="getOrderLockAvatar(order)"/>
+                        <span
+                            class="pba_pos_ux_order_lock_avatar_wrap"
+                            t-att-title="getOrderLockLabel(order)"
+                        >
+                            <span
+                                class="pba_pos_ux_order_lock_avatar pba_pos_ux_order_lock_avatar_initial rounded-circle"
+                                t-att-style="'background-color: ' + lockAvatar.color + ';'"
+                                t-esc="lockAvatar.initial"
+                            />
+                            <img
+                                t-if="lockAvatar.url"
+                                t-att-src="lockAvatar.url"
+                                t-att-alt="getOrderLockLabel(order)"
+                                class="pba_pos_ux_order_lock_avatar rounded-circle"
+                                t-on-error="onOrderLockAvatarImgError"
+                            />
+                        </span>
+                    </t>
+                    <span t-else="" class="pba_pos_ux_order_status_text">
+                        <t t-esc="getStatus(order)"/>
+                    </span>
+                </div>
+            </div>
+        </xpath>
+        <xpath expr="//div[hasclass('orderStatus')]" position="replace">
+            <div class="orderStatus">
+                <div class="pba_pos_ux_order_status_slot">
+                    <t t-if="isOrderOccupied(order)">
+                        <t t-set="lockAvatar" t-value="getOrderLockAvatar(order)"/>
+                        <span
+                            class="pba_pos_ux_order_lock_avatar_wrap"
+                            t-att-title="getOrderLockLabel(order)"
+                        >
+                            <span
+                                class="pba_pos_ux_order_lock_avatar pba_pos_ux_order_lock_avatar_initial rounded-circle"
+                                t-att-style="'background-color: ' + lockAvatar.color + ';'"
+                                t-esc="lockAvatar.initial"
+                            />
+                            <img
+                                t-if="lockAvatar.url"
+                                t-att-src="lockAvatar.url"
+                                t-att-alt="getOrderLockLabel(order)"
+                                class="pba_pos_ux_order_lock_avatar rounded-circle"
+                                t-on-error="onOrderLockAvatarImgError"
+                            />
+                        </span>
+                    </t>
+                    <span t-else="" class="pba_pos_ux_order_status_text" t-esc="getStatus(order)"/>
+                </div>
+            </div>
+        </xpath>
+    </t>
+</templates>

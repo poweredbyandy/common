@@ -7,9 +7,16 @@ class SaleOrder(models.Model):
     _inherit = "sale.order"
 
     @api.model
+    def _load_pos_data_fields(self, config_id):
+        fields_list = super()._load_pos_data_fields(config_id)
+        if "currency_id" not in fields_list:
+            fields_list.append("currency_id")
+        return fields_list
+
+    @api.model
     def _pba_pos_convert_price(self, amount, from_currency, to_currency, company):
         if (
-            not amount
+            amount is None
             or not from_currency
             or not to_currency
             or from_currency == to_currency
@@ -92,6 +99,14 @@ class SaleOrder(models.Model):
             so_vals["fiscal_position_id"] = order_data["fiscal_position_id"]
         if order_data.get("user_id"):
             so_vals["user_id"] = order_data["user_id"]
+        if order_data.get("invoice_journal_id") and "journal_id" in self._fields:
+            journal = (
+                self.env["account.journal"]
+                .browse(order_data["invoice_journal_id"])
+                .exists()
+            )
+            if journal and journal.type == "sale":
+                so_vals["journal_id"] = journal.id
         if config and config.warehouse_id:
             so_vals["warehouse_id"] = config.warehouse_id.id
         if config and "crm_team_id" in config._fields and config.crm_team_id:
@@ -140,3 +155,69 @@ class SaleOrder(models.Model):
             "currency_name": order.currency_id.name,
             "pricelist_id": order.pricelist_id.id,
         }
+
+
+class SaleOrderLine(models.Model):
+    _inherit = "sale.order.line"
+
+    def _pba_convert_item_prices_to_pos_currency(self, item, pos_currency):
+        self.ensure_one()
+        so_currency = self.order_id.currency_id
+        if not so_currency or not pos_currency or so_currency == pos_currency:
+            return item
+        company = self.company_id or self.order_id.company_id
+        SaleOrder = self.env["sale.order"]
+        for field_name in ("price_unit", "price_total"):
+            if field_name not in item or item[field_name] is None:
+                continue
+            item[field_name] = SaleOrder._pba_pos_convert_price(
+                item[field_name],
+                so_currency,
+                pos_currency,
+                company,
+            )
+        return item
+
+    def read_converted(self):
+        results = super().read_converted()
+        pos_currency = (
+            self.env["res.currency"]
+            .browse(self.env.context.get("pba_pos_currency_id"))
+            .exists()
+        )
+        if not pos_currency or not results:
+            return results
+        for item in results:
+            line = self.browse(item["id"])
+            if line.exists():
+                line._pba_convert_item_prices_to_pos_currency(item, pos_currency)
+        return results
+
+    @api.model
+    def pba_read_prices_in_pos_currency(self, line_ids, pos_currency_id):
+        """Return SOL unit prices converted to the POS currency.
+
+        Used when settling a foreign-currency quotation in POS so amounts are
+        not kept in the quotation currency while the register displays VES/Bs.
+        """
+        pos_currency = self.env["res.currency"].browse(pos_currency_id).exists()
+        if not pos_currency:
+            return {}
+        SaleOrder = self.env["sale.order"]
+        prices = {}
+        for line in self.browse(line_ids).exists():
+            prices[line.id] = SaleOrder._pba_pos_convert_price(
+                line.price_unit,
+                line.order_id.currency_id,
+                pos_currency,
+                line.company_id or line.order_id.company_id,
+            )
+        return prices
+
+    @api.model
+    def pba_has_valued_move_ids_map(self, line_ids):
+        """Batch version of has_valued_move_ids for POS quotation settle."""
+        result = {}
+        for line in self.browse(line_ids).exists():
+            result[line.id] = bool(line.has_valued_move_ids())
+        return result

@@ -40,5 +40,15 @@
                 </div>
             </div>
         </xpath>
+        <xpath expr="//ProductCard" position="attributes">
+            <attribute name="class">getProductCardClass(product)</attribute>
+        </xpath>
+        <xpath expr="//div[hasclass('product-reminder')]" position="attributes">
+            <attribute name="t-if">pos.get_order()?.get_selected_orderline() and pos.hasJustAddedProduct</attribute>
+        </xpath>
+        <xpath expr="//button[hasclass('pay-button')]" position="attributes">
+            <attribute name="t-attf-class">{{ !pos.get_order() or currentOrder.is_empty() ? 'btn-secondary' : 'btn-primary' }}</attribute>
+        </xpath>
     </t>
 </templates>
+

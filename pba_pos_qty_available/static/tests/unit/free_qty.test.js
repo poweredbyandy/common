@@ -2,6 +2,7 @@ import { describe, expect, test } from "@odoo/hoot";
 import {
     applyFreeQtyMap,
     applyOrderFreeQtyDecrement,
+    buildOrderedQtyByProductId,
     getDisplayAvailableQty,
     getProductFreeQty,
     getQtyAvailableLevel,
@@ -79,5 +80,21 @@ describe("pba_pos_qty_available free_qty utils", () => {
         expect(getQtyAvailableLevel(0)).toBe("out");
         expect(getQtyAvailableLevel(3)).toBe("low");
         expect(getQtyAvailableLevel(20)).toBe("ok");
+    });
+
+    test("buildOrderedQtyByProductId aggregates open order lines", () => {
+        const orders = [
+            {
+                get_orderlines: () => [
+                    { product_id: { id: 1 }, get_quantity: () => 2 },
+                    { product_id: { id: 2 }, get_quantity: () => 1 },
+                ],
+            },
+            {
+                lines: [{ product: { id: 1 }, qty: 3 }],
+            },
+        ];
+        expect(buildOrderedQtyByProductId(orders)).toEqual({ 1: 5, 2: 1 });
+        expect(buildOrderedQtyByProductId([])).toEqual({});
     });
 });

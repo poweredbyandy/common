@@ -7,6 +7,10 @@ import { ask } from "@point_of_sale/app/store/make_awaitable_dialog";
 import { AlertDialog } from "@web/core/confirmation_dialog/confirmation_dialog";
 
 patch(ControlButtons.prototype, {
+    onClickQuotation() {
+        this.pos.pbaOpenQuotationSelector();
+    },
+
     _getQuotationLinesFromOrder(order) {
         const tipProductId = order.config.tip_product_id?.id;
         return order.get_orderlines().filter((line) => {
@@ -52,6 +56,7 @@ patch(ControlButtons.prototype, {
             pricelist_id: pricelist?.id || false,
             pos_currency_id: this.pos.currency?.id || false,
             fiscal_position_id: order.fiscal_position_id?.id || false,
+            invoice_journal_id: order.invoice_journal_id?.id || false,
             lines,
         };
     },
@@ -108,14 +113,18 @@ patch(ControlButtons.prototype, {
                 );
                 return;
             }
-            this.pos.afterOrderDeletion();
             if (this.props.close) {
                 this.props.close();
             }
             this.notification.add(_t("Quotation %s created successfully.", result.name), {
                 type: "success",
             });
-
+            if (typeof this.pos.pbaShowOrdersList === "function") {
+                await this.pos.pbaShowOrdersList();
+            } else {
+                this.pos.afterOrderDeletion();
+                this.pos.showScreen("TicketScreen");
+            }
         } catch (error) {
             this.dialog.add(AlertDialog, {
                 title: _t("Error"),

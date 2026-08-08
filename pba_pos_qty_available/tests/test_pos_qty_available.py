@@ -53,6 +53,14 @@ class TestPbaPosQtyAvailable(TransactionCase):
         )
         self.assertNotIn("free_qty", fields_disabled)
 
+    def test_product_without_attributes_skips_archived_combinations(self):
+        combinations = (
+            self.env["product.product"]._get_archived_combinations_per_product_tmpl_id(
+                self.product.product_tmpl_id.ids
+            )
+        )
+        self.assertEqual(combinations, {})
+
     def test_get_pos_free_qty_disabled_config_returns_empty(self):
         self.config.show_product_qty_available = False
         qty_map = self.env["product.product"].get_pos_free_qty(

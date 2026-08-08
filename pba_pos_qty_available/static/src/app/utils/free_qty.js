@@ -79,6 +79,29 @@ export function shouldAcceptFreeQtyNotify(payload, configWarehouseId) {
     return true;
 }
 
+export function buildOrderedQtyByProductId(orders = []) {
+    const orderedQtyByProductId = {};
+    for (const order of orders) {
+        const lines =
+            typeof order?.get_orderlines === "function"
+                ? order.get_orderlines()
+                : order?.lines || [];
+        for (const line of lines) {
+            const productId = line.product_id?.id || line.product?.id;
+            if (!productId) {
+                continue;
+            }
+            const qty =
+                typeof line.get_quantity === "function"
+                    ? line.get_quantity()
+                    : line.qty || 0;
+            orderedQtyByProductId[productId] =
+                (orderedQtyByProductId[productId] || 0) + qty;
+        }
+    }
+    return orderedQtyByProductId;
+}
+
 export function getDisplayAvailableQty(baseQty, orderedQty = 0) {
     return (baseQty || 0) - (orderedQty || 0);
 }

@@ -7,6 +7,7 @@ import { debounce } from "@web/core/utils/timing";
 import {
     applyFreeQtyMap,
     applyOrderFreeQtyDecrement,
+    buildOrderedQtyByProductId,
     getProductFreeQty,
     shouldAcceptFreeQtyNotify,
 } from "@pba_pos_qty_available/app/utils/free_qty";
@@ -20,6 +21,8 @@ patch(PosStore.prototype, {
         this._pendingFreeQtyProductIds = new Set();
         this._freeQtyAppliedOrders = new Set();
         this._freeQtyRefreshInFlight = false;
+        this._orderedQtyFp = null;
+        this._orderedQtyByProductId = {};
         this._flushPendingFreeQtyDebounced = debounce(() => {
             const productIds = [...this._pendingFreeQtyProductIds];
             this._pendingFreeQtyProductIds.clear();
@@ -126,6 +129,30 @@ patch(PosStore.prototype, {
 
     getProductFreeQty(product) {
         return getProductFreeQty(product, this.productFreeQty);
+    },
+
+    getOrderedQtyByProductId() {
+        const orders = this.get_open_orders();
+        let fingerprint = "";
+        for (const order of orders) {
+            fingerprint += `${order.uuid}:`;
+            for (const line of order.get_orderlines()) {
+                fingerprint += `${line.id}:${line.get_quantity()};`;
+            }
+            fingerprint += "|";
+        }
+        if (fingerprint !== this._orderedQtyFp) {
+            this._orderedQtyFp = fingerprint;
+            this._orderedQtyByProductId = buildOrderedQtyByProductId(orders);
+        }
+        return this._orderedQtyByProductId;
+    },
+
+    getOrderedQtyForProduct(productId) {
+        if (!productId) {
+            return 0;
+        }
+        return this.getOrderedQtyByProductId()[productId] || 0;
     },
 
     async refreshProductFreeQty(productIds = null) {
