@@ -64,3 +64,20 @@
 For brand or internal-code search, install the companion modules
 `pba_pos_ux_product_brand` and/or `pba_pos_ux_internal_code` (auto-installed
 when their dependencies are present).
+
+Concurrency benchmark
+---------------------
+
+Run the isolated multi-cursor benchmark on a disposable test database:
+
+```
+odoo-bin -d <test_database> -u pba_pos_ux --stop-after-init \
+    --test-enable --test-tags=pba_lock_benchmark
+```
+
+The benchmark creates 120 draft orders in one POS session and uses 8 concurrent
+workers sharing the same Odoo user but reporting different employees and device
+tokens. It verifies simultaneous acquisition, rejected intrusions, release,
+owner stability, session stability, and that no order disappears. A separate
+8-worker race verifies that exactly one terminal obtains the same order.
+Throughput for each phase is written to the Odoo test log.

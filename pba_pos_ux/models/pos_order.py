@@ -180,6 +180,9 @@ class PosOrder(models.Model):
         ):
             return order._pba_lock_busy_result()
         expire = fields.Datetime.now() + timedelta(seconds=PBA_LOCK_DURATION_SECONDS)
+        order.flush_recordset(
+            ["pba_lock_device_token", "pba_lock_expire"]
+        )
         self.env.cr.execute(
             """
             UPDATE pos_order
@@ -189,7 +192,7 @@ class PosOrder(models.Model):
             """,
             [expire, order.id, device_token],
         )
-        order.invalidate_recordset(["pba_lock_expire"])
+        order.invalidate_recordset(["pba_lock_expire"], flush=False)
         return order._pba_lock_success_result()
 
     @api.model
