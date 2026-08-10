@@ -2,15 +2,19 @@
 <templates id="template" xml:space="preserve">
     <t t-inherit="point_of_sale.ProductCard" t-inherit-mode="extension">
         <xpath expr="//div[hasclass('product-name')]" position="replace">
-            <div class="pba_pos_ux_product_label flex-grow-1 min-w-0 my-2 overflow-hidden">
+            <div
+                class="pba_pos_ux_product_label flex-grow-1 min-w-0 my-2"
+                t-att-class="{'overflow-hidden': isListView}"
+            >
                 <div
                     t-if="productReference and !isListView"
                     class="pba_pos_ux_product_ref"
                     t-esc="'[' + productReference + ']'"
                 />
                 <div
-                    class="overflow-hidden lh-sm product-name"
+                    class="lh-sm product-name"
                     t-att-class="{
+                        'overflow-hidden': isListView,
                         'no-image d-flex justify-content-center align-items-center text-center fs-4': !props.imageUrl and !productReference,
                         'pba_pos_ux_product_name_card': !isListView,
                     }"

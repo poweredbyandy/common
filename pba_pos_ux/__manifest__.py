@@ -1,11 +1,12 @@
 {
     "name": "PBA POS UX",
-    "version": "18.0.1.5.30",
+    "version": "18.0.1.8.1",
     "category": "Point of Sale",
     "summary": (
-        "Mejora la UX del POS: búsqueda de productos destacada con comodín *, "
+        "Mejora la UX del POS: búsqueda de productos y clientes con comodín *, "
         "separación categoría/producto, vista cards/lista con default_code, "
-        "navegación por teclado en lista, apertura en lista de pedidos, "
+        "navegación por teclado en lista, teclado numérico oculto en escritorio "
+        "con toggle, apertura en lista de pedidos, "
         "cliente obligatorio al guardar/salir del pedido o pagar, "
         "facturación siempre sin descarga "
         "de PDF, y persistencia/bloqueo multidispositivo de pedidos abiertos."
@@ -41,6 +42,7 @@
             "pba_pos_ux/static/src/app/models/product_product.js",
             "pba_pos_ux/static/src/app/models/pos_order_line.js",
             "pba_pos_ux/static/src/app/store/pos_store.js",
+            "pba_pos_ux/static/src/app/store/devices_synchronisation.js",
             "pba_pos_ux/static/src/app/navbar/navbar.js",
             "pba_pos_ux/static/src/app/navbar/closing_popup.js",
             "pba_pos_ux/static/src/app/components/order_tabs/order_tabs.js",

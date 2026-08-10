@@ -4,9 +4,12 @@ import { PosStore } from "@point_of_sale/app/store/pos_store";
 import { patch } from "@web/core/utils/patch";
 import { reactive } from "@odoo/owl";
 import { debounce } from "@web/core/utils/timing";
+import { AlertDialog } from "@web/core/confirmation_dialog/confirmation_dialog";
+import { _t } from "@web/core/l10n/translation";
 import {
     applyOrderFreeQtyDecrement,
     buildOrderedQtyByProductId,
+    canFulfillProductQty,
     getProductFreeQty,
     shouldAcceptFreeQtyNotify,
 } from "@pba_pos_qty_available/app/utils/free_qty";
@@ -179,6 +182,53 @@ patch(PosStore.prototype, {
             return 0;
         }
         return this.orderedQtyByProductId[productId] || 0;
+    },
+
+    canFulfillProductQty(product, requestedQty, excludeLine = null) {
+        if (!this.config?.show_product_qty_available || !product?.is_storable) {
+            return true;
+        }
+        return canFulfillProductQty({
+            enabled: true,
+            isStorable: true,
+            baseQty: this.getProductFreeQty(product),
+            orderedQty: this.getOrderedQtyForProduct(product.id),
+            currentLineQty: excludeLine ? excludeLine.get_quantity() : 0,
+            requestedQty,
+        });
+    },
+
+    _notifyInsufficientFreeQty(product, excludeLine = null) {
+        const baseQty = this.getProductFreeQty(product);
+        const orderedQty = this.getOrderedQtyForProduct(product.id);
+        const currentLineQty = excludeLine ? excludeLine.get_quantity() : 0;
+        const available = Math.max(0, baseQty - Math.max(0, orderedQty - currentLineQty));
+        this.dialog.add(AlertDialog, {
+            title: _t("Insufficient stock"),
+            body: _t(
+                "Not enough quantity available for %s. Available: %s",
+                product.display_name,
+                this.env.utils.formatProductQty(available, false)
+            ),
+        });
+    },
+
+    async addLineToOrder(vals, order, opts = {}, configure = true) {
+        if (typeof vals.product_id == "number") {
+            vals.product_id = this.data.models["product.product"].get(vals.product_id);
+        }
+        const product = vals.product_id;
+        const qtyToAdd = vals.qty === undefined ? 1 : vals.qty;
+        if (
+            this.config?.show_product_qty_available &&
+            product?.is_storable &&
+            qtyToAdd > 0 &&
+            !this.canFulfillProductQty(product, qtyToAdd)
+        ) {
+            this._notifyInsufficientFreeQty(product);
+            return;
+        }
+        return await super.addLineToOrder(...arguments);
     },
 
     async refreshProductFreeQty(productIds = null) {

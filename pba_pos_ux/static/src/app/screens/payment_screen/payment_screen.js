@@ -85,6 +85,7 @@ patch(PaymentScreen.prototype, {
 
     async _finalizeValidation() {
         this._pbaAlignPaymentToTotal();
+        this.pos.pbaClaimOrderToCurrentSession(this.currentOrder);
         return await super._finalizeValidation(...arguments);
     },
 

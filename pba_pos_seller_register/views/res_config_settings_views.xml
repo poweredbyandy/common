@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.pba.pos.seller.register</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="point_of_sale.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//block[@id='pos_payment_section']/setting[@id='payment_methods_new']" position="after">
+                <setting
+                    id="pba_seller_pos_setting"
+                    string="Seller Register"
+                    help="Seller Point of Sale without cash control. Sessions stay open, closing the register is disabled, and configuration can be changed while the session is open."
+                    invisible="is_kiosk_mode"
+                >
+                    <field name="pos_pba_seller_pos"/>
+                </setting>
+            </xpath>
+            <xpath expr="//field[@name='pos_use_pricelist']" position="attributes">
+                <attribute name="readonly">pos_has_active_session and not pos_pba_seller_pos</attribute>
+            </xpath>
+            <xpath expr="//field[@name='pos_available_pricelist_ids']" position="attributes">
+                <attribute name="readonly">pos_has_active_session and not pos_pba_seller_pos</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>

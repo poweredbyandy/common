@@ -4,16 +4,20 @@
    appear with a larger gap and a subtle divider. The product search bar is
    wider and the Odoo logo is hidden so it does not overlap the search.
 4. Search products by name, reference or barcode. Use `*` as a wildcard between
-   fragments, e.g. `BOMB*FRE` for `BOMBA DE AGUA PARA FRENOS`. Use
-   **Search more** to also query the server with the same pattern. Products
-   found on the server are shown using the configured POS currency.
+   fragments, e.g. `BOMB*FRE` for `BOMBA DE AGUA PARA FRENOS`. Press **Enter**
+   in the search box (or click **Search more**) to query the server with the
+   same pattern. Products found on the server are shown using the configured
+   POS currency.
 5. Switch the catalog between cards and list with the toggle next to Productos.
    Products with an internal reference (`default_code`) appear as
    `[CODE] Product name` in the catalog (cards/list) and in the order lines.
    In list mode, the product row highlight exists only while the search box has
-   focus (and there is a search term). Use Up/Down to move and Enter to add the
-   selected product. Backspace/Delete clears the search; pressed again (empty
-   search) focuses the order lines and clears the product row highlight.
+   focus (and there is a search term). Use Up/Down to move in the list.
+   Backspace/Delete clears the search; pressed again (empty search) focuses the
+   order lines and clears the product row highlight.
+5b. On desktop, the numeric keypad is hidden by default. Use **Mostrar teclado**
+    / **Ocultar teclado** under the order controls to show or hide it. The
+    choice is remembered in the browser. On mobile the keypad is unchanged.
 6. After updating the module, reopen the POS session and hard-refresh the
    browser (or regenerate assets) so the new scripts load.
 7. After login/unlock (basic or advanced cashier), the POS opens the orders
@@ -28,7 +32,10 @@
 9. The customer button shows the full name and RIF/CI/VAT on its own row; other
    action buttons appear on the following row.
 10. In the customer list, each partner shows its RIF/CI/VAT under the name and
-    a pencil button to open the customer form for editing.
+    a pencil button to open the customer form for editing. Search is partial
+    (e.g. `Negrete` finds `Comercializadora el Negrete`) and also supports the
+    same `*` wildcard as products (e.g. `MAR*LOP`). Press **Enter** or
+    **Search more** to query the server with that pattern.
 11. Next to the ``+`` of floating orders in the header, use **Pedidos** to open
     the orders list.
 12. Multi-device order locking:

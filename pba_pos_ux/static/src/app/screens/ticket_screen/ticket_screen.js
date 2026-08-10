@@ -16,6 +16,7 @@ patch(TicketScreen.prototype, {
             await this.pbaSyncOrderLocks({ includeOrders: true });
         });
         onMounted(() => {
+            this.pos.pbaClaimTrustedDraftOrders();
             this._pbaLockSyncTimer = setInterval(() => {
                 this.pbaSyncOrderLocks({ includeOrders: false });
             }, PBA_LOCK_HEARTBEAT_MS);
@@ -88,6 +89,7 @@ patch(TicketScreen.prototype, {
                 } catch (_error) {
                     // Keep showing local orders if sync is unavailable.
                 }
+                this.pos.pbaClaimTrustedDraftOrders();
             }
             const openOrders = (this.pos.models["pos.order"] || []).filter(
                 (order) => !order.finalized && typeof order.id === "number"

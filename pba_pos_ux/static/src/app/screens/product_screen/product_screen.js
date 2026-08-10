@@ -317,7 +317,47 @@ patch(ProductScreen.prototype, {
         this._pbaFocusProductSearch();
     },
 
+    _pbaIsProductSearchActive(ev) {
+        if (this.pos.scanning) {
+            return false;
+        }
+        if (document.querySelector(".o_dialog .modal-dialog, .modal.show .modal-dialog")) {
+            return false;
+        }
+        return (
+            this._pbaIsSearchInputFocused(ev?.target) || this.state.searchInputFocused
+        );
+    },
+
+    _pbaFlushSearchWordFromInput() {
+        const input = document.querySelector(
+            ".pba_pos_ux_product_search input, .pos-rightheader .input-container input"
+        );
+        if (!input) {
+            return (this.pos.searchProductWord || "").trim();
+        }
+        const value = input.value || "";
+        if (value !== this.pos.searchProductWord) {
+            this.pos.searchProductWord = value;
+        }
+        return value.trim();
+    },
+
     async _pbaOnListKeyboardNav(ev) {
+        if (ev.key === "Enter" && this._pbaIsProductSearchActive(ev)) {
+            if (ev.repeat) {
+                this._pbaStopKeyboardEvent(ev);
+                return;
+            }
+            const searchWord = this._pbaFlushSearchWordFromInput();
+            if (!searchWord) {
+                return;
+            }
+            this._pbaStopKeyboardEvent(ev);
+            await this.onPressEnterKey();
+            this._pbaSyncListKeyboardSelection({ resetToFirst: true });
+            return;
+        }
         if (!this._pbaCanHandleListKeyboard(ev)) {
             return;
         }
@@ -347,15 +387,6 @@ patch(ProductScreen.prototype, {
                 this._pbaStopKeyboardEvent(ev);
                 this._pbaFocusOrderSelection();
             }
-            return;
-        }
-        if (ev.key === "Enter") {
-            const product = this.productsToDisplay[this.state.listKeyboardIndex];
-            if (!product) {
-                return;
-            }
-            this._pbaStopKeyboardEvent(ev);
-            await this.addProductToOrder(product);
         }
     },
 });

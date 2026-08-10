@@ -49,6 +49,26 @@
         <xpath expr="//button[hasclass('pay-button')]" position="attributes">
             <attribute name="t-attf-class">{{ !pos.get_order() or currentOrder.is_empty() ? 'btn-secondary' : 'btn-primary' }}</attribute>
         </xpath>
+        <xpath expr="//Numpad" position="replace">
+            <button
+                t-if="!ui.isSmall"
+                type="button"
+                class="pba_pos_ux_numpad_toggle btn btn-light btn-lg w-100 d-flex align-items-center justify-content-center gap-2"
+                t-att-class="{'active': pos.showNumpad}"
+                t-on-click="() => pos.toggleShowNumpad()"
+                t-att-aria-pressed="pos.showNumpad ? 'true' : 'false'"
+                t-att-title="pos.showNumpad ? 'Ocultar teclado' : 'Mostrar teclado'"
+            >
+                <i class="fa fa-keyboard-o" aria-hidden="true"/>
+                <span t-esc="pos.showNumpad ? 'Ocultar teclado' : 'Mostrar teclado'"/>
+            </button>
+            <Numpad
+                t-if="(ui.isSmall or pos.showNumpad) and !currentOrder?.is_empty() and pos.get_order()?.uiState.selected_orderline_uuid"
+                class="'d-grid m-n1'"
+                buttons="getNumpadButtons()"
+                onClick.bind="onNumpadClick"
+            />
+        </xpath>
     </t>
 </templates>
 

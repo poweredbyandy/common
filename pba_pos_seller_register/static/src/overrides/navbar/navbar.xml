@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-inherit="point_of_sale.Navbar" t-inherit-mode="extension">
+        <xpath expr="//DropdownItem[@onSelected=&quot;() =&gt; this.pos.closeSession()&quot;]" position="attributes">
+            <attribute name="t-if">showCloseRegisterButton</attribute>
+        </xpath>
+    </t>
+</templates>

@@ -19,6 +19,7 @@ import {
 } from "@pba_pos_ux/utils/order_lock";
 
 const PRODUCT_LIST_VIEW_KEY = "pba_pos_ux_product_list_view";
+const SHOW_NUMPAD_KEY = "pba_pos_ux_show_numpad";
 
 function readSavedProductListView() {
     const candidates = [
@@ -40,6 +41,28 @@ function persistProductListView(view) {
     window.localStorage.setItem("productListView", view);
 }
 
+function readSavedShowNumpad() {
+    const candidates = [
+        window.sessionStorage.getItem(SHOW_NUMPAD_KEY),
+        window.localStorage.getItem(SHOW_NUMPAD_KEY),
+    ];
+    for (const value of candidates) {
+        if (value === "1" || value === "true") {
+            return true;
+        }
+        if (value === "0" || value === "false") {
+            return false;
+        }
+    }
+    return false;
+}
+
+function persistShowNumpad(show) {
+    const value = show ? "1" : "0";
+    window.sessionStorage.setItem(SHOW_NUMPAD_KEY, value);
+    window.localStorage.setItem(SHOW_NUMPAD_KEY, value);
+}
+
 patch(PosStore.prototype, {
     async setup() {
         // Token must exist before super.setup(): afterProcessServerData acquires locks there.
@@ -49,6 +72,20 @@ patch(PosStore.prototype, {
         this._pbaLockBusy = false;
         await super.setup(...arguments);
         this.productListView = readSavedProductListView();
+        this.showNumpad = readSavedShowNumpad();
+    },
+
+    toggleShowNumpad() {
+        this.setShowNumpad(!this.showNumpad);
+    },
+
+    setShowNumpad(show) {
+        const next = Boolean(show);
+        if (this.showNumpad === next) {
+            return;
+        }
+        persistShowNumpad(next);
+        this.showNumpad = next;
     },
 
     pbaEnsureDeviceToken() {
@@ -227,6 +264,61 @@ patch(PosStore.prototype, {
         return await super.addLineToCurrentOrder(...arguments);
     },
 
+    pbaGetTrustedConfigIds() {
+        return new Set([
+            this.config.id,
+            ...(this.config.raw?.trusted_config_ids || []),
+        ]);
+    },
+
+    pbaClaimOrderToCurrentSession(order) {
+        if (!order || order.finalized || order.state === "cancel") {
+            return false;
+        }
+        if (!this.session || !this.config) {
+            return false;
+        }
+        const configId = order.config_id?.id;
+        const trustedIds = this.pbaGetTrustedConfigIds();
+        if (configId && !trustedIds.has(configId)) {
+            return false;
+        }
+        if (
+            order.session_id?.id === this.session.id &&
+            order.config_id?.id === this.config.id
+        ) {
+            return false;
+        }
+        order.update({
+            config_id: this.config,
+            session_id: this.session,
+        });
+        return true;
+    },
+
+    pbaClaimTrustedDraftOrders(orders) {
+        const draftOrders =
+            orders ||
+            (this.models["pos.order"] || []).filter(
+                (order) => order.state === "draft" && !order.finalized
+            );
+        let claimed = false;
+        for (const order of draftOrders) {
+            if (this.pbaClaimOrderToCurrentSession(order)) {
+                claimed = true;
+            }
+        }
+        return claimed;
+    },
+
+    pbaReclaimActiveSharedOrderSession() {
+        const order = this.get_order();
+        if (!order || order.finalized) {
+            return false;
+        }
+        return this.pbaClaimOrderToCurrentSession(order);
+    },
+
     async pay() {
         const currentOrder = this.get_order();
         if (!currentOrder) {
@@ -235,6 +327,7 @@ patch(PosStore.prototype, {
         if (!currentOrder.finalized) {
             currentOrder.set_to_invoice(true);
         }
+        this.pbaClaimOrderToCurrentSession(currentOrder);
         if (!(await this.pbaEnsureCustomerForSave(currentOrder))) {
             return;
         }
@@ -784,6 +877,7 @@ patch(PosStore.prototype, {
         }
         const current = this.get_order();
         if (current?.uuid === order.uuid) {
+            this.pbaClaimOrderToCurrentSession(order);
             return true;
         }
         if (this._pbaLockBusy) {
@@ -810,6 +904,7 @@ patch(PosStore.prototype, {
                     this.pbaShowProcessedOrderAlert();
                     return false;
                 }
+                this.pbaClaimOrderToCurrentSession(order);
                 this.set_order(order, options);
                 return true;
             });

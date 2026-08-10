@@ -115,3 +115,27 @@ export function getQtyAvailableLevel(qty) {
     }
     return "ok";
 }
+
+/**
+ * Whether requestedQty can be set on a line without exceeding free stock.
+ * currentLineQty is excluded from orderedQty so increasing/decreasing the
+ * selected line is compared against the rest of open POS demand only.
+ */
+export function canFulfillProductQty({
+    enabled = true,
+    isStorable = true,
+    baseQty = 0,
+    orderedQty = 0,
+    currentLineQty = 0,
+    requestedQty = 0,
+}) {
+    if (!enabled || !isStorable) {
+        return true;
+    }
+    if (!(requestedQty > 0)) {
+        return true;
+    }
+    const otherOrdered = Math.max(0, (orderedQty || 0) - (currentLineQty || 0));
+    const availableForLine = (baseQty || 0) - otherOrdered;
+    return availableForLine >= requestedQty;
+}

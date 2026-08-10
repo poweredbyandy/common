@@ -4,6 +4,9 @@
         <xpath expr="//Dialog" position="attributes">
             <attribute name="bodyClass">props.forceCustomer ? 'partner-list overflow-y-auto pba_pos_ux_force_customer' : 'partner-list overflow-y-auto'</attribute>
         </xpath>
+        <xpath expr="//Input" position="attributes">
+            <attribute name="placeholder.translate">Buscar clientes (nombre, RIF... use *)</attribute>
+        </xpath>
         <xpath expr="//button[hasclass('o-default-button')]" position="replace">
             <button
                 t-if="!props.forceCustomer"

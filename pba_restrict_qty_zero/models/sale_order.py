@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 from odoo import models, _
 from odoo.tools import float_compare
 
@@ -24,33 +26,57 @@ class SaleOrder(models.Model):
         )
         if not lines:
             return False
-        lines._compute_qty_to_deliver()
-        lines._compute_is_mto()
+
+        lines_sudo = lines.sudo()
+        lines_sudo._compute_qty_to_deliver()
+        lines_sudo._compute_is_mto()
         lines = lines.filtered(
-            lambda line: line.display_qty_widget and not line.is_mto
+            lambda line: line.display_qty_widget
+            and not line.is_mto
+            and line.qty_to_deliver > 0
         )
         if not lines:
             return False
-        lines._compute_qty_at_date()
-        insufficient_lines = lines.filtered(
-            lambda line: float_compare(
-                line.free_qty_today,
-                line.product_uom_qty,
-                precision_rounding=line.product_uom.rounding,
+
+        warehouse = self.warehouse_id
+        demand_by_product = defaultdict(float)
+        for line in lines:
+            product = line.product_id
+            qty_in_product_uom = line.product_uom._compute_quantity(
+                line.qty_to_deliver,
+                product.uom_id,
+                rounding_method="HALF-UP",
             )
-            < 0
-        )
-        if not insufficient_lines:
+            demand_by_product[product] += qty_in_product_uom
+
+        products = self.env["product.product"].browse(
+            [product.id for product in demand_by_product]
+        ).sudo()
+        if warehouse:
+            products = products.with_context(warehouse_id=warehouse.id)
+        free_by_id = {
+            row["id"]: row["free_qty"]
+            for row in products.read(["free_qty"], load=False)
+        }
+
+        insufficient = []
+        for product, demand in demand_by_product.items():
+            available = free_by_id.get(product.id, 0.0)
+            rounding = product.uom_id.rounding or 0.0001
+            if float_compare(available, demand, precision_rounding=rounding) < 0:
+                insufficient.append((product, demand, available))
+        if not insufficient:
             return False
+
         details = []
-        for line in insufficient_lines:
+        for product, demand, available in insufficient:
             details.append(
                 _(
                     "%(product)s: solicitado %(requested)s %(uom)s, disponible %(available)s %(uom)s",
-                    product=line.product_id.display_name,
-                    requested=line.product_uom_qty,
-                    available=line.free_qty_today,
-                    uom=line.product_uom.name,
+                    product=product.display_name,
+                    requested=demand,
+                    available=available,
+                    uom=product.uom_id.name,
                 )
             )
         return _(

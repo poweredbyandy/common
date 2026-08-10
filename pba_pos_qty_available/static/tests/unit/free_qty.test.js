@@ -3,6 +3,7 @@ import {
     applyFreeQtyMap,
     applyOrderFreeQtyDecrement,
     buildOrderedQtyByProductId,
+    canFulfillProductQty,
     getDisplayAvailableQty,
     getProductFreeQty,
     getQtyAvailableLevel,
@@ -80,6 +81,55 @@ describe("pba_pos_qty_available free_qty utils", () => {
         expect(getQtyAvailableLevel(0)).toBe("out");
         expect(getQtyAvailableLevel(3)).toBe("low");
         expect(getQtyAvailableLevel(20)).toBe("ok");
+    });
+
+    test("canFulfillProductQty allows selling the last unit", () => {
+        expect(
+            canFulfillProductQty({
+                baseQty: 1,
+                orderedQty: 0,
+                currentLineQty: 0,
+                requestedQty: 1,
+            })
+        ).toBe(true);
+        expect(
+            canFulfillProductQty({
+                baseQty: 1,
+                orderedQty: 1,
+                currentLineQty: 1,
+                requestedQty: 1,
+            })
+        ).toBe(true);
+        expect(
+            canFulfillProductQty({
+                baseQty: 1,
+                orderedQty: 1,
+                currentLineQty: 0,
+                requestedQty: 1,
+            })
+        ).toBe(false);
+        expect(
+            canFulfillProductQty({
+                baseQty: 1,
+                orderedQty: 1,
+                currentLineQty: 1,
+                requestedQty: 2,
+            })
+        ).toBe(false);
+        expect(
+            canFulfillProductQty({
+                enabled: false,
+                baseQty: 0,
+                requestedQty: 5,
+            })
+        ).toBe(true);
+        expect(
+            canFulfillProductQty({
+                isStorable: false,
+                baseQty: 0,
+                requestedQty: 5,
+            })
+        ).toBe(true);
     });
 
     test("buildOrderedQtyByProductId aggregates open order lines", () => {

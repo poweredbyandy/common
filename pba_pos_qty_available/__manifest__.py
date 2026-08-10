@@ -1,6 +1,6 @@
 {
     "name": "PBA POS Quantity Available",
-    "version": "18.0.1.0.10",
+    "version": "18.0.1.0.11",
     "category": "Point of Sale",
     "summary": "Show free-to-use product quantity on POS product cards with offline cache.",
     "author": "andyengit",
@@ -17,6 +17,7 @@
             "pba_pos_qty_available/static/src/scss/pos_qty_available.scss",
             "pba_pos_qty_available/static/src/app/utils/free_qty.js",
             "pba_pos_qty_available/static/src/app/models/product_product.js",
+            "pba_pos_qty_available/static/src/app/models/pos_order_line.js",
             "pba_pos_qty_available/static/src/app/generic_components/product_card/product_card.xml",
             "pba_pos_qty_available/static/src/app/generic_components/product_card/product_card.js",
             "pba_pos_qty_available/static/src/app/store/pos_store.js",

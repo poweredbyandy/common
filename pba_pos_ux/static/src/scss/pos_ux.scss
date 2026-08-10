@@ -30,6 +30,35 @@
     }
 }
 
+.pba_pos_ux_numpad_toggle {
+    flex: 0 0 auto;
+    min-height: 2.75rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: $o-gray-700;
+    border: 1px solid $o-gray-300;
+
+    i {
+        font-size: 1.1rem;
+    }
+
+    &.active {
+        color: $o-action;
+        border-color: rgba($o-action, 0.45);
+        background: rgba($o-action, 0.08);
+    }
+
+    &:hover {
+        color: $o-gray-900;
+        background: $o-gray-200;
+    }
+
+    &.active:hover {
+        color: $o-action;
+        background: rgba($o-action, 0.12);
+    }
+}
+
 .actionpad {
     .set-partner {
         width: 100%;
@@ -269,19 +298,31 @@
         text-overflow: ellipsis;
     }
 
+    .pba_pos_ux_product_label {
+        overflow: visible;
+    }
+
     .product-name.pba_pos_ux_product_name_card {
-        font-size: 0.9rem;
-        line-height: 1.25;
+        font-size: 0.72rem !important;
+        line-height: 1.2;
         text-align: start !important;
+        white-space: normal;
+        word-break: break-word;
+        overflow-wrap: anywhere;
+        text-overflow: unset;
+        overflow: visible !important;
+        display: block !important;
+        -webkit-line-clamp: unset;
+        -webkit-box-orient: unset;
 
         &.no-image {
             aspect-ratio: auto !important;
-            min-height: 3.5rem;
+            min-height: 0;
             justify-content: flex-start !important;
             align-items: flex-start !important;
             text-align: start !important;
-            font-size: 0.95rem !important;
-            -webkit-line-clamp: 3;
+            font-size: 0.72rem !important;
+            -webkit-line-clamp: unset;
         }
     }
 
