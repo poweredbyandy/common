@@ -3,9 +3,9 @@
     <menuitem
         id="device_bridge_menu_root"
         name="Device Bridge"
-        parent="base.menu_administration"
+        web_icon="device_bridge,static/description/icon.png"
         sequence="65"
-        groups="base.group_system"
+        groups="device_bridge.group_device_bridge_user"
     />
     <menuitem
         id="device_bridge_menu_devices"
@@ -13,7 +13,7 @@
         parent="device_bridge_menu_root"
         action="device_bridge_action"
         sequence="10"
-        groups="device_bridge.group_device_bridge_manager"
+        groups="device_bridge.group_device_bridge_user"
     />
     <menuitem
         id="device_bridge_menu_register"
@@ -21,7 +21,7 @@
         parent="device_bridge_menu_root"
         action="device_bridge_action_register"
         sequence="15"
-        groups="device_bridge.group_device_bridge_manager"
+        groups="device_bridge.group_device_bridge_user"
     />
     <menuitem
         id="device_bridge_menu_authorizations"
@@ -29,7 +29,7 @@
         parent="device_bridge_menu_root"
         action="device_bridge_authorization_action"
         sequence="20"
-        groups="base.group_system"
+        groups="device_bridge.group_device_bridge_manager"
     />
     <menuitem
         id="device_bridge_menu_gateways"
@@ -37,6 +37,6 @@
         parent="device_bridge_menu_root"
         action="device_bridge_gateway_action"
         sequence="30"
-        groups="base.group_system"
+        groups="device_bridge.group_device_bridge_manager"
     />
 </odoo>
