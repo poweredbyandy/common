@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+    <t t-name="res_users_user.SubUserSystray">
+        <div class="o_sub_user_systray d-none d-md-block">
+            <Dropdown>
+                <button class="btn btn-light dropdown-toggle o-dropdown-caret">
+                    <i class="fa fa-user me-1" />
+                    <span t-esc="displayName" class="o_sub_user_systray_name" />
+                </button>
+                <t t-set-slot="content">
+                    <div class="px-3 py-2 text-muted small" t-esc="statusLabel" />
+                    <t t-foreach="subUser.sub_users" t-as="subUserItem" t-key="subUserItem.id">
+                        <DropdownItem
+                            class="{ 'fw-bold': subUserItem.id === subUser.current_sub_user_id }"
+                            onSelected="() => this.onSelectSubUser(subUserItem)"
+                        >
+                            <t t-esc="subUserItem.name" />
+                        </DropdownItem>
+                    </t>
+                    <DropdownItem
+                        t-if="subUser.current_sub_user_id"
+                        class="'text-danger'"
+                        onSelected="() => this.onLock()"
+                    >
+                        <i class="fa fa-lock me-1" />
+                        <t t-esc="lockLabel" />
+                    </DropdownItem>
+                </t>
+            </Dropdown>
+        </div>
+    </t>
+</templates>

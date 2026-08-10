@@ -58,6 +58,15 @@ patch(PosStore.prototype, {
         return this.pbaDeviceToken;
     },
 
+    async _pbaWithUiBlock(message, callback) {
+        this.ui.block({ message });
+        try {
+            return await callback();
+        } finally {
+            this.ui.unblock();
+        }
+    },
+
     get productListViewMode() {
         const viewMode = this.productListView || "grid";
         const switching = this.productListViewSwitching ? " pba_pos_ux_view_switching" : "";
@@ -121,14 +130,16 @@ patch(PosStore.prototype, {
             if (this.get_order() && !(await this.pbaPersistAndReleaseCurrentOrder())) {
                 return false;
             }
-            this.pbaClearActiveOrder();
-            this._pbaSkipLeaveOnTicketScreen = true;
-            try {
-                super.showScreen("TicketScreen", props);
-            } finally {
-                this._pbaSkipLeaveOnTicketScreen = false;
-            }
-            return true;
+            return await this._pbaWithUiBlock(_t("Loading orders..."), async () => {
+                this._pbaSkipLeaveOnTicketScreen = true;
+                try {
+                    super.showScreen("TicketScreen", props);
+                } finally {
+                    this._pbaSkipLeaveOnTicketScreen = false;
+                }
+                this.pbaClearActiveOrder();
+                return true;
+            });
         } finally {
             this._pbaLockBusy = false;
         }
@@ -257,7 +268,6 @@ patch(PosStore.prototype, {
                 general_note: "",
                 payment_ids: [],
                 uiState: {},
-                taxTotals: undefined,
                 is_empty: () => true,
                 get_partner: () => null,
                 getSortedOrderlines: () => [],
@@ -518,6 +528,15 @@ patch(PosStore.prototype, {
         return await this._rtPosUxRequestCustomer(order);
     },
 
+    async _pbaSyncCurrentOrder(order) {
+        this.addPendingOrder([order.id]);
+        try {
+            await this.syncAllOrders({ orders: [order] });
+        } catch (_error) {
+            // Keep local pending queue; sync retries when online.
+        }
+    },
+
     async pbaPersistCurrentOrder() {
         const order = this.get_order();
         if (!order || order.finalized) {
@@ -530,13 +549,10 @@ patch(PosStore.prototype, {
         if (!(await this.pbaEnsureCustomerForSave(order))) {
             return false;
         }
-        this.addPendingOrder([order.id]);
-        try {
-            await this.syncAllOrders({ orders: [order] });
-        } catch (_error) {
-            // Keep local pending queue; sync retries when online.
-        }
-        return true;
+        return await this._pbaWithUiBlock(_t("Saving order..."), async () => {
+            await this._pbaSyncCurrentOrder(order);
+            return true;
+        });
     },
 
     async pbaPersistAndReleaseCurrentOrder() {
@@ -548,11 +564,14 @@ patch(PosStore.prototype, {
             await this.pbaDiscardEmptyOrder(order);
             return true;
         }
-        if (!(await this.pbaPersistCurrentOrder())) {
+        if (!(await this.pbaEnsureCustomerForSave(order))) {
             return false;
         }
-        await this.pbaReleaseOrderLock(order, { silent: true });
-        return true;
+        return await this._pbaWithUiBlock(_t("Saving order..."), async () => {
+            await this._pbaSyncCurrentOrder(order);
+            await this.pbaReleaseOrderLock(order, { silent: true });
+            return true;
+        });
     },
 
     _pbaStopLockHeartbeat() {
@@ -775,23 +794,25 @@ patch(PosStore.prototype, {
             if (current && !(await this.pbaPersistAndReleaseCurrentOrder())) {
                 return false;
             }
-            if (isSharedPosOrder(order)) {
-                await this.pbaRefreshOrderLocks([order]);
+            return await this._pbaWithUiBlock(_t("Opening order..."), async () => {
+                if (isSharedPosOrder(order)) {
+                    await this.pbaRefreshOrderLocks([order]);
+                    if (order.finalized) {
+                        this.pbaShowProcessedOrderAlert();
+                        return false;
+                    }
+                }
+                const acquired = await this.pbaAcquireOrderLock(order);
+                if (!acquired) {
+                    return false;
+                }
                 if (order.finalized) {
                     this.pbaShowProcessedOrderAlert();
                     return false;
                 }
-            }
-            const acquired = await this.pbaAcquireOrderLock(order);
-            if (!acquired) {
-                return false;
-            }
-            if (order.finalized) {
-                this.pbaShowProcessedOrderAlert();
-                return false;
-            }
-            this.set_order(order, options);
-            return true;
+                this.set_order(order, options);
+                return true;
+            });
         } finally {
             this._pbaLockBusy = false;
         }
@@ -806,15 +827,17 @@ patch(PosStore.prototype, {
             if (!(await this.pbaPersistAndReleaseCurrentOrder())) {
                 return this.get_order();
             }
-            const order = this.add_new_order(data);
-            this.addPendingOrder([order.id]);
-            try {
-                await this.syncAllOrders({ orders: [order] });
-            } catch (_error) {
-                // Local order remains available offline.
-            }
-            await this.pbaAcquireOrderLock(order, { silent: true });
-            return order;
+            return await this._pbaWithUiBlock(_t("Creating order..."), async () => {
+                const order = this.add_new_order(data);
+                this.addPendingOrder([order.id]);
+                try {
+                    await this.syncAllOrders({ orders: [order] });
+                } catch (_error) {
+                    // Local order remains available offline.
+                }
+                await this.pbaAcquireOrderLock(order, { silent: true });
+                return order;
+            });
         } finally {
             this._pbaLockBusy = false;
         }
@@ -856,6 +879,18 @@ patch(PosStore.prototype, {
             this._rtPosUxSelectingPartner = false;
         }
         return Boolean(order.get_partner());
+    },
+
+    async closeSession() {
+        return await this._pbaWithUiBlock(_t("Preparing closing..."), async () => {
+            return await super.closeSession(...arguments);
+        });
+    },
+
+    async closePos() {
+        return await this._pbaWithUiBlock(_t("Closing Point of Sale..."), async () => {
+            return await super.closePos(...arguments);
+        });
     },
 
     async _rtPosUxOpenForcedPartnerList(order) {

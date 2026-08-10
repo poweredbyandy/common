@@ -1,8 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates id="template" xml:space="preserve">
     <t t-inherit="point_of_sale.ActionpadWidget" t-inherit-mode="extension">
-        <xpath expr="//button[.//i[hasclass('fa-upload')]]" position="attributes">
-            <attribute name="t-att-disabled">!this.pos.get_order() or this.pos.get_order().is_empty()</attribute>
+        <xpath expr="//div[@t-if='ui.isSmall' and hasclass('d-flex')]" position="replace">
+            <div t-if="ui.isSmall" class="pba_pos_ux_mobile_actions d-flex flex-column gap-2">
+                <SelectPartnerButton partner="props.partner"/>
+                <div class="pba_pos_ux_mobile_actions_row d-flex gap-2">
+                    <BackButton
+                        t-if="!props.showActionButton and pos.showBackButton()"
+                        onClick="() => pos.onClickBackButton()"
+                    />
+                    <button
+                        t-if="props.onClickMore and this.pos.showSaveOrderButton"
+                        t-att-disabled="!this.pos.get_order() or this.pos.get_order().is_empty()"
+                        class="btn btn-light btn-lg flex-fill"
+                        t-on-click="() => this.pos.clickSaveOrder()"
+                    >
+                        <i class="fa fa-upload"/>
+                    </button>
+                    <button
+                        t-if="props.onClickMore"
+                        class="button mobile-more-button btn btn-light btn-lg flex-fill"
+                        t-on-click="props.onClickMore"
+                    >
+                        <span>Actions</span>
+                    </button>
+                </div>
+            </div>
+        </xpath>
+        <xpath expr="//button[hasclass('pay') and hasclass('pay-order-button')]" position="attributes">
+            <attribute name="t-att-disabled">props.onClickMore and (!this.pos.get_order() or this.pos.get_order().is_empty())</attribute>
         </xpath>
     </t>
 </templates>

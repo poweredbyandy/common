@@ -1,6 +1,6 @@
 {
     "name": "PBA POS UX",
-    "version": "18.0.1.5.6",
+    "version": "18.0.1.5.27",
     "category": "Point of Sale",
     "summary": (
         "Mejora la UX del POS: búsqueda de productos destacada con comodín *, "
@@ -42,6 +42,7 @@
             "pba_pos_ux/static/src/app/models/pos_order_line.js",
             "pba_pos_ux/static/src/app/store/pos_store.js",
             "pba_pos_ux/static/src/app/navbar/navbar.js",
+            "pba_pos_ux/static/src/app/navbar/closing_popup.js",
             "pba_pos_ux/static/src/app/components/order_tabs/order_tabs.js",
             "pba_pos_ux/static/src/app/screens/payment_screen/payment_screen.js",
             "pba_pos_ux/static/src/app/screens/receipt_screen/receipt_screen.js",

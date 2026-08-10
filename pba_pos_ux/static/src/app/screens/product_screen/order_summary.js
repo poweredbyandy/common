@@ -13,6 +13,10 @@ patch(OrderSummary.prototype, {
         return Boolean(this.pos.get_order());
     },
 
+    get pbaTaxTotals() {
+        return this.pos.get_order()?.taxTotals;
+    },
+
     get pbaOrderLines() {
         return this.pos.get_order()?.getSortedOrderlines() || [];
     },

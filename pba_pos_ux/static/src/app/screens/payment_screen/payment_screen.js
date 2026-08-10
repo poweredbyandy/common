@@ -5,13 +5,19 @@ import { AlertDialog } from "@web/core/confirmation_dialog/confirmation_dialog";
 import { _t } from "@web/core/l10n/translation";
 import { floatIsZero, roundPrecision } from "@web/core/utils/numbers";
 import { patch } from "@web/core/utils/patch";
+import { useState } from "@odoo/owl";
 
 patch(PaymentScreen.prototype, {
     setup() {
         super.setup(...arguments);
+        this.pbaPaymentUi = useState({ methodsOpen: false });
         if (this.currentOrder && !this.currentOrder.finalized) {
             this.currentOrder.set_to_invoice(true);
         }
+    },
+
+    pbaTogglePaymentMethods() {
+        this.pbaPaymentUi.methodsOpen = !this.pbaPaymentUi.methodsOpen;
     },
 
     toggleIsToInvoice() {
@@ -65,6 +71,7 @@ patch(PaymentScreen.prototype, {
 
     async addNewPaymentLine(paymentMethod) {
         const result = await super.addNewPaymentLine(...arguments);
+        this.pbaPaymentUi.methodsOpen = false;
         this._pbaAlignPaymentToTotal();
         return result;
     },

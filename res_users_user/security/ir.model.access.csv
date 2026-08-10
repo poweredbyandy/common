@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_res_users_user_user,res.users.user.user,model_res_users_user,base.group_user,1,1,1,1
+access_res_users_user_system,res.users.user.system,model_res_users_user,base.group_system,1,1,1,1
+access_res_users_user_log_user,res.users.user.log.user,model_res_users_user_log,base.group_user,1,0,0,0
+access_res_users_user_log_system,res.users.user.log.system,model_res_users_user_log,base.group_system,1,1,1,1

@@ -1,6 +1,8 @@
 /** @odoo-module **/
 
 import { TicketScreen } from "@point_of_sale/app/screens/ticket_screen/ticket_screen";
+import { AlertDialog } from "@web/core/confirmation_dialog/confirmation_dialog";
+import { _t } from "@web/core/l10n/translation";
 import { patch } from "@web/core/utils/patch";
 import { onMounted, onWillStart, onWillUnmount } from "@odoo/owl";
 import { PBA_LOCK_HEARTBEAT_MS } from "@pba_pos_ux/utils/order_lock";
@@ -26,11 +28,59 @@ patch(TicketScreen.prototype, {
         });
     },
 
+    pbaRefundAllLines() {
+        const order = this.getSelectedOrder();
+        if (!order) {
+            return;
+        }
+        let refundedSomething = false;
+        for (const line of order.get_orderlines()) {
+            const toRefundDetail = this.getToRefundDetail(line);
+            if (toRefundDetail.destination_order_uuid) {
+                continue;
+            }
+            const refundableQty = line.qty - (line.refunded_qty || 0);
+            if (refundableQty <= 0) {
+                continue;
+            }
+            toRefundDetail.qty = refundableQty;
+            refundedSomething = true;
+        }
+        if (!refundedSomething) {
+            this.dialog.add(AlertDialog, {
+                title: _t("Nothing to refund"),
+                body: _t("There are no remaining quantities to refund on this order."),
+            });
+        }
+    },
+
+    async onDoRefund() {
+        const order = this.getSelectedOrder();
+        if (
+            order &&
+            !this.getHasItemsToRefund() &&
+            !this._doesOrderHaveSoleItem(order)
+        ) {
+            this.dialog.add(AlertDialog, {
+                title: _t("Nothing to refund"),
+                body: _t(
+                    "Set the quantity to refund on each line, or tap Refund All."
+                ),
+            });
+            return;
+        }
+        return await super.onDoRefund(...arguments);
+    },
+
     async pbaSyncOrderLocks({ includeOrders = false } = {}) {
         if (this._pbaLockSyncBusy || this.pos.data?.network?.offline) {
             return;
         }
         this._pbaLockSyncBusy = true;
+        const showLoader = includeOrders;
+        if (showLoader) {
+            this.ui.block({ message: _t("Loading orders...") });
+        }
         try {
             if (includeOrders) {
                 try {
@@ -44,6 +94,9 @@ patch(TicketScreen.prototype, {
             );
             await this.pos.pbaRefreshOrderLocks(openOrders);
         } finally {
+            if (showLoader) {
+                this.ui.unblock();
+            }
             this._pbaLockSyncBusy = false;
         }
     },
@@ -72,16 +125,6 @@ patch(TicketScreen.prototype, {
         return (
             super.shouldHideDeleteButton(...arguments) || this.isOrderOccupied(order)
         );
-    },
-
-    async onClickOrder(clickedOrder) {
-        if (clickedOrder && !clickedOrder.finalized) {
-            this.setSelectedOrder(clickedOrder);
-            this.numberBuffer.reset();
-            await this._setOrder(clickedOrder);
-            return;
-        }
-        return super.onClickOrder(...arguments);
     },
 
     async _setOrder(order) {

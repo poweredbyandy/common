@@ -15,5 +15,53 @@
                 t-esc="props.partner.vat"
             />
         </xpath>
+        <xpath expr="//div[hasclass('partner-info')]//Dropdown" position="replace">
+            <div class="d-flex align-items-center gap-1 o_pba_partner_actions">
+                <button
+                    class="btn btn-light btn-sm border o_pba_partner_edit_btn"
+                    title="Edit"
+                    aria-label="Edit"
+                    t-on-click.stop="() => props.onClickEdit(props.partner)"
+                >
+                    <i class="fa fa-pencil"/>
+                </button>
+                <Dropdown>
+                    <button class="btn btn-ligth fa fa-bars" />
+                    <t t-set-slot="content">
+                        <DropdownItem onSelected="() => props.onClickEdit(props.partner)">
+                            Edit Details
+                        </DropdownItem>
+                        <DropdownItem onSelected="() => props.onClickOrders(props.partner)">
+                            All Orders
+                        </DropdownItem>
+                    </t>
+                </Dropdown>
+            </div>
+        </xpath>
+        <xpath expr="//tr[hasclass('partner-line')]//Dropdown" position="replace">
+            <div class="d-flex align-items-center justify-content-end gap-1 o_pba_partner_actions">
+                <button
+                    class="btn btn-light btn-lg lh-lg border o_pba_partner_edit_btn"
+                    title="Edit"
+                    aria-label="Edit"
+                    t-on-click.stop="() => props.onClickEdit(props.partner)"
+                >
+                    <i class="fa fa-pencil"/>
+                </button>
+                <Dropdown>
+                    <button class="btn btn-light btn-lg lh-lg border">
+                        <i class="fa fa-fw fa-bars"/>
+                    </button>
+                    <t t-set-slot="content">
+                        <DropdownItem onSelected="() => props.onClickEdit(props.partner)">
+                            Edit Details
+                        </DropdownItem>
+                        <DropdownItem onSelected="() => props.onClickOrders(props.partner)">
+                            All Orders
+                        </DropdownItem>
+                    </t>
+                </Dropdown>
+            </div>
+        </xpath>
     </t>
 </templates>

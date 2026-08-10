@@ -1,0 +1,34 @@
+.payment-buttons > .d-flex.flex-column:has(.js_shipping_address) {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+    align-items: stretch;
+
+    > .partner-button {
+        grid-column: 1 / -1;
+    }
+
+    > .js_invoice,
+    > .js_invoice_journal,
+    > .js_shipping_address {
+        width: 100% !important;
+        max-width: 100%;
+    }
+}
+
+.payment-buttons .js_shipping_address {
+    min-height: 3rem;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+
+    .pba-shipping-address-label {
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        overflow: hidden;
+        font-size: 0.85rem;
+        line-height: 1.2;
+        white-space: normal;
+        word-break: break-word;
+        min-width: 0;
+    }
+}

@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+    <t t-name="res_users_user.SubUserLockScreen">
+        <div class="o_sub_user_lock_screen" t-if="subUser.enabled and subUser.locked">
+            <div class="o_sub_user_lock_panel">
+                <h2 class="mb-3" t-esc="title" />
+                <p class="text-muted mb-4" t-esc="subtitle" />
+                <div class="o_sub_user_lock_list list-group mb-3">
+                    <button
+                        t-foreach="subUser.sub_users"
+                        t-as="item"
+                        t-key="item.id"
+                        type="button"
+                        class="list-group-item list-group-item-action"
+                        t-att-class="{ active: state.selectedId === item.id }"
+                        t-on-click="() => this.selectSubUser(item)"
+                    >
+                        <t t-esc="item.name" />
+                    </button>
+                </div>
+                <div t-if="state.selectedId" class="o_sub_user_pin_block">
+                    <label class="form-label" t-esc="pinLabel" />
+                    <input
+                        type="password"
+                        inputmode="numeric"
+                        class="form-control text-center mb-3"
+                        t-att-value="state.pin"
+                        t-on-input="onPinInput"
+                        t-on-keydown="onPinKeydown"
+                        autofocus="autofocus"
+                    />
+                    <div class="o_sub_user_pin_pad mb-3">
+                        <t t-foreach="padKeys" t-as="key" t-key="key">
+                            <button
+                                type="button"
+                                class="btn btn-outline-secondary"
+                                t-on-click="() => this.onPadKey(key)"
+                            >
+                                <t t-esc="key === 'C' ? clearLabel : key === 'BS' ? '' : key" />
+                                <i t-if="key === 'BS'" class="fa fa-caret-left" />
+                            </button>
+                        </t>
+                    </div>
+                    <button
+                        type="button"
+                        class="btn btn-primary w-100"
+                        t-att-disabled="!state.pin"
+                        t-on-click="onConfirm"
+                    >
+                        <t t-esc="confirmLabel" />
+                    </button>
+                    <div t-if="state.error" class="text-danger mt-2 text-center" t-esc="state.error" />
+                </div>
+            </div>
+        </div>
+    </t>
+
+    <t t-name="res_users_user.SubUserPinDialog">
+        <Dialog title="title" size="'sm'">
+            <input
+                type="password"
+                inputmode="numeric"
+                class="form-control text-center mb-3"
+                t-att-value="state.pin"
+                t-on-input="onPinInput"
+                t-on-keydown="onPinKeydown"
+                autofocus="autofocus"
+            />
+            <div class="o_sub_user_pin_pad mb-2">
+                <t t-foreach="padKeys" t-as="key" t-key="key">
+                    <button
+                        type="button"
+                        class="btn btn-outline-secondary"
+                        t-on-click="() => this.onPadKey(key)"
+                    >
+                        <t t-esc="key === 'C' ? clearLabel : key === 'BS' ? '' : key" />
+                        <i t-if="key === 'BS'" class="fa fa-caret-left" />
+                    </button>
+                </t>
+            </div>
+            <div t-if="state.error" class="text-danger text-center" t-esc="state.error" />
+            <t t-set-slot="footer">
+                <button class="btn btn-primary" t-att-disabled="!state.pin" t-on-click="onConfirm">
+                    <t t-esc="confirmLabel" />
+                </button>
+                <button class="btn btn-secondary" t-on-click="props.close">
+                    <t t-esc="cancelLabel" />
+                </button>
+            </t>
+        </Dialog>
+    </t>
+</templates>

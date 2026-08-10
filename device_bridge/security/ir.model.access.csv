@@ -1,0 +1,7 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_device_bridge_internal,device.bridge internal,model_device_bridge,base.group_user,1,0,0,0
+access_device_bridge_manager,device.bridge manager,model_device_bridge,group_device_bridge_manager,1,1,1,1
+access_device_bridge_authorization_internal,device.bridge.authorization internal,model_device_bridge_authorization,base.group_user,1,1,1,1
+access_device_bridge_authorization_manager,device.bridge.authorization manager,model_device_bridge_authorization,group_device_bridge_manager,1,1,1,1
+access_device_bridge_gateway_internal,device.bridge.gateway internal,model_device_bridge_gateway,base.group_user,1,1,1,1
+access_device_bridge_gateway_manager,device.bridge.gateway manager,model_device_bridge_gateway,group_device_bridge_manager,1,1,1,1

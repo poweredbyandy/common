@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="device_bridge_gateway_view_list" model="ir.ui.view">
+        <field name="name">device.bridge.gateway.view.list</field>
+        <field name="model">device.bridge.gateway</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="device_id"/>
+                <field name="user_id"/>
+                <field name="device_label"/>
+                <field name="last_seen"/>
+                <field name="is_online"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="device_bridge_gateway_view_form" model="ir.ui.view">
+        <field name="name">device.bridge.gateway.view.form</field>
+        <field name="model">device.bridge.gateway</field>
+        <field name="arch" type="xml">
+            <form string="Gateway">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="device_id"/>
+                            <field name="authorization_id"/>
+                            <field name="user_id"/>
+                            <field name="device_label"/>
+                        </group>
+                        <group>
+                            <field name="browser_key"/>
+                            <field name="channel_token"/>
+                            <field name="last_seen"/>
+                            <field name="is_online"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="device_bridge_gateway_action" model="ir.actions.act_window">
+        <field name="name">Gateways</field>
+        <field name="res_model">device.bridge.gateway</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

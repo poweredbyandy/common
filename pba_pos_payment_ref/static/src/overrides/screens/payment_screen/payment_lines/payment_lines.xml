@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-inherit="point_of_sale.PaymentScreenPaymentLines" t-inherit-mode="extension">
+        <xpath expr="//span[hasclass('payment-name')]/following-sibling::div[hasclass('payment-amount')]" position="after">
+            <div t-if="line.isBankPayment and line.isBankPayment()"
+                class="o_pba_pos_payment_ref o_pba_pos_payment_ref_selected w-100 pt-1">
+                <input type="text"
+                    class="o_pba_pos_payment_ref_input"
+                    t-att-value="line.getPaymentRefNo()"
+                    placeholder="Ref: 0000000"
+                    t-on-input="(ev) => this.onPaymentRefInput(line, ev)"
+                    t-on-keydown="onPaymentRefKeydown"
+                    t-on-click.stop="() => {}"/>
+            </div>
+        </xpath>
+        <xpath expr="//div[hasclass('bg-view')]//div[hasclass('payment-amount')]" position="after">
+            <div t-if="line.isBankPayment and line.isBankPayment() and line.getPaymentRefNo()"
+                class="o_pba_pos_payment_ref o_pba_pos_payment_ref_unselected w-100 pt-1">
+                <span class="o_pba_pos_payment_ref_display">
+                    Ref: <t t-esc="line.getPaymentRefNo()"/>
+                </span>
+            </div>
+        </xpath>
+    </t>
+</templates>

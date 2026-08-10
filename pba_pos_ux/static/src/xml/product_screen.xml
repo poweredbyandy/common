@@ -23,7 +23,7 @@
                         aria-label="Vista cards"
                     >
                         <i class="fa fa-th-large" aria-hidden="true"/>
-                        <span>Cards</span>
+                        <span t-if="!ui.isSmall">Cards</span>
                     </button>
                     <button
                         type="button"
@@ -35,7 +35,7 @@
                         aria-label="Vista lista"
                     >
                         <i class="fa fa-list" aria-hidden="true"/>
-                        <span>Lista</span>
+                        <span t-if="!ui.isSmall">Lista</span>
                     </button>
                 </div>
             </div>

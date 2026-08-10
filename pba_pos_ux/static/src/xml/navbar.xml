@@ -9,7 +9,8 @@
         </xpath>
         <xpath expr="//Input" position="attributes">
             <attribute name="placeholder.translate">Buscar productos (nombre, codigo... use *)</attribute>
-            <attribute name="class">'p-0 flex-grow-1 pba_pos_ux_product_search'</attribute>
+            <attribute name="class">'p-0 flex-grow-1 pba_pos_ux_product_search pba_pos_ux_navbar_search'</attribute>
+            <attribute name="isSmall">false</attribute>
         </xpath>
         <xpath expr="//div[hasclass('oe_status')]" position="replace">
             <div

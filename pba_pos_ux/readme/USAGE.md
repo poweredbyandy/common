@@ -26,7 +26,8 @@
    is not downloaded. No extra configuration is required.
 9. The customer button shows the full name and RIF/CI/VAT on its own row; other
    action buttons appear on the following row.
-10. In the customer list, each partner shows its RIF/CI/VAT under the name.
+10. In the customer list, each partner shows its RIF/CI/VAT under the name and
+    a pencil button to open the customer form for editing.
 11. Next to the ``+`` of floating orders in the header, use **Pedidos** to open
     the orders list.
 12. Multi-device order locking:
@@ -43,7 +44,8 @@
     - After a successful payment, the lock is released and leaving the receipt
       returns to the orders list. If the server rejects the payment (for example
       a 0.01 rounding gap), the POS stays on Payment and shows an alert.
-    - Click a draft order in the list (including total 0) to open it.
+    - Click a draft order in the list (including total 0) to select it, then
+      use **Load Order** to open it.
     - Leaving an order with no products deletes it automatically.
     - Floating order tabs on the left show only the order currently open on
       this device.

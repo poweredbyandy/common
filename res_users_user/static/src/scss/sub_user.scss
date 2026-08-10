@@ -1,0 +1,40 @@
+.o_sub_user_lock_screen {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(20, 20, 20, 0.72);
+}
+
+.o_sub_user_lock_panel {
+    width: 92vw;
+    max-width: 420px;
+    background: var(--o-view-background-color, #fff);
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.25);
+}
+
+.o_sub_user_pin_pad {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+
+    .btn {
+        min-height: 2.75rem;
+        font-size: 1.15rem;
+    }
+}
+
+.o_sub_user_systray {
+    .o_sub_user_systray_name {
+        max-width: 10rem;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        display: inline-block;
+        vertical-align: bottom;
+    }
+}

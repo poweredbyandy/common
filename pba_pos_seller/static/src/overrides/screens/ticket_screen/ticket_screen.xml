@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-inherit="point_of_sale.TicketScreen" t-inherit-mode="extension">
+        <xpath expr="//div[hasclass('header-row')]/div[hasclass('col') and hasclass('end')]" position="before">
+            <div class="col p-2">Seller</div>
+        </xpath>
+        <xpath
+            expr="//div[hasclass('order-row') and not(hasclass('mobileOrderList'))]/div[hasclass('col') and hasclass('end')]"
+            position="before"
+        >
+            <div class="col p-2">
+                <t t-esc="getSeller(order)"/>
+            </div>
+        </xpath>
+    </t>
+</templates>

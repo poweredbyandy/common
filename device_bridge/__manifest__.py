@@ -1,0 +1,36 @@
+{
+    "name": "Device Bridge",
+    "version": "18.0.1.1.3",
+    "category": "Productivity",
+    "summary": "Authorize and share hardware devices (WebUSB, WebSocket gateway, etc.)",
+    "author": "andyengit",
+    "maintainer": "andyengit",
+    "website": "https://github.com/andyengit",
+    "license": "LGPL-3",
+    "depends": [
+        "web",
+        "bus",
+    ],
+    "data": [
+        "security/device_bridge_security.xml",
+        "security/ir.model.access.csv",
+        "views/device_bridge_views.xml",
+        "views/device_bridge_authorization_views.xml",
+        "views/device_bridge_gateway_views.xml",
+        "views/device_bridge_menus.xml",
+    ],
+    "assets": {
+        "web.assets_backend": [
+            "device_bridge/static/src/js/device_bridge_client_key.js",
+            "device_bridge/static/src/js/device_bridge_local_registry.js",
+            "device_bridge/static/src/js/device_bridge_webusb_transport.js",
+            "device_bridge/static/src/js/device_bridge_proxy.js",
+            "device_bridge/static/src/js/device_bridge_gateway_service.js",
+            "device_bridge/static/src/js/device_bridge_service.js",
+            "device_bridge/static/src/js/device_bridge_register_action.js",
+            "device_bridge/static/src/xml/device_bridge_register_action.xml",
+        ],
+    },
+    "installable": True,
+    "application": False,
+}

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.pba.pos.ship.later.default</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="point_of_sale.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='pos_ship_later']/ancestor::setting" position="after">
+                <setting
+                    string="Ship Later by Default"
+                    help="Ship Later stays active with today's date. Click the button to change the delivery date."
+                    invisible="not pos_ship_later"
+                >
+                    <field name="pos_pba_ship_later_default"/>
+                </setting>
+            </xpath>
+        </field>
+    </record>
+</odoo>

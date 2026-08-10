@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="device_bridge.RegisterAction">
+        <div class="o_device_bridge_register p-3">
+            <t t-if="state.loading">
+                <div class="text-muted">Loading...</div>
+            </t>
+            <t t-else="">
+                <div class="mb-3">
+                    <p class="text-muted mb-0">
+                        Select the physical USB device, choose its type and save.
+                        The authorization is stored for this user and browser.
+                    </p>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">USB device</label>
+                    <div class="d-flex gap-2 align-items-center flex-wrap">
+                        <button
+                            type="button"
+                            class="btn btn-primary"
+                            t-on-click="onSelectUsb"
+                            t-att-disabled="state.selecting || state.saving"
+                        >
+                            <t t-if="state.selecting">Selecting...</t>
+                            <t t-else="">Select USB device</t>
+                        </button>
+                        <span class="text-break" t-esc="usbLabel"/>
+                    </div>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label" for="db_name">Name</label>
+                        <input
+                            id="db_name"
+                            type="text"
+                            class="form-control"
+                            t-att-value="state.name"
+                            t-on-input="onNameInput"
+                            placeholder="e.g. POS80 Front Desk"
+                        />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" for="db_code">Technical code</label>
+                        <input
+                            id="db_code"
+                            type="text"
+                            class="form-control"
+                            t-att-value="state.code"
+                            t-on-input="onCodeInput"
+                            placeholder="e.g. pos80"
+                        />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" for="db_type">Device type</label>
+                        <select
+                            id="db_type"
+                            class="form-select"
+                            t-model="state.device_type"
+                        >
+                            <t t-foreach="state.deviceTypes" t-as="item" t-key="item[0]">
+                                <option t-att-value="item[0]" t-esc="item[1]"/>
+                            </t>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" for="db_protocol">Protocol</label>
+                        <select
+                            id="db_protocol"
+                            class="form-select"
+                            t-model="state.protocol"
+                        >
+                            <t t-foreach="state.protocols" t-as="item" t-key="item[0]">
+                                <option t-att-value="item[0]" t-esc="item[1]"/>
+                            </t>
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <div class="form-check">
+                            <input
+                                id="db_share"
+                                type="checkbox"
+                                class="form-check-input"
+                                t-model="state.share_websocket"
+                            />
+                            <label class="form-check-label" for="db_share">
+                                Share over WebSocket when this browser is online
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <t t-if="state.error">
+                    <div class="alert alert-danger mt-3 mb-0" t-esc="state.error"/>
+                </t>
+
+                <div class="d-flex justify-content-end gap-2 mt-4">
+                    <button
+                        type="button"
+                        class="btn btn-secondary"
+                        t-on-click="onCancel"
+                        t-att-disabled="state.saving"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        type="button"
+                        class="btn btn-primary"
+                        t-on-click="onSave"
+                        t-att-disabled="state.saving || !state.usb"
+                    >
+                        <t t-if="state.saving">Saving...</t>
+                        <t t-else="">Save device</t>
+                    </button>
+                </div>
+            </t>
+        </div>
+    </t>
+</templates>

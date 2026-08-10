@@ -6,7 +6,7 @@
                 lines="pbaOrderLines"
                 t-slot-scope="scope"
                 class="'bg-light'"
-                taxTotals="pbaHasActiveOrder ? currentOrder.taxTotals : false"
+                taxTotals="pbaTaxTotals"
                 generalNote="pbaHasActiveOrder ? (currentOrder.general_note or '') : ''"
             >
                 <t t-set="line" t-value="scope.line"/>

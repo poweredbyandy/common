@@ -1,0 +1,37 @@
+body.pba_pos_keybinding_active {
+    [data-pba-keyhint] {
+        position: relative !important;
+        box-shadow: 0 0 0 2px rgba($o-action, 0.55);
+        z-index: 5;
+    }
+
+    [data-pba-keyhint]::after {
+        content: attr(data-pba-keyhint);
+        position: absolute;
+        top: -0.4rem;
+        left: -0.4rem;
+        z-index: 100;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 1.35rem;
+        height: 1.35rem;
+        padding: 0 0.3rem;
+        border-radius: 0.3rem;
+        background: $o-action;
+        color: #fff;
+        font-size: 0.75rem;
+        font-weight: 700;
+        line-height: 1;
+        letter-spacing: 0.02em;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+        pointer-events: none;
+        text-transform: uppercase;
+    }
+
+    .pba_pos_ux_product_search[data-pba-keyhint]::after,
+    .pba_pos_keybinding_search[data-pba-keyhint]::after {
+        top: 0.15rem;
+        left: 0.15rem;
+    }
+}

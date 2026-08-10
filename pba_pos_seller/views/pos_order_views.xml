@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_pos_order_form_seller" model="ir.ui.view">
+        <field name="name">pos.order.form.pba.seller</field>
+        <field name="model">pos.order</field>
+        <field name="inherit_id" ref="pos_hr.pos_order_form_inherit"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='user_id']" position="before">
+                <field
+                    name="pba_seller_id"
+                    widget="many2one_avatar_employee"
+                    readonly="state in ['paid', 'done', 'invoiced']"
+                />
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_pos_order_tree_seller" model="ir.ui.view">
+        <field name="name">pos.order.list.pba.seller</field>
+        <field name="model">pos.order</field>
+        <field name="inherit_id" ref="pos_hr.view_pos_order_tree_inherit"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='employee_id']" position="after">
+                <field
+                    name="pba_seller_id"
+                    widget="many2one_avatar_employee"
+                    optional="show"
+                    readonly="state in ['paid', 'done', 'invoiced']"
+                />
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_pos_order_filter_seller" model="ir.ui.view">
+        <field name="name">pos.order.search.pba.seller</field>
+        <field name="model">pos.order</field>
+        <field name="inherit_id" ref="pos_hr.pos_order_list_select_inherit"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='cashier']" position="after">
+                <field name="pba_seller_id"/>
+            </xpath>
+            <xpath expr="//filter[@name='by_cashier']" position="after">
+                <filter
+                    string="Seller"
+                    name="by_seller"
+                    domain="[]"
+                    context="{'group_by': 'pba_seller_id'}"
+                />
+            </xpath>
+        </field>
+    </record>
+</odoo>

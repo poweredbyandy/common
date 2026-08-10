@@ -2,6 +2,7 @@
 
 import { ProductScreen } from "@point_of_sale/app/screens/product_screen/product_screen";
 import { formatProductDisplayName } from "@pba_pos_ux/utils/product_display_name";
+import { _t } from "@web/core/l10n/translation";
 import { patch } from "@web/core/utils/patch";
 import { unaccent } from "@web/core/utils/strings";
 import { useEffect, useExternalListener } from "@odoo/owl";
@@ -124,6 +125,18 @@ patch(ProductScreen.prototype, {
             ["available_in_pos", "=", true],
             ["sale_ok", "=", true],
         ];
+    },
+
+    async loadProductFromDB() {
+        if (!this.pos.searchProductWord) {
+            return;
+        }
+        this.ui.block({ message: _t("Loading products...") });
+        try {
+            return await super.loadProductFromDB(...arguments);
+        } finally {
+            this.ui.unblock();
+        }
     },
 
     _pbaIsListView() {

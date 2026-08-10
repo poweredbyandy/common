@@ -1,9 +1,24 @@
-/** @odoo-module */
+/** @odoo-module **/
 
 import { patch } from "@web/core/utils/patch";
+import { onMounted } from "@odoo/owl";
 import { TicketScreen } from "@point_of_sale/app/screens/ticket_screen/ticket_screen";
 
 patch(TicketScreen.prototype, {
+    setup() {
+        super.setup(...arguments);
+        onMounted(() => {
+            if (!this.pos.config.module_pos_hr || !this.pos._pbaPosHrNeedsOpening()) {
+                return;
+            }
+            if (this.pos.pbaPosHrIsBasicCashier || !this.pos.get_cashier()) {
+                this.pos._pbaPosHrKickBasicWithoutOpening();
+                return;
+            }
+            this.pos.openOpeningControl();
+        });
+    },
+
     _getFilterOptions() {
         const options = super._getFilterOptions(...arguments);
         if (!this.pos.pbaPosHrIsBasicCashier) {

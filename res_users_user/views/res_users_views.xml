@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="view_users_form_sub_user" model="ir.ui.view">
+        <field name="name">res.users.form.sub.user</field>
+        <field name="model">res.users</field>
+        <field name="inherit_id" ref="base.view_users_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='preferences']" position="after">
+                <page string="Sub-Users" name="sub_users" groups="base.group_system">
+                    <group>
+                        <field name="sub_user_required" />
+                    </group>
+                    <field name="sub_user_ids" nolabel="1">
+                        <list editable="bottom">
+                            <field name="employee_id" />
+                            <field name="name" />
+                            <field
+                                name="pin"
+                                password="True"
+                                required="active"
+                            />
+                            <field name="active" />
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

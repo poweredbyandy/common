@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-inherit="point_of_sale.Navbar" t-inherit-mode="extension">
+        <xpath expr="//Input" position="replace">
+            <div
+                t-if="pos.showSearchButton()"
+                class="p-0 flex-grow-1 pba_pos_ux_product_search pba_pos_ux_navbar_search pba_pos_keybinding_search"
+                data-pba-keyhint="B"
+                data-pba-keyhint-action="focus"
+            >
+                <Input
+                    tModel="[pos, 'searchProductWord']"
+                    class="'p-0 w-100'"
+                    isSmall="false"
+                    placeholder.translate="Buscar productos (nombre, codigo... use *)"
+                    icon="{type: 'fa', value: 'fa-search fa-lg fa-fw'}"
+                    debounceMillis="500"
+                />
+            </div>
+        </xpath>
+    </t>
+
+    <t t-inherit="point_of_sale.OrderTabs" t-inherit-mode="extension">
+        <xpath expr="//button[hasclass('pba_pos_ux_orders_btn') and not(hasclass('pba_pos_sale_quotation_btn'))]" position="attributes">
+            <attribute name="data-pba-keyhint">P</attribute>
+        </xpath>
+        <xpath expr="//button[hasclass('pba_pos_sale_quotation_btn')]" position="attributes">
+            <attribute name="data-pba-keyhint">O</attribute>
+        </xpath>
+    </t>
+
+    <t t-inherit="point_of_sale.SelectPartnerButton" t-inherit-mode="extension">
+        <xpath expr="//button[hasclass('set-partner')]" position="attributes">
+            <attribute name="data-pba-keyhint">C</attribute>
+        </xpath>
+    </t>
+
+    <t t-inherit="point_of_sale.ControlButtons" t-inherit-mode="extension">
+        <xpath expr="//button[.//i[hasclass('fa-upload')]]" position="attributes">
+            <attribute name="data-pba-keyhint">S</attribute>
+        </xpath>
+        <xpath expr="//button[hasclass('more-btn')]" position="attributes">
+            <attribute name="data-pba-keyhint">A</attribute>
+        </xpath>
+        <xpath expr="//button[hasclass('o_pricelist_button')]" position="attributes">
+            <attribute name="data-pba-keyhint">L</attribute>
+        </xpath>
+        <xpath expr="//button[.//i[hasclass('fa-undo')]]" position="attributes">
+            <attribute name="data-pba-keyhint">R</attribute>
+        </xpath>
+        <xpath expr="//button[hasclass('o_fiscal_position_button')]" position="attributes">
+            <attribute name="data-pba-keyhint">T</attribute>
+        </xpath>
+        <xpath expr="//button[.//i[hasclass('fa-trash')]]" position="attributes">
+            <attribute name="data-pba-keyhint">X</attribute>
+        </xpath>
+    </t>
+
+    <t t-inherit="point_of_sale.ActionpadWidget" t-inherit-mode="extension">
+        <xpath expr="//button[hasclass('pay-order-button')]" position="attributes">
+            <attribute name="data-pba-keyhint">G</attribute>
+        </xpath>
+        <xpath expr="//button[hasclass('mobile-more-button')]" position="attributes">
+            <attribute name="data-pba-keyhint">A</attribute>
+        </xpath>
+        <xpath expr="//button[.//i[hasclass('fa-upload')]]" position="attributes">
+            <attribute name="data-pba-keyhint">S</attribute>
+        </xpath>
+    </t>
+
+    <t t-inherit="point_of_sale.ProductScreen" t-inherit-mode="extension">
+        <xpath expr="//button[hasclass('pay-button')]" position="attributes">
+            <attribute name="data-pba-keyhint">G</attribute>
+        </xpath>
+        <xpath expr="//button[hasclass('review-button')]" position="attributes">
+            <attribute name="data-pba-keyhint">K</attribute>
+        </xpath>
+    </t>
+
+    <t t-inherit="point_of_sale.PaymentScreenButtons" t-inherit-mode="extension">
+        <xpath expr="//button[hasclass('partner-button')]" position="attributes">
+            <attribute name="data-pba-keyhint">C</attribute>
+        </xpath>
+    </t>
+</templates>
