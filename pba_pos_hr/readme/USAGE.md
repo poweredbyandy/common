@@ -6,8 +6,8 @@
    rejected with an alert and the POS stays on the login screen.
 4. Log in as an advanced employee while the session needs opening: the Orders
    list opens and the opening control popup is shown so the manager can open
-   the register. After confirming the opening, the POS returns to the login
-   screen so a basic cashier can enter without reloading the page.
+   the register. After confirming the opening, the manager stays logged in and
+   can keep working (no forced return to the employee selection screen).
 5. Log in as a basic employee (after opening): the Pay button is hidden and
    the Payments screen cannot be opened; the order list hides Payment and
    Paid filters.

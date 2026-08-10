@@ -14,7 +14,7 @@ patch(OpeningControlPopup.prototype, {
         if (!this.pos.config.module_pos_hr) {
             return;
         }
-        this.pos.hasLoggedIn = false;
-        await this.pos.showLoginScreen();
+        // Keep the manager who opened the register logged in.
+        this.pos.hasLoggedIn = true;
     },
 });
