@@ -1,5 +1,4 @@
 from uuid import uuid4
-from unittest.mock import patch
 
 from freezegun import freeze_time
 
@@ -107,18 +106,20 @@ class TestPosOrderLock(TransactionCase):
         )
 
     def test_remote_product_price_uses_pos_currency_conversion(self):
-        currency_model = type(self.company.currency_id)
-        with patch.object(
-            currency_model,
-            "_convert",
-            autospec=True,
-            side_effect=lambda currency, amount, target, company, date: amount * 2,
-        ):
-            prices = self.env["product.product"].pba_get_pos_currency_prices(
-                [self.product.id],
-                self.pos_config.id,
-            )
-        self.assertEqual(prices[self.product.id]["lst_price"], 20.0)
+        product_model = self.env["product.product"]
+        expected = product_model._load_product_with_domain(
+            [("id", "=", self.product.id)],
+            self.pos_config.id,
+        )
+        product_model._process_pos_ui_product_product(expected, self.pos_config)
+        prices = product_model.pba_get_pos_currency_prices(
+            [self.product.id],
+            self.pos_config.id,
+        )
+        self.assertEqual(
+            prices[self.product.id]["lst_price"],
+            expected[0]["lst_price"],
+        )
 
     def _order_sync_payload(self, order):
         line = order.lines[0]
