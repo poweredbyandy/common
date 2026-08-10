@@ -127,7 +127,22 @@ patch(ProductScreen.prototype, {
         }
         this.ui.block({ message: _t("Loading products...") });
         try {
-            return await super.loadProductFromDB(...arguments);
+            const products = await super.loadProductFromDB(...arguments);
+            if (!products?.length) {
+                return products;
+            }
+            const prices = await this.pos.data.call(
+                "product.product",
+                "pba_get_pos_currency_prices",
+                [products.map((product) => product.id), this.pos.config.id]
+            );
+            for (const product of products) {
+                const converted = prices[product.id];
+                if (converted) {
+                    product.update(converted);
+                }
+            }
+            return products;
         } finally {
             this.ui.unblock();
         }

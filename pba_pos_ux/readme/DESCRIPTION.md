@@ -6,6 +6,8 @@ Highlights the product search bar (hides the Odoo logo that was overlapping it)
 and supports wildcard search with `*`. Example: `BOMB*FRE` matches
 `BOMBA DE AGUA PARA FRENOS`. Search covers product name, internal reference
 and barcode. Brand and internal code are added by companion bridge modules.
+Products loaded from the server after the initial catalog limit use the same
+POS currency conversion as products loaded when the session starts.
 
 Allows switching the product catalog display between cards (default) and list,
 both on desktop and mobile. The preference is kept in the browser. Catalog cards,

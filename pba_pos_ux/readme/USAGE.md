@@ -5,7 +5,8 @@
    wider and the Odoo logo is hidden so it does not overlap the search.
 4. Search products by name, reference or barcode. Use `*` as a wildcard between
    fragments, e.g. `BOMB*FRE` for `BOMBA DE AGUA PARA FRENOS`. Use
-   **Search more** to also query the server with the same pattern.
+   **Search more** to also query the server with the same pattern. Products
+   found on the server are shown using the configured POS currency.
 5. Switch the catalog between cards and list with the toggle next to Productos.
    Products with an internal reference (`default_code`) appear as
    `[CODE] Product name` in the catalog (cards/list) and in the order lines.
