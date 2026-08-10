@@ -1,6 +1,6 @@
 {
     "name": "PBA POS UX",
-    "version": "18.0.1.8.3",
+    "version": "18.0.1.8.5",
     "category": "Point of Sale",
     "summary": (
         "Mejora la UX del POS: búsqueda de productos y clientes con comodín *, "
@@ -21,6 +21,7 @@
         "point_of_sale._assets_pos": [
             "pba_pos_ux/static/src/utils/product_display_name.js",
             "pba_pos_ux/static/src/utils/order_lock.js",
+            "pba_pos_ux/static/src/utils/order_number.js",
             "pba_pos_ux/static/src/scss/pos_ux.scss",
             "pba_pos_ux/static/src/xml/navbar.xml",
             "pba_pos_ux/static/src/xml/order_tabs.xml",
@@ -40,6 +41,7 @@
             "pba_pos_ux/static/src/app/screens/ticket_screen/ticket_screen.js",
             "pba_pos_ux/static/src/app/generic_components/product_card/product_card.js",
             "pba_pos_ux/static/src/app/models/product_product.js",
+            "pba_pos_ux/static/src/app/models/pos_order.js",
             "pba_pos_ux/static/src/app/models/pos_order_line.js",
             "pba_pos_ux/static/src/app/store/pos_store.js",
             "pba_pos_ux/static/src/app/store/devices_synchronisation.js",
@@ -53,6 +55,7 @@
         "web.assets_unit_tests": [
             "pba_pos_ux/static/src/utils/product_display_name.js",
             "pba_pos_ux/static/src/utils/order_lock.js",
+            "pba_pos_ux/static/src/utils/order_number.js",
             "pba_pos_ux/static/tests/unit/**/*",
         ],
     },

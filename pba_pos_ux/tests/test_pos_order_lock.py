@@ -283,6 +283,16 @@ class TestPosOrderLock(TransactionCase):
         self.assertEqual(order.pba_lock_owner_name, "Cashier A")
         self.assertEqual(order.pba_lock_expire, expire_before)
 
+    def test_sync_from_ui_persists_customer_selected_by_owner(self):
+        order = self._create_draft_order()
+        customer = self.env["res.partner"].create({"name": "PBA Saved Customer"})
+        self.PosOrder.pba_acquire_order_lock(order.id, "device-a", "Cashier A")
+        payload = self._order_sync_payload(order)
+        payload["partner_id"] = customer.id
+        self.PosOrder.with_context(pba_device_token="device-a").sync_from_ui([payload])
+        order.invalidate_recordset(["partner_id"])
+        self.assertEqual(order.partner_id, customer)
+
     def test_sync_from_ui_allows_after_expiration(self):
         order = self._create_draft_order()
         with freeze_time("2026-08-07 10:00:00"):
