@@ -331,6 +331,7 @@ patch(PosStore.prototype, {
         if (!(await this.pbaEnsureCustomerForSave(currentOrder))) {
             return;
         }
+        await this._pbaSyncCurrentOrder(currentOrder);
         return await super.pay(...arguments);
     },
 
@@ -341,7 +342,12 @@ patch(PosStore.prototype, {
         if (!this.get_order()) {
             return false;
         }
-        return await super.selectPartner(...arguments);
+        const result = await super.selectPartner(...arguments);
+        const order = this.get_order();
+        if (order && !order.finalized) {
+            await this._pbaSyncCurrentOrder(order);
+        }
+        return result;
     },
 
     getSyncAllOrdersContext(orders, options = {}) {

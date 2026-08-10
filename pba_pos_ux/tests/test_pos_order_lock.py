@@ -239,6 +239,22 @@ class TestPosOrderLock(TransactionCase):
         renew = self.PosOrder.pba_renew_order_lock(order.id, "device-b")
         self.assertFalse(renew["success"])
 
+    def test_renew_does_not_bump_write_date(self):
+        order = self._create_draft_order()
+        self.PosOrder.pba_acquire_order_lock(order.id, "device-a", "Cashier A")
+        write_date_before = order.write_date
+        partner_before = order.partner_id
+        with freeze_time("2026-08-07 10:00:10"):
+            renew = self.PosOrder.pba_renew_order_lock(order.id, "device-a")
+        self.assertTrue(renew["success"])
+        order.invalidate_recordset()
+        self.assertEqual(order.write_date, write_date_before)
+        self.assertEqual(order.partner_id, partner_before)
+        self.assertEqual(
+            order.pba_lock_expire,
+            fields.Datetime.from_string("2026-08-07 10:00:40"),
+        )
+
     def test_renew_does_not_notify_other_devices(self):
         order = self._create_draft_order()
         self.PosOrder.pba_acquire_order_lock(order.id, "device-a", "Cashier A")

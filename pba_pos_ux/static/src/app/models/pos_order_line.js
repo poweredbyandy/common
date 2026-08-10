@@ -21,6 +21,12 @@ patch(PosOrderline.prototype, {
     },
 
     getDisplayData() {
+        if (!Array.isArray(this.pack_lot_ids)) {
+            this.pack_lot_ids = [];
+        }
+        if (!Array.isArray(this.tax_ids)) {
+            this.tax_ids = [];
+        }
         const data = super.getDisplayData(...arguments);
         data.productName = formatProductDisplayName(this.product_id, data.productName);
         return data;

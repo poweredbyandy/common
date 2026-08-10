@@ -179,12 +179,17 @@ class PosOrder(models.Model):
             or order.pba_lock_device_token != device_token
         ):
             return order._pba_lock_busy_result()
-        order.write(
-            {
-                "pba_lock_expire": fields.Datetime.now()
-                + timedelta(seconds=PBA_LOCK_DURATION_SECONDS),
-            }
+        expire = fields.Datetime.now() + timedelta(seconds=PBA_LOCK_DURATION_SECONDS)
+        self.env.cr.execute(
+            """
+            UPDATE pos_order
+               SET pba_lock_expire = %s
+             WHERE id = %s
+               AND pba_lock_device_token = %s
+            """,
+            [expire, order.id, device_token],
         )
+        order.invalidate_recordset(["pba_lock_expire"])
         return order._pba_lock_success_result()
 
     @api.model

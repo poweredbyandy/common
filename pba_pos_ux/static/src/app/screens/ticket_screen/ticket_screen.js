@@ -29,15 +29,82 @@ patch(TicketScreen.prototype, {
         });
     },
 
+    _pbaIsEWalletGiftCardLine(orderline) {
+        if (!orderline?.product_id) {
+            return false;
+        }
+        const programs = this.pos.models?.["loyalty.program"];
+        if (!programs || typeof programs.some !== "function") {
+            return false;
+        }
+        const productId = orderline.product_id.id;
+        return programs.some((program) => {
+            if (!["gift_card", "ewallet"].includes(program.program_type)) {
+                return false;
+            }
+            const triggers = program.trigger_product_ids;
+            if (!triggers || typeof triggers.map !== "function") {
+                return false;
+            }
+            return triggers.map((product) => product.id).includes(productId);
+        });
+    },
+
+    _pbaEnsureRefundLineRelations(line) {
+        if (!line) {
+            return false;
+        }
+        if (!Array.isArray(line.tax_ids)) {
+            line.tax_ids = [];
+        }
+        if (!Array.isArray(line.pack_lot_ids)) {
+            line.pack_lot_ids = [];
+        }
+        if (!Array.isArray(line.combo_line_ids)) {
+            line.combo_line_ids = [];
+        }
+        return Boolean(line.product_id);
+    },
+
+    _pbaSanitizeRefundDetails(order) {
+        if (!order?.uiState?.lineToRefund) {
+            return;
+        }
+        for (const detail of Object.values(order.uiState.lineToRefund)) {
+            const line = detail.line;
+            if (!detail.qty) {
+                continue;
+            }
+            if (
+                !this._pbaEnsureRefundLineRelations(line) ||
+                this._pbaIsEWalletGiftCardLine(line)
+            ) {
+                detail.qty = 0;
+            }
+        }
+    },
+
     pbaRefundAllLines() {
         const order = this.getSelectedOrder();
         if (!order) {
             return;
         }
+        this.numberBuffer?.reset?.();
         let refundedSomething = false;
+        let skippedEwallet = false;
         for (const line of order.get_orderlines()) {
+            if (!this._pbaEnsureRefundLineRelations(line)) {
+                continue;
+            }
+            if (this._pbaIsEWalletGiftCardLine(line)) {
+                skippedEwallet = true;
+                continue;
+            }
             const toRefundDetail = this.getToRefundDetail(line);
-            if (toRefundDetail.destination_order_uuid) {
+            if (
+                toRefundDetail.destination_order_uuid ||
+                toRefundDetail.destination_order
+            ) {
                 continue;
             }
             const refundableQty = line.qty - (line.refunded_qty || 0);
@@ -50,13 +117,20 @@ patch(TicketScreen.prototype, {
         if (!refundedSomething) {
             this.dialog.add(AlertDialog, {
                 title: _t("Nothing to refund"),
-                body: _t("There are no remaining quantities to refund on this order."),
+                body: skippedEwallet
+                    ? _t(
+                          "Refunding a top up or reward product for an eWallet or gift card program is not allowed."
+                      )
+                    : _t(
+                          "There are no remaining quantities to refund on this order."
+                      ),
             });
         }
     },
 
     async onDoRefund() {
         const order = this.getSelectedOrder();
+        this._pbaSanitizeRefundDetails(order);
         if (
             order &&
             !this.getHasItemsToRefund() &&
