@@ -22,24 +22,6 @@ function getSearchParts(searchWord) {
         .filter(Boolean);
 }
 
-function productMatchesSearch(searchString, searchWord) {
-    const haystack = unaccent(searchString || "", false);
-    const parts = getSearchParts(searchWord);
-    if (!parts.length) {
-        return true;
-    }
-    return parts.every((part) => haystack.includes(part));
-}
-
-function matchIndex(searchString, searchWord) {
-    const haystack = unaccent(searchString || "", false);
-    const parts = getSearchParts(searchWord);
-    if (!parts.length) {
-        return 0;
-    }
-    return Math.min(...parts.map((part) => haystack.indexOf(part)).filter((idx) => idx >= 0));
-}
-
 function buildOrDomain(fields, term) {
     if (!fields.length) {
         return [];
@@ -105,18 +87,30 @@ patch(ProductScreen.prototype, {
         const products = this.pos.selectedCategory?.id
             ? this.getProductsByCategory(this.pos.selectedCategory)
             : this.products;
-        const filteredProducts = products.filter((product) =>
-            productMatchesSearch(product.searchString || "", searchWord)
+        const parts = getSearchParts(searchWord);
+        const scored = [];
+        for (const product of products) {
+            const haystack = unaccent(product.searchString || "", false);
+            if (parts.length && !parts.every((part) => haystack.includes(part))) {
+                continue;
+            }
+            let idx = 0;
+            if (parts.length) {
+                let best = Infinity;
+                for (const part of parts) {
+                    const found = haystack.indexOf(part);
+                    if (found >= 0 && found < best) {
+                        best = found;
+                    }
+                }
+                idx = best === Infinity ? 0 : best;
+            }
+            scored.push({ product, idx, haystack });
+        }
+        scored.sort(
+            (a, b) => a.idx - b.idx || a.haystack.localeCompare(b.haystack)
         );
-        return filteredProducts.sort((a, b) => {
-            const nameA = unaccent(a.searchString || "", false);
-            const nameB = unaccent(b.searchString || "", false);
-            return (
-                matchIndex(a.searchString || "", searchWord) -
-                    matchIndex(b.searchString || "", searchWord) ||
-                nameA.localeCompare(nameB)
-            );
-        });
+        return scored.map((row) => row.product);
     },
 
     loadProductFromDBDomain(searchProductWord) {

@@ -1,6 +1,6 @@
 {
     "name": "PBA POS Quantity Available",
-    "version": "18.0.1.0.9",
+    "version": "18.0.1.0.10",
     "category": "Point of Sale",
     "summary": "Show free-to-use product quantity on POS product cards with offline cache.",
     "author": "andyengit",

@@ -1,6 +1,6 @@
 {
     "name": "PBA POS UX",
-    "version": "18.0.1.5.27",
+    "version": "18.0.1.5.28",
     "category": "Point of Sale",
     "summary": (
         "Mejora la UX del POS: búsqueda de productos destacada con comodín *, "

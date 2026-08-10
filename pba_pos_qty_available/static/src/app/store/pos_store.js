@@ -5,7 +5,6 @@ import { patch } from "@web/core/utils/patch";
 import { reactive } from "@odoo/owl";
 import { debounce } from "@web/core/utils/timing";
 import {
-    applyFreeQtyMap,
     applyOrderFreeQtyDecrement,
     buildOrderedQtyByProductId,
     getProductFreeQty,
@@ -18,11 +17,11 @@ patch(PosStore.prototype, {
     async setup() {
         await super.setup(...arguments);
         this.productFreeQty = reactive({});
+        this.orderedQtyByProductId = reactive({});
         this._pendingFreeQtyProductIds = new Set();
         this._freeQtyAppliedOrders = new Set();
         this._freeQtyRefreshInFlight = false;
-        this._orderedQtyFp = null;
-        this._orderedQtyByProductId = {};
+        this._orderedQtyRebuildScheduled = false;
         this._flushPendingFreeQtyDebounced = debounce(() => {
             const productIds = [...this._pendingFreeQtyProductIds];
             this._pendingFreeQtyProductIds.clear();
@@ -36,9 +35,55 @@ patch(PosStore.prototype, {
                 this._onProductFreeQtyNotify.bind(this)
             );
             this._hydrateProductFreeQtyFromLocal();
+            this._rebuildOrderedQtyByProductId();
+            this._bindOrderedQtyListeners();
             window.addEventListener("online", () => {
                 this._hydrateProductFreeQtyFromLocal();
             });
+        }
+    },
+
+    _bindOrderedQtyListeners() {
+        const lines = this.models?.["pos.order.line"];
+        const orders = this.models?.["pos.order"];
+        if (!lines || this._orderedQtyListenersBound) {
+            return;
+        }
+        this._orderedQtyListenersBound = true;
+        const schedule = () => this._scheduleOrderedQtyRebuild();
+        lines.addEventListener("create", schedule);
+        lines.addEventListener("update", schedule);
+        lines.addEventListener("delete", schedule);
+        if (orders) {
+            orders.addEventListener("create", schedule);
+            orders.addEventListener("delete", schedule);
+        }
+    },
+
+    _scheduleOrderedQtyRebuild() {
+        if (this._orderedQtyRebuildScheduled) {
+            return;
+        }
+        this._orderedQtyRebuildScheduled = true;
+        queueMicrotask(() => {
+            this._orderedQtyRebuildScheduled = false;
+            this._rebuildOrderedQtyByProductId();
+        });
+    },
+
+    _rebuildOrderedQtyByProductId() {
+        const next = buildOrderedQtyByProductId(this.get_open_orders());
+        for (const key of Object.keys(this.orderedQtyByProductId)) {
+            const id = parseInt(key, 10);
+            if (!(id in next) && this.orderedQtyByProductId[id] !== undefined) {
+                delete this.orderedQtyByProductId[id];
+            }
+        }
+        for (const [productId, qty] of Object.entries(next)) {
+            const id = parseInt(productId, 10);
+            if (this.orderedQtyByProductId[id] !== qty) {
+                this.orderedQtyByProductId[id] = qty;
+            }
         }
     },
 
@@ -71,6 +116,7 @@ patch(PosStore.prototype, {
             }
         }
         this._freeQtyAppliedOrders = result.appliedOrders;
+        this._scheduleOrderedQtyRebuild();
     },
 
     _onProductFreeQtyNotify(payload) {
@@ -99,17 +145,14 @@ patch(PosStore.prototype, {
     },
 
     _applyFreeQtyMap(qtyByProduct) {
-        const productsById = {};
-        for (const productId of Object.keys(qtyByProduct || {})) {
+        for (const [productId, freeQty] of Object.entries(qtyByProduct || {})) {
             const id = parseInt(productId, 10);
-            const product = this.models["product.product"].get(id);
-            if (product) {
-                productsById[id] = product;
+            if (Number.isNaN(id)) {
+                continue;
             }
-        }
-        const next = applyFreeQtyMap(this.productFreeQty, qtyByProduct, productsById);
-        for (const [productId, freeQty] of Object.entries(next)) {
-            const id = parseInt(productId, 10);
+            if (this.productFreeQty[id] === freeQty) {
+                continue;
+            }
             this.productFreeQty[id] = freeQty;
             const product = this.models["product.product"].get(id);
             if (product) {
@@ -131,28 +174,11 @@ patch(PosStore.prototype, {
         return getProductFreeQty(product, this.productFreeQty);
     },
 
-    getOrderedQtyByProductId() {
-        const orders = this.get_open_orders();
-        let fingerprint = "";
-        for (const order of orders) {
-            fingerprint += `${order.uuid}:`;
-            for (const line of order.get_orderlines()) {
-                fingerprint += `${line.id}:${line.get_quantity()};`;
-            }
-            fingerprint += "|";
-        }
-        if (fingerprint !== this._orderedQtyFp) {
-            this._orderedQtyFp = fingerprint;
-            this._orderedQtyByProductId = buildOrderedQtyByProductId(orders);
-        }
-        return this._orderedQtyByProductId;
-    },
-
     getOrderedQtyForProduct(productId) {
         if (!productId) {
             return 0;
         }
-        return this.getOrderedQtyByProductId()[productId] || 0;
+        return this.orderedQtyByProductId[productId] || 0;
     },
 
     async refreshProductFreeQty(productIds = null) {

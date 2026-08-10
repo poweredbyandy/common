@@ -23,10 +23,10 @@ patch(ProductCard.prototype, {
 
     get orderedQty() {
         const productId = this.props.product?.id;
-        if (!productId || !this.pos?.getOrderedQtyForProduct) {
+        if (!productId || !this.pos?.orderedQtyByProductId) {
             return 0;
         }
-        return this.pos.getOrderedQtyForProduct(productId);
+        return this.pos.orderedQtyByProductId[productId] || 0;
     },
 
     get availableQty() {
