@@ -5,7 +5,7 @@ class ResCompany(models.Model):
     _inherit = "res.company"
 
     product_catalog_price_tax_included = fields.Boolean(
-        string="Precios del cat·logo con impuestos",
-        help="Si est· activo, las listas de precios del cat·logo se muestran "
+        string="Precios del cat√°logo con impuestos",
+        help="Si est√° activo, las listas de precios del cat√°logo se muestran "
         "con impuestos incluidos.",
     )

@@ -13,8 +13,8 @@
             <setting id="stock_packaging" position="after">
                 <setting
                     id="product_catalog_price_tax_included"
-                    string="Precios del catálogo con impuestos"
-                    help="Si está activo, las listas de precios del catálogo se muestran con impuestos incluidos."
+                    string="Precios del catÃ¡logo con impuestos"
+                    help="Si estÃ¡ activo, las listas de precios del catÃ¡logo se muestran con impuestos incluidos."
                 >
                     <field name="product_catalog_price_tax_included" />
                 </setting>
