@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_product_margin_graph" model="ir.ui.view">
+        <field name="name">product.margin.graph.pba</field>
+        <field name="model">product.product</field>
+        <field name="inherit_id" ref="product_margin.view_product_margin_graph"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='total_margin']" position="attributes">
+                <attribute name="groups">pba_margin.group_pba_see_margin</attribute>
+            </xpath>
+        </field>
+    </record>
+    <record id="view_product_margin_form" model="ir.ui.view">
+        <field name="name">product.margin.form.inherit.pba</field>
+        <field name="model">product.product</field>
+        <field name="inherit_id" ref="product_margin.view_product_margin_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='margins']" position="attributes">
+                <attribute name="groups">pba_margin.group_pba_see_margin</attribute>
+            </xpath>
+        </field>
+    </record>
+    <record id="view_product_margin_tree" model="ir.ui.view">
+        <field name="name">product.margin.list.pba</field>
+        <field name="model">product.product</field>
+        <field name="inherit_id" ref="product_margin.view_product_margin_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='total_margin']" position="attributes">
+                <attribute name="groups">pba_margin.group_pba_see_margin</attribute>
+            </xpath>
+            <xpath expr="//field[@name='expected_margin']" position="attributes">
+                <attribute name="groups">pba_margin.group_pba_see_margin</attribute>
+            </xpath>
+            <xpath expr="//field[@name='total_margin_rate']" position="attributes">
+                <attribute name="groups">pba_margin.group_pba_see_margin</attribute>
+            </xpath>
+            <xpath expr="//field[@name='expected_margin_rate']" position="attributes">
+                <attribute name="groups">pba_margin.group_pba_see_margin</attribute>
+            </xpath>
+            <xpath expr="//field[@name='total_cost']" position="attributes">
+                <attribute name="groups">pba_margin.group_pba_see_margin</attribute>
+            </xpath>
+            <xpath expr="//field[@name='turnover']" position="attributes">
+                <attribute name="groups">pba_margin.group_pba_see_margin</attribute>
+            </xpath>
+            <xpath expr="//field[@name='sales_gap']" position="attributes">
+                <attribute name="groups">pba_margin.group_pba_see_margin</attribute>
+            </xpath>
+            <xpath expr="//field[@name='sale_avg_price']" position="attributes">
+                <attribute name="groups">pba_margin.group_pba_see_margin</attribute>
+            </xpath>
+            <xpath expr="//field[@name='sale_num_invoiced']" position="attributes">
+                <attribute name="groups">pba_margin.group_pba_see_margin</attribute>
+            </xpath>
+            <xpath expr="//field[@name='purchase_num_invoiced']" position="attributes">
+                <attribute name="groups">pba_margin.group_pba_see_margin</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>

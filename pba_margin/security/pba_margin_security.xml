@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="module_category_pba_margin" model="ir.module.category">
+        <field name="name">PBA Márgenes</field>
+        <field name="description">Control de visibilidad de márgenes en ventas, productos y punto de venta.</field>
+        <field name="sequence">97</field>
+    </record>
+    <record id="group_pba_see_margin" model="res.groups">
+        <field name="name">PBA: Ver márgenes</field>
+        <field name="category_id" ref="module_category_pba_margin"/>
+        <field name="comment">Permite ver campos y reportes de margen en pedidos de venta, productos y punto de venta.</field>
+    </record>
+    <record id="base.group_system" model="res.groups">
+        <field name="implied_ids" eval="[(4, ref('group_pba_see_margin'))]"/>
+    </record>
+</odoo>

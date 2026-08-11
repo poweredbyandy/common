@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="product_margin.access_product_margin" model="ir.model.access">
+        <field name="group_id" ref="pba_margin.group_pba_see_margin"/>
+    </record>
+    <record id="product_margin.menu_action_product_margin" model="ir.ui.menu">
+        <field name="groups_id" eval="[(6, 0, [ref('pba_margin.group_pba_see_margin')])]"/>
+    </record>
+</odoo>

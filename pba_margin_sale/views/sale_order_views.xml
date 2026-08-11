@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="sale_margin_sale_order" model="ir.ui.view">
+        <field name="name">sale.order.margin.view.form.pba</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale_margin.sale_margin_sale_order"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[.//label[@for='margin']]" position="attributes">
+                <attribute name="groups">pba_margin.group_pba_see_margin</attribute>
+            </xpath>
+        </field>
+    </record>
+    <record id="sale_margin_sale_order_line" model="ir.ui.view">
+        <field name="name">sale.order.line.margin.view.form.pba</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale_margin.sale_margin_sale_order_line"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='purchase_price']" position="attributes">
+                <attribute name="groups">pba_margin.group_pba_see_margin</attribute>
+            </xpath>
+        </field>
+    </record>
+    <record id="sale_margin_sale_order_line_form" model="ir.ui.view">
+        <field name="name">sale.order.line.list.margin.view.form.pba</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale_margin.sale_margin_sale_order_line_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='order_line']/list//field[@name='purchase_price']" position="attributes">
+                <attribute name="groups">pba_margin.group_pba_see_margin</attribute>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/list//field[@name='margin']" position="attributes">
+                <attribute name="groups">pba_margin.group_pba_see_margin</attribute>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/list//field[@name='margin_percent']" position="attributes">
+                <attribute name="groups">pba_margin.group_pba_see_margin</attribute>
+            </xpath>
+        </field>
+    </record>
+    <record id="sale_margin_sale_order_pivot" model="ir.ui.view">
+        <field name="name">sale.order.margin.view.pivot.pba</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale_margin.sale_margin_sale_order_pivot"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='margin_percent']" position="attributes">
+                <attribute name="groups">pba_margin.group_pba_see_margin</attribute>
+            </xpath>
+        </field>
+    </record>
+    <record id="sale_margin_sale_order_graph" model="ir.ui.view">
+        <field name="name">sale.order.margin.view.graph.pba</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale_margin.sale_margin_sale_order_graph"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='margin_percent']" position="attributes">
+                <attribute name="groups">pba_margin.group_pba_see_margin</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>

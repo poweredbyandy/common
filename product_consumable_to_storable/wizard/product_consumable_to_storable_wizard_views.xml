@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="product_consumable_to_storable_wizard_view_form" model="ir.ui.view">
+        <field name="name">product.consumable.to.storable.wizard.form</field>
+        <field name="model">product.consumable.to.storable.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Enable Inventory Tracking">
+                <group>
+                    <div colspan="2" class="oe_title">
+                        <p>
+                            Convert the selected consumable products to track inventory
+                            by quantity. Historical done stock moves will be used to
+                            rebuild on-hand quantities (incoming - outgoing).
+                        </p>
+                    </div>
+                    <field name="product_count"/>
+                    <field name="product_tmpl_ids" widget="many2many_tags" options="{'no_create': True}"/>
+                </group>
+                <footer>
+                    <button
+                        name="action_convert"
+                        type="object"
+                        string="Convert"
+                        class="btn-primary"
+                        data-hotkey="q"
+                    />
+                    <button special="cancel" string="Discard" class="btn-secondary" data-hotkey="x"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="product_consumable_to_storable_wizard_action" model="ir.actions.act_window">
+        <field name="name">Track Inventory by Quantity</field>
+        <field name="res_model">product.consumable.to.storable.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="binding_model_id" ref="product.model_product_template"/>
+        <field name="binding_view_types">list</field>
+    </record>
+
+    <record id="product_consumable_to_storable_wizard_action_product" model="ir.actions.act_window">
+        <field name="name">Track Inventory by Quantity</field>
+        <field name="res_model">product.consumable.to.storable.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="binding_model_id" ref="product.model_product_product"/>
+        <field name="binding_view_types">list</field>
+    </record>
+</odoo>
