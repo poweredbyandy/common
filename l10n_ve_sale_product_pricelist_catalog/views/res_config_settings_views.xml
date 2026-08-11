@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record
+        id="res_config_settings_view_form_product_catalog_pricelist"
+        model="ir.ui.view"
+    >
+        <field name="name">
+            res.config.settings.view.form.inherit.product.catalog.pricelist
+        </field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="sale.res_config_settings_view_form" />
+        <field name="arch" type="xml">
+            <setting id="stock_packaging" position="after">
+                <setting
+                    id="product_catalog_price_tax_included"
+                    string="Precios del catálogo con impuestos"
+                    help="Si está activo, las listas de precios del catálogo se muestran con impuestos incluidos."
+                >
+                    <field name="product_catalog_price_tax_included" />
+                </setting>
+            </setting>
+        </field>
+    </record>
+</odoo>

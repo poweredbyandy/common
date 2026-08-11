@@ -1,7 +1,7 @@
 {
     "name": "Product Pricelist in Catalog",
     "icon": "/poweredbyandy_saas/static/description/icon.png",
-    "version": "18.0.1.0.4",
+    "version": "18.0.1.1.0",
     "category": "Sales",
     "sequence": 10,
     "summary": "Muestra las listas de precios y sus precios en el catálogo de productos",
@@ -15,6 +15,7 @@
     ],
     "data": [
         "views/product_catalog_views.xml",
+        "views/res_config_settings_views.xml",
     ],
     "assets": {
         "web.assets_backend": [

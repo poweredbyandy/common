@@ -14,12 +14,6 @@
                         name="pba_product_catalog_warehouse_id"
                         options="{'no_create': True}"/>
                 </setting>
-                <setting
-                    id="pba_product_catalog_price_tax_included"
-                    string="Precios del catálogo con impuestos"
-                    help="Si está activo, las listas de precios del catálogo se muestran con impuestos incluidos.">
-                    <field name="pba_product_catalog_price_tax_included"/>
-                </setting>
             </setting>
         </field>
     </record>
