@@ -73,6 +73,7 @@ patch(PaymentScreen.prototype, {
         const result = await super.addNewPaymentLine(...arguments);
         this.pbaPaymentUi.methodsOpen = false;
         this._pbaAlignPaymentToTotal();
+        this.pos.pbaScheduleAutosave?.(this.currentOrder);
         return result;
     },
 

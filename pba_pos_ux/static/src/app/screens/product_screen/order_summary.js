@@ -28,4 +28,16 @@ patch(OrderSummary.prototype, {
     get pbaEmptyOrderMessage() {
         return _t("Start adding products");
     },
+
+    _setValue(val) {
+        const result = super._setValue(...arguments);
+        this.pos.pbaScheduleAutosave?.(this.pos.get_order());
+        return result;
+    },
+
+    async setLinePrice(line, price) {
+        const result = await super.setLinePrice(...arguments);
+        this.pos.pbaScheduleAutosave?.(this.pos.get_order());
+        return result;
+    },
 });

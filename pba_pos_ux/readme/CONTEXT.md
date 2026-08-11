@@ -1,8 +1,10 @@
 In multi-device POS setups, cashiers often leave a draft order open on one
-terminal and continue on another. Without persistence and locking, the previous
-order may stay only on the first browser, or two devices can edit the same
-shared draft at once and overwrite each other.
+terminal and continue on another. Without a clear source of truth, each browser
+may keep a stale local copy in IndexedDB and overwrite the server when it
+reconnects.
 
-This module covers that business need: save the open order when switching or
-locking the register, and prevent concurrent edition with a short renewable
-lock that shows who is currently inside the order.
+This module treats PostgreSQL as the authoritative source for shared draft
+orders. IndexedDB only keeps brand-new local orders that have not been synced
+yet. Opening a shared order loads a canonical server snapshot under a short
+renewable lock, and online edits are autosaved with confirmation before leaving
+the order.

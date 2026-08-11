@@ -5,6 +5,8 @@ import { PosStore } from "@point_of_sale/app/store/pos_store";
 import { makeAwaitable } from "@point_of_sale/app/store/make_awaitable_dialog";
 import { AlertDialog } from "@web/core/confirmation_dialog/confirmation_dialog";
 import { _t } from "@web/core/l10n/translation";
+import { Mutex } from "@web/core/utils/concurrency";
+import { debounce } from "@web/core/utils/timing";
 import { patch } from "@web/core/utils/patch";
 import {
     countPendingPosOrders,
@@ -17,6 +19,10 @@ import {
     isSharedPosOrder,
     PBA_LOCK_HEARTBEAT_MS,
 } from "@pba_pos_ux/utils/order_lock";
+import {
+    isLocalPosOrder,
+    PBA_AUTOSAVE_DEBOUNCE_MS,
+} from "@pba_pos_ux/utils/order_authority";
 
 const PRODUCT_LIST_VIEW_KEY = "pba_pos_ux_product_list_view";
 const SHOW_NUMPAD_KEY = "pba_pos_ux_show_numpad";
@@ -70,9 +76,17 @@ patch(PosStore.prototype, {
         this._pbaLockHeartbeat = null;
         this._pbaLockedOrderServerId = null;
         this._pbaLockBusy = false;
+        this._pbaAutosaveMutex = new Mutex();
+        this._pbaAutosavePending = false;
+        this._pbaOfflineHandlersBound = false;
         await super.setup(...arguments);
         this.productListView = readSavedProductListView();
         this.showNumpad = readSavedShowNumpad();
+        this._pbaScheduleAutosaveImpl = debounce(
+            () => this.pbaFlushAutosave(),
+            PBA_AUTOSAVE_DEBOUNCE_MS
+        );
+        this._pbaBindNetworkHandlers();
     },
 
     toggleShowNumpad() {
@@ -259,9 +273,11 @@ patch(PosStore.prototype, {
 
     async addLineToCurrentOrder(vals, opts = {}, configure = true) {
         if (!this.get_order()) {
-            this.add_new_order();
+            await this.pbaAddNewOrder();
         }
-        return await super.addLineToCurrentOrder(...arguments);
+        const line = await super.addLineToCurrentOrder(...arguments);
+        this.pbaScheduleAutosave();
+        return line;
     },
 
     pbaGetTrustedConfigIds() {
@@ -297,6 +313,7 @@ patch(PosStore.prototype, {
     },
 
     pbaClaimTrustedDraftOrders(orders) {
+        const deviceToken = this.pbaEnsureDeviceToken();
         const draftOrders =
             orders ||
             (this.models["pos.order"] || []).filter(
@@ -304,7 +321,12 @@ patch(PosStore.prototype, {
             );
         let claimed = false;
         for (const order of draftOrders) {
-            if (this.pbaClaimOrderToCurrentSession(order)) {
+            if (
+                isSharedPosOrder(order) &&
+                order.pba_lock_device_token === deviceToken &&
+                this.pbaIsOrderLockActive(order) &&
+                this.pbaClaimOrderToCurrentSession(order)
+            ) {
                 claimed = true;
             }
         }
@@ -314,6 +336,15 @@ patch(PosStore.prototype, {
     pbaReclaimActiveSharedOrderSession() {
         const order = this.get_order();
         if (!order || order.finalized) {
+            return false;
+        }
+        if (
+            isSharedPosOrder(order) &&
+            (
+                order.pba_lock_device_token !== this.pbaEnsureDeviceToken() ||
+                !this.pbaIsOrderLockActive(order)
+            )
+        ) {
             return false;
         }
         return this.pbaClaimOrderToCurrentSession(order);
@@ -331,7 +362,7 @@ patch(PosStore.prototype, {
         if (!(await this.pbaEnsureCustomerForSave(currentOrder))) {
             return;
         }
-        if (!(await this._pbaSyncCurrentOrder(currentOrder))) {
+        if (!(await this.pbaFlushAutosave()) || !(await this._pbaSyncCurrentOrder(currentOrder))) {
             this.pbaShowSaveFailedAlert();
             return;
         }
@@ -348,7 +379,7 @@ patch(PosStore.prototype, {
         const result = await super.selectPartner(...arguments);
         const order = this.get_order();
         if (order && !order.finalized) {
-            await this._pbaSyncCurrentOrder(order);
+            await this.pbaFlushAutosave();
         }
         return result;
     },
@@ -595,7 +626,7 @@ patch(PosStore.prototype, {
         this.dialog.add(AlertDialog, {
             title: _t("Offline"),
             body: _t(
-                "Shared orders cannot be opened while offline because their lock cannot be validated."
+                "Shared orders are controlled by the server and cannot be opened offline. You can still create a new local order."
             ),
         });
     },
@@ -607,6 +638,136 @@ patch(PosStore.prototype, {
                 "The order could not be saved on the server. It remains open so you can try again."
             ),
         });
+    },
+
+    pbaShowLockLostAlert() {
+        this.dialog.add(AlertDialog, {
+            title: _t("Order lock lost"),
+            body: _t(
+                "The server is now the source of truth for this order. Local unsaved changes were discarded."
+            ),
+        });
+    },
+
+    _pbaBindNetworkHandlers() {
+        if (this._pbaOfflineHandlersBound) {
+            return;
+        }
+        this._pbaOfflineHandlersBound = true;
+        window.addEventListener("offline", () => {
+            this.pbaHandleOffline();
+        });
+        window.addEventListener("online", () => {
+            this.pbaHandleOnline();
+        });
+    },
+
+    async pbaReloadOrdersFromServer() {
+        if (this.data?.network?.offline) {
+            return false;
+        }
+        try {
+            await this.data?.deviceSync?.readDataFromServer?.();
+            return true;
+        } catch (_error) {
+            return false;
+        }
+    },
+
+    pbaHandleOffline() {
+        const order = this.get_order();
+        if (!isSharedPosOrder(order) || order.finalized) {
+            return;
+        }
+        this._pbaStopLockHeartbeat();
+        this.set_order(null);
+        this.pbaShowOfflineSharedOrderAlert();
+        this._pbaSkipLeaveOnTicketScreen = true;
+        try {
+            super.showScreen("TicketScreen");
+        } finally {
+            this._pbaSkipLeaveOnTicketScreen = false;
+        }
+    },
+
+    async pbaHandleOnline() {
+        await this.pbaReloadOrdersFromServer();
+        const localOrders = (this.models["pos.order"] || []).filter(
+            (order) => isLocalPosOrder(order) && !order.finalized
+        );
+        if (localOrders.length) {
+            try {
+                await this.syncAllOrders({ orders: localOrders, throw: true });
+            } catch (_error) {
+                // Keep local pending queue until the next reconnect.
+            }
+        }
+        await this.pbaReloadOrdersFromServer();
+    },
+
+    async _pbaApplyOrderData(data) {
+        if (!data || !Object.keys(data).length) {
+            return;
+        }
+        const missing = await this.data.missingRecursive(data);
+        this.models.loadData(missing, [], false);
+    },
+
+    pbaScheduleAutosave(order = this.get_order()) {
+        if (!order || order.finalized || this.data?.network?.offline) {
+            return;
+        }
+        if (isSharedPosOrder(order)) {
+            if (
+                !this.pbaIsOrderLockActive(order) ||
+                this.pbaIsOrderLockedByOther(order)
+            ) {
+                return;
+            }
+        }
+        this._pbaAutosavePending = true;
+        this.addPendingOrder([order.id]);
+        this._pbaScheduleAutosaveImpl?.();
+    },
+
+    async pbaFlushAutosave() {
+        if (!this._pbaAutosaveMutex) {
+            this._pbaAutosaveMutex = new Mutex();
+        }
+        return this._pbaAutosaveMutex.exec(async () => {
+            this._pbaAutosavePending = false;
+            const order = this.get_order();
+            if (!order || order.finalized || this.data?.network?.offline) {
+                return true;
+            }
+            if (isLocalPosOrder(order)) {
+                return await this._pbaSyncCurrentOrder(order);
+            }
+            if (
+                !this.pbaIsOrderLockActive(order) ||
+                this.pbaIsOrderLockedByOther(order)
+            ) {
+                return false;
+            }
+            return await this._pbaSyncCurrentOrder(order);
+        });
+    },
+
+    async pbaHandleLostLock(order) {
+        this._pbaStopLockHeartbeat();
+        if (!order || this.get_order()?.uuid !== order.uuid) {
+            await this.pbaReloadOrdersFromServer();
+            return;
+        }
+        this.set_order(null);
+        this.pbaShowLockLostAlert();
+        await this.pbaReloadOrdersFromServer();
+        this._pbaSkipLeaveOnTicketScreen = true;
+        try {
+            super.showScreen("TicketScreen");
+        } finally {
+            this._pbaSkipLeaveOnTicketScreen = false;
+        }
     },
 
     pbaOrderNeedsCustomer(order) {
@@ -646,6 +807,12 @@ patch(PosStore.prototype, {
     },
 
     async _pbaSyncCurrentOrder(order) {
+        if (!order || order.finalized) {
+            return true;
+        }
+        if (isSharedPosOrder(order) && this.data?.network?.offline) {
+            return false;
+        }
         this.addPendingOrder([order.id]);
         try {
             const syncedOrders = await this.syncAllOrders({
@@ -678,6 +845,7 @@ patch(PosStore.prototype, {
             return false;
         }
         return await this._pbaWithUiBlock(_t("Saving order..."), async () => {
+            await this.pbaFlushAutosave();
             return await this._pbaSyncCurrentOrder(order);
         });
     },
@@ -695,6 +863,7 @@ patch(PosStore.prototype, {
             return false;
         }
         return await this._pbaWithUiBlock(_t("Saving order..."), async () => {
+            await this.pbaFlushAutosave();
             if (!(await this._pbaSyncCurrentOrder(order))) {
                 return false;
             }
@@ -816,9 +985,10 @@ patch(PosStore.prototype, {
             );
             this._pbaApplyLockPayload(result);
             if (!result?.success) {
-                this._pbaStopLockHeartbeat();
+                await this.pbaHandleLostLock(order);
+                return false;
             }
-            return Boolean(result?.success);
+            return true;
         } catch (_error) {
             return false;
         }
@@ -836,7 +1006,6 @@ patch(PosStore.prototype, {
             return false;
         }
         if (!isSharedPosOrder(order)) {
-            this._pbaStartLockHeartbeat(order);
             return true;
         }
         if (this.data?.network?.offline) {
@@ -887,6 +1056,9 @@ patch(PosStore.prototype, {
                 }
                 return false;
             }
+            if (result.data) {
+                await this._pbaApplyOrderData(result.data);
+            }
             this._pbaStartLockHeartbeat(order);
             return true;
         } catch (error) {
@@ -909,6 +1081,10 @@ patch(PosStore.prototype, {
         }
         if (order.finalized) {
             this.pbaShowProcessedOrderAlert();
+            return false;
+        }
+        if (isSharedPosOrder(order) && this.data?.network?.offline) {
+            this.pbaShowOfflineSharedOrderAlert();
             return false;
         }
         const current = this.get_order();
@@ -936,12 +1112,14 @@ patch(PosStore.prototype, {
                 if (!acquired) {
                     return false;
                 }
-                if (order.finalized) {
+                const opened = this.models["pos.order"].get(order.id) || order;
+                if (opened.finalized) {
                     this.pbaShowProcessedOrderAlert();
                     return false;
                 }
-                this.pbaClaimOrderToCurrentSession(order);
-                this.set_order(order, options);
+                this.pbaClaimOrderToCurrentSession(opened);
+                this.set_order(opened, options);
+                await this.pbaFlushAutosave();
                 return true;
             });
         } finally {
@@ -960,13 +1138,15 @@ patch(PosStore.prototype, {
             }
             return await this._pbaWithUiBlock(_t("Creating order..."), async () => {
                 const order = this.add_new_order(data);
-                this.addPendingOrder([order.id]);
-                try {
-                    await this.syncAllOrders({ orders: [order] });
-                } catch (_error) {
-                    // Local order remains available offline.
+                if (!this.data?.network?.offline) {
+                    this.addPendingOrder([order.id]);
+                    try {
+                        await this.syncAllOrders({ orders: [order], throw: true });
+                    } catch (_error) {
+                        // Local order remains available offline.
+                    }
+                    await this.pbaAcquireOrderLock(order, { silent: true });
                 }
-                await this.pbaAcquireOrderLock(order, { silent: true });
                 return order;
             });
         } finally {
@@ -1034,6 +1214,7 @@ patch(PosStore.prototype, {
         });
         if (payload) {
             order.set_partner(payload);
+            this.pbaScheduleAutosave(order);
         }
     },
 });

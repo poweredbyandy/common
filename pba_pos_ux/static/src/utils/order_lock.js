@@ -10,7 +10,7 @@ export function createDeviceToken() {
     return `pba-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
-export function getOrCreateDeviceToken(storage = window.localStorage) {
+export function getOrCreateDeviceToken(storage = window.sessionStorage) {
     let token = null;
     try {
         token = storage?.getItem?.(PBA_DEVICE_TOKEN_KEY) || null;

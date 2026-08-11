@@ -65,6 +65,13 @@ class PosOrder(models.Model):
         self.ensure_one()
         return self.read(["id", "state", *PBA_LOCK_FIELDS], load=False)
 
+    def _pba_order_data_payload(self):
+        self.ensure_one()
+        config = self.config_id
+        if not config:
+            return {}
+        return self.read_pos_data([], config.id)
+
     def _pba_notify_lock_change(self):
         for order in self:
             session = order.session_id
@@ -83,6 +90,7 @@ class PosOrder(models.Model):
             "reason": "locked",
             "owner_name": self.pba_lock_owner_name or _("another device"),
             "order": self._pba_lock_read_payload(),
+            "data": False,
         }
 
     def _pba_lock_processed_result(self):
@@ -92,15 +100,17 @@ class PosOrder(models.Model):
             "reason": "processed",
             "owner_name": False,
             "order": self._pba_lock_read_payload(),
+            "data": False,
         }
 
-    def _pba_lock_success_result(self):
+    def _pba_lock_success_result(self, include_data=False):
         self.ensure_one()
         return {
             "success": True,
             "reason": False,
             "owner_name": self.pba_lock_owner_name or False,
             "order": self._pba_lock_read_payload(),
+            "data": self._pba_order_data_payload() if include_data else False,
         }
 
     def _pba_get_locked_order(self, order_id):
@@ -117,10 +127,15 @@ class PosOrder(models.Model):
 
     def _pba_check_sync_lock(self, device_token):
         self.ensure_one()
-        if self._pba_lock_is_active() and self.pba_lock_device_token != device_token:
+        if (
+            not device_token
+            or not self._pba_lock_is_active()
+            or self.pba_lock_device_token != device_token
+        ):
             raise UserError(
                 _(
-                    "Order %(order)s is being edited by %(owner)s.",
+                    "Order %(order)s can only be updated from the device "
+                    "that currently holds its lock (%(owner)s).",
                     order=self.pos_reference or self.name,
                     owner=self.pba_lock_owner_name or _("another device"),
                 )
@@ -138,6 +153,19 @@ class PosOrder(models.Model):
         return {
             "success": True,
             "order": orders.read(["id", "state", *PBA_LOCK_FIELDS], load=False),
+            "data": False,
+        }
+
+    @api.model
+    def pba_get_order_snapshot(self, order_ids):
+        orders = self.browse(order_ids).exists()
+        if not orders:
+            return {"success": True, "order": [], "data": {}}
+        config = orders.config_id[:1]
+        return {
+            "success": True,
+            "order": orders.read(["id", "state", *PBA_LOCK_FIELDS], load=False),
+            "data": orders.read_pos_data([], config.id) if config else {},
         }
 
     @api.model
@@ -165,7 +193,7 @@ class PosOrder(models.Model):
             )
         )
         order._pba_notify_lock_change()
-        return order._pba_lock_success_result()
+        return order._pba_lock_success_result(include_data=True)
 
     @api.model
     def pba_renew_order_lock(self, order_id, device_token):

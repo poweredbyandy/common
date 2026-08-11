@@ -46,9 +46,12 @@ the orders list (TicketScreen) in one click. The POS navbar is compacted
 
 Persists open orders when creating a new one or locking the POS, and adds a
 renewable multi-device lock (30 seconds, heartbeat every 10 seconds) so only one
-device can edit a shared draft order at a time. Devices refresh who is inside
-each order before opening and while the orders list is open. Occupied orders
-hide the delete button. Already processed orders (non-draft) cannot be opened.
+device can edit a shared draft order at a time. Online, PostgreSQL is the
+source of truth: opening a shared order loads a server snapshot, edits are
+autosaved with confirmation, and IndexedDB only keeps brand-new local orders.
+Devices refresh who is inside each order before opening and while the orders
+list is open. Occupied orders hide the delete button. Already processed orders
+(non-draft) cannot be opened.
 Shows a loading blocker when closing the POS / register so the UI does not look
 idle while closing data is prepared or the session is closed.
 After payment, the lock is released and the receipt returns to the orders list;
@@ -56,6 +59,6 @@ tiny payment rounding gaps are auto-aligned before validation. When an order is
 created on a trusted POS and paid on another, the payment is attributed to the
 session of the POS that collects the payment. Draft orders
 (including total 0) are selected in the list with one click and opened with
-**Load Order**. Leaving an order with no products deletes it. Offline, new local orders remain allowed, shared orders
-cannot be opened, and the pending sync count is shown in the connection
-indicator.
+**Load Order**. Leaving an order with no products deletes it. Offline, only new
+local orders remain editable; shared orders cannot stay open, and reconnecting
+reloads the server first.

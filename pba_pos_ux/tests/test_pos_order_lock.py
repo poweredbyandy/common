@@ -293,12 +293,46 @@ class TestPosOrderLock(TransactionCase):
         order.invalidate_recordset(["partner_id"])
         self.assertEqual(order.partner_id, customer)
 
-    def test_sync_from_ui_allows_after_expiration(self):
+    def test_sync_from_ui_rejects_without_active_lock(self):
         order = self._create_draft_order()
+        payload = self._order_sync_payload(order)
+        with self.assertRaises(UserError):
+            self.PosOrder.with_context(pba_device_token="device-a").sync_from_ui(
+                [payload]
+            )
+
+    def test_acquire_returns_canonical_order_snapshot(self):
+        order = self._create_draft_order()
+        result = self.PosOrder.pba_acquire_order_lock(
+            order.id, "device-a", "Cashier A", self.env.user.id, False
+        )
+        self.assertTrue(result["success"])
+        self.assertTrue(result["data"])
+        self.assertTrue(result["data"]["pos.order"])
+        self.assertEqual(result["data"]["pos.order"][0]["id"], order.id)
+        self.assertEqual(
+            result["data"]["pos.order"][0]["partner_id"], self.partner.id
+        )
+
+    def test_sync_from_ui_allows_after_expiration_only_with_new_lock(self):
+        order = self._create_draft_order()
+        customer = self.env["res.partner"].create({"name": "PBA Stale Customer"})
         with freeze_time("2026-08-07 10:00:00"):
             self.PosOrder.pba_acquire_order_lock(order.id, "device-a", "Cashier A")
-        payload = self._order_sync_payload(order)
+        stale_payload = self._order_sync_payload(order)
+        stale_payload["partner_id"] = customer.id
         with freeze_time("2026-08-07 10:00:31"):
-            self.PosOrder.with_context(pba_device_token="device-b").sync_from_ui([payload])
-        order.invalidate_recordset()
-        self.assertTrue(order.exists())
+            with self.assertRaises(UserError):
+                self.PosOrder.with_context(pba_device_token="device-b").sync_from_ui(
+                    [stale_payload]
+                )
+            acquire = self.PosOrder.pba_acquire_order_lock(
+                order.id, "device-b", "Cashier B"
+            )
+            self.assertTrue(acquire["success"])
+            self.PosOrder.with_context(pba_device_token="device-b").sync_from_ui(
+                [stale_payload]
+            )
+        order.invalidate_recordset(["partner_id", "pba_lock_device_token"])
+        self.assertEqual(order.partner_id, customer)
+        self.assertEqual(order.pba_lock_device_token, "device-b")

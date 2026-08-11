@@ -6,7 +6,8 @@ from uuid import uuid4
 
 import psycopg2
 
-from odoo import SUPERUSER_ID, api
+from odoo import SUPERUSER_ID, api, fields
+from odoo.exceptions import UserError
 from odoo.modules.registry import Registry
 from odoo.tests import tagged
 from odoo.tests.common import BaseCase, get_db_name
@@ -312,3 +313,72 @@ class TestPosOrderLockConcurrency(BaseCase):
             ORDER_COUNT / intrude_elapsed,
             ORDER_COUNT / release_elapsed,
         )
+
+    @mute_logger("odoo.sql_db")
+    def test_stale_local_copy_cannot_overwrite_canonical_partner(self):
+        order_id = self.order_ids[0]
+        self._reset_locks([order_id])
+        owner_env = self.worker_envs[0]
+        intruder_env = self.worker_envs[1]
+        owner_env.clear()
+        intruder_env.clear()
+
+        owner = owner_env["pos.order"].pba_acquire_order_lock(
+            order_id,
+            "owner-device-00",
+            "Employee 00",
+            SUPERUSER_ID,
+            1000,
+        )
+        owner_env.cr.commit()
+        self.assertTrue(owner["success"])
+
+        canonical_partner = owner_env["res.partner"].create(
+            {"name": "PBA Canonical Partner %s" % self.order_prefix[-8:]}
+        )
+        owner_env.cr.commit()
+        order = owner_env["pos.order"].browse(order_id)
+        order.write({"partner_id": canonical_partner.id})
+        owner_env.cr.commit()
+
+        stale_partner = intruder_env["res.partner"].create(
+            {"name": "PBA Stale Partner %s" % self.order_prefix[-8:]}
+        )
+        intruder_env.cr.commit()
+        stale_order = intruder_env["pos.order"].browse(order_id)
+        stale_order._ensure_access_token()
+        stale_payload = {
+            "id": stale_order.id,
+            "uuid": stale_order.uuid,
+            "access_token": stale_order.access_token,
+            "name": stale_order.pos_reference,
+            "session_id": stale_order.session_id.id,
+            "partner_id": stale_partner.id,
+            "user_id": SUPERUSER_ID,
+            "amount_tax": stale_order.amount_tax,
+            "amount_total": stale_order.amount_total,
+            "amount_paid": 0.0,
+            "amount_return": 0.0,
+            "sequence_number": stale_order.sequence_number or 1,
+            "date_order": fields.Datetime.to_string(fields.Datetime.now()),
+            "fiscal_position_id": False,
+            "pricelist_id": False,
+            "to_invoice": False,
+            "state": "draft",
+            "last_order_preparation_change": "{}",
+            "lines": [],
+            "payment_ids": [],
+        }
+        intruder_env.cr.commit()
+
+        with self.assertRaises(UserError):
+            intruder_env["pos.order"].with_context(
+                pba_device_token="intruder-device-01"
+            ).sync_from_ui([stale_payload])
+        intruder_env.cr.rollback()
+
+        with self.registry.cursor() as cr:
+            env = api.Environment(cr, SUPERUSER_ID, {})
+            order = env["pos.order"].browse(order_id)
+            self.assertEqual(order.partner_id.id, canonical_partner.id)
+            self.assertEqual(order.pba_lock_device_token, "owner-device-00")

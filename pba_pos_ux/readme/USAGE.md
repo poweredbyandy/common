@@ -38,11 +38,21 @@
     **Search more** to query the server with that pattern.
 11. Next to the ``+`` of floating orders in the header, use **Pedidos** to open
     the orders list.
-12. Multi-device order locking:
+12. Multi-device order locking (database is authoritative online):
     - Creating a new order (``+``) or locking the POS saves the current draft
       order and releases its lock so other devices can take it.
-    - Opening a shared draft order acquires a 30-second lock for this device.
-      The lock is renewed every 10 seconds while the order stays open.
+    - Opening a shared draft order acquires a 30-second lock and loads the
+      canonical server snapshot before editing. The lock is renewed every 10
+      seconds while the order stays open.
+    - Online edits (customer, lines, quantities, payments) are autosaved with a
+      short debounce. Leaving, paying or switching orders waits for server
+      confirmation.
+    - Only the device holding an active lock can sync changes to an existing
+      draft. Stale local copies are rejected by the server.
+    - IndexedDB keeps only brand-new local orders that are not yet on the
+      server. Shared orders are always reloaded from PostgreSQL.
+    - Each browser tab uses its own device token (session storage), so two tabs
+      count as two editors.
     - Before opening, and while **Pedidos** is open, devices refresh who is
       inside each order from the server (avatar + tooltip).
     - Only the device holding the lock can edit that order. Others cannot open
@@ -57,9 +67,9 @@
     - Leaving an order with no products deletes it automatically.
     - Floating order tabs on the left show only the order currently open on
       this device.
-    - Offline: you can still create local orders. Shared/server orders cannot
-      be opened until the connection is back. Pending orders to sync appear as
-      a counter next to the connection status.
+    - Offline: you can create and edit local new orders only. Shared/server
+      orders cannot be opened or kept open while offline. On reconnect, the POS
+      reloads shared orders from the server first, then syncs local new orders.
 
 For brand or internal-code search, install the companion modules
 `pba_pos_ux_product_brand` and/or `pba_pos_ux_internal_code` (auto-installed
@@ -79,5 +89,6 @@ The benchmark creates 120 draft orders in one POS session and uses 8 concurrent
 workers sharing the same Odoo user but reporting different employees and device
 tokens. It verifies simultaneous acquisition, rejected intrusions, release,
 owner stability, session stability, and that no order disappears. A separate
-8-worker race verifies that exactly one terminal obtains the same order.
-Throughput for each phase is written to the Odoo test log.
+8-worker race verifies that exactly one terminal obtains the same order. It also
+checks that a stale local partner cannot overwrite the canonical partner held by
+the lock owner. Throughput for each phase is written to the Odoo test log.

@@ -1,6 +1,6 @@
 {
     "name": "PBA POS UX",
-    "version": "18.0.1.8.5",
+    "version": "18.0.1.9.0",
     "category": "Point of Sale",
     "summary": (
         "Mejora la UX del POS: búsqueda de productos y clientes con comodín *, "
@@ -9,7 +9,8 @@
         "con toggle, apertura en lista de pedidos, "
         "cliente obligatorio al guardar/salir del pedido o pagar, "
         "facturación siempre sin descarga "
-        "de PDF, y persistencia/bloqueo multidispositivo de pedidos abiertos."
+        "de PDF, y persistencia/bloqueo multidispositivo con la DB como fuente "
+        "canónica de pedidos abiertos."
     ),
     "author": "andyengit",
     "maintainer": "andyengit",
@@ -22,6 +23,7 @@
             "pba_pos_ux/static/src/utils/product_display_name.js",
             "pba_pos_ux/static/src/utils/order_lock.js",
             "pba_pos_ux/static/src/utils/order_number.js",
+            "pba_pos_ux/static/src/utils/order_authority.js",
             "pba_pos_ux/static/src/scss/pos_ux.scss",
             "pba_pos_ux/static/src/xml/navbar.xml",
             "pba_pos_ux/static/src/xml/order_tabs.xml",
@@ -35,6 +37,8 @@
             "pba_pos_ux/static/src/xml/partner_line.xml",
             "pba_pos_ux/static/src/xml/select_partner_button.xml",
             "pba_pos_ux/static/src/xml/payment_screen.xml",
+            "pba_pos_ux/static/src/app/models/data_service_options.js",
+            "pba_pos_ux/static/src/app/models/data_service.js",
             "pba_pos_ux/static/src/app/screens/partner_list/partner_list.js",
             "pba_pos_ux/static/src/app/screens/product_screen/product_screen.js",
             "pba_pos_ux/static/src/app/screens/product_screen/order_summary.js",
@@ -56,6 +60,7 @@
             "pba_pos_ux/static/src/utils/product_display_name.js",
             "pba_pos_ux/static/src/utils/order_lock.js",
             "pba_pos_ux/static/src/utils/order_number.js",
+            "pba_pos_ux/static/src/utils/order_authority.js",
             "pba_pos_ux/static/tests/unit/**/*",
         ],
     },
