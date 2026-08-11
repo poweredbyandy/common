@@ -2,6 +2,8 @@ from odoo import _, models
 from odoo.exceptions import UserError
 from odoo.tools.float_utils import float_compare
 
+from odoo.addons.l10n_ve_loyalty.models import l10n_ve_global_discount as l10n_ve_discount_logic
+
 
 class L10nVeAccountMoveDiscountWizard(models.TransientModel):
     _inherit = "l10n.ve.account.move.discount.wizard"
@@ -23,13 +25,19 @@ class L10nVeAccountMoveDiscountWizard(models.TransientModel):
                 self.discount_percentage, move.company_id, move.partner_id
             )
         else:
+            amount_base = self.amount_base or "untaxed"
+            check_amount = l10n_ve_discount_logic.l10n_ve_fixed_discount_to_untaxed(
+                move,
+                self.amount,
+                amount_base,
+            )
             subtotal_by_taxes = move._l10n_ve_global_discount_subtotal_by_taxes()
             total_subtotal = sum(subtotal_by_taxes.values())
             already_applied = move._l10n_ve_total_sequential_global_discount(
                 subtotal_by_taxes
             )
             remaining = total_subtotal - already_applied
-            ratio = (self.amount / remaining) if remaining else 0.0
+            ratio = (check_amount / remaining) if remaining else 0.0
             if float_compare(ratio, 0.0, precision_digits=6) > 0:
                 policy._pba_raise_if_ratio_over_limit(
                     ratio, move.company_id, move.partner_id

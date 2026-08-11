@@ -1,6 +1,6 @@
 {
     "name": "PBA Discount Management",
-    "version": "18.0.1.2.0",
+    "version": "18.0.1.2.1",
     "summary": "Límites de descuento por compañía, contacto y permisos de descuento global",
     "category": "Sales",
     "author": "andyengit",
