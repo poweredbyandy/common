@@ -8,3 +8,7 @@ class ResConfigSettings(models.TransientModel):
         related="company_id.pba_product_catalog_warehouse_id",
         readonly=False,
     )
+    pba_product_catalog_price_tax_included = fields.Boolean(
+        related="company_id.pba_product_catalog_price_tax_included",
+        readonly=False,
+    )
