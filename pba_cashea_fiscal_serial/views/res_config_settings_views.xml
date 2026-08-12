@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form_pba_cashea_fiscal_serial" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.pba.cashea.fiscal.serial</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="cashea.res_config_settings_view_form_cashea"/>
+        <field name="arch" type="xml">
+            <xpath expr="//setting[@id='cashea_payment_method_setting']" position="after">
+                <setting
+                    string="Metodo de pago fiscal Cashea"
+                    help="Nombre del metodo de pago en el ticket SENIAT para el monto no pagado de facturas Cashea. Si no hay pagos, se usa este nombre en lugar de Credito."
+                    id="cashea_fiscal_payment_method_setting"
+                >
+                    <field name="cashea_fiscal_payment_method_name" placeholder="Cashea"/>
+                </setting>
+            </xpath>
+        </field>
+    </record>
+</odoo>

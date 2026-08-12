@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form_pba_product_catalog_display" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.pba.product.catalog.display</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="sale.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <block name="catalog_setting_container" position="before">
+                <block title="Visualización del catálogo" name="pba_catalog_display_setting_container">
+                    <setting
+                        id="pba_product_catalog_show_price"
+                        company_dependent="1"
+                        string="Mostrar precio en el catálogo"
+                        help="Si está activo, el catálogo de productos muestra el precio unitario original.">
+                        <field name="pba_product_catalog_show_price"/>
+                    </setting>
+                    <setting
+                        id="pba_product_catalog_show_qty"
+                        company_dependent="1"
+                        string="Mostrar cantidad en el catálogo"
+                        help="Si está activo, el catálogo de productos muestra la cantidad disponible.">
+                        <field name="pba_product_catalog_show_qty"/>
+                    </setting>
+                </block>
+            </block>
+        </field>
+    </record>
+</odoo>

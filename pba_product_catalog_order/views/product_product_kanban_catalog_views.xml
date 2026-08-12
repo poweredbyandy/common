@@ -36,10 +36,18 @@
                             t-attf-id="product-{{record.id.raw_value}}-price">
                     </div>
                     <div t-if="record.is_storable.raw_value"
-                            name="o_kanban_qty_available">
-                        <span>Disponible para vender: </span>
-                        <field name="free_qty" nolabel="1"/>
-                        <field name="uom_id" class="ms-1" groups="uom.group_uom"/>
+                            name="o_kanban_qty_available"
+                            class="mt-1 d-flex align-items-center flex-wrap gap-1">
+                        <span>Disponible para vender:</span>
+                        <span t-attf-class="o_tag o_badge badge rounded-pill lh-1 o_product_catalog_qty_badge {{
+                            record.free_qty.raw_value &lt;= 0 ? 'text-bg-danger' :
+                            record.free_qty.raw_value &lt; 5 ? 'text-bg-warning' :
+                            'text-bg-success'
+                        }}">
+                            <span class="o_tag_badge_text text-truncate"
+                                    t-esc="record.free_qty.value"/>
+                        </span>
+                        <field name="uom_id" groups="uom.group_uom"/>
                     </div>
                     <div name="o_kanban_pricelists"
                             t-attf-id="product-{{record.id.raw_value}}-pricelists">

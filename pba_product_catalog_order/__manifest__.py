@@ -1,6 +1,6 @@
 {
     "name": "PBA Orden catálogo producto (Kanban)",
-    "version": "18.0.1.0.5",
+    "version": "18.0.1.0.6",
     "category": "Product",
     "summary": "Reordena la tarjeta kanban de productos: referencia, código, marca y nombre.",
     "description": """

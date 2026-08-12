@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="product_view_kanban_catalog_pba_display" model="ir.ui.view">
+        <field name="name">product.view.kanban.catalog.pba.display</field>
+        <field name="model">product.product</field>
+        <field name="inherit_id" ref="product.product_view_kanban_catalog"/>
+        <field name="priority">110</field>
+        <field name="arch" type="xml">
+            <xpath expr="//kanban/field[@name='id']" position="after">
+                <field name="pba_catalog_show_qty"/>
+            </xpath>
+            <xpath expr="//div[@name='o_kanban_qty_available']" position="attributes">
+                <attribute name="t-if">record.is_storable.raw_value and record.pba_catalog_show_qty.raw_value</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>
