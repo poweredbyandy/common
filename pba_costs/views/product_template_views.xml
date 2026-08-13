@@ -38,6 +38,18 @@
                                 options="{'currency_field': 'cost_currency_id', 'field_digits': True}"
                             />
                             <field
+                                name="pba_cost_discount_percent"
+                                string="% Descuento de Costo"
+                                widget="percentage"
+                            />
+                            <field
+                                name="pba_cost_discount"
+                                string="Descuento de Costo"
+                                widget="monetary"
+                                options="{'currency_field': 'cost_currency_id', 'field_digits': True}"
+                                readonly="1"
+                            />
+                            <field
                                 name="pba_final_cost"
                                 string="Costo final"
                                 widget="monetary"

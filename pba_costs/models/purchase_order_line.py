@@ -20,6 +20,16 @@ class PurchaseOrderLine(models.Model):
     pba_utility_percent = fields.Float(string="% Utilidad (PBA)")
     pba_utility_percent_baseline = fields.Float(string="Referencia % utilidad")
 
+    pba_cost_discount_percent = fields.Float(string="% Descuento de Costo (PBA)")
+    pba_cost_discount_percent_baseline = fields.Float(
+        string="Referencia % descuento de costo",
+    )
+    pba_cost_discount = fields.Monetary(
+        string="Importe descuento de costo (PBA)",
+        currency_field="pba_cost_pba_currency_id",
+        compute="_compute_pba_cost_amounts",
+    )
+
     pba_projected_final_cost = fields.Monetary(
         string="Costo final (PBA)",
         currency_field="pba_cost_pba_currency_id",
@@ -128,6 +138,7 @@ class PurchaseOrderLine(models.Model):
         "order_id.date_order",
         "company_id",
         "pba_cost_pba_currency_id",
+        "pba_cost_discount_percent",
         "pba_cost_freight_percent",
         "pba_cost_tariff_percent",
         "pba_cost_operative_percent",
@@ -136,12 +147,16 @@ class PurchaseOrderLine(models.Model):
     def _compute_pba_cost_amounts(self):
         for line in self:
             if line.display_type or not line.product_id:
+                line.pba_cost_discount = 0.0
                 line.pba_cost_freight = 0.0
                 line.pba_cost_tariff = 0.0
                 line.pba_cost_operative = 0.0
                 line.pba_cost_nationalization = 0.0
                 continue
-            base = line._pba_cost_base_in_product_cost_currency()
+            gross = line._pba_cost_gross_in_product_cost_currency()
+            disc_pct = line.pba_cost_discount_percent or 0.0
+            line.pba_cost_discount = gross * disc_pct
+            base = gross * (1.0 - disc_pct)
             line.pba_cost_freight = base * (line.pba_cost_freight_percent or 0.0)
             line.pba_cost_tariff = base * (line.pba_cost_tariff_percent or 0.0)
             line.pba_cost_operative = base * (line.pba_cost_operative_percent or 0.0)
@@ -158,6 +173,7 @@ class PurchaseOrderLine(models.Model):
         "order_id.date_order",
         "company_id",
         "pba_cost_pba_currency_id",
+        "pba_cost_discount",
         "pba_cost_freight",
         "pba_cost_tariff",
         "pba_cost_operative",
@@ -201,7 +217,7 @@ class PurchaseOrderLine(models.Model):
                 conv_date,
             )
 
-    def _pba_cost_base_in_product_cost_currency(self):
+    def _pba_cost_gross_in_product_cost_currency(self):
         self.ensure_one()
         if self.display_type or not self.product_id:
             return 0.0
@@ -227,6 +243,11 @@ class PurchaseOrderLine(models.Model):
             round=True,
         )
 
+    def _pba_cost_base_in_product_cost_currency(self):
+        self.ensure_one()
+        gross = self._pba_cost_gross_in_product_cost_currency()
+        return gross * (1.0 - (self.pba_cost_discount_percent or 0.0))
+
     def _pba_projected_final_cost_cost_currency(self):
         self.ensure_one()
         if self.display_type or not self.product_id:
@@ -239,6 +260,19 @@ class PurchaseOrderLine(models.Model):
             + (self.pba_cost_operative or 0.0)
             + (self.pba_cost_nationalization or 0.0)
         )
+
+    def _prepare_account_move_line(self, move=False):
+        res = super()._prepare_account_move_line(move=move)
+        if (
+            self.order_id.pba_apply_cost_discount_to_invoice
+            and not self.display_type
+            and (self.pba_cost_discount_percent or 0.0)
+        ):
+            commercial = (res.get("discount") or 0.0) / 100.0
+            cost_disc = self.pba_cost_discount_percent or 0.0
+            combined = 1.0 - ((1.0 - commercial) * (1.0 - cost_disc))
+            res["discount"] = combined * 100.0
+        return res
 
     def _pba_sale_price_for_template_list_price(self):
         self.ensure_one()
@@ -273,12 +307,14 @@ class PurchaseOrderLine(models.Model):
             line.pba_cost_nationalization_percent = (
                 tmpl.pba_cost_nationalization_percent
             )
+            line.pba_cost_discount_percent = tmpl.pba_cost_discount_percent
             line.pba_cost_freight_percent_baseline = line.pba_cost_freight_percent
             line.pba_cost_tariff_percent_baseline = line.pba_cost_tariff_percent
             line.pba_cost_operative_percent_baseline = line.pba_cost_operative_percent
             line.pba_cost_nationalization_percent_baseline = (
                 line.pba_cost_nationalization_percent
             )
+            line.pba_cost_discount_percent_baseline = line.pba_cost_discount_percent
             line.pba_utility_percent = tmpl.pba_utility_percent
             line.pba_utility_percent_baseline = line.pba_utility_percent
             line.pba_sale_price_unit = line.pba_sale_price_suggested
@@ -286,6 +322,7 @@ class PurchaseOrderLine(models.Model):
 
     @api.onchange(
         "pba_utility_percent",
+        "pba_cost_discount_percent",
         "pba_cost_freight_percent",
         "pba_cost_tariff_percent",
         "pba_cost_operative_percent",
@@ -304,6 +341,7 @@ class PurchaseOrderLine(models.Model):
     @api.model
     def _pba_cost_percent_field_map(self):
         return (
+            ("pba_cost_discount_percent", "pba_cost_discount_percent_baseline"),
             ("pba_cost_freight_percent", "pba_cost_freight_percent_baseline"),
             ("pba_cost_tariff_percent", "pba_cost_tariff_percent_baseline"),
             ("pba_cost_operative_percent", "pba_cost_operative_percent_baseline"),
@@ -421,6 +459,11 @@ class PurchaseOrderLine(models.Model):
         if self.display_type or not self.product_id:
             return {}
         tmpl_vals = {}
+        if self._pba_percent_differs(
+            self.pba_cost_discount_percent,
+            self.pba_cost_discount_percent_baseline,
+        ):
+            tmpl_vals["pba_cost_discount_percent"] = self.pba_cost_discount_percent
         if self._pba_percent_differs(
             self.pba_cost_freight_percent,
             self.pba_cost_freight_percent_baseline,

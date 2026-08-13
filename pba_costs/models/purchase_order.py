@@ -1,9 +1,17 @@
-from odoo import _, models
+from odoo import _, fields, models
 from odoo.exceptions import UserError
 
 
 class PurchaseOrder(models.Model):
     _inherit = "purchase.order"
+
+    pba_apply_cost_discount_to_invoice = fields.Boolean(
+        string="Aplicar descuento de costo a la factura",
+        help="Si está marcado, al crear la factura de proveedor se aplica también "
+        "el descuento de costo de cada línea sobre el remanente tras el "
+        "descuento comercial. Si no, el descuento de costo solo afecta los "
+        "cálculos de costo PBA.",
+    )
 
     def button_approve(self, force=False):
         res = super().button_approve(force=force)

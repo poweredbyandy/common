@@ -63,6 +63,20 @@ class ProductTemplate(models.Model):
 
     pba_utility_percent = fields.Float(string="% Utilidad")
 
+    pba_cost_discount_percent = fields.Float(
+        string="% Descuento de Costo",
+        help="Descuento adicional sobre el remanente tras el descuento comercial "
+        "de compra. Se usa como base de los costos PBA.",
+    )
+
+    pba_cost_discount = fields.Monetary(
+        string="Descuento de Costo",
+        currency_field="cost_currency_id",
+        compute="_compute_pba_cost_discount",
+        store=True,
+        help="Importe: último costo × % Descuento de Costo.",
+    )
+
     pba_utility_margin_amount = fields.Monetary(
         string="Importe utilidad (sobre costo final)",
         currency_field="cost_currency_id",
@@ -344,31 +358,47 @@ class ProductTemplate(models.Model):
             round=True,
         )
 
-    @api.depends("pba_last_cost", "pba_cost_freight_percent")
-    def _compute_pba_cost_freight(self):
+    def _pba_cost_base_after_cost_discount(self):
+        self.ensure_one()
+        last = self.pba_last_cost or 0.0
+        return last * (1.0 - (self.pba_cost_discount_percent or 0.0))
+
+    @api.depends("pba_last_cost", "pba_cost_discount_percent")
+    def _compute_pba_cost_discount(self):
         for rec in self:
             base = rec.pba_last_cost or 0.0
+            pct = rec.pba_cost_discount_percent or 0.0
+            rec.pba_cost_discount = base * pct
+
+    @api.depends("pba_last_cost", "pba_cost_discount_percent", "pba_cost_freight_percent")
+    def _compute_pba_cost_freight(self):
+        for rec in self:
+            base = rec._pba_cost_base_after_cost_discount()
             pct = rec.pba_cost_freight_percent or 0.0
             rec.pba_cost_freight = base * pct
 
-    @api.depends("pba_last_cost", "pba_cost_tariff_percent")
+    @api.depends("pba_last_cost", "pba_cost_discount_percent", "pba_cost_tariff_percent")
     def _compute_pba_cost_tariff(self):
         for rec in self:
-            base = rec.pba_last_cost or 0.0
+            base = rec._pba_cost_base_after_cost_discount()
             pct = rec.pba_cost_tariff_percent or 0.0
             rec.pba_cost_tariff = base * pct
 
-    @api.depends("pba_last_cost", "pba_cost_operative_percent")
+    @api.depends("pba_last_cost", "pba_cost_discount_percent", "pba_cost_operative_percent")
     def _compute_pba_cost_operative(self):
         for rec in self:
-            base = rec.pba_last_cost or 0.0
+            base = rec._pba_cost_base_after_cost_discount()
             pct = rec.pba_cost_operative_percent or 0.0
             rec.pba_cost_operative = base * pct
 
-    @api.depends("pba_last_cost", "pba_cost_nationalization_percent")
+    @api.depends(
+        "pba_last_cost",
+        "pba_cost_discount_percent",
+        "pba_cost_nationalization_percent",
+    )
     def _compute_pba_cost_nationalization(self):
         for rec in self:
-            base = rec.pba_last_cost or 0.0
+            base = rec._pba_cost_base_after_cost_discount()
             pct = rec.pba_cost_nationalization_percent or 0.0
             rec.pba_cost_nationalization = base * pct
 
@@ -410,6 +440,8 @@ class ProductTemplate(models.Model):
 
     @api.depends(
         "pba_last_cost",
+        "pba_cost_discount",
+        "pba_cost_discount_percent",
         "pba_cost_freight",
         "pba_cost_tariff",
         "pba_cost_operative",
@@ -443,6 +475,7 @@ class ProductTemplate(models.Model):
                 )
                 template.pba_final_cost = (
                     (template.pba_last_cost or 0.0)
+                    - (template.pba_cost_discount or 0.0)
                     + (template.pba_cost_freight or 0.0)
                     + (template.pba_cost_tariff or 0.0)
                     + (template.pba_cost_operative or 0.0)
@@ -607,19 +640,24 @@ class ProductTemplate(models.Model):
             return float(val or 0.0)
 
         base = z(self.pba_last_cost)
+        discount_pct = z(self.pba_cost_discount_percent)
+        discount_amt = z(self.pba_cost_discount)
+        base_after_discount = base - discount_amt
         return {
             "pba_last_cost": base,
+            "pba_cost_discount": discount_amt,
+            "pba_cost_discount_percent": discount_pct,
             "pba_cost_freight": z(self.pba_cost_freight),
             "pba_cost_tariff": z(self.pba_cost_tariff),
             "pba_cost_operative": z(self.pba_cost_operative),
             "pba_cost_nationalization": z(self.pba_cost_nationalization),
-            "pba_cost_freight_operation_total": base,
+            "pba_cost_freight_operation_total": base_after_discount,
             "pba_cost_freight_percent": z(self.pba_cost_freight_percent),
-            "pba_cost_tariff_operation_total": base,
+            "pba_cost_tariff_operation_total": base_after_discount,
             "pba_cost_tariff_percent": z(self.pba_cost_tariff_percent),
-            "pba_cost_operative_operation_total": base,
+            "pba_cost_operative_operation_total": base_after_discount,
             "pba_cost_operative_percent": z(self.pba_cost_operative_percent),
-            "pba_cost_nationalization_operation_total": base,
+            "pba_cost_nationalization_operation_total": base_after_discount,
             "pba_cost_nationalization_percent": z(self.pba_cost_nationalization_percent),
             "standard_price": z(self.standard_price),
             "list_price": z(self.list_price),
@@ -631,6 +669,7 @@ class ProductTemplate(models.Model):
         self.invalidate_recordset(
             [
                 "pba_last_cost",
+                "pba_cost_discount",
                 "pba_cost_freight",
                 "pba_cost_tariff",
                 "pba_cost_operative",
@@ -641,6 +680,7 @@ class ProductTemplate(models.Model):
             ]
         )
         for fname in (
+            "pba_cost_discount",
             "pba_cost_freight",
             "pba_cost_tariff",
             "pba_cost_operative",
@@ -650,6 +690,7 @@ class ProductTemplate(models.Model):
 
     def _pba_recompute_cost_amounts_from_last_cost(self):
         amount_fields = [
+            "pba_cost_discount",
             "pba_cost_freight",
             "pba_cost_tariff",
             "pba_cost_operative",
@@ -659,6 +700,7 @@ class ProductTemplate(models.Model):
             batch = self[offset : offset + 200]
             batch.invalidate_recordset(["pba_last_cost"] + amount_fields)
             batch._compute_pba_last_cost()
+            batch._compute_pba_cost_discount()
             batch._compute_pba_cost_freight()
             batch._compute_pba_cost_tariff()
             batch._compute_pba_cost_operative()
@@ -679,6 +721,8 @@ class ProductTemplate(models.Model):
             "|",
             "|",
             "|",
+            "|",
+            ("pba_cost_discount_percent", "!=", 0.0),
             ("pba_cost_freight_percent", "!=", 0.0),
             ("pba_cost_tariff_percent", "!=", 0.0),
             ("pba_cost_operative_percent", "!=", 0.0),

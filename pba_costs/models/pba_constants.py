@@ -1,4 +1,9 @@
 DEFAULT_PBA_FINAL_COST_FORMULA = (
+    "(pba_last_cost - pba_cost_discount) + pba_cost_freight + pba_cost_tariff + "
+    "pba_cost_operative + pba_cost_nationalization"
+)
+
+PREVIOUS_PBA_FINAL_COST_FORMULA = (
     "pba_last_cost + pba_cost_freight + pba_cost_tariff + "
     "pba_cost_operative + pba_cost_nationalization"
 )
@@ -7,6 +12,8 @@ DEFAULT_PBA_FINAL_COST_FORMULA = (
 def _pba_final_cost_formula_variable_names():
     return (
         "pba_last_cost",
+        "pba_cost_discount",
+        "pba_cost_discount_percent",
         "pba_cost_freight",
         "pba_cost_tariff",
         "pba_cost_operative",
