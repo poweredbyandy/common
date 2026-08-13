@@ -1,5 +1,5 @@
-AÒade el botÛn **Confirmar y Crear Factura** en el pedido de venta. Confirma el
-pedido (si est· en borrador), crea y publica la factura y la abre.
+A√±ade el bot√≥n **Confirmar y Crear Factura** en el pedido de venta. Confirma el
+pedido (si est√° en borrador), crea y publica la factura y la abre.
 
-El botÛn est· controlado por el permiso **Confirmar y crear factura**. Los
-vendedores lo reciben al instalar el mÛdulo y un administrador puede quitarlo.
+El bot√≥n depende del permiso **Confirmar y crear factura**. Los vendedores lo
+tienen al instalar o actualizar el m√≥dulo; un administrador puede quitarlo.

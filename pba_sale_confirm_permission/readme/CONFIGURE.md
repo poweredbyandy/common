@@ -1,5 +1,5 @@
-1. Instale el m�dulo. Los usuarios del grupo **Usuario: Ventas propias** reciben
-   el permiso **Confirmar pedidos de venta**.
-2. Para ocultar el bot�n a un usuario, abra **Ajustes > Usuarios** y quite el
-   grupo **Confirmar pedidos de venta**.
-3. Para volver a mostrarlo, asigne de nuevo ese grupo.
+1. Actualice el módulo. Los vendedores reciben el permiso **Confirmar pedidos
+   de venta**.
+2. En **Ajustes > Usuarios**, pestaña **Permisos de acceso**, busque la sección
+   **PBA Confirmar pedidos**.
+3. Deje el valor vacío para ocultar el botón Confirmar.

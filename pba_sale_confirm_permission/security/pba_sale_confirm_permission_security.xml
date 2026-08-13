@@ -1,15 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <record id="module_category_pba_sale_confirm" model="ir.module.category">
-        <field name="name">Confirmar pedidos de venta</field>
-        <field name="description">Controla la visibilidad del botón Confirmar en pedidos de venta.</field>
+        <field name="name">PBA Confirmar pedidos</field>
+        <field name="description">Permission for the Confirm button on sale orders.</field>
         <field name="sequence">26</field>
+    </record>
+
+    <record id="module_category_pba_sale_confirm_access" model="ir.module.category">
+        <field name="name">Confirmar pedidos de venta</field>
+        <field name="parent_id" ref="module_category_pba_sale_confirm"/>
+        <field name="sequence">1</field>
     </record>
 
     <record id="group_sale_order_confirm" model="res.groups">
         <field name="name">Confirmar pedidos de venta</field>
-        <field name="category_id" ref="module_category_pba_sale_confirm"/>
-        <field name="comment">Muestra el botón Confirmar en el pedido de venta. Por defecto se asigna a vendedores; se puede quitar por usuario.</field>
+        <field name="category_id" ref="module_category_pba_sale_confirm_access"/>
+        <field name="comment">Shows the Confirm button. Assigned to sales users on install; can be removed per user.</field>
     </record>
 
     <record id="base.default_user" model="res.users">

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form_credit_note_return" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.credit.note.return</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="sale.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//block[@name='sale_shipping_setting_container']" position="inside">
+                <setting
+                    id="pba_credit_note_return_picking_type_setting"
+                    string="Devolucion desde nota de credito"
+                    help="Tipo de operacion de entrada (por ejemplo DEVOLUCIONES) donde se crearan los albaranes al confirmar una nota de credito."
+                    company_dependent="1"
+                >
+                    <div class="content-group">
+                        <div class="row mt16">
+                            <label
+                                for="pba_credit_note_return_picking_type_id"
+                                class="col-lg-4 o_light_label"
+                                string="Tipo de operacion"
+                            />
+                            <field
+                                name="pba_credit_note_return_picking_type_id"
+                                class="col-lg-8"
+                                options="{'no_create': True}"
+                            />
+                        </div>
+                    </div>
+                </setting>
+            </xpath>
+        </field>
+    </record>
+</odoo>

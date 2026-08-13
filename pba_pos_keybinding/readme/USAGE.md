@@ -6,12 +6,12 @@
 
 Default letters:
 
-* **B** — focus product search
-* **P** — orders list (Pedidos)
-* **N** — new order
-* **C** — customer
-* **G** — payment / Pay
-* **S** — save order for later
-* **A** — Actions
-* **O** — quotations (when `pba_pos_sale` is installed)
-* **K** — cart pane (mobile)
+* **B** â€” focus product search
+* **P** â€” orders list (Pedidos)
+* **N** â€” new order
+* **C** â€” customer
+* **G** â€” payment / Pay
+* **S** â€” save order for later
+* **A** â€” Actions
+* **O** â€” quotations (when `pba_pos_sale` is installed)
+* **K** â€” cart pane (mobile)

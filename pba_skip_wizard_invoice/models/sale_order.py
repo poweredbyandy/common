@@ -1,9 +1,21 @@
-from odoo import _, models
+from odoo import _, api, fields, models
 from odoo.exceptions import UserError
 
 
 class SaleOrder(models.Model):
     _inherit = "sale.order"
+
+    pba_user_can_confirm_create_invoice = fields.Boolean(
+        compute="_compute_pba_legacy_button_flags",
+    )
+    pba_user_can_confirm_sale_order = fields.Boolean(
+        compute="_compute_pba_legacy_button_flags",
+    )
+
+    @api.depends_context("uid")
+    def _compute_pba_legacy_button_flags(self):
+        self.pba_user_can_confirm_create_invoice = True
+        self.pba_user_can_confirm_sale_order = True
 
     def action_confirm_create_and_post_invoice(self):
         self.ensure_one()

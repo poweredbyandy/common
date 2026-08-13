@@ -1,15 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <record id="module_category_pba_sale_confirm_invoice" model="ir.module.category">
-        <field name="name">Confirmar y crear factura</field>
-        <field name="description">Controla el botón Confirmar y Crear Factura en pedidos de venta.</field>
+    <record id="module_category_pba_skip_wizard_invoice" model="ir.module.category">
+        <field name="name">PBA Confirmar y crear factura</field>
+        <field name="description">Permission for Confirm and Create Invoice button.</field>
         <field name="sequence">27</field>
+    </record>
+
+    <record id="module_category_pba_skip_wizard_invoice_access" model="ir.module.category">
+        <field name="name">Confirmar y crear factura</field>
+        <field name="parent_id" ref="module_category_pba_skip_wizard_invoice"/>
+        <field name="sequence">1</field>
     </record>
 
     <record id="group_sale_confirm_create_invoice" model="res.groups">
         <field name="name">Confirmar y crear factura</field>
-        <field name="category_id" ref="module_category_pba_sale_confirm_invoice"/>
-        <field name="comment">Muestra el botón Confirmar y Crear Factura. Por defecto se asigna a vendedores; se puede quitar por usuario.</field>
+        <field name="category_id" ref="module_category_pba_skip_wizard_invoice_access"/>
+        <field name="comment">Shows Confirm and Create Invoice. Assigned to sales users on install; can be removed per user.</field>
     </record>
 
     <record id="base.default_user" model="res.users">

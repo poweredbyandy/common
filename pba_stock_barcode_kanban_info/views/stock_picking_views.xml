@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="stock_picking_view_kanban" model="ir.ui.view">
+        <field name="name">stock.picking.view.kanban.stock.barcode.info</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock_barcode.stock_picking_view_kanban"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='partner_id']" position="attributes">
+                <attribute name="class">o_pba_barcode_partner_name</attribute>
+            </xpath>
+            <xpath expr="//div[hasclass('d-flex') and hasclass('mb-1')]" position="after">
+                <div class="o_pba_barcode_kanban_info d-flex flex-column w-100 mt-1" invisible="not pba_barcode_sale_name">
+                    <field name="pba_barcode_sale_name" class="fw-bold o_pba_barcode_sale_vat"/>
+                    <div class="d-flex flex-wrap align-items-center gap-2 mt-1" invisible="not pba_barcode_payment_term_label">
+                        <field name="pba_barcode_payment_term_label" class="o_pba_barcode_term"/>
+                        <field name="pba_barcode_invoice_payment_state" invisible="1"/>
+                        <field
+                            name="pba_barcode_invoice_payment_label"
+                            widget="badge"
+                            decoration-success="pba_barcode_invoice_payment_state == 'paid'"
+                            decoration-warning="pba_barcode_invoice_payment_state == 'partial'"
+                            decoration-danger="pba_barcode_invoice_payment_state == 'not_paid'"
+                            decoration-muted="pba_barcode_invoice_payment_state == 'none'"
+                        />
+                    </div>
+                </div>
+            </xpath>
+        </field>
+    </record>
+</odoo>

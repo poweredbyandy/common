@@ -1,0 +1,55 @@
+.o_kanban_renderer .o_kanban_record.o_pba_barcode_tone_immediate_unpaid {
+    background-color: #ffe8e8 !important;
+}
+
+.o_kanban_renderer .o_kanban_record.o_pba_barcode_tone_credit {
+    background-color: #fff4c2 !important;
+}
+
+.o_kanban_renderer .o_kanban_record .o_pba_barcode_partner_name,
+.o_kanban_renderer .o_kanban_record .o_pba_barcode_partner_name .o_field_widget,
+.o_kanban_renderer .o_kanban_record .o_pba_barcode_partner_name a {
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.o_kanban_renderer .o_kanban_record footer {
+    flex-wrap: nowrap;
+    align-items: center;
+    column-gap: 0.5rem;
+
+    > .d-flex:first-child {
+        min-width: 0;
+        flex: 1 1 auto;
+    }
+
+    > .d-flex.ms-auto {
+        flex: 0 0 auto;
+        margin-top: 0 !important;
+        white-space: nowrap;
+    }
+
+    .o_field_widget[name="scheduled_date"],
+    .o_field_date {
+        white-space: nowrap !important;
+    }
+}
+
+.o_kanban_renderer .o_kanban_record .o_pba_barcode_kanban_info .o_field_badge,
+.o_kanban_renderer .o_kanban_record .o_pba_barcode_kanban_info .badge {
+    font-size: 1rem;
+    line-height: 1.3;
+    padding: 0.2em 0.5em;
+}
+
+.o_kanban_renderer .o_kanban_record .o_pba_barcode_sale_vat,
+.o_kanban_renderer .o_kanban_record .o_pba_barcode_sale_vat .o_field_widget {
+    white-space: pre-line;
+}
+
+.o_kanban_renderer .o_kanban_record .o_pba_barcode_term {
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.3;
+}

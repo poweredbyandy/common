@@ -1,8 +1,8 @@
 {
-    "name": "PBA M·rgenes POS",
+    "name": "PBA M√°rgenes POS",
     "version": "18.0.1.0.0",
     "category": "Point of Sale",
-    "summary": "Restringe la visibilidad de m·rgenes del POS al grupo PBA: Ver m·rgenes",
+    "summary": "Restringe la visibilidad de m√°rgenes del POS al grupo PBA: Ver m√°rgenes",
     "author": "andyengit",
     "maintainer": "andyengit",
     "license": "LGPL-3",

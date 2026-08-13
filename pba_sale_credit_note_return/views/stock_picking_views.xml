@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_picking_form_credit_note_return" model="ir.ui.view">
+        <field name="name">stock.picking.form.credit.note.return</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='origin']" position="after">
+                <field
+                    name="credit_note_move_id"
+                    invisible="not credit_note_move_id"
+                    readonly="1"
+                />
+            </xpath>
+        </field>
+    </record>
+</odoo>

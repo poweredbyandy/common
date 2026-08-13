@@ -1,4 +1,4 @@
-Oculta el botón **Confirmar** del pedido de venta detrás de un permiso.
+Oculta el botÃ³n **Confirmar** del pedido de venta detrÃ¡s de un permiso.
 
-Los vendedores reciben el permiso al instalar el módulo. Un administrador puede
-quitarlo por usuario para que el botón deje de mostrarse.
+Los vendedores reciben el permiso al instalar el mÃ³dulo. Un administrador puede
+quitarlo por usuario para que el botÃ³n deje de mostrarse.

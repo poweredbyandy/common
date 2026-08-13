@@ -1,6 +1,6 @@
-1. Instale el módulo.
+1. Instale el mÃ³dulo.
 2. En cualquier vista de lista o campo relacional (producto, contacto, etc.),
-   use `*` en la búsqueda para representar cualquier texto.
+   use `*` en la bÃºsqueda para representar cualquier texto.
 
 Ejemplos:
 
@@ -8,4 +8,4 @@ Ejemplos:
 * `*350` ? coincide con nombres que contienen "350".
 * `Motor*` ? coincide con nombres que empiezan con "Motor".
 
-La búsqueda sin `*` sigue funcionando como antes (coincidencia parcial).
+La bÃºsqueda sin `*` sigue funcionando como antes (coincidencia parcial).

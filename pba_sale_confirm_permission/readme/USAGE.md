@@ -1,4 +1,4 @@
-Con el permiso activo, el pedido muestra el botÛn **Confirmar** en borrador y
-enviado, igual que el est·ndar.
+Con el permiso activo, el pedido muestra el bot√≥n **Confirmar** en borrador y
+enviado, igual que el est√°ndar.
 
-Sin el permiso, el botÛn no aparece. El resto del formulario de ventas no cambia.
+Sin el permiso, el bot√≥n no aparece. El resto del formulario de ventas no cambia.

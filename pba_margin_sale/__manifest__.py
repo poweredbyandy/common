@@ -1,8 +1,8 @@
 {
-    "name": "PBA M·rgenes Ventas",
+    "name": "PBA M√°rgenes Ventas",
     "version": "18.0.1.0.0",
     "category": "Sales",
-    "summary": "Restringe la visibilidad de m·rgenes de sale_margin al grupo PBA: Ver m·rgenes",
+    "summary": "Restringe la visibilidad de m√°rgenes de sale_margin al grupo PBA: Ver m√°rgenes",
     "author": "andyengit",
     "maintainer": "andyengit",
     "license": "LGPL-3",

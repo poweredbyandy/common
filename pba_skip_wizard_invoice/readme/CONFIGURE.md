@@ -1,4 +1,6 @@
-1. Instale el módulo. Los usuarios de ventas reciben el permiso **Confirmar y
-   crear factura**.
-2. Para ocultar el botón, quite ese grupo en **Ajustes > Usuarios**.
-3. Para mostrarlo de nuevo, vuelva a asignar el grupo.
+1. Actualice el módulo. Los vendedores reciben el permiso **Confirmar y crear
+   factura**.
+2. En **Ajustes > Usuarios**, pestaña **Permisos de acceso**, busque la sección
+   **PBA Confirmar y crear factura**.
+3. Deje el valor vacío para quitar el botón; elija **Confirmar y crear factura**
+   para mostrarlo.

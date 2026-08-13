@@ -1,6 +1,6 @@
-En un pedido en borrador, enviado o confirmado (si aún no está facturado), pulse
+En un pedido en borrador, enviado o confirmado (si aÃºn no estÃ¡ facturado), pulse
 **Confirmar y Crear Factura**. El sistema confirma si hace falta, genera y
 publica la factura y abre el documento.
 
-Si no tiene el permiso, el botón no aparece. Si se llama la acción sin permiso,
+Si no tiene el permiso, el botÃ³n no aparece. Si se llama la acciÃ³n sin permiso,
 se muestra un error.

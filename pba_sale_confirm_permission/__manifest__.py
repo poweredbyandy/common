@@ -1,8 +1,8 @@
 {
     "name": "PBA permiso confirmar pedido",
-    "version": "18.0.1.0.0",
+    "version": "18.0.1.2.0",
     "category": "Sales",
-    "summary": "Oculta el botón Confirmar del pedido de venta según un permiso revocable",
+    "summary": "Oculta el botÃ³n Confirmar del pedido de venta segÃºn un permiso revocable",
     "author": "andyengit",
     "maintainer": "andyengit",
     "website": "https://github.com/andyengit",

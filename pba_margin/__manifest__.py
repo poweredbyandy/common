@@ -1,8 +1,8 @@
 {
-    "name": "PBA M·rgenes",
+    "name": "PBA M√°rgenes",
     "version": "18.0.1.0.0",
     "category": "Sales",
-    "summary": "Grupo de seguridad para controlar la visibilidad de m·rgenes",
+    "summary": "Grupo de seguridad para controlar la visibilidad de m√°rgenes",
     "author": "andyengit",
     "maintainer": "andyengit",
     "license": "LGPL-3",
