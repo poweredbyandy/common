@@ -12,7 +12,7 @@
                     string="Confirmar y Crear Factura"
                     class="btn-secondary"
                     invisible="state not in ('draft', 'sent', 'sale') or (state == 'sale' and invoice_status == 'invoiced')"
-                    groups="sales_team.group_sale_salesman"
+                    groups="pba_skip_wizard_invoice.group_sale_confirm_create_invoice"
                 />
             </xpath>
         </field>

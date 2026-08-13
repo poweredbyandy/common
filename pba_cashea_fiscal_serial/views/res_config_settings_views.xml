@@ -8,7 +8,7 @@
             <xpath expr="//setting[@id='cashea_payment_method_setting']" position="after">
                 <setting
                     string="Metodo de pago fiscal Cashea"
-                    help="Nombre del metodo de pago en el ticket SENIAT para el monto no pagado de facturas Cashea. Si no hay pagos, se usa este nombre en lugar de Credito."
+                    help="Nombre del metodo de pago fiscal para el monto no pagado de facturas Cashea."
                     id="cashea_fiscal_payment_method_setting"
                 >
                     <field name="cashea_fiscal_payment_method_name" placeholder="Cashea"/>

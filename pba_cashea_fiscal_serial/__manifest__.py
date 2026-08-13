@@ -1,10 +1,10 @@
 {
     "name": "PBA Cashea Fiscal Serial",
-    "version": "18.0.1.0.1",
+    "version": "18.0.1.0.0",
     "category": "Accounting/Localizations",
     "summary": (
-        "En tickets SENIAT, el saldo no pagado de facturas Cashea "
-        "se muestra como Cashea en lugar de Credito"
+        "Metodo de pago fiscal Cashea para el monto no pagado "
+        "en tickets SENIAT"
     ),
     "author": "andyengit",
     "maintainer": "andyengit",

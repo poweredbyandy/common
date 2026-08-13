@@ -7,6 +7,12 @@ class SaleOrder(models.Model):
 
     def action_confirm_create_and_post_invoice(self):
         self.ensure_one()
+        if not self.env.user.has_group(
+            "pba_skip_wizard_invoice.group_sale_confirm_create_invoice"
+        ):
+            raise UserError(
+                _("No tiene permiso para confirmar y crear la factura.")
+            )
         if self.state == "draft":
             res = self.action_confirm()
             if isinstance(res, dict):

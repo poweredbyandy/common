@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from odoo import fields, models
 
 
@@ -9,7 +8,8 @@ class ResCompany(models.Model):
         string="Metodo de pago fiscal Cashea",
         default="Cashea",
         help=(
-            "Nombre del metodo de pago en el ticket SENIAT para el monto "
-            "no pagado de facturas Cashea (en lugar de Credito)."
+            "Nombre del metodo de pago enviado a la maquina fiscal "
+            "para el monto no pagado de facturas Cashea "
+            "(en lugar de Credito)."
         ),
     )
