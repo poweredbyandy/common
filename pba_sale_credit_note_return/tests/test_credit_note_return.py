@@ -38,11 +38,23 @@ class TestCreditNoteReturn(TestSaleStockCommon):
             "default_location_src_id": cls.env.ref("stock.stock_location_customers").id,
             "default_location_dest_id": warehouse.lot_stock_id.id,
         })
-        cls.env.company.pba_credit_note_return_picking_type_id = cls.return_picking_type
+        cls.company_fallback_return_type = cls.env["stock.picking.type"].create({
+            "name": "FALLBACK NC RETURN",
+            "code": "incoming",
+            "sequence_code": "NCFALL",
+            "warehouse_id": warehouse.id,
+            "default_location_src_id": cls.env.ref("stock.stock_location_customers").id,
+            "default_location_dest_id": warehouse.lot_stock_id.id,
+        })
+        cls.env.company.pba_credit_note_return_picking_type_id = (
+            cls.company_fallback_return_type
+        )
+        warehouse.out_type_id.return_picking_type_id = cls.return_picking_type
         for product in (cls.product_order, cls.product_storable):
             cls.env["stock.quant"]._update_available_quantity(
                 product, warehouse.lot_stock_id, 100.0
             )
+        cls.warehouse = warehouse
 
     def _get_new_sale_order(self, product=None, amount=10.0):
         product = product or self.product_consu
@@ -179,3 +191,69 @@ class TestCreditNoteReturn(TestSaleStockCommon):
         return_picking.button_validate()
         self.assertEqual(sale_order.order_line.qty_delivered, 0)
         self.assertEqual(sale_order.order_line.product_uom_qty, 0)
+
+    def test_credit_note_uses_original_operation_return_type(self):
+        sale_order = self._get_new_sale_order(product=self.product_storable)
+        picking, invoice = self._deliver_and_invoice(sale_order)
+        self.assertEqual(
+            picking.picking_type_id.return_picking_type_id, self.return_picking_type
+        )
+        credit_note = self._create_and_post_credit_note(invoice)
+        return_picking = credit_note.credit_note_return_picking_ids
+        self.assertEqual(return_picking.picking_type_id, self.return_picking_type)
+        self.assertNotEqual(
+            return_picking.picking_type_id, self.company_fallback_return_type
+        )
+
+    def test_credit_note_falls_back_to_company_return_type(self):
+        self.warehouse.out_type_id.return_picking_type_id = False
+        sale_order = self._get_new_sale_order(product=self.product_storable)
+        _picking, invoice = self._deliver_and_invoice(sale_order)
+        credit_note = self._create_and_post_credit_note(invoice)
+        return_picking = credit_note.credit_note_return_picking_ids
+        self.assertEqual(
+            return_picking.picking_type_id, self.company_fallback_return_type
+        )
+
+    def test_receipt_return_keeps_original_operation_return_type(self):
+        """Reception returns must not use the company NC return type."""
+        product = self.product_storable
+        receipt_type = self.warehouse.in_type_id
+        receipt_return_type = self.env["stock.picking.type"].create({
+            "name": "RETURN TO VENDOR TEST",
+            "code": "outgoing",
+            "sequence_code": "RTV",
+            "warehouse_id": self.warehouse.id,
+            "default_location_src_id": self.warehouse.lot_stock_id.id,
+            "default_location_dest_id": self.env.ref("stock.stock_location_suppliers").id,
+        })
+        receipt_type.return_picking_type_id = receipt_return_type
+        receipt = self.env["stock.picking"].create({
+            "picking_type_id": receipt_type.id,
+            "location_id": self.env.ref("stock.stock_location_suppliers").id,
+            "location_dest_id": self.warehouse.lot_stock_id.id,
+            "move_ids": [Command.create({
+                "name": product.name,
+                "product_id": product.id,
+                "product_uom_qty": 2,
+                "product_uom": product.uom_id.id,
+                "location_id": self.env.ref("stock.stock_location_suppliers").id,
+                "location_dest_id": self.warehouse.lot_stock_id.id,
+            })],
+        })
+        receipt.action_confirm()
+        receipt.move_ids.write({"quantity": 2, "picked": True})
+        receipt.button_validate()
+        wizard = self.env["stock.return.picking"].with_context(
+            active_id=receipt.id,
+            active_ids=receipt.ids,
+            active_model="stock.picking",
+        ).create({"picking_id": receipt.id})
+        wizard.product_return_moves.quantity = 2
+        action = wizard.action_create_returns()
+        return_picking = self.env["stock.picking"].browse(action["res_id"])
+        self.assertEqual(return_picking.picking_type_id, receipt_return_type)
+        self.assertNotEqual(
+            return_picking.picking_type_id, self.company_fallback_return_type
+        )
+        self.assertNotEqual(return_picking.picking_type_id, self.return_picking_type)

@@ -1,6 +1,6 @@
 {
     "name": "PBA Devolucion desde nota de credito",
-    "version": "18.0.1.0.4",
+    "version": "18.0.1.0.5",
     "category": "Sales/Sales",
     "summary": "Crea un albaran de devolucion al confirmar una nota de credito "
     "y ajusta la cantidad pedida del pedido al validar la devolucion.",

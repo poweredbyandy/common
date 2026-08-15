@@ -9,7 +9,7 @@
                 <setting
                     id="pba_credit_note_return_picking_type_setting"
                     string="Devolucion desde nota de credito"
-                    help="Tipo de operacion de entrada (por ejemplo DEVOLUCIONES) donde se crearan los albaranes al confirmar una nota de credito."
+                    help="Respaldo si el tipo de operacion de entrega no tiene configurado su tipo de devolucion. Prioridad: tipo original, luego este."
                     company_dependent="1"
                 >
                     <div class="content-group">

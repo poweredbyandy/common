@@ -8,6 +8,7 @@ class ResCompany(models.Model):
         "stock.picking.type",
         string="Tipo operacion devolucion NC",
         domain="[('code', '=', 'incoming'), '|', ('company_id', '=', False), ('company_id', '=', id)]",
-        help="Tipo de operacion de entrada usado al generar el albaran "
-        "de devolucion al confirmar una nota de credito.",
+        help="Respaldo si el tipo de operacion de entrega no tiene "
+        "configurado su propio tipo de devolucion "
+        "(return_picking_type_id). Prioridad: tipo original, luego este.",
     )

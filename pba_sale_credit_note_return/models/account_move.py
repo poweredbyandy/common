@@ -38,8 +38,11 @@ class AccountMove(models.Model):
                 )
                 raise
 
-    def _get_credit_note_return_picking_type(self):
+    def _get_credit_note_return_picking_type(self, picking=False):
+        """Prefer the original operation's return type, then company fallback."""
         self.ensure_one()
+        if picking and picking.picking_type_id.return_picking_type_id:
+            return picking.picking_type_id.return_picking_type_id
         return self.company_id.pba_credit_note_return_picking_type_id
 
     def _process_credit_note_stock_impact(self):
@@ -50,7 +53,6 @@ class AccountMove(models.Model):
         self._ensure_deliveries_done_for_credit_note()
         qty_by_stock_move = self._get_credit_note_return_qty_by_stock_move()
         created_pickings = self.env["stock.picking"]
-        return_type = self._get_credit_note_return_picking_type()
 
         if qty_by_stock_move:
             pickings_qty = defaultdict(dict)
@@ -60,7 +62,7 @@ class AccountMove(models.Model):
                 pickings_qty[stock_move.picking_id][stock_move] = qty
             for picking, move_qty_map in pickings_qty.items():
                 return_picking = self._create_return_picking_for_delivery(
-                    picking, move_qty_map, return_type=return_type
+                    picking, move_qty_map
                 )
                 if return_picking:
                     created_pickings |= return_picking
@@ -73,9 +75,11 @@ class AccountMove(models.Model):
         if created_pickings:
             messages.append(
                 _(
-                    "Se generaron albaranes de devolución (%(picking_type)s): %(pickings)s",
-                    picking_type=return_type.display_name if return_type else "",
-                    pickings=", ".join(created_pickings.mapped("name")),
+                    "Se generaron albaranes de devolucion: %(pickings)s",
+                    pickings=", ".join(
+                        "%s (%s)" % (p.name, p.picking_type_id.display_name)
+                        for p in created_pickings
+                    ),
                 )
             )
         if pending_reduced:
@@ -346,13 +350,17 @@ class AccountMove(models.Model):
         self.ensure_one()
         if not picking or not picking._can_return():
             return self.env["stock.picking"]
-        return_type = return_type or self._get_credit_note_return_picking_type()
-        wizard = self.env["stock.return.picking"].with_context(
-            active_id=picking.id,
-            active_ids=picking.ids,
-            active_model="stock.picking",
-            pba_credit_note_return_picking_type=return_type,
-        ).create({"picking_id": picking.id})
+        return_type = return_type or self._get_credit_note_return_picking_type(picking)
+        wizard_ctx = {
+            "active_id": picking.id,
+            "active_ids": picking.ids,
+            "active_model": "stock.picking",
+        }
+        if return_type:
+            wizard_ctx["pba_credit_note_return_picking_type"] = return_type
+        wizard = self.env["stock.return.picking"].with_context(**wizard_ctx).create({
+            "picking_id": picking.id,
+        })
         has_qty = False
         for wizard_line in wizard.product_return_moves:
             qty = move_qty_map.get(wizard_line.move_id, 0.0)
@@ -382,7 +390,6 @@ class AccountMove(models.Model):
             vals["picking_type_id"] = return_type.id
             if return_type.default_location_dest_id:
                 vals["location_dest_id"] = return_type.default_location_dest_id.id
-            # Keep customer as source for returns of deliveries.
             if picking.location_dest_id:
                 vals["location_id"] = picking.location_dest_id.id
         return_picking.write(vals)

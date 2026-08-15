@@ -6,9 +6,10 @@ class StockReturnPicking(models.TransientModel):
 
     def _prepare_picking_default_values_based_on(self, picking):
         vals = super()._prepare_picking_default_values_based_on(picking)
+        # Only override when creating a return from a customer credit note.
+        # Manual returns (including reception returns) keep the original
+        # picking type's return_picking_type_id.
         return_type = self.env.context.get("pba_credit_note_return_picking_type")
-        if not return_type:
-            return_type = picking.company_id.pba_credit_note_return_picking_type_id
         if return_type:
             vals["picking_type_id"] = return_type.id
             if return_type.default_location_dest_id:
