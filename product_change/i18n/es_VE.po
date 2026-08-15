@@ -1,0 +1,277 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* product_change
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-08-15 09:51+0000\n"
+"PO-Revision-Date: 2026-08-15 09:51+0000\n"
+"Last-Translator: andyengit\n"
+"Language-Team: Spanish (Venezuela)\n"
+"Language: es_VE\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n == 1) ? 0 : ((n != 0 && n % 1000000 == 0) ? 1 : 2);\n"
+
+#. module: product_change
+#. odoo-python
+#: code:addons/product_change/wizard/product_change_wizard.py:0
+msgid ""
+"%(count)s product(s) were updated. Sales, purchases and invoices were kept. "
+"Incoming and outgoing stock was rebuilt or generated when needed."
+msgstr ""
+"Se actualizaron %(count)s producto(s). Se conservaron ventas, compras y "
+"facturas. El inventario de entrada y salida se reconstruyó o generó cuando "
+"fue necesario."
+
+#. module: product_change
+#. odoo-python
+#: code:addons/product_change/wizard/product_change_wizard.py:0
+msgid "A service cannot track inventory by quantity."
+msgstr "Un servicio no puede rastrear inventario por cantidad."
+
+#. module: product_change
+#: model_terms:ir.ui.view,arch_db:product_change.product_change_wizard_view_form
+msgid "Apply"
+msgstr "Aplicar"
+
+#. module: product_change
+#: model:ir.model.fields,field_description:product_change.field_product_change_wizard__change_tracking
+msgid "Change Inventory Tracking"
+msgstr "Cambiar rastreo de inventario"
+
+#. module: product_change
+#: model_terms:ir.ui.view,arch_db:product_change.product_change_wizard_view_form
+msgid "Change Product"
+msgstr "Cambiar producto"
+
+#. module: product_change
+#: model:ir.model.fields,field_description:product_change.field_product_change_wizard__change_type
+msgid "Change Product Type"
+msgstr "Cambiar tipo de producto"
+
+#. module: product_change
+#: model:ir.actions.act_window,name:product_change.product_change_wizard_action
+#: model:ir.actions.act_window,name:product_change.product_change_wizard_action_product
+#: model_terms:ir.ui.view,arch_db:product_change.product_template_form_view_product_change
+msgid "Change Type / UoM"
+msgstr "Cambiar tipo / UdM"
+
+#. module: product_change
+#: model:ir.model.fields,field_description:product_change.field_product_change_wizard__change_uom
+msgid "Change Unit of Measure"
+msgstr "Cambiar unidad de medida"
+
+#. module: product_change
+#: model:ir.model,name:product_change.model_product_change_wizard
+msgid "Change product type, tracking and unit of measure"
+msgstr "Cambiar tipo de producto, rastreo y unidad de medida"
+
+#. module: product_change
+#: model_terms:ir.ui.view,arch_db:product_change.product_change_wizard_view_form
+msgid ""
+"Choose what to change. Sales, purchases and invoices\n"
+"                            are kept. Incoming and outgoing stock is rebuilt or\n"
+"                            generated when the product becomes a good or starts\n"
+"                            tracking quantity."
+msgstr ""
+"Elija qué desea cambiar. Se conservan ventas, compras y facturas.\n"
+"                            El inventario de entrada y salida se reconstruye o\n"
+"                            genera cuando el producto pasa a ser un bien o\n"
+"                            comienza a rastrear cantidad."
+
+#. module: product_change
+#: model:ir.model.fields.selection,name:product_change.selection__product_change_wizard__current_type__combo
+msgid "Combo"
+msgstr "Combo"
+
+#. module: product_change
+#. odoo-python
+#: code:addons/product_change/wizard/product_change_wizard.py:0
+msgid ""
+"Combo products cannot be converted:\n"
+"%s"
+msgstr ""
+"Los productos combo no se pueden convertir:\n"
+"%s"
+
+#. module: product_change
+#: model:ir.model.fields,field_description:product_change.field_product_change_wizard__convert_uom_qty
+msgid "Convert Quantities"
+msgstr "Convertir cantidades"
+
+#. module: product_change
+#: model:ir.model.fields,field_description:product_change.field_product_change_wizard__create_uid
+msgid "Created by"
+msgstr "Creado por"
+
+#. module: product_change
+#: model:ir.model.fields,field_description:product_change.field_product_change_wizard__create_date
+msgid "Created on"
+msgstr "Creado el"
+
+#. module: product_change
+#: model:ir.model.fields,field_description:product_change.field_product_change_wizard__current_is_storable
+msgid "Current Is Storable"
+msgstr "Rastreo actual"
+
+#. module: product_change
+#: model:ir.model.fields,field_description:product_change.field_product_change_wizard__current_type
+msgid "Current Type"
+msgstr "Tipo actual"
+
+#. module: product_change
+#: model:ir.model.fields,field_description:product_change.field_product_change_wizard__current_uom_id
+msgid "Current Uom"
+msgstr "UdM actual"
+
+#. module: product_change
+#: model_terms:ir.ui.view,arch_db:product_change.product_change_wizard_view_form
+msgid "Discard"
+msgstr "Descartar"
+
+#. module: product_change
+#: model:ir.model.fields,field_description:product_change.field_product_change_wizard__display_name
+msgid "Display Name"
+msgstr "Nombre mostrado"
+
+#. module: product_change
+#: model:ir.model.fields.selection,name:product_change.selection__product_change_wizard__current_type__consu
+#: model:ir.model.fields.selection,name:product_change.selection__product_change_wizard__new_type__consu
+msgid "Goods"
+msgstr "Bienes"
+
+#. module: product_change
+#: model:ir.model.fields,field_description:product_change.field_product_change_wizard__id
+msgid "ID"
+msgstr "ID"
+
+#. module: product_change
+#: model_terms:ir.ui.view,arch_db:product_change.product_change_wizard_view_form
+msgid "Inventory Tracking"
+msgstr "Rastreo de inventario"
+
+#. module: product_change
+#: model:ir.model.fields,field_description:product_change.field_product_change_wizard__write_uid
+msgid "Last Updated by"
+msgstr "Última actualización por"
+
+#. module: product_change
+#: model:ir.model.fields,field_description:product_change.field_product_change_wizard__write_date
+msgid "Last Updated on"
+msgstr "Última actualización el"
+
+#. module: product_change
+#: model:ir.model.fields,field_description:product_change.field_product_change_wizard__new_tracking
+msgid "New Tracking"
+msgstr "Nuevo rastreo"
+
+#. module: product_change
+#: model:ir.model.fields,field_description:product_change.field_product_change_wizard__new_type
+msgid "New Type"
+msgstr "Nuevo tipo"
+
+#. module: product_change
+#: model:ir.model.fields,field_description:product_change.field_product_change_wizard__new_uom_id
+msgid "New Unit of Measure"
+msgstr "Nueva unidad de medida"
+
+#. module: product_change
+#: model:ir.model.fields.selection,name:product_change.selection__product_change_wizard__new_tracking__none
+msgid "No Tracking"
+msgstr "Sin rastreo"
+
+#. module: product_change
+#. odoo-python
+#: code:addons/product_change/wizard/product_change_wizard.py:0
+msgid "No warehouse found for company %s."
+msgstr "No se encontró un almacén para la compañía %s."
+
+#. module: product_change
+#. odoo-python
+#: code:addons/product_change/wizard/product_change_wizard.py:0
+msgid "Please choose the new inventory tracking."
+msgstr "Seleccione el nuevo rastreo de inventario."
+
+#. module: product_change
+#. odoo-python
+#: code:addons/product_change/wizard/product_change_wizard.py:0
+msgid "Please choose the new product type."
+msgstr "Seleccione el nuevo tipo de producto."
+
+#. module: product_change
+#. odoo-python
+#: code:addons/product_change/wizard/product_change_wizard.py:0
+msgid "Please choose the new unit of measure."
+msgstr "Seleccione la nueva unidad de medida."
+
+#. module: product_change
+#. odoo-python
+#: code:addons/product_change/wizard/product_change_wizard.py:0
+msgid "Please select at least one product."
+msgstr "Seleccione al menos un producto."
+
+#. module: product_change
+#: model:ir.model,name:product_change.model_product_template
+msgid "Product"
+msgstr "Producto"
+
+#. module: product_change
+#: model:ir.model.fields,field_description:product_change.field_product_change_wizard__product_count
+msgid "Product Count"
+msgstr "Cantidad de productos"
+
+#. module: product_change
+#: model_terms:ir.ui.view,arch_db:product_change.product_change_wizard_view_form
+msgid "Product Type"
+msgstr "Tipo de producto"
+
+#. module: product_change
+#. odoo-python
+#: code:addons/product_change/wizard/product_change_wizard.py:0
+msgid "Product updated"
+msgstr "Producto actualizado"
+
+#. module: product_change
+#: model:ir.model.fields,field_description:product_change.field_product_change_wizard__product_tmpl_ids
+msgid "Products"
+msgstr "Productos"
+
+#. module: product_change
+#: model:ir.model.fields,field_description:product_change.field_product_change_wizard__same_uom_category
+msgid "Same Uom Category"
+msgstr "Misma categoría de UdM"
+
+#. module: product_change
+#. odoo-python
+#: code:addons/product_change/wizard/product_change_wizard.py:0
+msgid "Select at least one change: type, tracking or unit of measure."
+msgstr "Seleccione al menos un cambio: tipo, rastreo o unidad de medida."
+
+#. module: product_change
+#: model:ir.model.fields.selection,name:product_change.selection__product_change_wizard__current_type__service
+#: model:ir.model.fields.selection,name:product_change.selection__product_change_wizard__new_type__service
+msgid "Service"
+msgstr "Servicio"
+
+#. module: product_change
+#: model:ir.model.fields.selection,name:product_change.selection__product_change_wizard__new_tracking__quantity
+msgid "Track by Quantity"
+msgstr "Rastreo de cantidad"
+
+#. module: product_change
+#: model_terms:ir.ui.view,arch_db:product_change.product_change_wizard_view_form
+msgid "Unit of Measure"
+msgstr "Unidad de medida"
+
+#. module: product_change
+#: model:ir.model.fields,help:product_change.field_product_change_wizard__convert_uom_qty
+msgid ""
+"When the new unit is in the same category, convert quantities and unit "
+"prices so document totals stay the same."
+msgstr ""
+"Si la nueva unidad es de la misma categoría, convierte cantidades y precios "
+"unitarios para que los totales de los documentos se mantengan."
