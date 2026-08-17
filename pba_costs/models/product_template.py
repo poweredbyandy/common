@@ -274,7 +274,7 @@ class ProductTemplate(models.Model):
     def _pba_last_purchase_line_conversion_date(self, line):
         if not line:
             return fields.Date.context_today(self)
-        line_dt = line.date_approve or line.date_order
+        line_dt = line.date_order or line.date_approve
         if line_dt:
             return line_dt.date() if hasattr(line_dt, "date") else line_dt
         return fields.Date.context_today(self)

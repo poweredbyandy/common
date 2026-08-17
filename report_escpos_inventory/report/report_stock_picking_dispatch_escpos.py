@@ -10,7 +10,6 @@ LETTER_HEIGHT_IN = 11.0
 LETTER_MARGIN_TOP_IN = 0.5
 LETTER_MARGIN_BOTTOM_IN = 0.5
 MATRIX_LINE_SPACING_LPI = 6
-MATRIX_EXTRA_PRODUCT_LINES = 3
 
 TABLE_HEADER_LINES = 2
 FOOTER_LINES_LAST = 5
@@ -19,7 +18,7 @@ FOOTER_LINES_CONTINUE = 2
 
 def _matrix_letter_printable_lines():
     usable = LETTER_HEIGHT_IN - LETTER_MARGIN_TOP_IN - LETTER_MARGIN_BOTTOM_IN
-    return max(1, int(usable * MATRIX_LINE_SPACING_LPI)) + MATRIX_EXTRA_PRODUCT_LINES
+    return max(1, int(usable * MATRIX_LINE_SPACING_LPI))
 
 
 def _matrix_dispatch_reserved_lines(header_line_count, footer_lines):
@@ -58,7 +57,7 @@ def _control_bytes(cmd_set):
             "wide_off": "\x1b\x57\x00",
             "underline_on": "\x1b\x2d\x01",
             "underline_off": "\x1b\x2d\x00",
-            "job_end": "\r\n\r\n",
+            "job_end": "\r\n\r\n\r\n\r\n\r\n\r\n",
         }
     return {
         "init": "\x1b\x40",
@@ -262,7 +261,7 @@ class ReportStockPickingDispatchEscpos(models.AbstractModel):
         return max(0, page_lines - used)
 
     def _blank_fill_line(self):
-        return " " * LINE_WIDTH
+        return ""
 
     def _header_block(self, picking, page_num, total_pages, nl):
         w = LINE_WIDTH
@@ -332,7 +331,7 @@ class ReportStockPickingDispatchEscpos(models.AbstractModel):
         return hdr + nl + ("-" * LINE_WIDTH) + nl
 
     def _footer_block(self, picking, page_num, total_pages, is_last, n_articulos, nl):
-        w = LINE_WIDTH
+        w = 64
         lines = []
         lines.append("-" * w)
         if not is_last:
@@ -370,7 +369,7 @@ class ReportStockPickingDispatchEscpos(models.AbstractModel):
         out_parts = [ctl["init"]]
         if cmd_set == "esc_p_epson":
             out_parts.append(ctl.get("matrix_slower_prefix", ""))
-            out_parts.append(ctl.get("double_strike_on", ""))
+            out_parts.append(ctl.get("double_strike_off", ""))
         for picking in pickings:
             pages = self._build_pages(picking)
             total_pages = len(pages)
