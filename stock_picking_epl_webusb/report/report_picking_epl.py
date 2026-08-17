@@ -202,6 +202,19 @@ class ReportPickingEpl(models.AbstractModel):
         return l1, l2, l3
 
     @api.model
+    def _partner_phone(self, partner):
+        if not partner:
+            return False
+        commercial_partner = partner.commercial_partner_id
+        candidates = [partner.phone, partner.mobile]
+        if commercial_partner != partner:
+            candidates.extend([commercial_partner.phone, commercial_partner.mobile])
+        for value in candidates:
+            if value and value.strip():
+                return value.strip()
+        return False
+
+    @api.model
     def _label_plain_lines(self, picking, package, index, total):
         company = picking.company_id
         company_p = company.partner_id if company else self.env["res.partner"].browse()
@@ -219,7 +232,7 @@ class ReportPickingEpl(models.AbstractModel):
         cname = "\n".join(c_lines)[:170]
         pvat = _epl_field(partner.vat or "-")[:40]
         d1, d2 = self._partner_dest_lines(partner)
-        tel = _epl_field(partner.phone or partner.mobile or "-")[:40]
+        tel = _epl_field(self._partner_phone(partner) or "-")[:40]
         pkg_url = self._package_open_url(package) or self._picking_open_url(picking)
         return [
             com_name,
@@ -462,7 +475,7 @@ class ReportPickingEpl(models.AbstractModel):
         t_so = sale
         pvat = _epl_field(partner.vat or "-", "-")[:36]
         d1, d2 = self._partner_dest_lines(partner)
-        tel = _epl_field(partner.phone or partner.mobile or "-", "-")[:36]
+        tel = _epl_field(self._partner_phone(partner) or "-", "-")[:36]
         idx_s = str(int(index))
         tot_s = str(int(total))
         bulto_txt = "BULTO %s DE %s" % (idx_s, tot_s)

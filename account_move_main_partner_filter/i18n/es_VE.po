@@ -1,0 +1,27 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* account_move_main_partner_filter
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-08-17 16:00+0000\n"
+"PO-Revision-Date: 2026-08-17 16:00+0000\n"
+"Last-Translator: andyengit\n"
+"Language-Team: Spanish (Venezuela)\n"
+"Language: es_VE\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n == 1) ? 0 : ((n != 0 && n % 1000000 == 0) ? 1 : 2);\n"
+
+#. module: account_move_main_partner_filter
+#: model:ir.module.module,shortdesc:account_move_main_partner_filter.module_account_move_main_partner_filter
+msgid "Invoices Main Partner Filter"
+msgstr "Filtro de contactos principales en facturación"
+
+#. module: account_move_main_partner_filter
+#: model:ir.module.module,summary:account_move_main_partner_filter.module_account_move_main_partner_filter
+msgid "Restrict invoice partner filters to main contacts"
+msgstr "Restringe los filtros de contactos en facturas a contactos principales"

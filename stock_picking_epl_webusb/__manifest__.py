@@ -1,6 +1,6 @@
 {
     "name": "Etiquetas paquetes EPL/ZPL (WebUSB)",
-    "version": "18.0.1.25.0",
+    "version": "18.0.1.25.1",
     "external_dependencies": {"python": ["pillow", "qrcode"]},
     "category": "Inventory/Reporting",
     "summary": "EPL2 para TLP/LP 2844; ZPL opcional para 2844-Z. Paquetes del albarán por WebUSB.",

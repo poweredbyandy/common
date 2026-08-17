@@ -17,4 +17,25 @@ action = viewer.action_open_catalog()
         sequence="18"
         web_icon="pba_product_catalog_menu,static/description/icon.png"
         groups="sales_team.group_sale_salesman"/>
+
+    <menuitem
+        id="menu_pba_products"
+        name="Productos"
+        parent="menu_pba_product_catalog_root"
+        sequence="10"/>
+
+    <menuitem
+        id="menu_pba_product_templates"
+        name="Productos"
+        action="sale.product_template_action"
+        parent="menu_pba_products"
+        sequence="10"/>
+
+    <menuitem
+        id="menu_pba_product_variants"
+        name="Variantes de productos"
+        action="product.product_normal_action_sell"
+        parent="menu_pba_products"
+        sequence="20"
+        groups="product.group_product_variant"/>
 </odoo>
