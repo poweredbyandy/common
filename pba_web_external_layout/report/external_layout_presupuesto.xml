@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="external_layout_pba_presupuesto">
+        <t t-if="not o" t-set="o" t-value="doc" />
+        <div
+            t-if="display_report_header is not False"
+            t-attf-class="header o_pba_presupuesto_pdf_header o_company_#{company.id}_layout"
+        >
+            <style type="text/css">
+                .o_pba_presupuesto_pdf_header img.o_pba_presupuesto_header_logo {
+                    opacity: 1 !important;
+                }
+            </style>
+            <div class="container-fluid px-0">
+                <div class="mb-2 pba_presupuesto_company_header">
+                    <div class="row align-items-start">
+                        <div t-if="company.logo" class="col-3 pe-3">
+                            <img
+                                t-att-src="image_data_uri(company.logo)"
+                                class="o_company_logo_big o_pba_presupuesto_header_logo"
+                                style="max-height: 90px; max-width: 100%;"
+                                alt=""
+                            />
+                        </div>
+                        <div
+                            t-attf-class="#{'col-5' if company.logo else 'col-7'} o_pba_company_information"
+                        >
+                            <span
+                                class="fw-bold"
+                                t-out="company.name"
+                            />
+                            <div t-if="not forced_vat and company.vat">
+                                <t
+                                    t-out="company.country_id.vat_label or 'Tax ID'"
+                                />:
+                                <span t-out="company.vat" />
+                            </div>
+                            <div t-elif="forced_vat">
+                                <t
+                                    t-out="company.country_id.vat_label or 'Tax ID'"
+                                />:
+                                <span t-out="forced_vat" />
+                            </div>
+                            <div
+                                t-if="company.report_header"
+                                class="o_company_tagline fw-bold"
+                                t-field="company.report_header"
+                            />
+                        </div>
+                        <div
+                            t-attf-class="#{'col-4' if company.logo else 'col-5'} text-end o_pba_company_address"
+                            name="company_address"
+                        >
+                            <span
+                                t-field="company.partner_id"
+                                t-options='{"widget": "contact", "fields": ["address"], "no_marker": true}'
+                            />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <t
+            t-set="layout_background_url"
+            t-value="'data:image/png;base64,%s' % company.layout_background_image.decode('utf-8') if company.layout_background_image and company.layout_background == 'Custom' else '/base/static/img/demo_logo_report.png' if company.layout_background == 'Demo logo' else ''"
+        />
+        <div
+            t-attf-class="article o_report_layout_pba_presupuesto o_company_#{company.id}_layout {{'o_report_layout_background' if company.layout_background != 'Blank' else ''}} {{report_type != 'pdf' and 'o_report_layout_pba_presupuesto_preview'}}"
+            t-attf-style="{{ 'background-image: url(%s);' % layout_background_url if layout_background_url else '' }}"
+            t-att-data-oe-model="o and o._name"
+            t-att-data-oe-id="o and o.id"
+            t-att-data-oe-lang="o and o.env.context.get('lang')"
+        >
+            <style type="text/css">
+                .o_report_layout_pba_presupuesto h2 {
+                    color: <t t-out="company.primary_color or '#dc3545'" />;
+                    font-size: 1.65rem;
+                    font-weight: 700;
+                }
+                .o_report_layout_pba_presupuesto .o_main_table {
+                    margin-bottom: 0.75rem;
+                    line-height: 1.2;
+                }
+                .o_report_layout_pba_presupuesto .o_main_table thead tr {
+                    color: <t t-out="company.secondary_color or '#6c757d'" />;
+                    border-bottom: 1.5px solid <t t-out="company.secondary_color or '#6c757d'" />;
+                    background: transparent;
+                }
+                .o_report_layout_pba_presupuesto .o_main_table thead th {
+                    padding: 0.3rem 0.25rem;
+                    border: 0;
+                    font-weight: 700;
+                    letter-spacing: 0.025em;
+                    text-transform: uppercase;
+                    vertical-align: bottom;
+                }
+                .o_report_layout_pba_presupuesto .o_main_table tbody td {
+                    padding: 0.28rem 0.25rem;
+                    border: 0;
+                    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+                    vertical-align: top;
+                }
+                .o_report_layout_pba_presupuesto .o_main_table tbody tr:last-child td {
+                    border-bottom: 0;
+                }
+                .o_report_layout_pba_presupuesto .o_report_stockpicking_operations > table,
+                .o_report_layout_pba_presupuesto table[name="stock_move_table"],
+                .o_report_layout_pba_presupuesto table[name="stock_move_line_table"] {
+                    margin-bottom: 0.75rem;
+                    line-height: 1.2;
+                }
+                .o_report_layout_pba_presupuesto .o_report_stockpicking_operations > table thead tr,
+                .o_report_layout_pba_presupuesto table[name="stock_move_table"] thead tr,
+                .o_report_layout_pba_presupuesto table[name="stock_move_line_table"] thead tr {
+                    color: <t t-out="company.secondary_color or '#6c757d'" />;
+                    border-bottom: 1.5px solid <t t-out="company.secondary_color or '#6c757d'" />;
+                    background: transparent;
+                }
+                .o_report_layout_pba_presupuesto .o_report_stockpicking_operations > table th,
+                .o_report_layout_pba_presupuesto table[name="stock_move_table"] th,
+                .o_report_layout_pba_presupuesto table[name="stock_move_line_table"] th {
+                    padding: 0.3rem 0.25rem;
+                    border: 0;
+                    vertical-align: bottom;
+                }
+                .o_report_layout_pba_presupuesto .o_report_stockpicking_operations > table td,
+                .o_report_layout_pba_presupuesto table[name="stock_move_table"] td,
+                .o_report_layout_pba_presupuesto table[name="stock_move_line_table"] td {
+                    padding: 0.28rem 0.25rem;
+                    border: 0;
+                    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+                    vertical-align: top;
+                }
+                .o_report_layout_pba_presupuesto .o_total_table td {
+                    padding: 0.2rem 0.25rem;
+                    line-height: 1.2;
+                }
+                .o_report_layout_pba_presupuesto #informations:empty {
+                    display: none;
+                }
+                .o_report_layout_pba_presupuesto .o_pba_moved_informations {
+                    display: block !important;
+                }
+                .o_report_layout_pba_presupuesto .o_pba_moved_informations > .col {
+                    display: block !important;
+                    width: 100% !important;
+                    max-width: 100% !important;
+                    flex: none !important;
+                    margin-bottom: 0;
+                    white-space: nowrap;
+                }
+                .o_report_layout_pba_presupuesto .o_pba_moved_informations > .col > strong:not(.text-danger)::after {
+                    content: ": ";
+                }
+                .o_report_layout_pba_presupuesto .o_pba_moved_informations > .col > strong,
+                .o_report_layout_pba_presupuesto .o_pba_moved_informations > .col > div {
+                    display: inline !important;
+                }
+                .o_report_layout_pba_presupuesto .o_pba_document_grid {
+                    align-items: flex-start;
+                }
+                .o_report_layout_pba_presupuesto .o_pba_document_grid > [class*="col-"] {
+                    min-width: 0;
+                }
+                .o_report_layout_pba_presupuesto .o_pba_document_grid address,
+                .o_report_layout_pba_presupuesto .o_pba_document_grid [name="information_block"] {
+                    margin-bottom: 0;
+                }
+            </style>
+            <h2 t-out="layout_document_title" />
+            <t t-if="document_information_block">
+                <div class="row mb-4 o_pba_document_grid">
+                    <div
+                        t-attf-class="#{'col-4' if information_block else 'col-8'} o_pba_client_information"
+                    >
+                        <t t-out="address or None" />
+                    </div>
+                    <div
+                        t-if="information_block"
+                        class="col-4 o_pba_shipping_information"
+                        name="information_block"
+                    >
+                        <t t-out="information_block or None" />
+                    </div>
+                    <div class="col-4 o_pba_document_information">
+                        <div class="row o_pba_moved_informations">
+                            <t t-out="document_information_block" />
+                        </div>
+                    </div>
+                </div>
+            </t>
+            <t t-else="" t-call="web.address_layout" />
+            <t t-out="0" />
+        </div>
+        <div
+            t-attf-class="footer o_pba_presupuesto_report_footer o_company_#{company.id}_layout {{report_type != 'pdf' and 'mt-auto'}}"
+        >
+            <div class="o_footer_content border-top pt-2 text-center small">
+                <div t-if="company.report_footer" t-field="company.report_footer" />
+                <div
+                    t-if="report_type == 'pdf'"
+                    t-attf-class="text-muted {{'mt-1' if company.report_footer else ''}}"
+                >
+                    Page <span class="page" /> / <span class="topage" />
+                </div>
+            </div>
+        </div>
+    </template>
+</odoo>

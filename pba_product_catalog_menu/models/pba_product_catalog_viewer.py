@@ -25,7 +25,7 @@ class PbaProductCatalogViewer(models.Model):
     )
     currency_id = fields.Many2one(
         "res.currency",
-        related="pricelist_id.currency_id",
+        compute="_compute_currency_id",
     )
 
     _sql_constraints = [
@@ -55,6 +55,11 @@ class PbaProductCatalogViewer(models.Model):
             elif not pricelist:
                 pricelist = pricelist_env.search([], limit=1)
             viewer.pricelist_id = pricelist
+
+    @api.depends("pricelist_id")
+    def _compute_currency_id(self):
+        for viewer in self:
+            viewer.currency_id = viewer.pricelist_id.currency_id
 
     @api.model
     def get_or_create_viewer(self):

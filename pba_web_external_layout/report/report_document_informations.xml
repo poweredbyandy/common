@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template
+        id="report_saleorder_document_pba_information_position"
+        inherit_id="sale.report_saleorder_document"
+        name="PBA sale order: position document information"
+    >
+        <xpath expr="//div[@id='informations']" position="before">
+            <t t-set="document_information_block" t-value="False" />
+        </xpath>
+        <xpath expr="//div[@id='informations']" position="attributes">
+            <attribute name="t-set">document_information_block</attribute>
+            <attribute name="class" add="d-none" separator=" " />
+        </xpath>
+        <xpath expr="//div[@id='informations']" position="after">
+            <div
+                t-if="document_information_block and doc.company_id.external_report_layout_id.key != 'pba_web_external_layout.external_layout_pba_presupuesto'"
+                id="informations"
+                class="row mb-4"
+            >
+                <t t-out="document_information_block" />
+            </div>
+        </xpath>
+    </template>
+
+    <template
+        id="report_invoice_document_pba_information_position"
+        inherit_id="account.report_invoice_document"
+        name="PBA invoice: position document information"
+    >
+        <xpath expr="//div[@id='informations']" position="before">
+            <t t-set="document_information_block" t-value="False" />
+        </xpath>
+        <xpath expr="//div[@id='informations']" position="attributes">
+            <attribute name="t-set">document_information_block</attribute>
+            <attribute name="class" add="d-none" separator=" " />
+        </xpath>
+        <xpath expr="//div[@id='informations']" position="after">
+            <div
+                t-if="document_information_block and o.company_id.external_report_layout_id.key != 'pba_web_external_layout.external_layout_pba_presupuesto'"
+                id="informations"
+                class="row mb-4"
+            >
+                <t t-out="document_information_block" />
+            </div>
+        </xpath>
+    </template>
+
+    <template
+        id="report_invoice_wizard_preview_pba_information_position"
+        inherit_id="web.report_invoice_wizard_preview"
+        name="PBA preview: position document information"
+    >
+        <xpath expr="//div[@id='informations']" position="before">
+            <t t-set="document_information_block" t-value="False" />
+        </xpath>
+        <xpath expr="//div[@id='informations']" position="attributes">
+            <attribute name="t-set">document_information_block</attribute>
+            <attribute name="class" add="d-none" separator=" " />
+        </xpath>
+        <xpath expr="//div[@id='informations']" position="after">
+            <div
+                t-if="document_information_block and company.external_report_layout_id.key != 'pba_web_external_layout.external_layout_pba_presupuesto'"
+                id="informations"
+                class="row mb-4"
+            >
+                <t t-out="document_information_block" />
+            </div>
+        </xpath>
+    </template>
+
+    <template
+        id="report_delivery_document_pba_information_position"
+        inherit_id="stock.report_delivery_document"
+        name="PBA delivery slip: position document information"
+    >
+        <xpath expr="//div[@id='informations']" position="before">
+            <t t-set="document_information_block" t-value="False" />
+        </xpath>
+        <xpath expr="//div[@id='informations']" position="attributes">
+            <attribute name="t-set">document_information_block</attribute>
+            <attribute name="class" add="d-none" separator=" " />
+        </xpath>
+        <xpath expr="//div[@id='informations']" position="after">
+            <div
+                t-if="document_information_block and o.company_id.external_report_layout_id.key != 'pba_web_external_layout.external_layout_pba_presupuesto'"
+                id="informations"
+                class="report-wrapping-flexbox clearfix row mb-4"
+            >
+                <t t-out="document_information_block" />
+            </div>
+        </xpath>
+        <xpath expr="//div[hasclass('page')]/h2" position="attributes">
+            <attribute name="t-set">layout_document_title</attribute>
+            <attribute name="class" add="d-none" separator=" " />
+        </xpath>
+        <xpath expr="//div[hasclass('page')]/h2" position="after">
+            <h2
+                t-if="o.company_id.external_report_layout_id.key != 'pba_web_external_layout.external_layout_pba_presupuesto'"
+                t-out="layout_document_title"
+            />
+        </xpath>
+    </template>
+
+    <template
+        id="report_picking_pba_information_position"
+        inherit_id="stock.report_picking"
+        name="PBA picking operations: position document information"
+    >
+        <xpath expr="//div[@name='div_outgoing_address']" position="attributes">
+            <attribute name="t-set">stock_address_block</attribute>
+            <attribute name="class" add="d-none" separator=" " />
+        </xpath>
+        <xpath expr="//div[@name='div_outgoing_address']" position="after">
+            <t
+                t-if="o.company_id.external_report_layout_id.key == 'pba_web_external_layout.external_layout_pba_presupuesto'"
+                t-set="address"
+                t-value="stock_address_block"
+            />
+            <div
+                t-if="o.company_id.external_report_layout_id.key != 'pba_web_external_layout.external_layout_pba_presupuesto'"
+                class="col-6"
+                name="div_outgoing_address"
+            >
+                <t t-out="stock_address_block" />
+            </div>
+        </xpath>
+        <xpath expr="//div[@name='div_incoming_address']" position="attributes">
+            <attribute name="t-set">stock_information_block</attribute>
+            <attribute name="class" add="d-none" separator=" " />
+        </xpath>
+        <xpath expr="//div[@name='div_incoming_address']" position="after">
+            <t
+                t-if="o.company_id.external_report_layout_id.key == 'pba_web_external_layout.external_layout_pba_presupuesto'"
+                t-set="information_block"
+                t-value="stock_information_block"
+            />
+            <div
+                t-if="o.company_id.external_report_layout_id.key != 'pba_web_external_layout.external_layout_pba_presupuesto'"
+                class="col-5 offset-1"
+                name="div_incoming_address"
+            >
+                <t t-out="stock_information_block" />
+            </div>
+        </xpath>
+        <xpath
+            expr="//div[hasclass('row', 'mt16', 'mb16')]"
+            position="before"
+        >
+            <t t-set="layout_document_title">
+                <span t-field="o.name" />
+            </t>
+        </xpath>
+        <xpath
+            expr="//div[hasclass('row', 'mt16', 'mb16')]"
+            position="attributes"
+        >
+            <attribute
+                name="t-if"
+            >o.company_id.external_report_layout_id.key != 'pba_web_external_layout.external_layout_pba_presupuesto'</attribute>
+        </xpath>
+        <xpath expr="//div[@id='informations']" position="before">
+            <t t-set="document_information_block" t-value="False" />
+        </xpath>
+        <xpath expr="//div[@id='informations']" position="attributes">
+            <attribute name="t-set">document_information_block</attribute>
+            <attribute name="class" add="d-none" separator=" " />
+        </xpath>
+        <xpath expr="//div[@id='informations']" position="after">
+            <div
+                t-if="document_information_block and o.company_id.external_report_layout_id.key != 'pba_web_external_layout.external_layout_pba_presupuesto'"
+                id="informations"
+                class="row mb-4"
+            >
+                <t t-out="document_information_block" />
+            </div>
+        </xpath>
+    </template>
+</odoo>

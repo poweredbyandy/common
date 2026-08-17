@@ -2,31 +2,19 @@
 <odoo>
     <template
         id="report_saleorder_document_ve_pba_columns"
-        inherit_id="l10n_ve_seniat_sale.report_saleorder_document_ve"
+        inherit_id="l10n_ve_seniat_sale.report_saleorder_document_l10n_ve_no_fiscal"
     >
-        <xpath
-            expr="//t[@t-set='l10n_ve_line_cols']"
-            position="attributes"
-        >
-            <attribute
-                name="t-value"
-            >8 + (1 if has_discount else 0) + (1 if show_taxes_col else 0)</attribute>
+        <xpath expr="//th[@name='th_default_code']" position="after">
+            <th name="th_internal_code" class="text-start text-nowrap">
+                CÓD. INT.
+            </th>
+            <th name="th_product_brand" class="text-start text-nowrap">MARCA</th>
         </xpath>
-        <xpath
-            expr="//thead/tr[@class='bg-secundary text-white border-bottom']/th[2]"
-            position="after"
-        >
-            <th class="col text-uppercase fw-bold text-nowrap">Cód. int.</th>
-            <th class="col text-uppercase fw-bold text-nowrap">Marca</th>
-        </xpath>
-        <xpath
-            expr="//span[@t-field='line.product_id.default_code']/parent::td"
-            position="after"
-        >
-            <td class="text-nowrap">
+        <xpath expr="//td[@name='td_default_code']" position="after">
+            <td name="td_internal_code" class="text-start text-nowrap">
                 <span t-field="line.product_id.internal_code" />
             </td>
-            <td class="text-nowrap">
+            <td name="td_product_brand" class="text-start text-nowrap">
                 <span t-field="line.product_id.product_brand_id" />
             </td>
         </xpath>

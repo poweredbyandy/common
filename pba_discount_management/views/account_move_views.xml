@@ -28,7 +28,10 @@
     <record id="account_move_view_form_pba_hide_seniat_discount_legacy" model="ir.ui.view">
         <field name="name">account.move.form.pba.hide.seniat.discount.legacy</field>
         <field name="model">account.move</field>
-        <field name="inherit_id" ref="l10n_ve_seniat.view_move_form"/>
+        <field
+            name="inherit_id"
+            ref="l10n_ve_loyalty.view_move_form_l10n_ve_loyalty_discount"
+        />
         <field name="priority" eval="120"/>
         <field name="arch" type="xml">
             <xpath expr="//button[@name='action_l10n_ve_open_global_discount_wizard']/.." position="before">

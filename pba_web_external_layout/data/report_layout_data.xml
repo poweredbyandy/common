@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="report_layout_pba_presupuesto" model="report.layout">
+        <field name="name">Presupuesto PBA</field>
+        <field name="sequence">1</field>
+        <field
+            name="view_id"
+            ref="pba_web_external_layout.external_layout_pba_presupuesto"
+        />
+    </record>
+</odoo>
