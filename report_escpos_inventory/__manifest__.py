@@ -1,6 +1,6 @@
 {
     "name": "Inventario ESC/POS",
-    "version": "18.0.1.30.12",
+    "version": "18.0.1.30.13",
     "category": "Inventory",
     "summary": "Informes ESC/POS o ESC/P Epson matriz para stock (nota de despacho, etc.)",
     "author": "andyengit",
@@ -9,14 +9,17 @@
     "depends": [
         "sale_stock",
         "sale_stock_picking_invoice_link",
+        "stock_picking_invoice_link",
         "report_escpos_webserial",
         "product_brand",
         "pba_internal_code",
+        "l10n_ve_seniat",
     ],
     "data": [
         "data/report_stock_picking_dispatch_escpos.xml",
         "data/report_stock_picking_dispatch_pdf.xml",
         "data/report_stock_picking_escp_test.xml",
+        "views/stock_picking_views.xml",
     ],
     "installable": True,
     "application": False,

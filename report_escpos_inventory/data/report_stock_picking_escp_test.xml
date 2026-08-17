@@ -10,6 +10,7 @@
         <field name="report_name">report_escpos_inventory.escp_demo_doc</field>
         <field name="binding_model_id" ref="stock.model_stock_picking"/>
         <field name="binding_type">report</field>
+        <field name="groups_id" eval="[(5, 0, 0)]"/>
         <field name="escpos_encoding">latin-1</field>
         <field name="escpos_command_set">esc_p_epson</field>
     </record>

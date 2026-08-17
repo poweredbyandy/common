@@ -1,0 +1,42 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* report_escpos_inventory
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-08-17 17:50+0000\n"
+"PO-Revision-Date: 2026-08-17 17:50+0000\n"
+"Last-Translator: andyengit\n"
+"Language-Team: Spanish (Venezuela)\n"
+"Language: es_VE\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n == 1) ? 0 : ((n != 0 && n % 1000000 == 0) ? 1 : 2);\n"
+
+#. module: report_escpos_inventory
+#: model:ir.actions.report,name:report_escpos_inventory.action_report_stock_picking_dispatch_escpos
+msgid "Nota de despacho (ESC/P Epson)"
+msgstr "Nota de despacho (ESC/P Epson)"
+
+#. module: report_escpos_inventory
+#: model:ir.actions.report,name:report_escpos_inventory.action_report_stock_picking_dispatch_pdf
+msgid "Nota de despacho (PDF)"
+msgstr "Nota de despacho (PDF)"
+
+#. module: report_escpos_inventory
+#: model:ir.actions.report,name:report_escpos_inventory.action_report_stock_picking_escp_test
+msgid "Prueba ESC/P (formatos)"
+msgstr "Prueba ESC/P (formatos)"
+
+#. module: report_escpos_inventory
+#: model_terms:ir.ui.view,arch_db:report_escpos_inventory.stock_picking_view_form_dispatch_reports
+msgid "Dispatch Note (ESC/P)"
+msgstr "Nota de despacho (ESC/P)"
+
+#. module: report_escpos_inventory
+#: model_terms:ir.ui.view,arch_db:report_escpos_inventory.stock_picking_view_form_dispatch_reports
+msgid "Dispatch Note (PDF)"
+msgstr "Nota de despacho (PDF)"
