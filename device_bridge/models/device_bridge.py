@@ -190,7 +190,8 @@ class DeviceBridge(models.Model):
     @api.model
     def register_browser_device(self, vals):
         vals = vals or {}
-        name = (vals.get("name") or "").strip()
+        Auth = self.env["device.bridge.authorization"]
+        name = Auth._sanitize_text(vals.get("name") or "")
         if not name:
             raise UserError(_("Device name is required."))
         code = self._normalize_code(vals.get("code"), name)

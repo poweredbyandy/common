@@ -19,6 +19,13 @@ function isUsbAccessDeniedError(error) {
     );
 }
 
+export function sanitizeUsbString(value) {
+    if (value == null) {
+        return "";
+    }
+    return String(value).replace(/\0/g, "").trim();
+}
+
 export class DeviceBridgeWebUsbTransport {
     constructor() {
         this.device = null;
@@ -35,8 +42,8 @@ export class DeviceBridgeWebUsbTransport {
             return "";
         }
         return (
-            this.device.productName ||
-            this.device.manufacturerName ||
+            sanitizeUsbString(this.device.productName) ||
+            sanitizeUsbString(this.device.manufacturerName) ||
             `USB ${this.device.vendorId}:${this.device.productId}`
         );
     }

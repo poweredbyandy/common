@@ -117,6 +117,7 @@ class DeviceBridgeGateway(models.Model):
         if auth.browser_key != browser_key:
             auth.write({"browser_key": browser_key})
 
+        label = Auth._sanitize_text(label)
         gateway = self.sudo().search(
             [
                 ("device_id", "=", device.id),

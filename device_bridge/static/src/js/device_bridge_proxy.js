@@ -9,7 +9,10 @@ import {
     setLocalGateway,
     setLocalProxy,
 } from "@device_bridge/js/device_bridge_local_registry";
-import { DeviceBridgeWebUsbTransport } from "@device_bridge/js/device_bridge_webusb_transport";
+import {
+    DeviceBridgeWebUsbTransport,
+    sanitizeUsbString,
+} from "@device_bridge/js/device_bridge_webusb_transport";
 
 const HEARTBEAT_MS = 30000;
 let heartbeatTimer = null;
@@ -167,11 +170,11 @@ export class DeviceBridgeProxy {
         ) {
             return false;
         }
-        const authSerial = (authorized.serial_number || "").trim();
+        const authSerial = sanitizeUsbString(authorized.serial_number);
         if (!authSerial) {
             return true;
         }
-        return (device.serialNumber || "").trim() === authSerial;
+        return sanitizeUsbString(device.serialNumber) === authSerial;
     }
 
     _deviceMatchesFilters(device, filters) {
@@ -249,9 +252,9 @@ export class DeviceBridgeProxy {
                     connection_type: "webusb",
                     vendor_id: device.vendorId,
                     product_id: device.productId,
-                    serial_number: device.serialNumber || "",
-                    product_name: device.productName || "",
-                    manufacturer_name: device.manufacturerName || "",
+                    serial_number: sanitizeUsbString(device.serialNumber),
+                    product_name: sanitizeUsbString(device.productName),
+                    manufacturer_name: sanitizeUsbString(device.manufacturerName),
                 },
             ]
         );

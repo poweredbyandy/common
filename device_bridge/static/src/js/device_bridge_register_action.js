@@ -6,6 +6,7 @@ import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
 import { standardActionServiceProps } from "@web/webclient/actions/action_service";
 import { getDeviceBridgeBrowserKey } from "@device_bridge/js/device_bridge_client_key";
+import { sanitizeUsbString } from "@device_bridge/js/device_bridge_webusb_transport";
 
 function slugifyCode(value) {
     return (value || "")
@@ -96,14 +97,14 @@ export class DeviceBridgeRegisterAction extends Component {
             this.state.usb = {
                 vendorId: device.vendorId,
                 productId: device.productId,
-                serialNumber: device.serialNumber || "",
-                productName: device.productName || "",
-                manufacturerName: device.manufacturerName || "",
+                serialNumber: sanitizeUsbString(device.serialNumber),
+                productName: sanitizeUsbString(device.productName),
+                manufacturerName: sanitizeUsbString(device.manufacturerName),
             };
             if (!this.state.name) {
                 this.state.name =
-                    device.productName ||
-                    device.manufacturerName ||
+                    this.state.usb.productName ||
+                    this.state.usb.manufacturerName ||
                     _t("USB device");
                 if (!this.state.codeManual) {
                     this.state.code = slugifyCode(this.state.name);

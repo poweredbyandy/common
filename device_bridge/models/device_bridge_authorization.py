@@ -61,9 +61,30 @@ class DeviceBridgeAuthorization(models.Model):
         ),
     ]
 
+    _SANITIZE_FIELDS = (
+        "name",
+        "browser_key",
+        "serial_number",
+        "product_name",
+        "manufacturer_name",
+        "connection_type",
+    )
+
+    @api.model
+    def _sanitize_text(self, value):
+        if value is None or value is False:
+            return "" if value is None else value
+        return str(value).replace("\x00", "").strip()
+
+    @api.model
+    def _sanitize_vals(self, vals):
+        for field_name in self._SANITIZE_FIELDS:
+            if field_name in vals and isinstance(vals[field_name], str):
+                vals[field_name] = self._sanitize_text(vals[field_name])
+
     @api.model
     def _normalize_browser_key(self, browser_key):
-        key = (browser_key or "").strip()
+        key = self._sanitize_text(browser_key)
         if not key:
             raise UserError(_("Missing browser key for device authorization."))
         return key[:128]
@@ -79,6 +100,7 @@ class DeviceBridgeAuthorization(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
+            self._sanitize_vals(vals)
             vals.setdefault("user_id", self.env.uid)
             if not self.env.su and not self.env.user.has_group(
                 "device_bridge.group_device_bridge_manager"
@@ -88,6 +110,7 @@ class DeviceBridgeAuthorization(models.Model):
 
     def write(self, vals):
         self._ensure_own_record()
+        self._sanitize_vals(vals)
         if (
             not self.env.su
             and not self.env.user.has_group(
@@ -117,18 +140,18 @@ class DeviceBridgeAuthorization(models.Model):
 
         vendor_id = int(vals.get("vendor_id") or vals.get("vendorId") or 0)
         product_id = int(vals.get("product_id") or vals.get("productId") or 0)
-        serial_number = (
+        serial_number = self._sanitize_text(
             vals.get("serial_number") or vals.get("serialNumber") or ""
-        ).strip()
-        product_name = (
+        )
+        product_name = self._sanitize_text(
             vals.get("product_name") or vals.get("productName") or ""
-        ).strip()
-        manufacturer_name = (
+        )
+        manufacturer_name = self._sanitize_text(
             vals.get("manufacturer_name") or vals.get("manufacturerName") or ""
-        ).strip()
-        connection_type = (
+        )
+        connection_type = self._sanitize_text(
             vals.get("connection_type") or vals.get("connectionType") or "webusb"
-        ).strip().lower()
+        ).lower()
         if connection_type not in dict(self._fields["connection_type"].selection):
             connection_type = "webusb"
 
