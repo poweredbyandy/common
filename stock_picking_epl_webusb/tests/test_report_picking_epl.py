@@ -45,3 +45,17 @@ class TestReportPickingEpl(TransactionCase):
             self.report._partner_phone(self.delivery_partner),
             self.delivery_partner.mobile,
         )
+
+    def test_phones_text_shows_phone_next_to_mobile(self):
+        self.assertEqual(
+            self.report._partner_phones_text(self.main_partner),
+            "0212-5550101 0414-5550101",
+        )
+
+    def test_phones_text_uses_parent_phone_and_delivery_mobile(self):
+        self.delivery_partner.mobile = "0424-5550101"
+
+        self.assertEqual(
+            self.report._partner_phones_text(self.delivery_partner),
+            "0212-5550101 0424-5550101",
+        )
