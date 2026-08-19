@@ -1,6 +1,6 @@
 {
     "name": "Website Auto Order Scanner",
-    "version": "18.0.1.8.0",
+    "version": "18.0.1.8.1",
     "category": "Website/Website",
     "summary": "Public OWL portal to scan barcodes or QR codes and buy with the website cart",
     "author": "andyengit",
@@ -21,10 +21,13 @@
     "assets": {
         "web_sale_auto_order.assets_kiosk": [
             ("include", "web.assets_frontend_minimal"),
+            ("include", "web._assets_helpers"),
+            "web/static/lib/luxon/luxon.js",
             "web/static/lib/owl/owl.js",
             "web/static/lib/owl/odoo_module.js",
+            "web/static/src/legacy/js/core/class.js",
             "web/static/src/env.js",
-            ("include", "web._assets_helpers"),
+            "web/static/src/core/utils/transitions.scss",
             "web/static/src/core/**/*",
             ("remove", "web/static/src/core/commands/**/*"),
             ("remove", "web/static/src/core/debug/debug_menu.js"),
