@@ -1,0 +1,55 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* product_qrcode
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-08-19 16:00+0000\n"
+"PO-Revision-Date: 2026-08-19 16:00+0000\n"
+"Last-Translator: andyengit\n"
+"Language-Team: Spanish (Venezuela)\n"
+"Language: es_VE\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n == 1) ? 0 : ((n != 0 && n % 1000000 == 0) ? 1 : 2);\n"
+
+#. module: product_qrcode
+#: model:ir.module.module,shortdesc:product_qrcode.module_product_qrcode
+msgid "Product QR Code"
+msgstr "Código QR del producto"
+
+#. module: product_qrcode
+#: model:ir.module.module,summary:product_qrcode.module_product_qrcode
+msgid "Generate and display a QR code for each product"
+msgstr "Genera y muestra un código QR para cada producto"
+
+#. module: product_qrcode
+#: model:ir.model.fields,field_description:product_qrcode.field_product_product__qr_code
+#: model:ir.model.fields,field_description:product_qrcode.field_product_template__qr_code
+msgid "Product QR Code"
+msgstr "Código QR del producto"
+
+#. module: product_qrcode
+#: model_terms:ir.ui.view,arch_db:product_qrcode.product_template_view_form
+msgid "Product QR"
+msgstr "QR del producto"
+
+#. module: product_qrcode
+#: model:ir.model.fields,help:product_qrcode.field_product_product__qr_code
+msgid ""
+"Value encoded in the product QR. Uses the barcode, then the internal "
+"reference, then the product identifier. The image is drawn "
+"in the browser."
+msgstr ""
+"Valor codificado en el QR del producto. Usa el código de barras, luego la "
+"referencia interna y, por último, el identificador del producto. La imagen "
+"se dibuja en el navegador."
+
+#. module: product_qrcode
+#. odoo-javascript
+#: code:addons/product_qrcode/static/src/qr_code_field.js:0
+msgid "QR Code"
+msgstr "Código QR"

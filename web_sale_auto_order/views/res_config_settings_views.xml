@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.web.sale.auto.order</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="product_qrcode_portal.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <block id="product_qr_portal_settings" position="inside">
+                <setting
+                    id="auto_order_pricelist_setting"
+                    string="Scan and Order Pricelist"
+                    help="Pricelist used when visitors scan products on /auto-order. Leave empty to use the website pricelist."
+                >
+                    <field name="auto_order_pricelist_id"/>
+                </setting>
+                <setting
+                    id="auto_order_button_color_setting"
+                    string="Button Color"
+                    help="Color of the main buttons on /auto-order (Buy, Add, camera)."
+                >
+                    <span class="fa fa-lg fa-globe" title="Values set here are website-specific." groups="website.group_multi_website"/>
+                    <div class="content-group mt16">
+                        <div class="row">
+                            <label for="auto_order_button_color" string="Background" class="col-lg-3 o_light_label"/>
+                            <field name="auto_order_button_color" widget="color" class="w-auto"/>
+                        </div>
+                        <div class="row mt8">
+                            <label for="auto_order_button_text_color" string="Text" class="col-lg-3 o_light_label"/>
+                            <field name="auto_order_button_text_color" widget="color" class="w-auto"/>
+                        </div>
+                    </div>
+                </setting>
+                <setting
+                    id="auto_order_lang_setting"
+                    string="Kiosk Language"
+                    help="Language shown on /auto-order. Add it in Website Languages first. Leave empty to use the website default language."
+                >
+                    <span class="fa fa-lg fa-globe" title="Values set here are website-specific." groups="website.group_multi_website"/>
+                    <div class="content-group mt16">
+                        <field
+                            name="auto_order_lang_id"
+                            domain="[('id', 'in', language_ids)]"
+                            options="{'no_create': True, 'no_open': True}"
+                        />
+                    </div>
+                </setting>
+                <setting
+                    id="auto_order_success_message_setting"
+                    string="Success Extra Message"
+                    help="Text shown under the saved order number after Buy. Example: Continue at the cashier to pay."
+                >
+                    <span class="fa fa-lg fa-globe" title="Values set here are website-specific." groups="website.group_multi_website"/>
+                    <div class="content-group mt16">
+                        <field name="auto_order_success_message" placeholder="Continue at the cashier to pay."/>
+                    </div>
+                </setting>
+            </block>
+        </field>
+    </record>
+</odoo>

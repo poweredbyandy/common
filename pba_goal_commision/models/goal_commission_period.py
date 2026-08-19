@@ -1,7 +1,7 @@
 from calendar import monthrange, month_name, month_abbr
 from datetime import date
 
-from odoo import _, api, fields, models
+from odoo import api, fields, models
 from odoo.osv import expression
 from odoo.tools.safe_eval import safe_eval
 
@@ -48,7 +48,7 @@ class GoalCommissionPeriod(models.Model):
         (
             "goal_commission_period_month_company_uniq",
             "unique(month_key, company_id)",
-            _("Ya existe un periodo para ese mes y compania."),
+            "Ya existe un periodo para ese mes y compania.",
         ),
     ]
 

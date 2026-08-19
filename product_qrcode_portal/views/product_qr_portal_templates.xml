@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <template id="product_qr_code" name="Product QR Code">
+        <t t-call="website.layout">
+            <t t-set="no_header" t-value="True"/>
+            <t t-set="no_footer" t-value="True"/>
+            <t t-set="no_copyright" t-value="True"/>
+            <t t-set="additional_title">Product code</t>
+            <div id="wrap" class="container py-5">
+                <h1 t-esc="product.display_name"/>
+                <p class="text-muted">Product code</p>
+                <p class="display-6" t-esc="code"/>
+            </div>
+        </t>
+    </template>
+
+    <template id="product_qr_not_found" name="Product QR Not Found">
+        <t t-call="website.layout">
+            <t t-set="no_header" t-value="True"/>
+            <t t-set="no_footer" t-value="True"/>
+            <t t-set="no_copyright" t-value="True"/>
+            <t t-set="additional_title">Product not found</t>
+            <div id="wrap" class="container py-5">
+                <h1>Product not found</h1>
+                <p t-esc="error"/>
+                <p t-if="code" class="text-muted" t-esc="code"/>
+            </div>
+        </t>
+    </template>
+</odoo>

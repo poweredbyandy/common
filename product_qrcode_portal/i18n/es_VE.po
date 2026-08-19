@@ -1,0 +1,111 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* product_qrcode_portal
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-08-18 22:20+0000\n"
+"PO-Revision-Date: 2026-08-18 22:20+0000\n"
+"Last-Translator: andyengit\n"
+"Language-Team: Spanish (Venezuela)\n"
+"Language: es_VE\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n == 1) ? 0 : ((n != 0 && n % 1000000 == 0) ? 1 : 2);\n"
+
+#. module: product_qrcode_portal
+#: model:ir.module.module,shortdesc:product_qrcode_portal.module_product_qrcode_portal
+msgid "Product QR Code Portal"
+msgstr "Portal de código QR de producto"
+
+#. module: product_qrcode_portal
+#: model:ir.module.module,summary:product_qrcode_portal.module_product_qrcode_portal
+msgid "Configure what happens when a product portal QR is scanned"
+msgstr "Configura qué ocurre al escanear el QR de portal de un producto"
+
+#. module: product_qrcode_portal
+#: model:ir.model.fields,field_description:product_qrcode_portal.field_website__product_qr_portal_action
+#: model:ir.model.fields,field_description:product_qrcode_portal.field_res_config_settings__product_qr_portal_action
+msgid "Product QR URL scan"
+msgstr "Escaneo de URL del QR de producto"
+
+#. module: product_qrcode_portal
+#: model:ir.model.fields,help:product_qrcode_portal.field_website__product_qr_portal_action
+msgid "What happens when a visitor scans the portal URL of a product."
+msgstr "Qué ocurre cuando un visitante escanea la URL de portal de un producto."
+
+#. module: product_qrcode_portal
+#: model:ir.model.fields.selection,name:product_qrcode_portal.selection__website__product_qr_portal_action__code
+msgid "Read product code only"
+msgstr "Leer solo el código del producto"
+
+#. module: product_qrcode_portal
+#: model:ir.model.fields.selection,name:product_qrcode_portal.selection__website__product_qr_portal_action__website_product
+msgid "Open website product page"
+msgstr "Abrir la ficha del producto en el sitio web"
+
+#. module: product_qrcode_portal
+#: model:ir.model.fields.selection,name:product_qrcode_portal.selection__website__product_qr_portal_action__auto_order
+msgid "Open scan and order"
+msgstr "Abrir escanear y pedir"
+
+#. module: product_qrcode_portal
+#: model_terms:ir.ui.view,arch_db:product_qrcode_portal.res_config_settings_view_form
+msgid "Product QR URL"
+msgstr "URL del QR de producto"
+
+#. module: product_qrcode_portal
+#: model_terms:ir.ui.view,arch_db:product_qrcode_portal.res_config_settings_view_form
+msgid "On scan of product QR URL"
+msgstr "Al escanear la URL del QR de producto"
+
+#. module: product_qrcode_portal
+#: model_terms:ir.ui.view,arch_db:product_qrcode_portal.res_config_settings_view_form
+msgid "What happens when a visitor scans the portal URL printed on a product (/product-qr?code=...)."
+msgstr "Qué ocurre cuando un visitante escanea la URL de portal impresa en un producto (/product-qr?code=...)."
+
+#. module: product_qrcode_portal
+#: model_terms:ir.ui.view,arch_db:product_qrcode_portal.res_config_settings_view_form
+msgid "Values set here are website-specific."
+msgstr "Los valores definidos aquí son específicos del sitio web."
+
+#. module: product_qrcode_portal
+#: model:ir.model.fields,field_description:product_qrcode_portal.field_product_product__portal_qr_url
+#: model:ir.model.fields,field_description:product_qrcode_portal.field_product_template__portal_qr_url
+msgid "Portal QR URL"
+msgstr "URL del QR de portal"
+
+#. module: product_qrcode_portal
+#: model:ir.model.fields,help:product_qrcode_portal.field_product_product__portal_qr_url
+msgid ""
+"Website link encoded in the portal QR. Scanning it follows "
+"the Product QR Portal Action. The image is drawn in the browser."
+msgstr ""
+"Enlace del sitio web codificado en el QR de portal. Al escanearlo se sigue "
+"la acción configurada. La imagen se dibuja en el navegador."
+
+
+
+#. module: product_qrcode_portal
+#: model_terms:ir.ui.view,arch_db:product_qrcode_portal.product_template_view_form
+msgid "QR Codes"
+msgstr "Códigos QR"
+
+#. module: product_qrcode_portal
+#: model_terms:ir.ui.view,arch_db:product_qrcode_portal.product_qr_code
+msgid "Product code"
+msgstr "Código del producto"
+
+#. module: product_qrcode_portal
+#: model_terms:ir.ui.view,arch_db:product_qrcode_portal.product_qr_not_found
+msgid "Product not found"
+msgstr "Producto no encontrado"
+
+#. module: product_qrcode_portal
+#. odoo-python
+#: code:addons/product_qrcode_portal/controllers/main.py:0
+msgid "No product matches this code."
+msgstr "Ningún producto coincide con este código."

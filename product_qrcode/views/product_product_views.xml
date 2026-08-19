@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="product_variant_easy_edit_view_form" model="ir.ui.view">
+        <field name="name">product.product.view.form.easy.qrcode</field>
+        <field name="model">product.product</field>
+        <field name="inherit_id" ref="product.product_variant_easy_edit_view"/>
+        <field name="arch" type="xml">
+            <group name="codes" position="after">
+                <group name="qrcode" string="Product QR" colspan="6">
+                    <field
+                        name="qr_code"
+                        widget="product_qr_code"
+                        nolabel="1"
+                        colspan="2"
+                    />
+                </group>
+            </group>
+        </field>
+    </record>
+</odoo>

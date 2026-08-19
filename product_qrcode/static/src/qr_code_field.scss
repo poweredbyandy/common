@@ -1,0 +1,24 @@
+.o_field_product_qr_code {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.35rem;
+    min-width: 0;
+}
+
+.o_product_qr_img {
+    width: 148px;
+    height: 148px;
+    display: block;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    padding: 6px;
+    image-rendering: pixelated;
+}
+
+.o_product_qr_value {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    font-size: 0.82rem;
+}

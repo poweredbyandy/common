@@ -1,0 +1,359 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="web_sale_auto_order.AutoOrder">
+        <div t-if="!state.ready" class="o_wsao_boot">
+            <div class="o_wsao_boot_spinner"/>
+            <p>Loading...</p>
+        </div>
+        <div t-else="" class="o_wsao" t-att-style="themeStyle">
+            <section class="o_wsao_scanner_card">
+                <div class="o_wsao_scanner">
+                    <video
+                        t-ref="videoPreview"
+                        class="o_wsao_video"
+                        autoplay="true"
+                        muted="true"
+                        playsinline="true"
+                        webkit-playsinline="true"
+                    />
+                    <div t-if="!showScanner" class="o_wsao_scanner_fallback">
+                        <i class="fa fa-camera"/>
+                        <strong t-if="state.scannerError">Camera unavailable</strong>
+                        <strong t-elif="state.cameraStarting">Starting camera...</strong>
+                        <strong t-else="">Ready to scan</strong>
+                        <span t-esc="state.scannerError or 'Tap the button to turn on the camera. Safari will ask for permission.'"/>
+                        <button
+                            t-if="scannerSupported"
+                            type="button"
+                            class="o_wsao_btn o_wsao_btn--primary o_wsao_btn--camera"
+                            t-att-disabled="state.cameraStarting"
+                            t-on-click="startCamera"
+                        >
+                            Turn on camera
+                        </button>
+                    </div>
+                    <div t-if="showScanner" class="o_wsao_scan_bar">
+                        <span>Point the rear camera at a barcode or QR</span>
+                        <button type="button" class="o_wsao_btn o_wsao_btn--ghost o_wsao_btn--camera-off" t-on-click="stopCamera">
+                            Turn off camera
+                        </button>
+                    </div>
+                </div>
+                <form class="o_wsao_manual" t-on-submit="onManualSubmit">
+                    <label for="o_wsao_manual_code">Or type the code</label>
+                    <div class="o_wsao_manual_row">
+                        <input
+                            id="o_wsao_manual_code"
+                            type="text"
+                            inputmode="text"
+                            autocomplete="off"
+                            placeholder="Barcode or QR value"
+                            t-model="state.manualCode"
+                        />
+                        <button type="submit" class="o_wsao_btn o_wsao_btn--ghost" t-att-disabled="state.loading">
+                            Look up
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <div t-if="state.loading" class="o_wsao_status">Looking up product...</div>
+            <div t-if="state.error and !state.product" class="o_wsao_status o_wsao_status--error" t-esc="state.error"/>
+
+            <section class="o_wsao_cart">
+                <div class="o_wsao_cart_head">
+                    <h2>Cart</h2>
+                    <span t-if="canCheckout" class="o_wsao_cart_count" t-esc="cartItemsLabel"/>
+                </div>
+                <div t-if="!canCheckout" class="o_wsao_empty">
+                    <i class="fa fa-qrcode"/>
+                    <p>Scan a product to start a cart. No account is required.</p>
+                </div>
+                <ul t-else="" class="o_wsao_lines">
+                    <li t-foreach="state.cart.lines" t-as="line" t-key="line.id" class="o_wsao_line">
+                        <div class="o_wsao_media" t-att-class="{'o_wsao_media--on': isImageReady(line.image_url)}">
+                            <span class="o_wsao_skeleton"/>
+                            <img
+                                t-if="state.allowImages and line.image_url"
+                                t-att-src="line.image_url"
+                                t-att-alt="line.name"
+                                loading="lazy"
+                                decoding="async"
+                                t-on-load="() => this.markImageReady(line.image_url)"
+                                t-on-error="() => this.markImageReady(line.image_url)"
+                            />
+                        </div>
+                        <div class="o_wsao_line_body">
+                            <div class="o_wsao_line_top">
+                                <strong t-esc="line.name"/>
+                                <button
+                                    type="button"
+                                    class="o_wsao_line_remove"
+                                    t-att-disabled="state.busy"
+                                    t-on-click="() => this.removeLine(line)"
+                                    aria-label="Remove line"
+                                >
+                                    <i class="fa fa-trash"/>
+                                </button>
+                            </div>
+                            <div class="o_wsao_prices o_wsao_prices--muted">
+                                <span t-esc="line.price_pricelist_taxed_formatted"/>
+                                <small>with tax</small>
+                            </div>
+                            <div class="o_wsao_prices o_wsao_prices--muted">
+                                <span t-esc="line.price_pricelist_untaxed_formatted"/>
+                                <small>without tax</small>
+                            </div>
+                            <div class="o_wsao_line_bottom">
+                                <div class="o_wsao_qty o_wsao_qty--line">
+                                    <button type="button" class="o_wsao_qty_btn" t-on-click="() => this.updateLineQty(line, -1)">-</button>
+                                    <span t-esc="line.quantity"/>
+                                    <button type="button" class="o_wsao_qty_btn" t-on-click="() => this.updateLineQty(line, 1)">+</button>
+                                </div>
+                                <div class="o_wsao_line_company">
+                                    <strong t-esc="line.price_company_taxed_formatted"/>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+            </section>
+
+            <div class="o_wsao_actions">
+                <div t-if="canCheckout" class="o_wsao_totals">
+                    <div class="o_wsao_totals_head">
+                        <button
+                            type="button"
+                            class="o_wsao_totals_toggle"
+                            t-on-click="toggleTotals"
+                            t-att-aria-label="totalsToggleLabel"
+                        >
+                            <t t-if="state.totalsExpanded">-</t>
+                            <t t-else="">+</t>
+                        </button>
+                        <div class="o_wsao_totals_total">
+                            <span class="o_wsao_price_pair">
+                                <strong t-esc="state.cart.amount_pricelist_taxed_formatted"/>
+                                <small t-if="showDualCurrency" t-esc="state.cart.amount_company_taxed_formatted"/>
+                            </span>
+                        </div>
+                    </div>
+                    <t t-if="state.totalsExpanded">
+                        <div t-if="state.cart.rateLabel" class="o_wsao_totals_rate" t-esc="state.cart.rateLabel"/>
+                        <div class="o_wsao_totals_subtotal">
+                            <span class="o_wsao_price_pair">
+                                <strong t-esc="state.cart.amount_pricelist_untaxed_formatted"/>
+                                <small t-if="showDualCurrency" t-esc="state.cart.amount_company_untaxed_formatted"/>
+                            </span>
+                        </div>
+                    </t>
+                </div>
+                <div class="o_wsao_actions_btns">
+                    <button
+                        type="button"
+                        class="o_wsao_btn o_wsao_btn--primary"
+                        t-att-disabled="!canCheckout or state.busy"
+                        t-on-click="checkout"
+                    >
+                        <t t-esc="buyLabel"/>
+                    </button>
+                    <button
+                        type="button"
+                        class="o_wsao_btn o_wsao_btn--danger"
+                        t-att-disabled="!canCheckout or state.busy"
+                        t-on-click="askClearCart"
+                    >
+                        Remove all items
+                    </button>
+                </div>
+            </div>
+
+            <div t-if="state.product" class="o_wsao_sheet" role="dialog" aria-modal="true">
+                <div class="o_wsao_sheet_backdrop" t-on-click="cancelProduct"/>
+                <article class="o_wsao_sheet_card">
+                    <div class="o_wsao_product">
+                        <div class="o_wsao_media o_wsao_media--lg" t-att-class="{'o_wsao_media--on': isImageReady(state.product.image_url)}">
+                            <span class="o_wsao_skeleton"/>
+                            <img
+                                t-if="state.allowImages and state.product.image_url"
+                                t-att-src="state.product.image_url"
+                                t-att-alt="state.product.name"
+                                loading="lazy"
+                                decoding="async"
+                                t-on-load="() => this.markImageReady(state.product.image_url)"
+                                t-on-error="() => this.markImageReady(state.product.image_url)"
+                            />
+                        </div>
+                        <div>
+                            <h2 t-esc="state.product.name"/>
+                            <p t-if="state.product.default_code or state.product.barcode" class="o_wsao_meta">
+                                <span t-if="state.product.default_code" t-esc="state.product.default_code"/>
+                                <span t-if="state.product.barcode" t-esc="state.product.barcode"/>
+                            </p>
+                        </div>
+                    </div>
+                    <div class="o_wsao_price_grid">
+                        <p class="o_wsao_price_row o_wsao_price_row--total">
+                            <span>With tax</span>
+                            <span class="o_wsao_price_pair">
+                                <strong t-esc="state.product.price_pricelist_taxed_formatted"/>
+                                <small t-if="!state.product.same_currency" t-esc="state.product.price_company_taxed_formatted"/>
+                            </span>
+                        </p>
+                        <p class="o_wsao_price_row o_wsao_price_row--subtotal">
+                            <span>Without tax</span>
+                            <span class="o_wsao_price_pair">
+                                <strong t-esc="state.product.price_pricelist_untaxed_formatted"/>
+                                <small t-if="!state.product.same_currency" t-esc="state.product.price_company_untaxed_formatted"/>
+                            </span>
+                        </p>
+                    </div>
+                    <div
+                        t-if="state.product.internal_notes"
+                        class="o_wsao_notes"
+                        t-att-class="{'o_wsao_notes--collapsed': notesLong and !state.notesExpanded}"
+                    >
+                        <p t-esc="state.product.internal_notes"/>
+                        <button
+                            t-if="notesLong"
+                            type="button"
+                            class="o_wsao_notes_more"
+                            t-on-click="toggleNotes"
+                        >
+                            <t t-if="state.notesExpanded">See less</t>
+                            <t t-else="">See more</t>
+                        </button>
+                    </div>
+                    <div class="o_wsao_qty o_wsao_qty--lg">
+                        <button type="button" class="o_wsao_qty_btn" t-on-click="() => this.changeQuantity(-1)">-</button>
+                        <input
+                            type="number"
+                            inputmode="numeric"
+                            min="1"
+                            step="1"
+                            aria-label="Quantity"
+                            t-att-value="state.quantity"
+                            t-on-input="onQuantityInput"
+                            t-on-change="onQuantityInput"
+                        />
+                        <button type="button" class="o_wsao_qty_btn" t-on-click="() => this.changeQuantity(1)">+</button>
+                    </div>
+                    <p t-if="state.error" class="o_wsao_status o_wsao_status--error" t-esc="state.error"/>
+                    <div class="o_wsao_sheet_actions">
+                        <button type="button" class="o_wsao_btn o_wsao_btn--primary" t-att-disabled="state.busy" t-on-click="confirmAdd">
+                            Add to cart
+                        </button>
+                        <button type="button" class="o_wsao_btn o_wsao_btn--ghost" t-on-click="cancelProduct">
+                            Cancel
+                        </button>
+                    </div>
+                </article>
+            </div>
+
+            <div t-if="state.success" class="o_wsao_success" role="dialog" aria-modal="true">
+                <t t-if="state.success.step == 'choice'">
+                    <div class="o_wsao_success_check" aria-hidden="true">
+                        <i class="fa fa-check"/>
+                    </div>
+                    <h2>Order saved</h2>
+                    <p class="o_wsao_success_number" t-esc="state.success.orderName"/>
+                    <p t-if="state.success.extraMessage" class="o_wsao_success_extra" t-esc="state.success.extraMessage"/>
+                    <div class="o_wsao_success_actions">
+                        <button type="button" class="o_wsao_btn o_wsao_btn--ghost" t-on-click="skipRegister">
+                            Your information will be registered at the cashier
+                        </button>
+                        <button type="button" class="o_wsao_btn o_wsao_btn--primary" t-on-click="openRegister">
+                            Register
+                        </button>
+                    </div>
+                </t>
+                <t t-elif="state.success.step == 'register'">
+                    <h2>Register</h2>
+                    <p class="o_wsao_success_hint">We only need your billing details. Then go to the cashier to pay.</p>
+                    <form class="o_wsao_register" t-on-submit="submitRegister">
+                        <p class="o_wsao_rif_examples">V12345678<br/>J100000001</p>
+                        <label for="o_wsao_register_vat">RIF</label>
+                        <input
+                            id="o_wsao_register_vat"
+                            type="text"
+                            autocomplete="off"
+                            required="required"
+                            t-model="state.registerVat"
+                            t-on-input="onRegisterVatInput"
+                        />
+                        <t t-if="state.registerVatExists === true">
+                            <p class="o_wsao_found_name">
+                                <span>Name</span>
+                                <strong t-esc="state.registerFoundName"/>
+                            </p>
+                        </t>
+                        <t t-if="state.registerVatExists === false">
+                            <label for="o_wsao_register_name">Name</label>
+                            <input
+                                id="o_wsao_register_name"
+                                type="text"
+                                autocomplete="name"
+                                required="required"
+                                t-model="state.registerName"
+                            />
+                            <label for="o_wsao_register_phone">Phone</label>
+                            <input
+                                id="o_wsao_register_phone"
+                                type="tel"
+                                autocomplete="tel"
+                                required="required"
+                                t-model="state.registerPhone"
+                            />
+                            <label for="o_wsao_register_email">Email</label>
+                            <input
+                                id="o_wsao_register_email"
+                                type="email"
+                                autocomplete="email"
+                                required="required"
+                                t-model="state.registerEmail"
+                            />
+                        </t>
+                        <p t-if="state.registerError" class="o_wsao_status o_wsao_status--error" t-esc="state.registerError"/>
+                        <div class="o_wsao_success_actions">
+                            <button type="submit" class="o_wsao_btn o_wsao_btn--primary" t-att-disabled="state.busy">
+                                Continue
+                            </button>
+                            <button type="button" class="o_wsao_btn o_wsao_btn--ghost" t-on-click="skipRegister">
+                                Skip
+                            </button>
+                        </div>
+                    </form>
+                </t>
+                <t t-else="">
+                    <div class="o_wsao_success_check" aria-hidden="true">
+                        <i class="fa fa-check"/>
+                    </div>
+                    <h2>Go to the cashier to pay</h2>
+                    <p class="o_wsao_success_number" t-esc="state.success.orderName"/>
+                    <p class="o_wsao_success_extra">Show this order number at the cashier.</p>
+                    <div class="o_wsao_success_actions">
+                        <button type="button" class="o_wsao_btn o_wsao_btn--primary" t-att-disabled="state.busy" t-on-click="finishOrder">
+                            New order
+                        </button>
+                    </div>
+                </t>
+            </div>
+
+            <div t-if="state.confirmClear" class="o_wsao_sheet" role="dialog" aria-modal="true">
+                <div class="o_wsao_sheet_backdrop" t-on-click="cancelClearCart"/>
+                <article class="o_wsao_sheet_card o_wsao_sheet_card--narrow">
+                    <h2>Remove all items?</h2>
+                    <p>This empties the current website cart.</p>
+                    <div class="o_wsao_sheet_actions">
+                        <button type="button" class="o_wsao_btn o_wsao_btn--danger" t-on-click="clearCart">
+                            Remove all items
+                        </button>
+                        <button type="button" class="o_wsao_btn o_wsao_btn--ghost" t-on-click="cancelClearCart">
+                            Keep cart
+                        </button>
+                    </div>
+                </article>
+            </div>
+        </div>
+    </t>
+</templates>

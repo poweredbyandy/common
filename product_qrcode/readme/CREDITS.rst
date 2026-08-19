@@ -1,0 +1,1 @@
+* QR Code Generator for JavaScript, Copyright (c) 2009 Kazuhiko Arase, MIT License.

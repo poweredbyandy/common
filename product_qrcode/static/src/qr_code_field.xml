@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="product_qrcode.QrCodeField">
+        <div class="o_field_product_qr_code">
+            <img
+                t-if="state.imageSrc"
+                class="o_product_qr_img"
+                t-att-src="state.imageSrc"
+                alt="QR"
+            />
+            <a t-if="value and isUrl" class="o_product_qr_value" t-att-href="value" target="_blank" t-esc="value"/>
+            <span t-elif="value" class="o_product_qr_value" t-esc="value"/>
+        </div>
+    </t>
+</templates>

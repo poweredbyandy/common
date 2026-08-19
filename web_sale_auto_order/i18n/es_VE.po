@@ -1,0 +1,589 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* web_sale_auto_order
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-08-18 21:30+0000\n"
+"PO-Revision-Date: 2026-08-18 21:30+0000\n"
+"Last-Translator: andyengit\n"
+"Language-Team: Spanish (Venezuela)\n"
+"Language: es_VE\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n == 1) ? 0 : ((n != 0 && n % 1000000 == 0) ? 1 : 2);\n"
+
+#. module: web_sale_auto_order
+#: model:ir.module.module,shortdesc:web_sale_auto_order.module_web_sale_auto_order
+msgid "Website Auto Order Scanner"
+msgstr "Escáner de pedido automático en sitio web"
+
+#. module: web_sale_auto_order
+#: model:ir.module.module,summary:web_sale_auto_order.module_web_sale_auto_order
+msgid "Public OWL portal to scan barcodes or QR codes and buy with the website cart"
+msgstr "Portal OWL público para escanear códigos de barras o QR y comprar con el carrito del sitio web"
+
+#. module: web_sale_auto_order
+#: model:ir.model.fields,field_description:web_sale_auto_order.field_website__auto_order_pricelist_id
+#: model:ir.model.fields,field_description:web_sale_auto_order.field_res_config_settings__auto_order_pricelist_id
+msgid "Auto Order Pricelist"
+msgstr "Lista de precios del pedido automático"
+
+#. module: web_sale_auto_order
+#: model:ir.model.fields,help:web_sale_auto_order.field_website__auto_order_pricelist_id
+msgid "Pricelist used on the scan and order portal. If empty, the current website pricelist is used."
+msgstr "Lista de precios usada en el portal de escaneo. Si está vacía, se usa la lista de precios del sitio web."
+
+#. module: web_sale_auto_order
+#: model_terms:ir.ui.view,arch_db:web_sale_auto_order.res_config_settings_view_form
+msgid "Scan and Order Pricelist"
+msgstr "Lista de precios de escanear y pedir"
+
+#. module: web_sale_auto_order
+#: model_terms:ir.ui.view,arch_db:web_sale_auto_order.res_config_settings_view_form
+msgid "Pricelist used when visitors scan products on /auto-order. Leave empty to use the website pricelist."
+msgstr "Lista de precios usada cuando los visitantes escanean productos en /auto-order. Déjela vacía para usar la lista de precios del sitio web."
+
+#. module: web_sale_auto_order
+#: model:ir.model.fields,field_description:web_sale_auto_order.field_website__auto_order_button_color
+#: model:ir.model.fields,field_description:web_sale_auto_order.field_res_config_settings__auto_order_button_color
+#: model_terms:ir.ui.view,arch_db:web_sale_auto_order.res_config_settings_view_form
+msgid "Button Color"
+msgstr "Color de los botones"
+
+#. module: web_sale_auto_order
+#: model:ir.model.fields,field_description:web_sale_auto_order.field_website__auto_order_button_text_color
+#: model:ir.model.fields,field_description:web_sale_auto_order.field_res_config_settings__auto_order_button_text_color
+msgid "Button Text Color"
+msgstr "Color del texto de los botones"
+
+#. module: web_sale_auto_order
+#: model:ir.model.fields,help:web_sale_auto_order.field_website__auto_order_button_color
+msgid "Background color of the main buttons on /auto-order."
+msgstr "Color de fondo de los botones principales en /auto-order."
+
+#. module: web_sale_auto_order
+#: model:ir.model.fields,help:web_sale_auto_order.field_website__auto_order_button_text_color
+msgid "Text color of the main buttons on /auto-order."
+msgstr "Color del texto de los botones principales en /auto-order."
+
+#. module: web_sale_auto_order
+#: model_terms:ir.ui.view,arch_db:web_sale_auto_order.res_config_settings_view_form
+msgid "Color of the main buttons on /auto-order (Buy, Add, camera)."
+msgstr "Color de los botones principales en /auto-order (Comprar, Agregar, cámara)."
+
+#. module: web_sale_auto_order
+#: model_terms:ir.ui.view,arch_db:web_sale_auto_order.res_config_settings_view_form
+msgid "Background"
+msgstr "Fondo"
+
+#. module: web_sale_auto_order
+#: model_terms:ir.ui.view,arch_db:web_sale_auto_order.res_config_settings_view_form
+msgid "Text"
+msgstr "Texto"
+
+#. module: web_sale_auto_order
+#: model:ir.model.fields,field_description:web_sale_auto_order.field_website__auto_order_success_message
+#: model:ir.model.fields,field_description:web_sale_auto_order.field_res_config_settings__auto_order_success_message
+#: model_terms:ir.ui.view,arch_db:web_sale_auto_order.res_config_settings_view_form
+msgid "Success Extra Message"
+msgstr "Mensaje extra de éxito"
+
+#. module: web_sale_auto_order
+#: model:ir.model.fields,field_description:web_sale_auto_order.field_website__auto_order_lang_id
+#: model:ir.model.fields,field_description:web_sale_auto_order.field_res_config_settings__auto_order_lang_id
+#: model_terms:ir.ui.view,arch_db:web_sale_auto_order.res_config_settings_view_form
+msgid "Kiosk Language"
+msgstr "Idioma del kiosco"
+
+#. module: web_sale_auto_order
+#: model:ir.model.fields,help:web_sale_auto_order.field_website__auto_order_lang_id
+msgid "Language used on /auto-order. The language must be active on the website. Leave empty to use the website default language."
+msgstr "Idioma usado en /auto-order. El idioma debe estar activo en el sitio web. Déjelo vacío para usar el idioma predeterminado del sitio."
+
+#. module: web_sale_auto_order
+#: model_terms:ir.ui.view,arch_db:web_sale_auto_order.res_config_settings_view_form
+msgid "Language shown on /auto-order. Add it in Website Languages first. Leave empty to use the website default language."
+msgstr "Idioma que se muestra en /auto-order. Agréguelo primero en Idiomas del sitio web. Déjelo vacío para usar el idioma predeterminado del sitio."
+
+#. module: web_sale_auto_order
+#: model:ir.model.fields,help:web_sale_auto_order.field_website__auto_order_success_message
+msgid "Extra text shown after Buy on /auto-order, under the saved order number."
+msgstr "Texto extra que se muestra después de Comprar en /auto-order, debajo del número del pedido."
+
+#. module: web_sale_auto_order
+#: model_terms:ir.ui.view,arch_db:web_sale_auto_order.res_config_settings_view_form
+msgid "Text shown under the saved order number after Buy. Example: Continue at the cashier to pay."
+msgstr "Texto que se muestra debajo del número del pedido después de Comprar. Ejemplo: Continúe en caja para el cobro."
+
+#. module: web_sale_auto_order
+#: model:ir.model.fields,field_description:web_sale_auto_order.field_website__auto_order_success_message
+msgid "Continue at the cashier to pay."
+msgstr "Continúe en caja para el cobro."
+
+#. module: web_sale_auto_order
+#. odoo-javascript
+#: code:addons/web_sale_auto_order/static/src/auto_order.xml:0
+msgid "Order saved"
+msgstr "Pedido guardado"
+
+#. module: web_sale_auto_order
+#. odoo-javascript
+#: code:addons/web_sale_auto_order/static/src/auto_order.xml:0
+msgid "Your information will be registered at the cashier"
+msgstr "En caja se te registrará tu información"
+
+#. module: web_sale_auto_order
+#. odoo-javascript
+#: code:addons/web_sale_auto_order/static/src/auto_order.xml:0
+msgid "Register"
+msgstr "Registrarme"
+
+#. module: web_sale_auto_order
+#. odoo-javascript
+#: code:addons/web_sale_auto_order/static/src/auto_order.xml:0
+msgid "We only need your billing details. Then go to the cashier to pay."
+msgstr "Solo pedimos tus datos de facturación. Luego ve a caja a pagar."
+
+#. module: web_sale_auto_order
+#. odoo-javascript
+#: code:addons/web_sale_auto_order/static/src/auto_order.xml:0
+msgid "RIF"
+msgstr "RIF"
+
+#. module: web_sale_auto_order
+#. odoo-javascript
+#: code:addons/web_sale_auto_order/static/src/auto_order.xml:0
+msgid "Name"
+msgstr "Nombre"
+
+#. module: web_sale_auto_order
+#. odoo-javascript
+#: code:addons/web_sale_auto_order/static/src/auto_order.xml:0
+msgid "Phone"
+msgstr "Número de teléfono"
+
+#. module: web_sale_auto_order
+#. odoo-javascript
+#: code:addons/web_sale_auto_order/static/src/auto_order.xml:0
+msgid "Email"
+msgstr "Correo"
+
+#. module: web_sale_auto_order
+#. odoo-javascript
+#: code:addons/web_sale_auto_order/static/src/auto_order.xml:0
+msgid "Continue"
+msgstr "Continuar"
+
+#. module: web_sale_auto_order
+#. odoo-javascript
+#: code:addons/web_sale_auto_order/static/src/auto_order.xml:0
+msgid "Skip"
+msgstr "Omitir"
+
+#. module: web_sale_auto_order
+#. odoo-javascript
+#: code:addons/web_sale_auto_order/static/src/auto_order.xml:0
+msgid "Go to the cashier to pay"
+msgstr "Ve a caja a pagar"
+
+#. module: web_sale_auto_order
+#. odoo-javascript
+#: code:addons/web_sale_auto_order/static/src/auto_order.xml:0
+msgid "Show this order number at the cashier."
+msgstr "Muestra este número de pedido en caja."
+
+#. module: web_sale_auto_order
+#. odoo-javascript
+#: code:addons/web_sale_auto_order/static/src/auto_order.xml:0
+msgid "New order"
+msgstr "Nuevo pedido"
+
+#. module: web_sale_auto_order
+#. odoo-javascript
+#: code:addons/web_sale_auto_order/static/src/auto_order.js:0
+msgid "Could not save the order."
+msgstr "No se pudo guardar el pedido."
+
+#. module: web_sale_auto_order
+#. odoo-javascript
+#: code:addons/web_sale_auto_order/static/src/auto_order.js:0
+msgid "Could not save your information."
+msgstr "No se pudieron guardar tus datos."
+
+#. module: web_sale_auto_order
+#. odoo-python
+#: code:addons/web_sale_auto_order/models/website.py:0
+msgid "There are no products in the cart."
+msgstr "No hay productos en el carrito."
+
+#. module: web_sale_auto_order
+#. odoo-python
+#: code:addons/web_sale_auto_order/models/website.py:0
+msgid "The order is no longer available."
+msgstr "El pedido ya no está disponible."
+
+#. module: web_sale_auto_order
+#. odoo-python
+#: code:addons/web_sale_auto_order/models/website.py:0
+msgid "Please fill in RIF, name, phone and email."
+msgstr "Complete RIF, nombre, teléfono y correo."
+
+#. module: web_sale_auto_order
+#. odoo-python
+#: code:addons/web_sale_auto_order/models/website.py:0
+msgid "Please fill in the RIF."
+msgstr "Complete el RIF."
+
+#. module: web_sale_auto_order
+#. odoo-python
+#: code:addons/web_sale_auto_order/models/website.py:0
+msgid "Please fill in name, phone and email."
+msgstr "Complete nombre, teléfono y correo."
+
+#. module: web_sale_auto_order
+#. odoo-python
+#: code:addons/web_sale_auto_order/models/website.py:0
+msgid "Enter a valid email."
+msgstr "Ingrese un correo válido."
+
+#. module: web_sale_auto_order
+#: model:website.menu,name:web_sale_auto_order.menu_auto_order
+#: model_terms:ir.ui.view,arch_db:web_sale_auto_order.auto_order_page
+msgid "Scan and Order"
+msgstr "Escanear y pedir"
+
+#. module: web_sale_auto_order
+#. odoo-python
+#: code:addons/web_sale_auto_order/controllers/main.py:0
+msgid "You cannot access this page."
+msgstr "No puede acceder a esta página."
+
+#. module: web_sale_auto_order
+#. odoo-python
+#: code:addons/web_sale_auto_order/controllers/main.py:0
+msgid "No product matches this code."
+msgstr "Ningún producto coincide con este código."
+
+#. module: web_sale_auto_order
+#. odoo-python
+#: code:addons/web_sale_auto_order/controllers/main.py:0
+msgid "This product cannot be added to the cart."
+msgstr "Este producto no se puede agregar al carrito."
+
+#. module: web_sale_auto_order
+#. odoo-python
+#: code:addons/web_sale_auto_order/controllers/main.py:0
+msgid "Cart line not found."
+msgstr "No se encontró la línea del carrito."
+
+#. module: web_sale_auto_order
+#. odoo-javascript
+#: code:addons/web_sale_auto_order/static/src/auto_order.js:0
+msgid "Camera is not available."
+msgstr "La cámara no está disponible."
+
+#. module: web_sale_auto_order
+#. odoo-javascript
+#: code:addons/web_sale_auto_order/static/src/auto_order.js:0
+msgid "The barcode scanner library could not be loaded."
+msgstr "No se pudo cargar la librería del escáner."
+
+#. module: web_sale_auto_order
+#. odoo-javascript
+#: code:addons/web_sale_auto_order/static/src/auto_order.js:0
+msgid "Could not look up this code."
+msgstr "No se pudo consultar este código."
+
+#. module: web_sale_auto_order
+#. odoo-javascript
+#: code:addons/web_sale_auto_order/static/src/auto_order.js:0
+msgid "Could not add the product to the cart."
+msgstr "No se pudo agregar el producto al carrito."
+
+#. module: web_sale_auto_order
+#. odoo-javascript
+#: code:addons/web_sale_auto_order/static/src/auto_order.js:0
+msgid "Could not update the cart."
+msgstr "No se pudo actualizar el carrito."
+
+#. module: web_sale_auto_order
+#. odoo-javascript
+#: code:addons/web_sale_auto_order/static/src/auto_order.js:0
+msgid "Could not empty the cart."
+msgstr "No se pudo vaciar el carrito."
+
+#. module: web_sale_auto_order
+#. odoo-javascript
+#: code:addons/web_sale_auto_order/static/src/auto_order.xml:0
+msgid "Self checkout"
+msgstr "Autopago"
+
+#. module: web_sale_auto_order
+#. odoo-javascript
+#: code:addons/web_sale_auto_order/static/src/auto_order.xml:0
+msgid "Scan and order"
+msgstr "Escanear y pedir"
+
+#. module: web_sale_auto_order
+#. odoo-javascript
+#: code:addons/web_sale_auto_order/static/src/auto_order.xml:0
+msgid "Camera unavailable"
+msgstr "Cámara no disponible"
+
+#. module: web_sale_auto_order
+#. odoo-javascript
+#: code:addons/web_sale_auto_order/static/src/auto_order.xml:0
+msgid "Use the field below to type a barcode or QR value."
+msgstr "Use el campo de abajo para escribir un código de barras o QR."
+
+#. module: web_sale_auto_order
+#. odoo-javascript
+#: code:addons/web_sale_auto_order/static/src/auto_order.xml:0
+msgid "Point the rear camera at a barcode or QR"
+msgstr "Apunte la cámara trasera a un código de barras o QR"
+
+#. module: web_sale_auto_order
+#. odoo-javascript
+#: code:addons/web_sale_auto_order/static/src/auto_order.xml:0
+msgid "Or type the code"
+msgstr "O escriba el código"
+
+#. module: web_sale_auto_order
+#. odoo-javascript
+#: code:addons/web_sale_auto_order/static/src/auto_order.xml:0
+msgid "Barcode or QR value"
+msgstr "Valor de código de barras o QR"
+
+#. module: web_sale_auto_order
+#. odoo-javascript
+#: code:addons/web_sale_auto_order/static/src/auto_order.xml:0
+msgid "Look up"
+msgstr "Buscar"
+
+#. module: web_sale_auto_order
+#. odoo-javascript
+#: code:addons/web_sale_auto_order/static/src/auto_order.xml:0
+msgid "Looking up product..."
+msgstr "Buscando producto..."
+
+#. module: web_sale_auto_order
+#. odoo-javascript
+#: code:addons/web_sale_auto_order/static/src/auto_order.xml:0
+msgid "Cart"
+msgstr "Carrito"
+
+#. module: web_sale_auto_order
+#. odoo-javascript
+#: code:addons/web_sale_auto_order/static/src/auto_order.xml:0
+msgid "Scan a product to start a cart. No account is required."
+msgstr "Escanee un producto para iniciar un carrito. No se requiere cuenta."
+
+#. module: web_sale_auto_order
+#. odoo-javascript
+#: code:addons/web_sale_auto_order/static/src/auto_order.xml:0
+msgid "with tax"
+msgstr "con impuesto"
+
+#. module: web_sale_auto_order
+#. odoo-javascript
+#: code:addons/web_sale_auto_order/static/src/auto_order.xml:0
+msgid "without tax"
+msgstr "sin impuesto"
+
+#. module: web_sale_auto_order
+#. odoo-javascript
+#: code:addons/web_sale_auto_order/static/src/auto_order.xml:0
+msgid "Subtotal without tax"
+msgstr "Subtotal sin impuesto"
+
+#. module: web_sale_auto_order
+#. odoo-javascript
+#: code:addons/web_sale_auto_order/static/src/auto_order.xml:0
+msgid "Total with tax"
+msgstr "Total con impuesto"
+
+#. module: web_sale_auto_order
+#. odoo-javascript
+#: code:addons/web_sale_auto_order/static/src/auto_order.xml:0
+msgid "Buy"
+msgstr "Comprar"
+
+#. module: web_sale_auto_order
+#. odoo-javascript
+#: code:addons/web_sale_auto_order/static/src/auto_order.js:0
+msgid "Buy (%s)"
+msgstr "Comprar (%s)"
+
+#. module: web_sale_auto_order
+#. odoo-javascript
+#: code:addons/web_sale_auto_order/static/src/auto_order.xml:0
+msgid "Remove all items"
+msgstr "Eliminar todos los ítems"
+
+#. module: web_sale_auto_order
+#. odoo-javascript
+#: code:addons/web_sale_auto_order/static/src/auto_order.xml:0
+msgid "Remove line"
+msgstr "Eliminar línea"
+
+#. module: web_sale_auto_order
+#. odoo-javascript
+#: code:addons/web_sale_auto_order/static/src/auto_order.xml:0
+msgid "Without tax"
+msgstr "Sin impuesto"
+
+#. module: web_sale_auto_order
+#. odoo-javascript
+#: code:addons/web_sale_auto_order/static/src/auto_order.xml:0
+msgid "With tax"
+msgstr "Con impuesto"
+
+#. module: web_sale_auto_order
+#. odoo-javascript
+#: code:addons/web_sale_auto_order/static/src/auto_order.xml:0
+msgid "See more"
+msgstr "Ver más"
+
+#. module: web_sale_auto_order
+#. odoo-javascript
+#: code:addons/web_sale_auto_order/static/src/auto_order.xml:0
+msgid "Show details"
+msgstr "Mostrar detalle"
+
+#. module: web_sale_auto_order
+#. odoo-javascript
+#: code:addons/web_sale_auto_order/static/src/auto_order.xml:0
+msgid "Hide details"
+msgstr "Ocultar detalle"
+
+#. module: web_sale_auto_order
+#. odoo-javascript
+#: code:addons/web_sale_auto_order/static/src/auto_order.xml:0
+msgid "See less"
+msgstr "Ver menos"
+
+#. module: web_sale_auto_order
+#. odoo-javascript
+#: code:addons/web_sale_auto_order/static/src/auto_order.xml:0
+msgid "Add to cart"
+msgstr "Agregar al carrito"
+
+#. module: web_sale_auto_order
+#. odoo-javascript
+#: code:addons/web_sale_auto_order/static/src/auto_order.xml:0
+msgid "Cancel"
+msgstr "Cancelar"
+
+#. module: web_sale_auto_order
+#. odoo-javascript
+#: code:addons/web_sale_auto_order/static/src/auto_order.xml:0
+msgid "Remove all items?"
+msgstr "¿Eliminar todos los ítems?"
+
+#. module: web_sale_auto_order
+#. odoo-javascript
+#: code:addons/web_sale_auto_order/static/src/auto_order.xml:0
+msgid "This empties the current website cart."
+msgstr "Esto vacía el carrito actual del sitio web."
+
+#. module: web_sale_auto_order
+#. odoo-javascript
+#: code:addons/web_sale_auto_order/static/src/auto_order.xml:0
+msgid "Keep cart"
+msgstr "Conservar carrito"
+
+#. module: web_sale_auto_order
+#. odoo-javascript
+#: code:addons/web_sale_auto_order/static/src/auto_order.js:0
+msgid "%s items"
+msgstr "%s ítems"
+
+#. module: web_sale_auto_order
+#. odoo-javascript
+#: code:addons/web_sale_auto_order/static/src/auto_order.js:0
+msgid "%s pricelist"
+msgstr "Lista de precios %s"
+
+#. module: web_sale_auto_order
+#. odoo-javascript
+#: code:addons/web_sale_auto_order/static/src/auto_order.js:0
+msgid "%s company"
+msgstr "Compañía %s"
+#. module: web_sale_auto_order
+#. odoo-javascript
+#: code:addons/web_sale_auto_order/static/src/auto_order.xml:0
+msgid "Ready to scan"
+msgstr "Listo para escanear"
+
+#. module: web_sale_auto_order
+#. odoo-javascript
+#: code:addons/web_sale_auto_order/static/src/auto_order.xml:0
+msgid "Starting camera..."
+msgstr "Encendiendo la cámara..."
+
+#. module: web_sale_auto_order
+#. odoo-javascript
+#: code:addons/web_sale_auto_order/static/src/auto_order.xml:0
+msgid "Tap the button to turn on the camera. Safari will ask for permission."
+msgstr "Toque el botón para encender la cámara. Safari pedirá permiso."
+
+#. module: web_sale_auto_order
+#. odoo-javascript
+#: code:addons/web_sale_auto_order/static/src/auto_order.xml:0
+msgid "Turn on camera"
+msgstr "Encender cámara"
+
+#. module: web_sale_auto_order
+#. odoo-javascript
+#: code:addons/web_sale_auto_order/static/src/auto_order.xml:0
+msgid "Turn off camera"
+msgstr "Apagar cámara"
+
+#. module: web_sale_auto_order
+#: model:ir.model.fields,field_description:web_sale_auto_order.field_product_product__auto_order_url
+#: model:ir.model.fields,field_description:web_sale_auto_order.field_product_template__auto_order_url
+msgid "Self-checkout URL"
+msgstr "URL de autoservicio"
+
+#. module: web_sale_auto_order
+#: model:ir.model.fields,help:web_sale_auto_order.field_product_product__auto_order_url
+msgid "Auto-order link that opens this product by its QR code."
+msgstr "Enlace de pedido automático que abre este producto por su código QR."
+
+#. module: web_sale_auto_order
+#: model:ir.model.fields,field_description:web_sale_auto_order.field_product_product__auto_order_qr_image
+#: model:ir.model.fields,field_description:web_sale_auto_order.field_product_template__auto_order_qr_image
+msgid "Self-checkout QR"
+msgstr "QR de autoservicio"
+
+#. module: web_sale_auto_order
+#: model:ir.model.fields,help:web_sale_auto_order.field_product_product__auto_order_qr_image
+msgid "QR image of the self-checkout URL plus the product QR code."
+msgstr "Imagen QR de la URL de autoservicio más el código QR del producto."
+
+#. module: web_sale_auto_order
+#: model_terms:ir.ui.view,arch_db:web_sale_auto_order.product_template_view_form
+msgid "QR Codes"
+msgstr "Códigos QR"
+#. module: web_sale_auto_order
+#: model_terms:ir.ui.view,arch_db:web_sale_auto_order.auto_order_page
+#. odoo-javascript
+#: code:addons/web_sale_auto_order/static/src/auto_order.xml:0
+msgid "Loading..."
+msgstr "Cargando..."
+
+#. module: web_sale_auto_order
+#. odoo-javascript
+#: code:addons/web_sale_auto_order/static/src/auto_order.js:0
+msgid "Could not load the page."
+msgstr "No se pudo cargar la página."
+#. module: web_sale_auto_order
+#. odoo-javascript
+#: code:addons/web_sale_auto_order/static/src/auto_order.xml:0
+msgid "Quantity"
+msgstr "Cantidad"
+
