@@ -1,27 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
     <template id="auto_order_page" name="Scan and Order">
-        <t t-call="web.layout">
-            <t t-set="title">Scan and Order</t>
+        <t t-call="website.layout">
+            <t t-set="no_header" t-value="True"/>
+            <t t-set="no_footer" t-value="True"/>
+            <t t-set="no_copyright" t-value="True"/>
+            <t t-set="pageName" t-value="'o_wsao_nchrome'"/>
+            <t t-set="additional_title">Scan and Order</t>
             <t t-set="head">
-                <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
                 <meta name="theme-color" content="#0f172a"/>
                 <meta name="mobile-web-app-capable" content="yes"/>
-                <script type="text/javascript">
-                    odoo.__session_info__ = <t t-out="json.dumps(request.env['ir.http'].get_frontend_session_info())"/>;
-                    if (!/(^|;\s)tz=/.test(document.cookie)) {
-                        const userTZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
-                        document.cookie = `tz=${userTZ}; path=/`;
-                    }
-                </script>
-                <t t-call-assets="web.assets_frontend_minimal" t-css="false"/>
-                <t t-call-assets="web_sale_auto_order.assets_kiosk"/>
                 <t t-call-assets="web_sale_auto_order.zxing_assets" t-css="false" defer_load="True"/>
             </t>
             <t t-set="auto_order_button_color" t-value="website._get_auto_order_button_color()"/>
-            <div id="wrap" class="o_wsao_page o_wsao_nchrome">
+            <div id="wrap" class="o_wsao_page">
                 <style>
-                    body { margin: 0; background: #0f172a; }
                     .o_wsao_boot {
                         position: fixed;
                         inset: 0;
@@ -49,7 +42,7 @@
                     }
                     @keyframes o-wsao-spin { to { transform: rotate(360deg); } }
                     .o_wsao_shell {
-                        min-height: 100vh;
+                        min-height: 60vh;
                         color: #e2e8f0;
                         font-family: system-ui, sans-serif;
                         padding: 1rem;
