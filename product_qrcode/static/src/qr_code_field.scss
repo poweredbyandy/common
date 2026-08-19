@@ -16,6 +16,18 @@
     image-rendering: pixelated;
 }
 
+.o_product_qr_placeholder {
+    width: 148px;
+    min-height: 148px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem;
+    text-align: center;
+    border: 1px dashed #cbd5e1;
+    background: #f8fafc;
+}
+
 .o_product_qr_value {
     max-width: 100%;
     overflow-wrap: anywhere;

@@ -109,3 +109,13 @@ msgstr "Producto no encontrado"
 #: code:addons/product_qrcode_portal/controllers/main.py:0
 msgid "No product matches this code."
 msgstr "Ningún producto coincide con este código."
+
+#. module: product_qrcode_portal
+#: model:ir.model.fields.selection,name:product_qrcode_portal.selection__product_label_layout__print_format__qr_label_url
+msgid "ZPL QR (portal URL)"
+msgstr "ZPL QR (URL del portal)"
+
+#. module: product_qrcode_portal
+#: code:addons/product_qrcode_portal/wizard/product_label_layout.py:0
+msgid "Portal QR URL is not available for: %s"
+msgstr "La URL QR del portal no está disponible para: %s"

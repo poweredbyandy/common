@@ -75,3 +75,19 @@ class TestProductQRCodePortal(WebsiteSaleCommon):
             response = self.controller.product_qr_portal(code=self.product.qr_code)
         self.assertEqual(response.status_code, 303)
         self.assertIn("/auto-order?code=", response.location)
+
+    def test_wizard_prepares_portal_zpl_report_data(self):
+        wizard = self.env["product.label.layout"].create(
+            {
+                "print_format": "qr_label_url",
+                "custom_quantity": 1,
+                "product_ids": [(6, 0, self.product.ids)],
+            }
+        )
+        xml_id, data = wizard._prepare_report_data()
+        self.assertEqual(xml_id, "product_qrcode.action_report_product_qr_zpl")
+        self.assertEqual(data["zpl_qr_mode"], "portal")
+        zpl = self.env[
+            "report.product_qrcode.report_product_qr_zpl_document"
+        ]._build_label_zpl(self.product, "portal")
+        self.assertIn(self.product.portal_qr_url, zpl)

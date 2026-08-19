@@ -1,41 +1,114 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<odoo>
-    <record id="product_template_view_form" model="ir.ui.view">
-        <field name="name">product.template.view.form.portal.qr</field>
-        <field name="model">product.template</field>
-        <field name="inherit_id" ref="product_qrcode.product_template_view_form"/>
-        <field name="arch" type="xml">
-            <group name="qrcode" position="attributes">
-                <attribute name="string">QR Codes</attribute>
-            </group>
-            <field name="qr_code" position="after">
-                <label for="portal_qr_url" string="Portal QR" invisible="not portal_qr_url"/>
-                <field
-                    name="portal_qr_url"
-                    widget="product_qr_code"
-                    nolabel="1"
-                    colspan="2"
-                    invisible="not portal_qr_url"
-                />
-            </field>
-        </field>
-    </record>
-
-    <record id="product_variant_easy_edit_view_form" model="ir.ui.view">
-        <field name="name">product.product.view.form.easy.portal.qr</field>
-        <field name="model">product.product</field>
-        <field name="inherit_id" ref="product_qrcode.product_variant_easy_edit_view_form"/>
-        <field name="arch" type="xml">
-            <field name="qr_code" position="after">
-                <label for="portal_qr_url" string="Portal QR" invisible="not portal_qr_url"/>
-                <field
-                    name="portal_qr_url"
-                    widget="product_qr_code"
-                    nolabel="1"
-                    colspan="2"
-                    invisible="not portal_qr_url"
-                />
-            </field>
-        </field>
-    </record>
-</odoo>
+<?xml version="1.0" encoding="UTF-8"?>
+
+<odoo>
+
+    <record id="product_template_view_form" model="ir.ui.view">
+
+        <field name="name">product.template.view.form.portal.qr</field>
+
+        <field name="model">product.template</field>
+
+        <field name="inherit_id" ref="product_qrcode.product_template_view_form"/>
+
+        <field name="arch" type="xml">
+
+            <xpath expr="//page[@name='product_qrcode']//group[@name='product_qrcode_product']" position="after">
+
+                <group string="Portal QR" invisible="not portal_qr_url">
+
+                    <field
+
+                        name="portal_qr_url"
+
+                        widget="product_qr_code"
+
+                        readonly="1"
+
+                        nolabel="1"
+
+                    />
+
+                </group>
+
+            </xpath>
+
+        </field>
+
+    </record>
+
+
+
+    <record id="product_variant_easy_edit_view_form" model="ir.ui.view">
+
+        <field name="name">product.product.view.form.easy.portal.qr</field>
+
+        <field name="model">product.product</field>
+
+        <field name="inherit_id" ref="product_qrcode.product_variant_easy_edit_view_form"/>
+
+        <field name="arch" type="xml">
+
+            <group name="qrcode" position="inside">
+
+                <label for="portal_qr_url" string="Portal QR" invisible="not portal_qr_url"/>
+
+                <field
+
+                    name="portal_qr_url"
+
+                    widget="product_qr_code"
+
+                    readonly="1"
+
+                    nolabel="1"
+
+                    colspan="2"
+
+                    invisible="not portal_qr_url"
+
+                />
+
+            </group>
+
+        </field>
+
+    </record>
+
+
+
+    <record id="product_normal_form_view_portal_qr" model="ir.ui.view">
+
+        <field name="name">product.product.view.form.portal.qr</field>
+
+        <field name="model">product.product</field>
+
+        <field name="inherit_id" ref="product_qrcode.product_normal_form_view_qrcode"/>
+
+        <field name="arch" type="xml">
+
+            <xpath expr="//page[@name='product_qrcode']//group[@name='product_qrcode_product']" position="after">
+
+                <group string="Portal QR" invisible="not portal_qr_url">
+
+                    <field
+
+                        name="portal_qr_url"
+
+                        widget="product_qr_code"
+
+                        readonly="1"
+
+                        nolabel="1"
+
+                    />
+
+                </group>
+
+            </xpath>
+
+        </field>
+
+    </record>
+
+</odoo>
+

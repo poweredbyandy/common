@@ -53,3 +53,43 @@ msgstr ""
 #: code:addons/product_qrcode/static/src/qr_code_field.js:0
 msgid "QR Code"
 msgstr "Código QR"
+
+#. module: product_qrcode
+#: model:ir.model.fields.selection,name:product_qrcode.selection__product_label_layout__print_format__qr_label_code
+msgid "ZPL QR (product code)"
+msgstr "ZPL QR (código del producto)"
+
+#. module: product_qrcode
+#: model:ir.actions.report,name:product_qrcode.action_report_product_qr_zpl
+msgid "Product QR label (ZPL)"
+msgstr "Etiqueta QR del producto (ZPL)"
+
+#. module: product_qrcode
+#: model:report.paperformat,name:product_qrcode.paperformat_product_qr_zpl
+msgid "Product QR label (ZPL 600x300)"
+msgstr "Etiqueta QR del producto (ZPL 600x300)"
+
+#. module: product_qrcode
+#: model:ir.model,name:product_qrcode.model_report_product_qrcode_report_product_qr_zpl_document
+msgid "Product QR labels (ZPL)"
+msgstr "Etiquetas QR del producto (ZPL)"
+
+#. module: product_qrcode
+#: code:addons/product_qrcode/report/report_product_qr_zpl.py:0
+msgid "Portal QR URL is not available for %s."
+msgstr "La URL QR del portal no está disponible para %s."
+
+#. module: product_qrcode
+#: code:addons/product_qrcode/report/report_product_qr_zpl.py:0
+msgid "Product QR code is not available for %s."
+msgstr "El código QR del producto no está disponible para %s."
+
+#. module: product_qrcode
+#: code:addons/product_qrcode/report/report_product_qr_zpl.py:0
+msgid "No product labels to print."
+msgstr "No hay etiquetas de producto para imprimir."
+
+#. module: product_qrcode
+#: code:addons/product_qrcode/wizard/product_label_layout.py:0
+msgid "No product variants found to print."
+msgstr "No se encontraron variantes de producto para imprimir."

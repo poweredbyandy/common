@@ -1,6 +1,6 @@
 {
     "name": "Product QR Code",
-    "version": "18.0.1.2.2",
+    "version": "18.0.1.3.1",
     "category": "Inventory/Inventory",
     "summary": "Generate and display a QR code for each product",
     "author": "andyengit",
@@ -9,6 +9,9 @@
     "license": "LGPL-3",
     "depends": ["product"],
     "data": [
+        "report/product_qr_paperformat.xml",
+        "report/product_qr_reports.xml",
+        "wizard/product_label_layout_views.xml",
         "views/product_product_views.xml",
         "views/product_template_views.xml",
     ],

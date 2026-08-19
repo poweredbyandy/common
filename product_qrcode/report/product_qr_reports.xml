@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="report_product_qr_zpl_document">
+        <t t-translation="off"><t t-out="zpl_body"/></t>
+    </template>
+
+    <record id="action_report_product_qr_zpl" model="ir.actions.report">
+        <field name="name">Product QR label (ZPL)</field>
+        <field name="model">product.product</field>
+        <field name="report_type">qweb-text</field>
+        <field name="report_name">product_qrcode.report_product_qr_zpl_document</field>
+        <field name="report_file">product_qrcode.report_product_qr_zpl_document</field>
+        <field name="paperformat_id" ref="paperformat_product_qr_zpl"/>
+        <field name="print_report_name">'Product-QR-ZPL'</field>
+    </record>
+</odoo>

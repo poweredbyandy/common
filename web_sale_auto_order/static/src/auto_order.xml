@@ -1,11 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
     <t t-name="web_sale_auto_order.AutoOrder">
-        <div t-if="!state.ready" class="o_wsao_boot">
-            <div class="o_wsao_boot_spinner"/>
-            <p>Loading...</p>
-        </div>
-        <div t-else="" class="o_wsao" t-att-style="themeStyle">
+        <div class="o_wsao" t-att-style="themeStyle">
             <section class="o_wsao_scanner_card">
                 <div class="o_wsao_scanner">
                     <video

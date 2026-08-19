@@ -7,4 +7,5 @@ class ProductTemplate(models.Model):
     qr_code = fields.Char(
         string="Product QR Code",
         related="product_variant_id.qr_code",
+        store=True,
     )

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="product_label_layout_form_zpl_qr" model="ir.ui.view">
+        <field name="name">product.label.layout.form.zpl.qr</field>
+        <field name="model">product.label.layout</field>
+        <field name="inherit_id" ref="product.product_label_layout_form"/>
+        <field name="arch" type="xml">
+            <field name="pricelist_id" position="attributes">
+                <attribute name="invisible">print_format in ('qr_label_code', 'qr_label_url')</attribute>
+            </field>
+        </field>
+    </record>
+</odoo>

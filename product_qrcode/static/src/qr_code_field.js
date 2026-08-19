@@ -11,7 +11,7 @@ export class QrCodeField extends Component {
     static props = { ...standardFieldProps };
 
     setup() {
-        this.state = useState({ imageSrc: "" });
+        this.state = useState({ imageSrc: "", failed: false });
         onMounted(() => this.drawQr());
         useEffect(
             () => {
@@ -31,11 +31,15 @@ export class QrCodeField extends Component {
 
     drawQr() {
         const value = this.value;
+        this.state.failed = false;
         if (!value) {
             this.state.imageSrc = "";
             return;
         }
         try {
+            if (typeof qrcode !== "function") {
+                throw new Error("QR library unavailable");
+            }
             qrcode.stringToBytes = qrcode.stringToBytesFuncs["UTF-8"];
             const qr = qrcode(0, "M");
             qr.addData(value);
@@ -59,6 +63,7 @@ export class QrCodeField extends Component {
             this.state.imageSrc = canvas.toDataURL("image/png");
         } catch {
             this.state.imageSrc = "";
+            this.state.failed = true;
         }
     }
 }

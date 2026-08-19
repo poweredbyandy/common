@@ -8,6 +8,9 @@
                 t-att-src="state.imageSrc"
                 alt="QR"
             />
+            <div t-elif="value and state.failed" class="o_product_qr_placeholder">
+                <span class="text-muted">QR preview unavailable</span>
+            </div>
             <a t-if="value and isUrl" class="o_product_qr_value" t-att-href="value" target="_blank" t-esc="value"/>
             <span t-elif="value" class="o_product_qr_value" t-esc="value"/>
         </div>

@@ -5,25 +5,24 @@
         <field name="model">product.template</field>
         <field name="inherit_id" ref="product.product_template_form_view"/>
         <field name="arch" type="xml">
-            <group name="internal_notes" position="before">
-                <group col="12">
-                    <group
-                        name="qrcode"
-                        string="Product QR"
-                        colspan="6"
-                        invisible="product_variant_count &gt; 1 and not is_product_variant"
-                    >
-                        <field name="is_product_variant" invisible="1"/>
-                        <field name="product_variant_id" invisible="1"/>
-                        <field
-                            name="qr_code"
-                            widget="product_qr_code"
-                            nolabel="1"
-                            colspan="2"
-                        />
+            <xpath expr="//page[@name='general_information']" position="after">
+                <page
+                    string="QR Codes"
+                    name="product_qrcode"
+                    invisible="product_variant_count &gt; 1 and not is_product_variant"
+                >
+                    <group>
+                        <group string="Product QR" name="product_qrcode_product">
+                            <field
+                                name="qr_code"
+                                widget="product_qr_code"
+                                readonly="1"
+                                nolabel="1"
+                            />
+                        </group>
                     </group>
-                </group>
-            </group>
+                </page>
+            </xpath>
         </field>
     </record>
 </odoo>

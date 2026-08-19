@@ -50,15 +50,22 @@ export class AutoOrder extends Component {
             registerVatExists: null,
             registerFoundName: "",
             busy: false,
-            ready: true,
             allowImages: false,
             loadedImages: {},
         });
         onMounted(() => {
             this._removeBootLoader();
+            this._removeStaticShell();
             this.bootstrap();
         });
         onWillUnmount(() => this._stopStream());
+    }
+
+    _removeStaticShell() {
+        const shell = document.querySelector(".o_wsao_shell");
+        if (shell) {
+            shell.remove();
+        }
     }
 
     _removeBootLoader() {
