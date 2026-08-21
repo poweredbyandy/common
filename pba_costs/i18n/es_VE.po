@@ -1,0 +1,79 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* pba_costs
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-08-21 03:00+0000\n"
+"PO-Revision-Date: 2026-08-21 03:00+0000\n"
+"Last-Translator: andyengit\n"
+"Language-Team: Spanish (Venezuela)\n"
+"Language: es_VE\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n == 1) ? 0 : ((n != 0 && n % 1000000 == 0) ? 1 : 2);\n"
+
+#. module: pba_costs
+#: model:ir.module.category,name:pba_costs.module_category_pba_costs
+msgid "PBA Costs"
+msgstr "PBA Costos"
+
+#. module: pba_costs
+#: model:ir.module.category,description:pba_costs.module_category_pba_costs
+msgid "Access rights for PBA product and purchase costs."
+msgstr "Permisos de acceso a costos PBA en productos y compras."
+
+#. module: pba_costs
+#: model:res.groups,name:pba_costs.group_pba_product_costs_tab
+msgid "PBA Costs: View costs"
+msgstr "PBA Costos: Ver costos"
+
+#. module: pba_costs
+#: model:res.groups,comment:pba_costs.group_pba_product_costs_tab
+msgid "View PBA costs on products and purchase orders. Does not allow editing."
+msgstr "Ver costos PBA en productos y pedidos de compra. No permite editar."
+
+#. module: pba_costs
+#: model:res.groups,name:pba_costs.group_pba_costs_edit_rfq
+msgid "PBA Costs: Edit quotation costs"
+msgstr "PBA Costos: Editar costos en cotización"
+
+#. module: pba_costs
+#: model:res.groups,comment:pba_costs.group_pba_costs_edit_rfq
+msgid ""
+"Edit PBA costs on purchase quotations before confirmation. Does not allow "
+"editing costs on the product."
+msgstr ""
+"Editar costos PBA en cotizaciones de compra antes de confirmar. No permite "
+"editar los costos en el producto."
+
+#. module: pba_costs
+#: model:res.groups,name:pba_costs.group_pba_costs_edit_all
+msgid "PBA Costs: Edit all costs"
+msgstr "PBA Costos: Editar todos los costos"
+
+#. module: pba_costs
+#: model:res.groups,comment:pba_costs.group_pba_costs_edit_all
+msgid "Edit PBA costs on products and on purchase orders."
+msgstr "Editar costos PBA en productos y en pedidos de compra."
+
+#. module: pba_costs
+#: model:res.groups,name:pba_costs.group_pba_product_standard_cost_purchase_tax
+msgid "PBA: Standard cost and purchase taxes (product)"
+msgstr "PBA: Costo estándar e impuestos de compra (producto)"
+
+#. module: pba_costs
+#. odoo-python
+#: code:addons/pba_costs/models/product_template.py:0
+msgid "You are not allowed to edit PBA costs on the product."
+msgstr "No tiene permiso para editar los costos PBA en el producto."
+
+#. module: pba_costs
+#. odoo-python
+#: code:addons/pba_costs/models/purchase_order.py:0
+#: code:addons/pba_costs/models/purchase_order_line.py:0
+msgid "You are not allowed to edit PBA costs on this purchase order."
+msgstr "No tiene permiso para editar los costos PBA en este pedido de compra."

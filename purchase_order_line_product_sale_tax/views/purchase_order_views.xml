@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="purchase_order_form_product_sale_tax" model="ir.ui.view">
+        <field name="name">purchase.order.form.product.sale.tax</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='order_line']/list/field[@name='taxes_id']" position="after">
+                <field
+                    name="product_sale_tax_ids"
+                    widget="many2many_tags"
+                    optional="show"
+                    readonly="not product_id or display_type or is_downpayment"
+                    domain="[('type_tax_use', '=', 'sale'), ('company_id', 'parent_of', parent.company_id), ('country_id', '=', parent.tax_country_id), ('active', '=', True)]"
+                    context="{'default_type_tax_use': 'sale', 'search_view_ref': 'account.account_tax_view_search'}"
+                    options="{'no_create': True}"
+                />
+            </xpath>
+            <xpath expr="//field[@name='order_line']/form//field[@name='taxes_id']" position="after">
+                <field
+                    name="product_sale_tax_ids"
+                    widget="many2many_tags"
+                    invisible="display_type"
+                    readonly="not product_id or is_downpayment"
+                    domain="[('type_tax_use', '=', 'sale'), ('company_id', 'parent_of', parent.company_id), ('country_id', '=', parent.tax_country_id)]"
+                    context="{'default_type_tax_use': 'sale'}"
+                    options="{'no_create': True}"
+                />
+            </xpath>
+        </field>
+    </record>
+
+    <record id="purchase_order_line_list_product_sale_tax" model="ir.ui.view">
+        <field name="name">purchase.order.line.list.product.sale.tax</field>
+        <field name="model">purchase.order.line</field>
+        <field name="inherit_id" ref="purchase.purchase_order_line_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='price_unit']" position="after">
+                <field name="product_sale_tax_ids" widget="many2many_tags" optional="show"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="purchase_order_line_form_product_sale_tax" model="ir.ui.view">
+        <field name="name">purchase.order.line.form.product.sale.tax</field>
+        <field name="model">purchase.order.line</field>
+        <field name="inherit_id" ref="purchase.purchase_order_line_form2"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='taxes_id']" position="after">
+                <field
+                    name="product_sale_tax_ids"
+                    widget="many2many_tags"
+                    readonly="not product_id"
+                    domain="[('type_tax_use', '=', 'sale'), ('company_id', 'parent_of', company_id)]"
+                    options="{'no_create': True}"
+                />
+            </xpath>
+        </field>
+    </record>
+</odoo>

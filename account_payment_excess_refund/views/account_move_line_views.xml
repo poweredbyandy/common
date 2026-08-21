@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="view_move_line_excess_refund_list" model="ir.ui.view">
+        <field name="name">account.move.line.excess.refund.list</field>
+        <field name="model">account.move.line</field>
+        <field name="arch" type="xml">
+            <list string="Excess to Refund" create="false" edit="false">
+                <header>
+                    <button
+                        name="action_return_excess"
+                        type="object"
+                        string="Return Excess"
+                        groups="account.group_account_invoice"
+                    />
+                </header>
+                <field name="date" />
+                <field name="move_name" string="Journal Entry" />
+                <field name="partner_id" />
+                <field name="account_id" />
+                <field name="name" optional="show" />
+                <field name="amount_residual" string="Residual" sum="Total Residual" />
+                <field
+                    name="amount_residual_currency"
+                    string="Residual in Currency"
+                    optional="show"
+                    groups="base.group_multi_currency"
+                />
+                <field name="currency_id" groups="base.group_multi_currency" optional="hide" />
+                <field name="company_id" groups="base.group_multi_company" optional="hide" />
+                <field name="payment_id" optional="show" />
+            </list>
+        </field>
+    </record>
+</odoo>

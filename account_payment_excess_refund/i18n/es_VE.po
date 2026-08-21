@@ -1,0 +1,336 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* account_payment_excess_refund
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-08-21 20:31+0000\n"
+"PO-Revision-Date: 2026-08-21 20:32+0000\n"
+"Last-Translator: andyengit\n"
+"Language-Team: \n"
+"Language: es_VE\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#. module: account_payment_excess_refund
+#. odoo-javascript
+#: code:addons/account_payment_excess_refund/static/src/components/excess_refund_field/excess_refund_field.xml:0
+msgid "Amount:"
+msgstr "Importe:"
+
+#. module: account_payment_excess_refund
+#. odoo-javascript
+#: code:addons/account_payment_excess_refund/static/src/components/excess_refund_field/excess_refund_field.xml:0
+#: model_terms:ir.ui.view,arch_db:account_payment_excess_refund.view_account_payment_excess_refund_list
+msgid "Cancel"
+msgstr "Cancelar"
+
+#. module: account_payment_excess_refund
+#: model_terms:ir.ui.view,arch_db:account_payment_excess_refund.view_account_payment_form_excess_refund
+msgid "Cancel Excess Payment"
+msgstr "Cancelar pago del vuelto"
+
+#. module: account_payment_excess_refund
+#: model_terms:ir.ui.view,arch_db:account_payment_excess_refund.view_account_payment_excess_refund_list
+msgid ""
+"Cancel the selected excess refund payment(s) and their journal entries?"
+msgstr "¿Cancelar el/los pago(s) de vuelto seleccionado(s) y sus asientos?"
+
+#. module: account_payment_excess_refund
+#: model_terms:ir.ui.view,arch_db:account_payment_excess_refund.view_account_payment_form_excess_refund
+msgid "Cancel this excess refund payment and its journal entry?"
+msgstr "¿Cancelar este pago de vuelto y su asiento?"
+
+#. module: account_payment_excess_refund
+#: model:ir.model,name:account_payment_excess_refund.model_res_company
+msgid "Companies"
+msgstr "Compañías"
+
+#. module: account_payment_excess_refund
+#: model:ir.model,name:account_payment_excess_refund.model_res_config_settings
+msgid "Config Settings"
+msgstr "Ajustes de configuración"
+
+#. module: account_payment_excess_refund
+#. odoo-javascript
+#: code:addons/account_payment_excess_refund/static/src/components/excess_refund_field/excess_refund_field.xml:0
+msgid "Date:"
+msgstr "Fecha:"
+
+#. module: account_payment_excess_refund
+#: model_terms:ir.ui.view,arch_db:account_payment_excess_refund.res_config_settings_view_form_excess_refund
+msgid ""
+"Default bank or cash journal used when returning payment excesses from "
+"invoices and bills."
+msgstr ""
+"Diario de banco o caja usado por defecto al devolver excedentes de pago "
+"desde facturas."
+
+#. module: account_payment_excess_refund
+#: model:ir.model.fields,help:account_payment_excess_refund.field_res_company__excess_refund_journal_id
+#: model:ir.model.fields,help:account_payment_excess_refund.field_res_config_settings__excess_refund_journal_id
+msgid ""
+"Default journal used when refunding payment excesses from customer invoices "
+"and vendor bills."
+msgstr ""
+"Diario por defecto al devolver excedentes de pago en facturas de cliente y "
+"proveedor."
+
+#. module: account_payment_excess_refund
+#. odoo-javascript
+#: code:addons/account_payment_excess_refund/static/src/components/excess_refund_field/excess_refund_field.js:0
+#: code:addons/account_payment_excess_refund/static/src/components/excess_refund_field/excess_refund_field.xml:0
+msgid "Excess Refund Info"
+msgstr "Información del vuelto"
+
+#. module: account_payment_excess_refund
+#: model:ir.model.fields,field_description:account_payment_excess_refund.field_account_payment__excess_refund_invoice_id
+msgid "Excess Refund Invoice"
+msgstr "Factura del vuelto"
+
+#. module: account_payment_excess_refund
+#: model:ir.model.fields,field_description:account_payment_excess_refund.field_res_company__excess_refund_journal_id
+#: model:ir.model.fields,field_description:account_payment_excess_refund.field_res_config_settings__excess_refund_journal_id
+#: model_terms:ir.ui.view,arch_db:account_payment_excess_refund.res_config_settings_view_form_excess_refund
+msgid "Excess Refund Journal"
+msgstr "Diario de vueltos"
+
+#. module: account_payment_excess_refund
+#: model:ir.model.fields,field_description:account_payment_excess_refund.field_account_payment__excess_refund_line_id
+msgid "Excess Refund Line"
+msgstr "Línea del vuelto"
+
+#. module: account_payment_excess_refund
+#: model:ir.model.fields,field_description:account_payment_excess_refund.field_account_bank_statement_line__excess_refund_payment_count
+#: model:ir.model.fields,field_description:account_payment_excess_refund.field_account_move__excess_refund_payment_count
+msgid "Excess Refund Payment Count"
+msgstr "Cantidad de pagos de vuelto"
+
+#. module: account_payment_excess_refund
+#: model:ir.model.fields,field_description:account_payment_excess_refund.field_account_bank_statement_line__excess_refund_payment_ids
+#: model:ir.model.fields,field_description:account_payment_excess_refund.field_account_move__excess_refund_payment_ids
+msgid "Excess Refund Payments"
+msgstr "Pagos de vuelto"
+
+#. module: account_payment_excess_refund
+#: model:ir.model.fields,field_description:account_payment_excess_refund.field_account_bank_statement_line__excess_refund_payments_widget
+#: model:ir.model.fields,field_description:account_payment_excess_refund.field_account_move__excess_refund_payments_widget
+msgid "Excess Refund Payments Widget"
+msgstr "Widget de pagos de vuelto"
+
+#. module: account_payment_excess_refund
+#. odoo-python
+#: code:addons/account_payment_excess_refund/models/account_move.py:0
+#: model:ir.model.fields,field_description:account_payment_excess_refund.field_account_bank_statement_line__excess_refunded_amount
+#: model:ir.model.fields,field_description:account_payment_excess_refund.field_account_move__excess_refunded_amount
+msgid "Excess Refunded"
+msgstr "Vuelto pagado"
+
+#. module: account_payment_excess_refund
+#. odoo-python
+#: code:addons/account_payment_excess_refund/models/account_move.py:0
+#: model_terms:ir.ui.view,arch_db:account_payment_excess_refund.view_account_payment_excess_refund_list
+msgid "Excess Refunds"
+msgstr "Vueltos"
+
+#. module: account_payment_excess_refund
+#: model:ir.model.fields,field_description:account_payment_excess_refund.field_account_bank_statement_line__excess_to_refund_widget
+#: model:ir.model.fields,field_description:account_payment_excess_refund.field_account_move__excess_to_refund_widget
+msgid "Excess To Refund Widget"
+msgstr "Widget de excedente a devolver"
+
+#. module: account_payment_excess_refund
+#. odoo-python
+#: code:addons/account_payment_excess_refund/models/account_move.py:0
+#: code:addons/account_payment_excess_refund/wizard/account_payment_register.py:0
+msgid "Excess refund: %(invoice)s"
+msgstr "Devolución de excedente: %(invoice)s"
+
+#. module: account_payment_excess_refund
+#. odoo-python
+#: code:addons/account_payment_excess_refund/models/account_move.py:0
+msgid "Excess refunds are only available on customer or vendor invoices."
+msgstr ""
+"Las devoluciones de excedente solo están disponibles en facturas de cliente "
+"o proveedor."
+
+#. module: account_payment_excess_refund
+#. odoo-python
+#: code:addons/account_payment_excess_refund/models/account_move.py:0
+#: model:ir.model.fields,field_description:account_payment_excess_refund.field_account_bank_statement_line__excess_to_refund_amount
+#: model:ir.model.fields,field_description:account_payment_excess_refund.field_account_move__excess_to_refund_amount
+#: model_terms:ir.ui.view,arch_db:account_payment_excess_refund.view_move_line_excess_refund_list
+msgid "Excess to Refund"
+msgstr "Excedente a devolver"
+
+#. module: account_payment_excess_refund
+#: model:ir.model.fields,field_description:account_payment_excess_refund.field_account_bank_statement_line__has_excess_refunded
+#: model:ir.model.fields,field_description:account_payment_excess_refund.field_account_move__has_excess_refunded
+msgid "Has Excess Refunded"
+msgstr "Tiene vuelto pagado"
+
+#. module: account_payment_excess_refund
+#: model:ir.model.fields,field_description:account_payment_excess_refund.field_account_bank_statement_line__has_excess_to_refund
+#: model:ir.model.fields,field_description:account_payment_excess_refund.field_account_move__has_excess_to_refund
+msgid "Has Excess To Refund"
+msgstr "Tiene excedente por devolver"
+
+#. module: account_payment_excess_refund
+#. odoo-javascript
+#: code:addons/account_payment_excess_refund/static/src/components/excess_refund_field/excess_refund_field.xml:0
+msgid "Info"
+msgstr "Info"
+
+#. module: account_payment_excess_refund
+#: model:ir.model,name:account_payment_excess_refund.model_account_move
+#: model_terms:ir.ui.view,arch_db:account_payment_excess_refund.view_move_line_excess_refund_list
+msgid "Journal Entry"
+msgstr "Asiento contable"
+
+#. module: account_payment_excess_refund
+#: model:ir.model,name:account_payment_excess_refund.model_account_move_line
+msgid "Journal Item"
+msgstr "Apunte contable"
+
+#. module: account_payment_excess_refund
+#. odoo-javascript
+#: code:addons/account_payment_excess_refund/static/src/components/excess_refund_field/excess_refund_field.xml:0
+msgid "Journal:"
+msgstr "Diario:"
+
+#. module: account_payment_excess_refund
+#. odoo-javascript
+#: code:addons/account_payment_excess_refund/static/src/components/excess_refund_field/excess_refund_field.xml:0
+msgid "Memo:"
+msgstr "Memo:"
+
+#. module: account_payment_excess_refund
+#. odoo-python
+#: code:addons/account_payment_excess_refund/models/account_move_line.py:0
+msgid "One or more selected lines are not an open excess of this invoice."
+msgstr ""
+"Una o más líneas seleccionadas no son un excedente abierto de esta factura."
+
+#. module: account_payment_excess_refund
+#. odoo-python
+#: code:addons/account_payment_excess_refund/models/account_move_line.py:0
+msgid "Open the excess refund from the related invoice."
+msgstr "Abra la devolución del excedente desde la factura relacionada."
+
+#. module: account_payment_excess_refund
+#: model:ir.model,name:account_payment_excess_refund.model_account_payment_register
+msgid "Pay"
+msgstr "Pagar"
+
+#. module: account_payment_excess_refund
+#: model:ir.model,name:account_payment_excess_refund.model_account_payment
+msgid "Payments"
+msgstr "Pagos"
+
+#. module: account_payment_excess_refund
+#. odoo-javascript
+#: code:addons/account_payment_excess_refund/static/src/components/excess_refund_field/excess_refund_field.xml:0
+msgid "Refunded on"
+msgstr "Vuelto el"
+
+#. module: account_payment_excess_refund
+#: model_terms:ir.ui.view,arch_db:account_payment_excess_refund.view_move_line_excess_refund_list
+msgid "Residual"
+msgstr "Residual"
+
+#. module: account_payment_excess_refund
+#: model_terms:ir.ui.view,arch_db:account_payment_excess_refund.view_move_line_excess_refund_list
+msgid "Residual in Currency"
+msgstr "Residual en moneda"
+
+#. module: account_payment_excess_refund
+#. odoo-javascript
+#: code:addons/account_payment_excess_refund/static/src/components/excess_refund_field/excess_refund_field.xml:0
+msgid "Return"
+msgstr "Devolver"
+
+#. module: account_payment_excess_refund
+#. odoo-python
+#: code:addons/account_payment_excess_refund/models/account_move.py:0
+#: model_terms:ir.ui.view,arch_db:account_payment_excess_refund.view_move_line_excess_refund_list
+msgid "Return Excess"
+msgstr "Devolver vuelto"
+
+#. module: account_payment_excess_refund
+#. odoo-javascript
+#: code:addons/account_payment_excess_refund/static/src/components/excess_refund_field/excess_refund_field.xml:0
+msgid "Return excess"
+msgstr "Devolver vuelto"
+
+#. module: account_payment_excess_refund
+#. odoo-python
+#: code:addons/account_payment_excess_refund/models/account_move_line.py:0
+msgid "Select at least one excess line to refund."
+msgstr "Seleccione al menos una línea de excedente para devolver."
+
+#. module: account_payment_excess_refund
+#: model:ir.model.fields,field_description:account_payment_excess_refund.field_account_bank_statement_line__show_excess_refund_section
+#: model:ir.model.fields,field_description:account_payment_excess_refund.field_account_move__show_excess_refund_section
+msgid "Show Excess Refund Section"
+msgstr "Mostrar sección de vuelto"
+
+#. module: account_payment_excess_refund
+#: model:ir.model.fields,field_description:account_payment_excess_refund.field_account_payment__excess_refund_source_payment_id
+msgid "Source Excess Payment"
+msgstr "Pago origen del excedente"
+
+#. module: account_payment_excess_refund
+#. odoo-python
+#: code:addons/account_payment_excess_refund/wizard/account_payment_register.py:0
+msgid "The excess refund amount must be greater than zero."
+msgstr "El importe de la devolución del excedente debe ser mayor que cero."
+
+#. module: account_payment_excess_refund
+#. odoo-python
+#: code:addons/account_payment_excess_refund/models/account_move.py:0
+msgid "There is no excess refund payment on this invoice."
+msgstr "No hay pago de vuelto en esta factura."
+
+#. module: account_payment_excess_refund
+#. odoo-python
+#: code:addons/account_payment_excess_refund/models/account_move.py:0
+msgid "There is no excess refund payment to cancel."
+msgstr "No hay pago de vuelto para cancelar."
+
+#. module: account_payment_excess_refund
+#. odoo-python
+#: code:addons/account_payment_excess_refund/models/account_move.py:0
+msgid "There is no open payment excess to refund on this invoice."
+msgstr "No hay un excedente de pago abierto para devolver en esta factura."
+
+#. module: account_payment_excess_refund
+#: model_terms:ir.ui.view,arch_db:account_payment_excess_refund.view_account_payment_excess_refund_list
+msgid "Total"
+msgstr "Total"
+
+#. module: account_payment_excess_refund
+#: model_terms:ir.ui.view,arch_db:account_payment_excess_refund.view_move_line_excess_refund_list
+msgid "Total Residual"
+msgstr "Residual total"
+
+#. module: account_payment_excess_refund
+#. odoo-javascript
+#: code:addons/account_payment_excess_refund/static/src/components/excess_refund_field/excess_refund_field.xml:0
+msgid "View"
+msgstr "Ver"
+
+#. module: account_payment_excess_refund
+#. odoo-python
+#: code:addons/account_payment_excess_refund/models/account_move.py:0
+msgid "You can only refund excesses on posted invoices."
+msgstr "Solo puede devolver excedentes en facturas publicadas."
+
+#. module: account_payment_excess_refund
+#. odoo-python
+#: code:addons/account_payment_excess_refund/wizard/account_payment_register.py:0
+msgid "You cannot refund more than the open excess (%(amount)s)."
+msgstr "No puede devolver más que el excedente abierto (%(amount)s)."

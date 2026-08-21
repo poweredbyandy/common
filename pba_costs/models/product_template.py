@@ -6,8 +6,10 @@ from odoo.tools.safe_eval import safe_eval
 
 from .pba_constants import (
     DEFAULT_PBA_FINAL_COST_FORMULA,
+    PBA_PRODUCT_COST_WRITE_FIELDS,
     _pba_final_cost_formula_variable_names,
     pba_final_cost_dummy_eval_context,
+    pba_user_can_edit_all_costs,
 )
 
 _logger = logging.getLogger(__name__)
@@ -209,6 +211,27 @@ class ProductTemplate(models.Model):
         help="Misma expresión global para todos los productos. Visible y editable en el producto solo "
         "para usuarios con el grupo Características técnicas (base.group_no_one). Ver ayuda en Ajustes ▸ PBA Costos.",
     )
+
+    pba_costs_readonly = fields.Boolean(
+        compute="_compute_pba_costs_readonly",
+    )
+
+    @api.depends_context("uid")
+    def _compute_pba_costs_readonly(self):
+        readonly = not pba_user_can_edit_all_costs(self.env)
+        for template in self:
+            template.pba_costs_readonly = readonly
+
+    @api.model
+    def _pba_check_product_cost_write_access(self, vals):
+        if self.env.su:
+            return
+        if not (set(vals) & PBA_PRODUCT_COST_WRITE_FIELDS):
+            return
+        if not pba_user_can_edit_all_costs(self.env):
+            raise AccessError(
+                _("You are not allowed to edit PBA costs on the product.")
+            )
 
     def _pba_find_last_purchase_order_line(self):
         self.ensure_one()
@@ -752,6 +775,8 @@ class ProductTemplate(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         cleaned_list = [_pba_strip_legacy_write_vals(dict(vals)) for vals in vals_list]
+        for vals in cleaned_list:
+            self._pba_check_product_cost_write_access(vals)
         records = super().create(cleaned_list)
         for rec, vals in zip(records, cleaned_list):
             for cost_type, field_names in COST_FIELD_GROUPS:
@@ -763,6 +788,7 @@ class ProductTemplate(models.Model):
         if not self:
             return super().write(vals)
         vals = _pba_strip_legacy_write_vals(vals)
+        self._pba_check_product_cost_write_access(vals)
         triggers_by_rec = {rec: rec._pba_cost_types_to_log_on_write(vals) for rec in self}
         res = super().write(vals)
         field_by_type = dict(COST_FIELD_GROUPS)
@@ -782,7 +808,7 @@ class ProductTemplate(models.Model):
         self.ensure_one()
         field_by_type = dict(COST_FIELD_GROUPS)
         amount_f, pct_f = field_by_type[cost_type]
-        self.env["pba.product.cost.history"].create(
+        self.env["pba.product.cost.history"].sudo().create(
             {
                 "product_tmpl_id": self.id,
                 "cost_type": cost_type,

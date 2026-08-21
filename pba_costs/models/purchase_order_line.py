@@ -1,5 +1,11 @@
-from odoo import api, fields, models
+from odoo import _, api, fields, models
+from odoo.exceptions import AccessError
 from odoo.tools.float_utils import float_compare
+
+from .pba_constants import (
+    PBA_PURCHASE_LINE_COST_WRITE_FIELDS,
+    pba_user_can_edit_purchase_costs,
+)
 
 
 class PurchaseOrderLine(models.Model):
@@ -56,6 +62,9 @@ class PurchaseOrderLine(models.Model):
         digits="Product Price",
     )
     pba_sale_price_unit_baseline = fields.Float(string="Referencia precio venta PBA")
+    pba_costs_readonly = fields.Boolean(
+        compute="_compute_pba_costs_readonly",
+    )
 
     pba_cost_freight = fields.Monetary(
         string="Importe flete (PBA)",
@@ -86,6 +95,36 @@ class PurchaseOrderLine(models.Model):
         currency_field="pba_cost_pba_currency_id",
         compute="_compute_pba_price_unit_cost_currency",
     )
+
+    @api.depends("state")
+    @api.depends_context("uid")
+    def _compute_pba_costs_readonly(self):
+        for line in self:
+            line.pba_costs_readonly = not pba_user_can_edit_purchase_costs(
+                self.env,
+                line.state,
+            )
+
+    def _pba_order_state_from_vals(self, vals):
+        order_id = vals.get("order_id")
+        if isinstance(order_id, int):
+            order = self.env["purchase.order"].browse(order_id)
+            if order.exists():
+                return order.state or "draft"
+        if self.env.context.get("default_state"):
+            return self.env.context["default_state"]
+        return "draft"
+
+    def _pba_check_line_cost_write_access(self, vals):
+        if self.env.su:
+            return
+        if not (set(vals) & PBA_PURCHASE_LINE_COST_WRITE_FIELDS):
+            return
+        for line in self:
+            if not pba_user_can_edit_purchase_costs(self.env, line.state):
+                raise AccessError(
+                    _("You are not allowed to edit PBA costs on this purchase order.")
+                )
 
     @api.depends("product_id", "company_id")
     def _compute_pba_cost_pba_currency_id(self):
@@ -361,6 +400,10 @@ class PurchaseOrderLine(models.Model):
         vals = dict(vals)
         if vals.get("display_type"):
             return vals
+        order_state = self._pba_order_state_from_vals(vals)
+        if not pba_user_can_edit_purchase_costs(self.env, order_state):
+            for field_name in PBA_PURCHASE_LINE_COST_WRITE_FIELDS:
+                vals.pop(field_name, None)
         pid = vals.get("product_id")
         if not pid:
             return vals
@@ -377,8 +420,8 @@ class PurchaseOrderLine(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
-        had_sale_unit = [bool(v.get("pba_sale_price_unit")) for v in vals_list]
         cleaned = [self._pba_prepare_vals_pba_cost_defaults(v) for v in vals_list]
+        had_sale_unit = [bool(v.get("pba_sale_price_unit")) for v in cleaned]
         lines = super().create(cleaned)
         for line, had in zip(lines, had_sale_unit):
             if line.display_type or not line.product_id:
@@ -397,6 +440,7 @@ class PurchaseOrderLine(models.Model):
 
     def write(self, vals):
         vals = dict(vals)
+        self._pba_check_line_cost_write_access(vals)
         product_changed = (
             "product_id" in vals and vals.get("product_id") and not vals.get("display_type")
         )

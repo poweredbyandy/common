@@ -1,19 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <record id="module_category_pba_costs" model="ir.module.category">
-        <field name="name">PBA Costos</field>
-        <field name="description">Permisos del módulo PBA Costos en productos.</field>
+        <field name="name">PBA Costs</field>
+        <field name="description">Access rights for PBA product and purchase costs.</field>
         <field name="sequence">95</field>
     </record>
     <record id="group_pba_product_costs_tab" model="res.groups">
-        <field name="name">PBA Costos: Ver pestaña Costos (producto)</field>
+        <field name="name">PBA Costs: View costs</field>
         <field name="category_id" ref="module_category_pba_costs"/>
+        <field name="comment">View PBA costs on products and purchase orders. Does not allow editing.</field>
+    </record>
+    <record id="group_pba_costs_edit_rfq" model="res.groups">
+        <field name="name">PBA Costs: Edit quotation costs</field>
+        <field name="category_id" ref="module_category_pba_costs"/>
+        <field name="implied_ids" eval="[(4, ref('group_pba_product_costs_tab'))]"/>
+        <field name="comment">Edit PBA costs on purchase quotations before confirmation. Does not allow editing costs on the product.</field>
+    </record>
+    <record id="group_pba_costs_edit_all" model="res.groups">
+        <field name="name">PBA Costs: Edit all costs</field>
+        <field name="category_id" ref="module_category_pba_costs"/>
+        <field name="implied_ids" eval="[(4, ref('group_pba_costs_edit_rfq'))]"/>
+        <field name="comment">Edit PBA costs on products and on purchase orders.</field>
     </record>
     <record id="group_pba_product_standard_cost_purchase_tax" model="res.groups">
-        <field name="name">PBA: Costo estándar e impuestos de compra (producto)</field>
+        <field name="name">PBA: Standard cost and purchase taxes (product)</field>
         <field name="category_id" ref="module_category_pba_costs"/>
     </record>
     <record id="base.group_system" model="res.groups">
-        <field name="implied_ids" eval="[(4, ref('pba_costs.group_pba_product_costs_tab')), (4, ref('pba_costs.group_pba_product_standard_cost_purchase_tax'))]"/>
+        <field name="implied_ids" eval="[(4, ref('pba_costs.group_pba_costs_edit_all')), (4, ref('pba_costs.group_pba_product_standard_cost_purchase_tax'))]"/>
     </record>
 </odoo>

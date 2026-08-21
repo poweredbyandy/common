@@ -1,0 +1,1 @@
+This module shows the current on-hand quantity on each purchase order line. The value is taken from the destination warehouse of the purchase order and is converted to the unit of measure of the line.

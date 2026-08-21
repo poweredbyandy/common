@@ -1,0 +1,46 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* purchase_order_line_product_sale_tax
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-08-21 20:42+0000\n"
+"PO-Revision-Date: 2026-08-21 20:42+0000\n"
+"Last-Translator: andyengit\n"
+"Language-Team: Spanish (Venezuela)\n"
+"Language: es_VE\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n == 1) ? 0 : ((n != 0 && n % 1000000 == 0) ? 1 : 2);\n"
+
+#. module: purchase_order_line_product_sale_tax
+#: model:ir.module.module,shortdesc:purchase_order_line_product_sale_tax.module_purchase_order_line_product_sale_tax
+msgid "Purchase Order Line Product Sale Tax"
+msgstr "Impuesto de venta del producto en líneas de compra"
+
+#. module: purchase_order_line_product_sale_tax
+#: model:ir.module.module,summary:purchase_order_line_product_sale_tax.module_purchase_order_line_product_sale_tax
+msgid "Edit product sales taxes from purchase order lines"
+msgstr "Edita los impuestos de venta del producto desde las líneas de compra"
+
+#. module: purchase_order_line_product_sale_tax
+#: model:ir.model.fields,field_description:purchase_order_line_product_sale_tax.field_purchase_order_line__product_sale_tax_ids
+msgid "Sales Taxes"
+msgstr "Impuestos de venta"
+
+#. module: purchase_order_line_product_sale_tax
+#: model:ir.model.fields,help:purchase_order_line_product_sale_tax.field_purchase_order_line__product_sale_tax_ids
+msgid ""
+"Customer taxes stored on the product. Changing this value "
+"updates the product form."
+msgstr ""
+"Impuestos al cliente almacenados en el producto. Cambiar este valor "
+"actualiza la ficha del producto."
+
+#. module: purchase_order_line_product_sale_tax
+#: model:ir.model,name:purchase_order_line_product_sale_tax.model_purchase_order_line
+msgid "Purchase Order Line"
+msgstr "Línea de pedido de compra"

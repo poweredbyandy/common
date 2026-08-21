@@ -4,7 +4,7 @@
         <field name="name">pba.product.cost.history.list</field>
         <field name="model">pba.product.cost.history</field>
         <field name="arch" type="xml">
-            <list string="Historial de costos" create="1" edit="1">
+            <list string="Historial de costos" create="0" edit="0" delete="0">
                 <field name="date"/>
                 <field name="product_tmpl_id" optional="hide"/>
                 <field name="cost_type"/>
@@ -20,7 +20,7 @@
         <field name="name">pba.product.cost.history.form</field>
         <field name="model">pba.product.cost.history</field>
         <field name="arch" type="xml">
-            <form string="Historial de costo">
+            <form string="Historial de costo" create="0" edit="0">
                 <sheet>
                     <group>
                         <field name="product_tmpl_id"/>

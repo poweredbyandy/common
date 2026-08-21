@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="res_config_settings_view_form_excess_refund" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.excess.refund</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="account.res_config_settings_view_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//block[@id='bank_cash']" position="inside">
+                <setting
+                    id="excess_refund_journal_setting"
+                    string="Excess Refund Journal"
+                    company_dependent="1"
+                    help="Default bank or cash journal used when returning payment excesses from invoices and bills."
+                >
+                    <div class="content-group">
+                        <div class="row mt16">
+                            <label
+                                for="excess_refund_journal_id"
+                                class="col-lg-3 o_light_label"
+                            />
+                            <field name="excess_refund_journal_id" />
+                        </div>
+                    </div>
+                </setting>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -1,5 +1,7 @@
-from odoo import _, fields, models
-from odoo.exceptions import UserError
+from odoo import _, api, fields, models
+from odoo.exceptions import AccessError, UserError
+
+from .pba_constants import pba_user_can_edit_purchase_costs
 
 
 class PurchaseOrder(models.Model):
@@ -12,6 +14,29 @@ class PurchaseOrder(models.Model):
         "descuento comercial. Si no, el descuento de costo solo afecta los "
         "cálculos de costo PBA.",
     )
+    pba_costs_readonly = fields.Boolean(
+        compute="_compute_pba_costs_readonly",
+    )
+
+    @api.depends("state")
+    @api.depends_context("uid")
+    def _compute_pba_costs_readonly(self):
+        for order in self:
+            order.pba_costs_readonly = not pba_user_can_edit_purchase_costs(
+                self.env,
+                order.state,
+            )
+
+    def _pba_check_order_cost_write_access(self, vals):
+        if self.env.su:
+            return
+        if "pba_apply_cost_discount_to_invoice" not in vals:
+            return
+        for order in self:
+            if not pba_user_can_edit_purchase_costs(self.env, order.state):
+                raise AccessError(
+                    _("You are not allowed to edit PBA costs on this purchase order.")
+                )
 
     def button_approve(self, force=False):
         res = super().button_approve(force=force)
@@ -20,6 +45,10 @@ class PurchaseOrder(models.Model):
 
     def action_pba_update_sale_prices(self):
         self.ensure_one()
+        if not pba_user_can_edit_purchase_costs(self.env, self.state):
+            raise AccessError(
+                _("You are not allowed to edit PBA costs on this purchase order.")
+            )
         vals_by_tmpl = {}
         lines_updated = self.env["purchase.order.line"]
         for line in self.order_line:
@@ -64,9 +93,18 @@ class PurchaseOrder(models.Model):
             bucket.update(delta)
         for tid, vals in vals_by_tmpl.items():
             if vals:
-                self.env["product.template"].browse(tid).write(vals)
+                self.env["product.template"].browse(tid).sudo().write(vals)
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        if not pba_user_can_edit_purchase_costs(self.env, "draft"):
+            vals_list = [dict(vals) for vals in vals_list]
+            for vals in vals_list:
+                vals.pop("pba_apply_cost_discount_to_invoice", None)
+        return super().create(vals_list)
 
     def write(self, vals):
+        self._pba_check_order_cost_write_access(vals)
         res = super().write(vals)
         if "state" in vals:
             self.order_line.product_id.product_tmpl_id._pba_invalidate_last_cost()
