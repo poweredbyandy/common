@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inter.company.sale.purchase</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="base_setup.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//setting[@id='inter_company']" position="replace">
+                <setting id="inter_company"
+                         string="Inter-Company Transactions"
+                         company_dependent="1"
+                         help="Automatically generate counterpart documents between companies"
+                         groups="base.group_multi_company">
+                    <div class="content-group">
+                        <div class="row mt16">
+                            <field name="ic_so_from_po" class="oe_inline"/>
+                            <label for="ic_so_from_po" class="o_light_label"/>
+                        </div>
+                        <div class="row" invisible="not ic_so_from_po">
+                            <label for="ic_so_state" class="col-lg-3 o_light_label"/>
+                            <field name="ic_so_state" widget="radio" class="oe_inline"/>
+                        </div>
+                        <div class="row mt8">
+                            <field name="ic_po_from_so" class="oe_inline"/>
+                            <label for="ic_po_from_so" class="o_light_label"/>
+                        </div>
+                        <div class="row" invisible="not ic_po_from_so">
+                            <label for="ic_po_state" class="col-lg-3 o_light_label"/>
+                            <field name="ic_po_state" widget="radio" class="oe_inline"/>
+                        </div>
+                        <div class="row mt8">
+                            <label for="ic_invoice_mode" class="col-lg-3 o_light_label"/>
+                            <field name="ic_invoice_mode" widget="radio" class="oe_inline"/>
+                        </div>
+                        <div class="row" invisible="ic_invoice_mode == 'none'">
+                            <label for="ic_purchase_journal_id" class="col-lg-3 o_light_label"/>
+                            <field name="ic_purchase_journal_id" options="{'no_create_edit': True}"/>
+                        </div>
+                        <div class="row mt8">
+                            <label for="ic_picking_mode" class="col-lg-3 o_light_label"/>
+                            <field name="ic_picking_mode" widget="radio" class="oe_inline"/>
+                        </div>
+                        <div class="row mt8">
+                            <label for="ic_user_id" class="col-lg-3 o_light_label"/>
+                            <field name="ic_user_id" options="{'no_create_edit': True}"/>
+                        </div>
+                        <div class="row" invisible="not ic_so_from_po and not ic_po_from_so">
+                            <label for="ic_warehouse_id" class="col-lg-3 o_light_label"/>
+                            <field name="ic_warehouse_id" options="{'no_create_edit': True}"/>
+                        </div>
+                        <div class="row" invisible="not ic_po_from_so">
+                            <label for="ic_receipt_type_id" class="col-lg-3 o_light_label"/>
+                            <field name="ic_receipt_type_id" options="{'no_create_edit': True}"/>
+                        </div>
+                        <div class="row mt8">
+                            <field name="ic_block_unshared_product" class="oe_inline"/>
+                            <label for="ic_block_unshared_product" class="o_light_label"/>
+                        </div>
+                    </div>
+                </setting>
+            </xpath>
+        </field>
+    </record>
+</odoo>
