@@ -13,9 +13,7 @@
 6. From a client (POS, inventory, etc.), connect with ``DeviceBridgeProxy``
    using that device code.
 7. While connected, the browser registers as an online **gateway** (heartbeat).
-8. Printing uses the configured printer first (local USB already granted in
-   this browser). If that USB is not on this PC, the job goes to an online
-   gateway on the PC that has the printer. The USB picker opens only when
-   neither the configured printer nor a gateway is available. A one-off USB
-   that is not the configured printer is not saved as the default.
+8. On the PC that has the printer, Odoo keeps a gateway online. From another
+   device, print jobs are sent to that gateway (no USB picker). If the
+   gateway is not found, Odoo asks whether to print on this computer.
 9. Review authorizations and gateways under *Device Bridge*.

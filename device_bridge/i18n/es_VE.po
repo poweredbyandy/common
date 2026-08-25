@@ -404,3 +404,21 @@ msgstr "No se pudo imprimir la prueba"
 #: code:addons/device_bridge/static/src/js/device_bridge_webusb_transport.js:0
 msgid "USB transfer failed (%s)."
 msgstr "Falló el envío USB (%s)."
+
+#. module: device_bridge
+#. odoo-javascript
+#: code:addons/device_bridge/static/src/js/device_bridge_print_flow.js:0
+msgid "Configured printer not found"
+msgstr "No se encontró la impresora configurada"
+
+#. module: device_bridge
+#. odoo-javascript
+#: code:addons/device_bridge/static/src/js/device_bridge_print_flow.js:0
+msgid "The configured printer is not online. Do you want to print on this computer?"
+msgstr "La impresora configurada no está en línea. ¿Desea imprimir en este equipo?"
+
+#. module: device_bridge
+#. odoo-javascript
+#: code:addons/device_bridge/static/src/js/device_bridge_print_flow.js:0
+msgid "Print on this computer"
+msgstr "Imprimir en este equipo"

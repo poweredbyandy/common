@@ -4,7 +4,8 @@ import { _t } from "@web/core/l10n/translation";
 import { registry } from "@web/core/registry";
 import {
     formatDeviceBridgeError,
-} from "@device_bridge/js/device_bridge_proxy";
+    printThroughDeviceBridge,
+} from "@device_bridge/js/device_bridge_print_flow";
 
 function getReportActiveIds(action) {
     const context = action.context || {};
@@ -63,22 +64,18 @@ async function deviceBridgeReportActionHandler(action, options, env) {
 
     const bytes = base64ToUint8Array(job.data_b64);
     const printerNames = job.printers.map((printer) => printer.name || printer.code);
-    env.services.ui.block();
     const errors = [];
     let printed = 0;
-    try {
-        for (const printer of job.printers) {
-            try {
-                await env.services.device_bridge.printRaw(printer.code, bytes, {
-                    mode: "auto",
-                });
-                printed += 1;
-            } catch (error) {
-                errors.push(formatDeviceBridgeError(error));
-            }
+    for (const printer of job.printers) {
+        env.services.ui.block();
+        try {
+            await printThroughDeviceBridge(env, printer.code, bytes);
+            printed += 1;
+        } catch (error) {
+            errors.push(formatDeviceBridgeError(error));
+        } finally {
+            env.services.ui.unblock();
         }
-    } finally {
-        env.services.ui.unblock();
     }
 
     if (printed) {

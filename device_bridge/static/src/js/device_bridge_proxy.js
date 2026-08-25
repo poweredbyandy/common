@@ -221,18 +221,19 @@ export class DeviceBridgeProxy {
                 return { device: match, authorized: auth };
             }
         }
-        // Already granted in the browser: reuse without opening the picker.
-        const filters = await this.getFilters();
-        const vendorFilters = await this.getFilters({ picker: true });
-        const match =
-            browserDevices.find((device) =>
-                this._deviceMatchesFilters(device, filters)
-            ) ||
-            browserDevices.find((device) =>
-                this._deviceMatchesFilters(device, vendorFilters)
+        const filterGroups = [
+            await this.getFilters(),
+            await this.getFilters({ picker: true }),
+        ].filter((group) =>
+            (group || []).some((filter) => filter?.vendorId != null)
+        );
+        for (const group of filterGroups) {
+            const match = browserDevices.find((device) =>
+                this._deviceMatchesFilters(device, group)
             );
-        if (match) {
-            return { device: match, authorized: null };
+            if (match) {
+                return { device: match, authorized: null };
+            }
         }
         return null;
     }
@@ -500,38 +501,29 @@ export class DeviceBridgeProxy {
         if (mode === "local") {
             return this.printLocal(uint8Array, options);
         }
-        let silentError;
-        try {
-            return await this.printLocal(uint8Array, {
+        if (this.isConnected) {
+            return this.printLocal(uint8Array, {
                 forcePicker: false,
                 allowPicker: false,
                 persistDevice: true,
                 shareGateway: true,
             });
-        } catch (error) {
-            silentError = error;
+        }
+        const localUsb = await this._findAuthorizedBrowserDevice();
+        if (localUsb) {
+            return this.printLocal(uint8Array, {
+                forcePicker: false,
+                allowPicker: false,
+                persistDevice: true,
+                shareGateway: true,
+            });
         }
         try {
             return await this.printRemote(uint8Array, options);
         } catch (remoteError) {
-            if (options.allowPicker === false) {
-                throw silentError || remoteError;
-            }
-            try {
-                const pickerFilters = await this.getFilters({ picker: true });
-                return await this.printLocal(uint8Array, {
-                    forcePicker: true,
-                    allowPicker: true,
-                    persistDevice: true,
-                    shareGateway: true,
-                    filters: pickerFilters,
-                });
-            } catch (pickerError) {
-                if (remoteError?.message === "DEVICE_BRIDGE_NO_GATEWAY") {
-                    throw pickerError;
-                }
-                throw remoteError;
-            }
+            const err = new Error("DEVICE_BRIDGE_NO_GATEWAY");
+            err.cause = remoteError;
+            throw err;
         }
     }
 }

@@ -21,7 +21,9 @@ class StockPicking(models.Model):
         company = self.env["res.company"]._find_company_from_partner(self.sale_id.partner_id.id)
         if not company or company.ic_picking_mode == "none":
             return
-        sale_order = self.sale_id
+        rights = ["stock", "purchase"]
+        ic_user = company._ic_ensure_user(rights)
+        sale_order = self.sale_id.sudo()
         purchase_order = sale_order.auto_purchase_order_id
         if not purchase_order:
             purchase_order = (
@@ -37,7 +39,7 @@ class StockPicking(models.Model):
             )
         if not purchase_order:
             return
-        receipts = purchase_order.picking_ids.filtered(
+        receipts = purchase_order.picking_ids.sudo().filtered(
             lambda picking: picking.picking_type_code in ("incoming", "dropship")
             and picking.state not in ("done", "cancel")
         )
@@ -51,7 +53,7 @@ class StockPicking(models.Model):
             receipt_move = self._ic_find_corresponding_move(move, receipts)
             if not receipt_move:
                 continue
-            receipt_move.write(
+            receipt_move.sudo().write(
                 {
                     "move_line_ids": [
                         *[Command.delete(line.id) for line in receipt_move.move_line_ids],
@@ -62,15 +64,18 @@ class StockPicking(models.Model):
                     ]
                 }
             )
-            receipt_move.move_line_ids._apply_putaway_strategy()
+            receipt_move.sudo().move_line_ids._apply_putaway_strategy()
         if company.ic_picking_mode == "validate":
-            receipts_to_validate = receipts.filtered(lambda picking: picking.state not in ("done", "cancel"))
+            receipts_to_validate = receipts.filtered(
+                lambda picking: picking.state not in ("done", "cancel")
+            )
             if receipts_to_validate:
-                receipts_to_validate.with_company(company).with_context(
+                receipts_to_validate.with_user(ic_user).with_company(company).with_context(
                     skip_ic_picking_sync=True,
                     skip_backorder=True,
                     skip_sms=True,
-                ).button_validate()
+                    allowed_company_ids=company.ids,
+                ).sudo().button_validate()
 
     @api.model
     def _ic_find_corresponding_move(self, move_orig, candidate_pickings):

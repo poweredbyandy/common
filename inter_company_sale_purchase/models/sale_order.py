@@ -24,28 +24,17 @@ class SaleOrder(models.Model):
                 continue
             company = self.env["res.company"]._find_company_from_partner(order.partner_id.id)
             if company and company.ic_po_from_so and not order.auto_generated:
-                order.with_user(company.ic_user_id).with_company(company).with_context(
-                    default_company_id=company.id,
-                    allowed_company_ids=company.ids,
-                )._ic_create_purchase_order(company)
+                order.sudo()._ic_create_purchase_order(company)
         return res
 
     def _ic_create_purchase_order(self, company):
         self.ensure_one()
-        ic_user = company.ic_user_id
-        if not ic_user:
-            raise UserError(
-                _("Provide one user for inter-company relation for %(name)s.", name=company.name)
-            )
-        if not self.env["purchase.order"].with_user(ic_user).has_access("create"):
-            raise UserError(
-                _(
-                    "Inter-company user of company %(name)s does not have enough access rights.",
-                    name=company.name,
-                )
-            )
+        rights = ["purchase"]
+        if company.ic_po_state == "confirmed":
+            rights.append("stock")
+        ic_user = company._ic_ensure_user(rights)
         self._ic_check_shared_products(company)
-        company_partner = self.company_id.partner_id.with_user(ic_user)
+        company_partner = self.company_id.partner_id.sudo().with_company(company)
         po_vals = self.sudo()._prepare_ic_purchase_order_data(company, company_partner)
         for line in self.order_line.sudo():
             po_vals["order_line"].append(
@@ -53,11 +42,13 @@ class SaleOrder(models.Model):
             )
         purchase_order = (
             self.env["purchase.order"]
-            .with_context(allowed_company_ids=company.ids)
             .with_user(ic_user)
+            .with_company(company)
+            .with_context(allowed_company_ids=company.ids)
+            .sudo()
             .create(po_vals)
         )
-        purchase_order.message_post(
+        purchase_order.sudo().message_post(
             body=_(
                 "Automatically generated from %(origin)s of company %(company)s.",
                 origin=self.name,
@@ -69,7 +60,9 @@ class SaleOrder(models.Model):
                 {"client_order_ref": purchase_order.name}
             )
         if company.ic_po_state == "confirmed":
-            purchase_order.with_user(ic_user).button_confirm()
+            purchase_order.with_user(ic_user).with_company(company).with_context(
+                allowed_company_ids=company.ids
+            ).sudo().button_confirm()
         return purchase_order
 
     def _ic_check_shared_products(self, company):

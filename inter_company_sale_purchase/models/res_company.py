@@ -1,4 +1,5 @@
-from odoo import SUPERUSER_ID, api, fields, models
+from odoo import SUPERUSER_ID, _, api, fields, models
+from odoo.exceptions import UserError
 
 
 class ResCompany(models.Model):
@@ -49,7 +50,8 @@ class ResCompany(models.Model):
         string="Inter-Company User",
         default=SUPERUSER_ID,
         domain=["|", ("active", "=", True), ("id", "=", SUPERUSER_ID)],
-        help="User used to create counterpart documents.",
+        help="User used to create counterpart documents. Must belong to this company "
+        "and have Sales, Purchase, Inventory and Invoicing access as needed.",
     )
     ic_warehouse_id = fields.Many2one(
         comodel_name="stock.warehouse",
@@ -85,6 +87,52 @@ class ResCompany(models.Model):
         if not partner_id:
             return self.browse()
         return self.sudo().search([("partner_id", "parent_of", partner_id)], limit=1)
+
+    def _ic_ensure_user(self, rights=()):
+        """Return the inter-company user after ensuring company + ACL access.
+
+        :param rights: iterable among sale, purchase, account, stock
+        """
+        self.ensure_one()
+        user = self.ic_user_id
+        if not user:
+            raise UserError(
+                _("Provide one user for inter-company relation for %(name)s.", name=self.name)
+            )
+        user_sudo = user.sudo()
+        if self not in user_sudo.company_ids:
+            user_sudo.write({"company_ids": [(4, self.id)]})
+        if not user_sudo.active and user_sudo.id != SUPERUSER_ID:
+            raise UserError(
+                _(
+                    "Inter-company user %(user)s for company %(company)s is archived.",
+                    user=user.display_name,
+                    company=self.name,
+                )
+            )
+        group_map = {
+            "sale": ("sales_team.group_sale_salesman", _("Sales")),
+            "purchase": ("purchase.group_purchase_user", _("Purchase")),
+            "account": ("account.group_account_invoice", _("Invoicing")),
+            "stock": ("stock.group_stock_user", _("Inventory")),
+        }
+        missing = []
+        for right in rights:
+            xmlid, label = group_map[right]
+            group = self.env.ref(xmlid, raise_if_not_found=False)
+            if group and group not in user_sudo.groups_id:
+                missing.append(str(label))
+        if missing:
+            raise UserError(
+                _(
+                    "Inter-company user %(user)s for company %(company)s is missing access: %(access)s. "
+                    "Grant those groups or choose another user.",
+                    user=user.display_name,
+                    company=self.name,
+                    access=", ".join(missing),
+                )
+            )
+        return user
 
     @api.depends("ic_so_from_po", "ic_po_from_so")
     def _compute_ic_stock_defaults(self):

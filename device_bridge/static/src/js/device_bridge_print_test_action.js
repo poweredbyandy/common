@@ -2,7 +2,10 @@
 
 import { _t } from "@web/core/l10n/translation";
 import { registry } from "@web/core/registry";
-import { formatDeviceBridgeError } from "@device_bridge/js/device_bridge_proxy";
+import {
+    formatDeviceBridgeError,
+    printThroughDeviceBridge,
+} from "@device_bridge/js/device_bridge_print_flow";
 
 function base64ToUint8Array(value) {
     const binary = atob(value || "");
@@ -31,9 +34,7 @@ async function deviceBridgePrintTestAction(env, action) {
     const bytes = base64ToUint8Array(job.data_b64);
     env.services.ui.block();
     try {
-        await env.services.device_bridge.printRaw(deviceCode, bytes, {
-            mode: "auto",
-        });
+        await printThroughDeviceBridge(env, deviceCode, bytes);
         env.services.notification.add(
             _t("Test sent to printer %s.", job.name || deviceCode),
             { type: "success" }

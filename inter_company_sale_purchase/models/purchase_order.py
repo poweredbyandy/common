@@ -16,34 +16,34 @@ class PurchaseOrder(models.Model):
         copy=False,
         index="btree_not_null",
     )
+    is_intercompany_vendor = fields.Boolean(
+        compute="_compute_is_intercompany_vendor",
+    )
+
+    @api.depends("partner_id")
+    def _compute_is_intercompany_vendor(self):
+        Company = self.env["res.company"]
+        for order in self:
+            order.is_intercompany_vendor = bool(
+                order.partner_id and Company._find_company_from_partner(order.partner_id.id)
+            )
 
     def button_approve(self, force=False):
         res = super().button_approve(force=force)
         for order in self:
             company = self.env["res.company"]._find_company_from_partner(order.partner_id.id)
             if company and company.ic_so_from_po and not order.auto_generated:
-                order.with_user(company.ic_user_id).with_company(company).with_context(
-                    default_company_id=company.id,
-                    allowed_company_ids=company.ids,
-                )._ic_create_sale_order(company)
+                order.sudo()._ic_create_sale_order(company)
         return res
 
     def _ic_create_sale_order(self, company):
         self.ensure_one()
-        ic_user = company.ic_user_id
-        if not ic_user:
-            raise UserError(
-                _("Provide one user for inter-company relation for %(name)s.", name=company.name)
-            )
-        if not self.env["sale.order"].with_user(ic_user).has_access("create"):
-            raise UserError(
-                _(
-                    "Inter-company user of company %(name)s does not have enough access rights.",
-                    name=company.name,
-                )
-            )
+        rights = ["sale"]
+        if company.ic_so_state == "confirmed":
+            rights.append("stock")
+        ic_user = company._ic_ensure_user(rights)
         self._ic_check_shared_products(company)
-        company_partner = self.company_id.partner_id.with_user(ic_user)
+        company_partner = self.company_id.partner_id.sudo().with_company(company)
         sale_order_data = self.sudo()._prepare_ic_sale_order_data(
             self.name,
             company_partner,
@@ -56,11 +56,13 @@ class PurchaseOrder(models.Model):
             )
         sale_order = (
             self.env["sale.order"]
-            .with_context(allowed_company_ids=company.ids)
             .with_user(ic_user)
+            .with_company(company)
+            .with_context(allowed_company_ids=company.ids)
+            .sudo()
             .create(sale_order_data)
         )
-        sale_order.message_post(
+        sale_order.sudo().message_post(
             body=_(
                 "Automatically generated from %(origin)s of company %(company)s.",
                 origin=self.name,
@@ -70,7 +72,9 @@ class PurchaseOrder(models.Model):
         if not self.partner_ref:
             self.sudo().with_company(self.company_id).write({"partner_ref": sale_order.name})
         if company.ic_so_state == "confirmed":
-            sale_order.with_user(ic_user).action_confirm()
+            sale_order.with_user(ic_user).with_company(company).with_context(
+                allowed_company_ids=company.ids
+            ).sudo().action_confirm()
         return sale_order
 
     def _ic_check_shared_products(self, company):
@@ -145,3 +149,26 @@ class PurchaseOrder(models.Model):
             "display_type": line.display_type,
             "customer_lead": line.product_id.sale_delay if line.product_id else 0.0,
         }
+
+
+    def _get_product_price_and_data(self, product):
+        self.ensure_one()
+        product_infos = super()._get_product_price_and_data(product)
+        vendor_company = self.env["res.company"]._find_company_from_partner(self.partner_id.id)
+        if not vendor_company:
+            return product_infos
+        line = self.env["purchase.order.line"].new(
+            {
+                "order_id": self.id,
+                "product_id": product.id,
+                "product_uom": product.uom_po_id.id or product.uom_id.id,
+                "product_qty": 1.0,
+                "company_id": self.company_id.id,
+                "currency_id": self.currency_id.id,
+            }
+        )
+        price = line._get_ic_seller_sale_price()
+        if price is not None:
+            product_infos["price"] = price
+        return product_infos
+

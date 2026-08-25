@@ -10,7 +10,7 @@ from odoo.tools.translate import _
 
 _logger = logging.getLogger(__name__)
 
-ONLINE_SECONDS = 90
+ONLINE_SECONDS = 180
 BUS_NOTIFICATION = "device_bridge/print_job"
 
 
@@ -188,8 +188,9 @@ class DeviceBridgeGateway(models.Model):
             order="last_seen desc",
         )
         # Share within same company by default
+        allowed_companies = self.env.companies
         gateways = gateways.filtered(
-            lambda g: not g.company_id or g.company_id == self.env.company
+            lambda g: not g.company_id or g.company_id in allowed_companies
         )
         return [g._to_public_payload() for g in gateways]
 
@@ -227,7 +228,7 @@ class DeviceBridgeGateway(models.Model):
                 )
                 % device.name
             )
-        if gateway.company_id and gateway.company_id != self.env.company:
+        if gateway.company_id and gateway.company_id not in self.env.companies:
             raise AccessError(_("Gateway belongs to another company."))
 
         job_id = uuid.uuid4().hex

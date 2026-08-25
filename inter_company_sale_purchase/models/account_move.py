@@ -28,12 +28,11 @@ class AccountMove(models.Model):
                 invoices_map.setdefault(company, self.env["account.move"])
                 invoices_map[company] += invoice
         for company, invoices in invoices_map.items():
+            company._ic_ensure_user(["account"])
             context = dict(self.env.context, default_company_id=company.id)
             context.pop("default_journal_id", None)
             context.pop("default_invoice_payment_term_id", None)
-            invoices.with_user(company.ic_user_id).with_company(company).with_context(
-                context
-            )._ic_create_counterpart_invoices(company)
+            invoices.sudo().with_context(context)._ic_create_counterpart_invoices(company)
         return posted
 
     def _ic_create_counterpart_invoices(self, company):
@@ -42,10 +41,13 @@ class AccountMove(models.Model):
             "out_refund": "in_refund",
         }
         moves = self.env["account.move"]
-        for invoice in self:
+        ic_user = company._ic_ensure_user(["account"])
+        for invoice in self.sudo():
             if invoice.move_type not in inverse_types:
                 continue
-            invoice_vals = invoice._ic_prepare_invoice_data(inverse_types[invoice.move_type], company)
+            invoice_vals = invoice._ic_prepare_invoice_data(
+                inverse_types[invoice.move_type], company
+            )
             invoice_vals["invoice_line_ids"] = []
             for line in invoice.invoice_line_ids:
                 invoice_vals["invoice_line_ids"].append(
@@ -53,8 +55,13 @@ class AccountMove(models.Model):
                 )
             move = (
                 self.env["account.move"]
+                .with_user(ic_user)
                 .with_company(company)
-                .with_context(default_move_type=invoice_vals["move_type"])
+                .with_context(
+                    default_move_type=invoice_vals["move_type"],
+                    allowed_company_ids=company.ids,
+                )
+                .sudo()
                 .create(invoice_vals)
             )
             for line in move.invoice_line_ids.filtered(
@@ -63,7 +70,7 @@ class AccountMove(models.Model):
                 price_unit = line.price_unit
                 line.tax_ids = line._get_computed_taxes()
                 line.price_unit = price_unit
-            move.message_post(
+            move.sudo().message_post(
                 body=_(
                     "Automatically generated from %(origin)s of company %(company)s.",
                     origin=invoice.name,
@@ -71,29 +78,38 @@ class AccountMove(models.Model):
                 )
             )
             if company.ic_invoice_mode == "posted":
-                move.with_context(skip_ic_invoice_sync=True)._post(soft=True)
+                move.with_user(ic_user).with_company(company).with_context(
+                    skip_ic_invoice_sync=True,
+                    allowed_company_ids=company.ids,
+                ).sudo()._post(soft=True)
             moves += move
         return moves
 
     def _ic_prepare_invoice_data(self, invoice_type, company):
         self.ensure_one()
-        delivery_partner_id = self.company_id.partner_id.address_get(["delivery"])["delivery"]
-        delivery_partner = self.env["res.partner"].browse(delivery_partner_id)
+        partner = self.company_id.partner_id.sudo()
+        delivery_partner_id = partner.address_get(["delivery"])["delivery"]
+        delivery_partner = self.env["res.partner"].sudo().browse(delivery_partner_id)
         fiscal_position = (
             self.env["account.fiscal.position"]
+            .sudo()
             .with_company(company)
-            ._get_fiscal_position(self.company_id.partner_id, delivery=delivery_partner)
+            ._get_fiscal_position(partner, delivery=delivery_partner)
         )
         journal = company.ic_purchase_journal_id
         if not journal:
-            journal = self.env["account.journal"].search(
-                [("type", "=", "purchase"), ("company_id", "=", company.id)],
-                limit=1,
+            journal = (
+                self.env["account.journal"]
+                .sudo()
+                .search(
+                    [("type", "=", "purchase"), ("company_id", "=", company.id)],
+                    limit=1,
+                )
             )
         return {
             "move_type": invoice_type,
             "ref": self.name,
-            "partner_id": self.company_id.partner_id.id,
+            "partner_id": partner.id,
             "currency_id": self.currency_id.id,
             "auto_generated": True,
             "auto_invoice_id": self.id,

@@ -1,6 +1,6 @@
 {
     "name": "Device Bridge",
-    "version": "18.0.1.4.3",
+    "version": "18.0.1.4.4",
     "category": "Productivity",
     "summary": "Authorize and share hardware devices (WebUSB, WebSocket gateway, etc.)",
     "author": "andyengit",
@@ -26,6 +26,7 @@
             "device_bridge/static/src/js/device_bridge_local_registry.js",
             "device_bridge/static/src/js/device_bridge_webusb_transport.js",
             "device_bridge/static/src/js/device_bridge_proxy.js",
+            "device_bridge/static/src/js/device_bridge_print_flow.js",
             "device_bridge/static/src/js/device_bridge_gateway_service.js",
             "device_bridge/static/src/js/device_bridge_service.js",
             "device_bridge/static/src/js/device_bridge_report_action.js",

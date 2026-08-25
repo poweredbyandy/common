@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="purchase_order_form_inter_company_stock" model="ir.ui.view">
+        <field name="name">purchase.order.form.inter.company.stock</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='partner_id']" position="after">
+                <field name="is_intercompany_vendor" invisible="1"/>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/list/field[@name='product_qty']" position="after">
+                <field name="is_intercompany_vendor" column_invisible="1"/>
+                <field name="ic_qty_available"
+                         string="Vendor On Hand"
+                         optional="show"
+                         column_invisible="not parent.is_intercompany_vendor"/>
+                <field name="ic_virtual_available"
+                         string="Vendor Forecast"
+                         optional="hide"
+                         column_invisible="not parent.is_intercompany_vendor"/>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/form//field[@name='price_unit']" position="before">
+                <field name="is_intercompany_vendor" invisible="1"/>
+                <field name="ic_qty_available" invisible="not is_intercompany_vendor"/>
+                <field name="ic_virtual_available" invisible="not is_intercompany_vendor"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>
