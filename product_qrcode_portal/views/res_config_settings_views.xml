@@ -15,7 +15,7 @@
                         <span class="fa fa-lg fa-globe" title="Values set here are website-specific." groups="website.group_multi_website"/>
                         <div class="content-group">
                             <div class="row mt16 ms-4">
-                                <field name="product_qr_portal_action" widget="radio"/>
+                                <field name="product_qr_portal_action" widget="radio" required="0"/>
                             </div>
                         </div>
                     </setting>

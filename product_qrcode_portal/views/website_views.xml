@@ -6,7 +6,7 @@
         <field name="inherit_id" ref="website.view_website_form"/>
         <field name="arch" type="xml">
             <group name="domain" position="inside">
-                <field name="product_qr_portal_action"/>
+                <field name="product_qr_portal_action" required="0"/>
             </group>
         </field>
     </record>

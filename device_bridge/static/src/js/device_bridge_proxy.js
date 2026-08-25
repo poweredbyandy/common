@@ -318,17 +318,19 @@ export class DeviceBridgeProxy {
         forcePicker = false,
         allowPicker = true,
         shareGateway = true,
+        persistDevice = true,
+        filters = null,
     } = {}) {
         if (!navigator.usb) {
             throw new Error("WEBUSB_NOT_AVAILABLE");
         }
         if (this.isConnected && !forcePicker) {
-            if (shareGateway) {
+            if (persistDevice && shareGateway) {
                 await this._registerGateway();
             }
             return this.transport.device;
         }
-        await this.disconnect({ keepGateway: false });
+        await this.disconnect({ keepGateway: persistDevice ? false : true });
 
         let selected = null;
         if (!forcePicker) {
@@ -336,21 +338,23 @@ export class DeviceBridgeProxy {
         }
         if (selected?.device) {
             await this.transport.claim(selected.device);
-            this.authorizedDeviceId = selected.authorized?.id || null;
-            if (this.authorizedDeviceId) {
-                await callModel(
-                    "device.bridge.authorization",
-                    "touch_authorization",
-                    [this.authorizedDeviceId, this.browserKey]
-                );
-            } else {
-                await this._authorizeCurrentDevice();
-            }
-            if (shareGateway) {
-                await this._registerGateway();
-            }
-            if (typeof this.onLocalConnected === "function") {
-                await this.onLocalConnected(this);
+            if (persistDevice) {
+                this.authorizedDeviceId = selected.authorized?.id || null;
+                if (this.authorizedDeviceId) {
+                    await callModel(
+                        "device.bridge.authorization",
+                        "touch_authorization",
+                        [this.authorizedDeviceId, this.browserKey]
+                    );
+                } else {
+                    await this._authorizeCurrentDevice();
+                }
+                if (shareGateway) {
+                    await this._registerGateway();
+                }
+                if (typeof this.onLocalConnected === "function") {
+                    await this.onLocalConnected(this);
+                }
             }
             return this.transport.device;
         }
@@ -359,15 +363,20 @@ export class DeviceBridgeProxy {
             throw new Error("WEBUSB_DEVICE_NOT_AVAILABLE");
         }
 
-        const filters = await this.getFilters({ picker: true });
-        const device = await navigator.usb.requestDevice({ filters });
+        const pickerFilters =
+            filters || (await this.getFilters({ picker: true }));
+        const device = await navigator.usb.requestDevice({
+            filters: pickerFilters,
+        });
         await this.transport.claim(device);
-        await this._authorizeCurrentDevice();
-        if (shareGateway) {
-            await this._registerGateway();
-        }
-        if (typeof this.onLocalConnected === "function") {
-            await this.onLocalConnected(this);
+        if (persistDevice) {
+            await this._authorizeCurrentDevice();
+            if (shareGateway) {
+                await this._registerGateway();
+            }
+            if (typeof this.onLocalConnected === "function") {
+                await this.onLocalConnected(this);
+            }
         }
         return this.transport.device;
     }
@@ -422,23 +431,32 @@ export class DeviceBridgeProxy {
     }
 
     async printLocal(uint8Array, options = {}) {
-        if (!this.isConnected) {
+        const persistDevice = options.persistDevice !== false;
+        if (!this.isConnected || options.forcePicker) {
             await this.connect({
                 forcePicker: Boolean(options.forcePicker),
                 allowPicker: options.allowPicker !== false,
-                shareGateway: options.shareGateway !== false,
+                shareGateway: persistDevice && options.shareGateway !== false,
+                persistDevice,
+                filters: options.filters || null,
             });
         }
-        await this.transport.transfer(uint8Array);
-        if (this.authorizedDeviceId) {
-            try {
-                await callModel(
-                    "device.bridge.authorization",
-                    "touch_authorization",
-                    [this.authorizedDeviceId, this.browserKey]
-                );
-            } catch {
-                /* ignore */
+        try {
+            await this.transport.transfer(uint8Array);
+            if (persistDevice && this.authorizedDeviceId) {
+                try {
+                    await callModel(
+                        "device.bridge.authorization",
+                        "touch_authorization",
+                        [this.authorizedDeviceId, this.browserKey]
+                    );
+                } catch {
+                    /* ignore */
+                }
+            }
+        } finally {
+            if (!persistDevice) {
+                await this.disconnect({ keepGateway: true });
             }
         }
     }
@@ -449,6 +467,8 @@ export class DeviceBridgeProxy {
      *   mode?: 'auto'|'local'|'remote',
      *   forcePicker?: boolean,
      *   allowPicker?: boolean,
+     *   persistDevice?: boolean,
+     *   filters?: Array,
      *   gatewayId?: number,
      *   shareGateway?: boolean,
      * }} options
@@ -464,13 +484,13 @@ export class DeviceBridgeProxy {
         if (mode === "local") {
             return this.printLocal(uint8Array, options);
         }
-        // auto: silent local -> remote gateway -> picker only as last resort
         let silentError;
         try {
             return await this.printLocal(uint8Array, {
                 ...options,
                 forcePicker: false,
                 allowPicker: false,
+                persistDevice: true,
             });
         } catch (error) {
             silentError = error;
@@ -484,8 +504,11 @@ export class DeviceBridgeProxy {
             try {
                 return await this.printLocal(uint8Array, {
                     ...options,
-                    forcePicker: Boolean(options.forcePicker),
+                    forcePicker: true,
                     allowPicker: true,
+                    persistDevice: false,
+                    shareGateway: false,
+                    filters: [{}],
                 });
             } catch (pickerError) {
                 if (remoteError?.message === "DEVICE_BRIDGE_NO_GATEWAY") {

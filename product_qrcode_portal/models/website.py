@@ -14,7 +14,7 @@ class Website(models.Model):
         ],
         string="Product QR URL scan",
         default="code",
-        required=True,
+        required=False,
         help="What happens when a visitor scans the portal URL of a product.",
     )
 

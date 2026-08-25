@@ -15,5 +15,6 @@
 7. While connected, the browser registers as an online **gateway** (heartbeat).
 8. Another device without USB can print with ``printRaw(..., { mode: 'auto' })``:
    it uses local USB when available, otherwise sends the job to an online
-   gateway.
+   gateway. If the configured printer cannot be reached, the browser asks
+   for a USB device and prints once without saving it as the default.
 9. Review authorizations and gateways under *Device Bridge*.

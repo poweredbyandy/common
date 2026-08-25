@@ -51,6 +51,10 @@ class TestProductQRCodePortal(WebsiteSaleCommon):
         self.website.product_qr_portal_action = "code"
         self.assertFalse(self.website._get_product_qr_portal_target_url(self.product))
 
+    def test_portal_action_empty_has_no_redirect(self):
+        self.website.product_qr_portal_action = False
+        self.assertFalse(self.website._get_product_qr_portal_target_url(self.product))
+
     def test_portal_action_website_product(self):
         self.website.product_qr_portal_action = "website_product"
         target = self.website._get_product_qr_portal_target_url(self.product)

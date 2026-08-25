@@ -7,6 +7,6 @@ class ResConfigSettings(models.TransientModel):
     product_qr_portal_action = fields.Selection(
         related="website_id.product_qr_portal_action",
         readonly=False,
-        required=True,
+        required=False,
         string="Product QR URL scan",
     )
