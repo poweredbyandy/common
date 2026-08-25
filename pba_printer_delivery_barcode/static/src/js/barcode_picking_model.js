@@ -14,4 +14,21 @@ patch(BarcodePickingModel.prototype, {
         });
         return buttons;
     },
+
+    async print(action, method) {
+        if (method !== "action_print_pos80") {
+            return super.print(action, method);
+        }
+        if (this._pbaPos80Printing) {
+            return;
+        }
+        this._pbaPos80Printing = true;
+        try {
+            return await super.print(action, method);
+        } finally {
+            setTimeout(() => {
+                this._pbaPos80Printing = false;
+            }, 1500);
+        }
+    },
 });

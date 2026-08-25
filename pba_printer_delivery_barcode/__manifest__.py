@@ -1,6 +1,6 @@
 {
     "name": "PBA POS-80 Delivery Printer Barcode",
-    "version": "18.0.1.0.0",
+    "version": "18.0.1.0.1",
     "category": "Inventory/Inventory",
     "summary": "Print outgoing pickings on a POS-80 from the barcode app",
     "author": "andyengit",

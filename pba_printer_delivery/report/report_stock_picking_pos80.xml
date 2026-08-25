@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="pos80_ticket_doc">
+        <t t-foreach="docs" t-as="doc">
+            <t t-esc="doc.display_name"/>
+        </t>
+    </template>
+    <record id="action_report_stock_picking_pos80" model="ir.actions.report">
+        <field name="name">POS-80 Delivery Ticket</field>
+        <field name="model">stock.picking</field>
+        <field name="report_type">qweb-text</field>
+        <field name="report_name">pba_printer_delivery.pos80_ticket_doc</field>
+        <field name="print_report_name">'POS80-%s' % (object.name)</field>
+        <field name="binding_model_id" ref="stock.model_stock_picking"/>
+        <field name="binding_type">report</field>
+        <field name="groups_id" eval="[(4, ref('stock.group_stock_user'))]"/>
+    </record>
+</odoo>

@@ -7,8 +7,8 @@
         <field name="arch" type="xml">
             <xpath expr="//header/button[@name='do_print_picking']" position="after">
                 <button
-                    name="action_print_pos80"
-                    type="object"
+                    name="%(action_report_stock_picking_pos80)d"
+                    type="action"
                     string="Print POS-80"
                     class="btn-secondary"
                     groups="stock.group_stock_user"

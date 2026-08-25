@@ -1,5 +1,7 @@
 #. Confirm a sales order or create an outgoing picking. The POS-80 prints the
-   delivery ticket when auto-print is enabled.
-#. Open the picking and click **Print POS-80** to reprint.
+   delivery ticket when auto-print is enabled. Lines are grouped by source
+   location.
+#. Open the picking and click **Print POS-80**, or use **Print > POS-80
+   Delivery Ticket**.
 #. If the configured printer is offline, the client asks whether to print on
    this computer and opens the USB picker.

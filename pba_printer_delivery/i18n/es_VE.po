@@ -44,6 +44,7 @@ msgstr "Imprime los albaranes de salida en la POS-80 al crearlos. Usa Device Bri
 
 #. module: pba_printer_delivery
 #: model_terms:ir.ui.view,arch_db:pba_printer_delivery.stock_picking_view_form_pos80
+#: code:addons/pba_printer_delivery/models/stock_picking.py:0
 msgid "Print POS-80"
 msgstr "Imprimir POS-80"
 
@@ -178,3 +179,23 @@ msgstr "Se enviaron %s tickets a la POS-80."
 #: code:addons/pba_printer_delivery/static/src/js/pba_printer_delivery_action.js:0
 msgid "Could not print"
 msgstr "No se pudo imprimir"
+
+#. module: pba_printer_delivery
+#: model:ir.actions.report,name:pba_printer_delivery.action_report_stock_picking_pos80
+msgid "POS-80 Delivery Ticket"
+msgstr "Ticket de entrega POS-80"
+
+#. module: pba_printer_delivery
+#: model:ir.model,name:pba_printer_delivery.model_report_pba_printer_delivery_pos80_ticket_doc
+msgid "POS-80 delivery ticket"
+msgstr "Ticket de entrega POS-80"
+
+#. module: pba_printer_delivery
+#: model:ir.model.fields,field_description:pba_printer_delivery.field_stock_picking__pba_pos80_auto_printed
+msgid "Pba Pos80 Auto Printed"
+msgstr "POS-80 autoimpreso"
+
+#. module: pba_printer_delivery
+#: code:addons/pba_printer_delivery/models/stock_picking.py:0
+msgid "Location"
+msgstr "Ubicación"

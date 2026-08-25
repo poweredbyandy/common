@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from odoo import api, fields, models
+from odoo.tools import sql
 
 
 class DeviceBridgePrintJob(models.Model):
@@ -45,6 +46,13 @@ class DeviceBridgePrintJob(models.Model):
         store=True,
         index=True,
     )
+
+    @api.model
+    def _ensure_table(self):
+        if sql.table_exists(self.env.cr, self._table):
+            return True
+        self._auto_init()
+        return sql.table_exists(self.env.cr, self._table)
 
     def _to_payload(self):
         self.ensure_one()

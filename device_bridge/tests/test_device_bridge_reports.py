@@ -151,3 +151,45 @@ class TestDeviceBridgeReports(TransactionCase):
             False,
         )
         self.assertEqual(print_job.state, "done")
+
+    def test_claim_print_job_hides_it_from_pull(self):
+        self.printer.write({"connection_types": "webusb,websocket"})
+        auth = self.env["device.bridge.authorization"].authorize_device(
+            {
+                "device_code": self.printer.code,
+                "browser_key": "browser-key-claim",
+                "vendor_id": 1046,
+                "product_id": 20481,
+            }
+        )
+        gateway = self.env["device.bridge.gateway"].register_gateway(
+            self.printer.code,
+            "browser-key-claim",
+            auth["id"],
+            "Claim PC",
+        )
+        queued = self.env["device.bridge.gateway"].send_raw_job(
+            self.printer.code,
+            base64.b64encode(b"CLAIM-JOB").decode(),
+        )
+        print_job = self.env["device.bridge.print.job"].search(
+            [("name", "=", queued["job_id"])],
+            limit=1,
+        )
+        claimed = self.env["device.bridge.gateway"].claim_print_job(
+            print_job.id,
+            gateway["id"],
+            "browser-key-claim",
+            gateway["channel_token"],
+        )
+        self.assertTrue(claimed)
+        self.assertEqual(print_job.state, "processing")
+        pulled = self.env["device.bridge.gateway"].pull_print_jobs(
+            gateway["id"],
+            "browser-key-claim",
+            gateway["channel_token"],
+        )
+        self.assertEqual(pulled, [])
+
+    def test_print_job_table_ensure(self):
+        self.assertTrue(self.env["device.bridge.print.job"]._ensure_table())

@@ -130,3 +130,47 @@ export async function printPos80ThroughBridge(env, deviceCode, bytes) {
         return "local";
     }
 }
+
+export function jobDeviceCodes(job) {
+    const codes = Array.isArray(job?.device_codes)
+        ? job.device_codes.filter(Boolean)
+        : [];
+    if (codes.length) {
+        return codes;
+    }
+    if (job?.device_code) {
+        return [job.device_code];
+    }
+    return [POS80_DEVICE_CODE];
+}
+
+export async function printPos80JobThroughBridge(env, job) {
+    const bytes = base64ToUint8Array(job.data_b64);
+    let lastError;
+    for (const code of jobDeviceCodes(job)) {
+        try {
+            await printPos80ThroughBridge(env, code, bytes);
+            return code;
+        } catch (error) {
+            lastError = error;
+        }
+    }
+    throw lastError || new Error("DEVICE_BRIDGE_NOT_CONFIGURED");
+}
+
+export async function printPos80JobLocal(env, job) {
+    const bytes = base64ToUint8Array(job.data_b64);
+    let lastError;
+    for (const code of jobDeviceCodes(job)) {
+        try {
+            await printPos80Bytes(env, code, bytes, {
+                mode: "local",
+                allowPicker: false,
+            });
+            return code;
+        } catch (error) {
+            lastError = error;
+        }
+    }
+    throw lastError || new Error("WEBUSB_DEVICE_NOT_AVAILABLE");
+}

@@ -34,5 +34,6 @@ class TestPbaPrinterDeliveryBarcode(TransactionCase):
             }
         )
         action = picking.action_print_pos80()
+        self.assertEqual(action["type"], "ir.actions.client")
         self.assertEqual(action["tag"], "pba_printer_delivery_print")
         self.assertEqual(action["params"]["picking_ids"], picking.ids)

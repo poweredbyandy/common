@@ -232,8 +232,11 @@ class DeviceBridgeGateway(models.Model):
         if gateway.company_id and gateway.company_id not in self.env.companies:
             raise AccessError(_("Gateway belongs to another company."))
 
+        Job = self.env["device.bridge.print.job"]
+        if not Job._ensure_table():
+            raise UserError(_("Print job storage is not available."))
         job_id = uuid.uuid4().hex
-        job = self.env["device.bridge.print.job"].sudo().create(
+        job = Job.sudo().create(
             {
                 "name": job_id,
                 "device_id": device.id,
@@ -251,6 +254,7 @@ class DeviceBridgeGateway(models.Model):
             "browser_key": gateway.browser_key,
             "channel_token": gateway.channel_token,
             "device_code": device.code,
+            "data_b64": data_b64,
             "requester_uid": self.env.user.id,
             "requester_name": self.env.user.name,
         }
@@ -284,7 +288,10 @@ class DeviceBridgeGateway(models.Model):
 
     def _claim_pending_jobs(self):
         self.ensure_one()
-        jobs = self.env["device.bridge.print.job"].sudo().search(
+        Job = self.env["device.bridge.print.job"]
+        if not Job._ensure_table():
+            return []
+        jobs = Job.sudo().search(
             [
                 ("gateway_id", "=", self.id),
                 ("state", "=", "pending"),
@@ -294,6 +301,22 @@ class DeviceBridgeGateway(models.Model):
         if jobs:
             jobs.write({"state": "processing"})
         return [job._to_payload() for job in jobs]
+
+    @api.model
+    def claim_print_job(self, job_id, gateway_id, browser_key, channel_token):
+        gateway = self._ensure_caller_gateway(
+            gateway_id, browser_key, channel_token
+        )
+        Job = self.env["device.bridge.print.job"]
+        if not Job._ensure_table():
+            return False
+        job = Job.sudo().browse(int(job_id)).exists()
+        if not job or job.gateway_id != gateway:
+            return False
+        if job.state == "pending":
+            job.write({"state": "processing"})
+            return True
+        return False
 
     @api.model
     def get_my_gateways(self, browser_key):
@@ -315,7 +338,11 @@ class DeviceBridgeGateway(models.Model):
             gateway_id, browser_key, channel_token
         )
         gateway.write({"last_seen": fields.Datetime.now()})
-        return gateway._claim_pending_jobs()
+        try:
+            return gateway._claim_pending_jobs()
+        except Exception:
+            _logger.exception("device_bridge pull_print_jobs failed")
+            return []
 
     @api.model
     def ack_print_job(
@@ -324,7 +351,10 @@ class DeviceBridgeGateway(models.Model):
         gateway = self._ensure_caller_gateway(
             gateway_id, browser_key, channel_token
         )
-        job = self.env["device.bridge.print.job"].sudo().browse(int(job_id)).exists()
+        Job = self.env["device.bridge.print.job"]
+        if not Job._ensure_table():
+            return False
+        job = Job.sudo().browse(int(job_id)).exists()
         if not job or job.gateway_id != gateway:
             return False
         if success:

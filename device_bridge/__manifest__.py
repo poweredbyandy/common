@@ -1,6 +1,6 @@
 {
     "name": "Device Bridge",
-    "version": "18.0.1.4.5",
+    "version": "18.0.1.4.7",
     "category": "Productivity",
     "summary": "Authorize and share hardware devices (WebUSB, WebSocket gateway, etc.)",
     "author": "andyengit",
@@ -35,6 +35,7 @@
             "device_bridge/static/src/xml/device_bridge_register_action.xml",
         ],
     },
+    "post_init_hook": "post_init_hook",
     "installable": True,
     "application": True,
 }
