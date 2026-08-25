@@ -107,3 +107,47 @@ class TestDeviceBridgeReports(TransactionCase):
     def test_test_print_rejects_non_printer(self):
         with self.assertRaises(UserError):
             self.env["device.bridge"].get_test_print_payload(self.scanner.code)
+
+    def test_send_raw_job_queues_print_job(self):
+        self.printer.write({"connection_types": "webusb,websocket"})
+        auth = self.env["device.bridge.authorization"].authorize_device(
+            {
+                "device_code": self.printer.code,
+                "browser_key": "browser-key-gateway",
+                "vendor_id": 1046,
+                "product_id": 20481,
+            }
+        )
+        gateway = self.env["device.bridge.gateway"].register_gateway(
+            self.printer.code,
+            "browser-key-gateway",
+            auth["id"],
+            "Kitchen PC",
+        )
+        queued = self.env["device.bridge.gateway"].send_raw_job(
+            self.printer.code,
+            base64.b64encode(b"ZPL-JOB").decode(),
+        )
+        print_job = self.env["device.bridge.print.job"].search(
+            [("name", "=", queued["job_id"])],
+            limit=1,
+        )
+        self.assertEqual(print_job.state, "pending")
+        self.assertEqual(print_job.gateway_id.id, gateway["id"])
+        pulled = self.env["device.bridge.gateway"].pull_print_jobs(
+            gateway["id"],
+            "browser-key-gateway",
+            gateway["channel_token"],
+        )
+        self.assertEqual(len(pulled), 1)
+        self.assertEqual(pulled[0]["id"], print_job.id)
+        self.assertEqual(print_job.state, "processing")
+        self.env["device.bridge.gateway"].ack_print_job(
+            print_job.id,
+            gateway["id"],
+            "browser-key-gateway",
+            gateway["channel_token"],
+            True,
+            False,
+        )
+        self.assertEqual(print_job.state, "done")

@@ -5,3 +5,5 @@ access_device_bridge_authorization_internal,device.bridge.authorization internal
 access_device_bridge_authorization_manager,device.bridge.authorization manager,model_device_bridge_authorization,group_device_bridge_manager,1,1,1,1
 access_device_bridge_gateway_internal,device.bridge.gateway internal,model_device_bridge_gateway,base.group_user,1,1,1,1
 access_device_bridge_gateway_manager,device.bridge.gateway manager,model_device_bridge_gateway,group_device_bridge_manager,1,1,1,1
+access_device_bridge_print_job_internal,device.bridge.print.job internal,model_device_bridge_print_job,base.group_user,1,1,1,0
+access_device_bridge_print_job_manager,device.bridge.print.job manager,model_device_bridge_print_job,group_device_bridge_manager,1,1,1,1

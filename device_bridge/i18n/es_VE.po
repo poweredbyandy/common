@@ -422,3 +422,18 @@ msgstr "La impresora configurada no está en línea. ¿Desea imprimir en este eq
 #: code:addons/device_bridge/static/src/js/device_bridge_print_flow.js:0
 msgid "Print on this computer"
 msgstr "Imprimir en este equipo"
+
+#. module: device_bridge
+#: model:ir.model,name:device_bridge.model_device_bridge_print_job
+msgid "Device Bridge Print Job"
+msgstr "Trabajo de impresión del puente de dispositivos"
+
+#. module: device_bridge
+#: model:ir.model.fields,field_description:device_bridge.field_device_bridge_print_job__state
+msgid "Pending"
+msgstr "Pendiente"
+
+#. module: device_bridge
+#: code:addons/device_bridge/models/device_bridge_gateway.py:0
+msgid "Invalid gateway."
+msgstr "Puerta de enlace no válida."

@@ -14,6 +14,6 @@
    using that device code.
 7. While connected, the browser registers as an online **gateway** (heartbeat).
 8. On the PC that has the printer, Odoo keeps a gateway online. From another
-   device, print jobs are sent to that gateway (no USB picker). If the
-   gateway is not found, Odoo asks whether to print on this computer.
+   device, print jobs are queued and the printer PC pulls them to print. If
+   the gateway is not found, Odoo asks whether to print on this computer.
 9. Review authorizations and gateways under *Device Bridge*.

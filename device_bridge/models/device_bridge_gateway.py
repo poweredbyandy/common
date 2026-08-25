@@ -122,6 +122,7 @@ class DeviceBridgeGateway(models.Model):
             [
                 ("device_id", "=", device.id),
                 ("user_id", "=", self.env.user.id),
+                ("browser_key", "=", browser_key),
             ],
             limit=1,
         )
@@ -232,14 +233,24 @@ class DeviceBridgeGateway(models.Model):
             raise AccessError(_("Gateway belongs to another company."))
 
         job_id = uuid.uuid4().hex
+        job = self.env["device.bridge.print.job"].sudo().create(
+            {
+                "name": job_id,
+                "device_id": device.id,
+                "gateway_id": gateway.id,
+                "requester_id": self.env.uid,
+                "data_b64": data_b64,
+                "state": "pending",
+            }
+        )
         payload = {
-            "job_id": job_id,
+            "job_id": job.name,
+            "record_id": job.id,
             "gateway_id": gateway.id,
             "authorization_id": gateway.authorization_id.id,
             "browser_key": gateway.browser_key,
             "channel_token": gateway.channel_token,
             "device_code": device.code,
-            "data_b64": data_b64,
             "requester_uid": self.env.user.id,
             "requester_name": self.env.user.name,
         }
@@ -257,6 +268,75 @@ class DeviceBridgeGateway(models.Model):
             "gateway_name": gateway.name,
             "device_code": device.code,
         }
+
+    def _ensure_caller_gateway(self, gateway_id, browser_key, channel_token):
+        Auth = self.env["device.bridge.authorization"]
+        browser_key = Auth._normalize_browser_key(browser_key)
+        gateway = self.sudo().browse(int(gateway_id)).exists()
+        if (
+            not gateway
+            or gateway.user_id.id != self.env.user.id
+            or gateway.browser_key != browser_key
+            or gateway.channel_token != (channel_token or "")
+        ):
+            raise AccessError(_("Invalid gateway."))
+        return gateway
+
+    def _claim_pending_jobs(self):
+        self.ensure_one()
+        jobs = self.env["device.bridge.print.job"].sudo().search(
+            [
+                ("gateway_id", "=", self.id),
+                ("state", "=", "pending"),
+            ],
+            order="id",
+        )
+        if jobs:
+            jobs.write({"state": "processing"})
+        return [job._to_payload() for job in jobs]
+
+    @api.model
+    def get_my_gateways(self, browser_key):
+        Auth = self.env["device.bridge.authorization"]
+        browser_key = Auth._normalize_browser_key(browser_key)
+        gateways = self.sudo().search(
+            [
+                ("user_id", "=", self.env.uid),
+                ("browser_key", "=", browser_key),
+            ]
+            + self._online_domain(),
+            order="last_seen desc",
+        )
+        return [gateway._to_payload() for gateway in gateways]
+
+    @api.model
+    def pull_print_jobs(self, gateway_id, browser_key, channel_token):
+        gateway = self._ensure_caller_gateway(
+            gateway_id, browser_key, channel_token
+        )
+        gateway.write({"last_seen": fields.Datetime.now()})
+        return gateway._claim_pending_jobs()
+
+    @api.model
+    def ack_print_job(
+        self, job_id, gateway_id, browser_key, channel_token, success=True, error=None
+    ):
+        gateway = self._ensure_caller_gateway(
+            gateway_id, browser_key, channel_token
+        )
+        job = self.env["device.bridge.print.job"].sudo().browse(int(job_id)).exists()
+        if not job or job.gateway_id != gateway:
+            return False
+        if success:
+            job.write({"state": "done", "error_message": False})
+        else:
+            job.write(
+                {
+                    "state": "error",
+                    "error_message": (error or "")[:256],
+                }
+            )
+        return True
 
     def _to_payload(self):
         self.ensure_one()
