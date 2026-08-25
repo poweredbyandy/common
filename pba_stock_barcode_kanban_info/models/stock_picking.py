@@ -47,6 +47,44 @@ class StockPicking(models.Model):
         pickings._pba_notify_barcode_available()
         return pickings
 
+    @api.model
+    def _pba_picking_name_barcode_variants(self, barcode):
+        barcode = (barcode or "").strip()
+        variants = [barcode]
+        if "-" in barcode:
+            variants.append(barcode.replace("-", "/"))
+        if "/" in barcode:
+            variants.append(barcode.replace("/", "-"))
+        return list(dict.fromkeys(variant for variant in variants if variant))
+
+    @api.model
+    def name_search(self, name="", args=None, operator="ilike", limit=100):
+        result = super().name_search(name=name, args=args, operator=operator, limit=limit)
+        if result or not name:
+            return result
+        for variant in self._pba_picking_name_barcode_variants(name):
+            if variant == name:
+                continue
+            result = super().name_search(
+                name=variant, args=args, operator=operator, limit=limit
+            )
+            if result:
+                return result
+        return result
+
+    @api.model
+    def filter_on_barcode(self, barcode):
+        result = super().filter_on_barcode(barcode)
+        if result.get("action"):
+            return result
+        for variant in self._pba_picking_name_barcode_variants(barcode):
+            if variant == barcode:
+                continue
+            result = super().filter_on_barcode(variant)
+            if result.get("action"):
+                return result
+        return result
+
     def action_assign(self):
         result = super().action_assign()
         self._pba_notify_barcode_available()

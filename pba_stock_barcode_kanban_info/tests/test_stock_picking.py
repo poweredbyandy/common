@@ -1,6 +1,8 @@
+import json
+
 from odoo.addons.stock.tests.common import TestStockCommon
 from odoo.fields import Command
-from odoo.tests import TransactionCase, tagged
+from odoo.tests import HttpCase, TransactionCase, tagged
 
 
 @tagged("post_install", "-at_install")
@@ -106,6 +108,42 @@ class TestPbaStockBarcodeKanbanInfo(TransactionCase):
         self.assertTrue(calls)
         self.assertIn(picking.id, calls[0])
 
+    def test_barcode_variants_convert_dash_and_slash(self):
+        variants = self.env["stock.picking"]._pba_picking_name_barcode_variants(
+            "ALM-OUT-2555"
+        )
+        self.assertEqual(variants, ["ALM-OUT-2555", "ALM/OUT/2555"])
+        variants = self.env["stock.picking"]._pba_picking_name_barcode_variants(
+            "ALM/OUT/2555"
+        )
+        self.assertEqual(variants, ["ALM/OUT/2555", "ALM-OUT-2555"])
+
+    def test_filter_on_barcode_accepts_dash_instead_of_slash(self):
+        picking = self._create_outgoing_picking(self.sale)
+        self.env["stock.move"].create(
+            {
+                "name": self.product.name,
+                "product_id": self.product.id,
+                "product_uom": self.product.uom_id.id,
+                "product_uom_qty": 1,
+                "picking_id": picking.id,
+                "location_id": picking.location_id.id,
+                "location_dest_id": picking.location_dest_id.id,
+            }
+        )
+        picking.action_confirm()
+        picking.name = "ALM/OUT/2555"
+        result = self.env["stock.picking"].with_context(
+            active_id=picking.picking_type_id.id
+        ).filter_on_barcode("ALM-OUT-2555")
+        self.assertIn("action", result)
+        self.assertEqual(
+            result["action"]["context"]["search_default_name"],
+            "ALM/OUT/2555",
+        )
+        found = self.env["stock.picking"].name_search("ALM-OUT-2555", operator="=")
+        self.assertIn(picking.id, [row[0] for row in found])
+
 
 @tagged("post_install", "-at_install")
 class TestPbaStockBarcodePickingReload(TestStockCommon):
@@ -180,3 +218,35 @@ class TestPbaStockBarcodePickingReload(TestStockCommon):
             "Bus notification must fire when moves are reserved without picking.action_assign",
         )
         self.assertEqual(assigned[0]["picking_type_id"], picking.picking_type_id.id)
+
+
+@tagged("post_install", "-at_install")
+class TestPbaStockBarcodePickingScan(HttpCase):
+    def test_main_menu_opens_picking_when_scan_uses_dashes(self):
+        partner = self.env["res.partner"].create({"name": "PBA barcode scan partner"})
+        picking = self.env["stock.picking"].create(
+            {
+                "picking_type_id": self.env.ref("stock.picking_type_out").id,
+                "location_id": self.env.ref("stock.stock_location_stock").id,
+                "location_dest_id": self.env.ref("stock.stock_location_customers").id,
+                "partner_id": partner.id,
+            }
+        )
+        picking.name = "ALM/OUT/2555"
+        self.authenticate("admin", "admin")
+        payload = json.dumps(
+            {
+                "jsonrpc": "2.0",
+                "method": "call",
+                "id": 0,
+                "params": {"barcode": "ALM-OUT-2555"},
+            }
+        )
+        response = self.url_open(
+            "/stock_barcode/scan_from_main_menu",
+            data=payload,
+            headers={"Content-Type": "application/json"},
+        )
+        result = response.json()["result"]
+        self.assertIn("action", result)
+        self.assertEqual(result["action"]["context"]["active_id"], picking.id)

@@ -1,7 +1,7 @@
 {
     "name": "PBA Kanban de codigo de barras",
-    "version": "18.0.2.1.0",
-    "summary": "Info de pedido/pago y recarga automatica del kanban de operaciones de codigo de barras",
+    "version": "18.0.2.2.0",
+    "summary": "Info de pedido/pago, recarga del kanban barcode y lectura de albaranes con - o /",
     "category": "Inventory/Inventory",
     "author": "andyengit",
     "maintainer": "andyengit",
