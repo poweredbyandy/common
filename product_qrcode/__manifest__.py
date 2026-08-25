@@ -1,6 +1,6 @@
 {
     "name": "Product QR Code",
-    "version": "18.0.1.3.1",
+    "version": "18.0.1.4.0",
     "category": "Inventory/Inventory",
     "summary": "Generate and display a QR code for each product",
     "author": "andyengit",
@@ -14,6 +14,7 @@
         "wizard/product_label_layout_views.xml",
         "views/product_product_views.xml",
         "views/product_template_views.xml",
+        "views/res_company_views.xml",
     ],
     "assets": {
         "web.assets_backend": [

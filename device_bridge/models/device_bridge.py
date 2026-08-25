@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
+import base64
 import re
 
 from odoo import api, fields, models
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError, ValidationError
 from odoo.tools.translate import _
+
+PRINTER_DEVICE_TYPES = ("printer", "label_printer")
 
 
 class DeviceBridge(models.Model):
@@ -73,8 +76,17 @@ class DeviceBridge(models.Model):
         "device_id",
         string="Gateways",
     )
+    report_ids = fields.Many2many(
+        "ir.actions.report",
+        "device_bridge_ir_actions_report_rel",
+        "device_id",
+        "report_id",
+        string="Reports",
+        help="Reports that can be printed on this device.",
+    )
     authorization_count = fields.Integer(compute="_compute_counts")
     gateway_count = fields.Integer(compute="_compute_counts")
+    report_count = fields.Integer(compute="_compute_counts")
 
     _sql_constraints = [
         (
@@ -84,11 +96,25 @@ class DeviceBridge(models.Model):
         ),
     ]
 
-    @api.depends("authorization_ids", "gateway_ids")
+    @api.depends("authorization_ids", "gateway_ids", "report_ids")
     def _compute_counts(self):
         for device in self:
             device.authorization_count = len(device.authorization_ids)
             device.gateway_count = len(device.gateway_ids)
+            device.report_count = len(device.report_ids)
+
+    @api.constrains("device_type", "report_ids")
+    def _check_report_ids_device_type(self):
+        for device in self:
+            if device.report_ids and device.device_type not in PRINTER_DEVICE_TYPES:
+                raise ValidationError(
+                    _("Reports can only be assigned to a printer.")
+                )
+
+    @api.onchange("device_type")
+    def _onchange_device_type(self):
+        if self.device_type not in PRINTER_DEVICE_TYPES:
+            self.report_ids = False
 
     @api.model
     def _normalize_code(self, code, name=None):
@@ -150,6 +176,78 @@ class DeviceBridge(models.Model):
             if part.strip()
         ]
 
+    def _sanitize_print_field(self, value):
+        text = (value or "").replace("\x00", " ").strip()
+        return re.sub(r"[\r\n^~\"\\]", " ", text)[:40]
+
+    def _get_test_print_bytes(self):
+        self.ensure_one()
+        if self.protocol == "none":
+            return b""
+        name = self._sanitize_print_field(self.name) or "Device Bridge"
+        code = self._sanitize_print_field(self.code) or "printer"
+        if self.protocol == "zpl":
+            label = (
+                "^XA\r\n"
+                "^PW812\r\n"
+                "^LL406\r\n"
+                "^LH0,0\r\n"
+                "^CI28\r\n"
+                "^FO20,20^GB360,160,4^FS\r\n"
+                "^FO40,40^A0N,40,40^FDDevice Bridge^FS\r\n"
+                "^FO40,100^A0N,28,28^FD%s^FS\r\n"
+                "^FO40,150^A0N,24,24^FD%s / ZPL^FS\r\n"
+                "^XZ\r\n"
+            ) % (name, code)
+            return label.encode("ascii", "replace")
+        if self.protocol == "epl":
+            label = (
+                "\nN\n"
+                'A40,40,0,3,1,1,N,"Device Bridge"\n'
+                'A40,80,0,3,1,1,N,"%s"\n'
+                'A40,120,0,3,1,1,N,"%s / EPL"\n'
+                "P1\n"
+            ) % (name, code)
+            return label.encode("ascii", "replace")
+        payload = bytearray(b"\x1b\x40\x1b\x61\x01")
+        payload.extend(b"Device Bridge\n")
+        payload.extend(name.encode("utf-8", "replace"))
+        payload.extend(b"\n")
+        payload.extend(code.encode("ascii", "replace"))
+        payload.extend(b" / ESC POS\n\n\n\x1d\x56\x00")
+        return bytes(payload)
+
+    @api.model
+    def get_test_print_payload(self, code):
+        device = self.search([("code", "=", code), ("active", "=", True)], limit=1)
+        if not device:
+            raise UserError(_("Unknown device code: %s") % code)
+        if device.device_type not in PRINTER_DEVICE_TYPES:
+            raise UserError(_("Test print is only available for printers."))
+        raw = device._get_test_print_bytes()
+        if not raw:
+            raise UserError(_("This device has no print protocol."))
+        return {
+            "code": device.code,
+            "name": device.name,
+            "protocol": device.protocol,
+            "data_b64": base64.b64encode(raw).decode(),
+        }
+
+    def action_print_test(self):
+        self.ensure_one()
+        self.get_test_print_payload(self.code)
+        return {
+            "type": "ir.actions.client",
+            "tag": "device_bridge_print_test",
+            "params": {
+                "device_code": self.code,
+            },
+            "context": {
+                "device_code": self.code,
+            },
+        }
+
     @api.model
     def get_device_payload(self, code):
         device = self.search([("code", "=", code), ("active", "=", True)], limit=1)
@@ -163,7 +261,18 @@ class DeviceBridge(models.Model):
             "protocol": device.protocol,
             "connection_types": device._connection_type_list(),
             "filters": device.get_usb_filters(),
+            "report_ids": device.report_ids.ids,
+            "report_names": device.report_ids.mapped("report_name"),
         }
+
+    @api.model
+    def get_printers_for_report(self, report_ref):
+        report = self.env["ir.actions.report"]._get_report(report_ref)
+        printers = report.device_bridge_ids.filtered(
+            lambda device: device.active
+            and device.device_type in PRINTER_DEVICE_TYPES
+        )
+        return [self.get_device_payload(printer.code) for printer in printers]
 
     @api.model
     def get_register_defaults(self):

@@ -6,3 +6,5 @@
 #. To print a ZPL label, open **Print Labels** from the product form, choose
    **ZPL QR (product code)**, set the quantity and confirm. The report returns
    ZPL text ready for a thermal printer.
+#. The label prints the company QR label logo when it is set. Otherwise it
+   prints the company logo.

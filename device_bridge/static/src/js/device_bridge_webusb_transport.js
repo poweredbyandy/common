@@ -26,11 +26,57 @@ export function sanitizeUsbString(value) {
     return String(value).replace(/\0/g, "").trim();
 }
 
+function collectBulkOutRows(configuration) {
+    const rows = [];
+    for (const iface of configuration.interfaces) {
+        for (const alternate of iface.alternates) {
+            const bulkOut = alternate.endpoints.find(
+                (endpoint) =>
+                    endpoint.type === "bulk" && endpoint.direction === "out"
+            );
+            if (!bulkOut) {
+                continue;
+            }
+            rows.push({
+                interfaceNumber: iface.interfaceNumber,
+                bulkOut,
+                interfaceClass: alternate.interfaceClass,
+            });
+        }
+    }
+    return rows;
+}
+
+function rankBulkOutRows(configuration) {
+    const rows = collectBulkOutRows(configuration);
+    const ranked = rows
+        .filter((row) => row.interfaceClass !== 3)
+        .map((row) => {
+            let score = 0;
+            if (row.interfaceClass === 7) {
+                score += 100;
+            }
+            if (row.interfaceClass === 255) {
+                score += 80;
+            }
+            if (row.interfaceNumber === 0) {
+                score += 10;
+            }
+            score -= row.interfaceNumber;
+            return { row, score };
+        });
+    ranked.sort((left, right) => right.score - left.score);
+    const preferred = ranked.map((item) => item.row);
+    const hidRows = rows.filter((row) => row.interfaceClass === 3);
+    return preferred.length ? preferred.concat(hidRows) : rows;
+}
+
 export class DeviceBridgeWebUsbTransport {
     constructor() {
         this.device = null;
         this.interfaceNumber = null;
         this.endpointNumber = null;
+        this.packetSize = 64;
     }
 
     get isConnected() {
@@ -72,32 +118,31 @@ export class DeviceBridgeWebUsbTransport {
             if (device.configuration === null) {
                 await device.selectConfiguration(config.configurationValue);
             }
-            for (const iface of device.configuration.interfaces) {
-                const alternate = iface.alternates[0];
-                if (!alternate) {
-                    continue;
-                }
-                const bulkOut = alternate.endpoints.find(
-                    (endpoint) =>
-                        endpoint.type === "bulk" && endpoint.direction === "out"
-                );
-                if (!bulkOut) {
-                    continue;
-                }
+            const rows = rankBulkOutRows(device.configuration);
+            if (!rows.length) {
+                throw new Error("USB_NO_OUT_ENDPOINT");
+            }
+            let lastDenied = null;
+            for (const row of rows) {
                 try {
-                    await device.claimInterface(iface.interfaceNumber);
+                    await device.claimInterface(row.interfaceNumber);
                 } catch (error) {
                     if (isUsbAccessDeniedError(error)) {
-                        const err = new Error("USB_OPEN_ACCESS_DENIED");
-                        err.cause = error;
-                        throw err;
+                        lastDenied = error;
+                        continue;
                     }
                     throw error;
                 }
                 this.device = device;
-                this.interfaceNumber = iface.interfaceNumber;
-                this.endpointNumber = bulkOut.endpointNumber;
+                this.interfaceNumber = row.interfaceNumber;
+                this.endpointNumber = row.bulkOut.endpointNumber;
+                this.packetSize = row.bulkOut.packetSize || 64;
                 return device;
+            }
+            if (lastDenied) {
+                const err = new Error("USB_OPEN_ACCESS_DENIED");
+                err.cause = lastDenied;
+                throw err;
             }
             throw new Error("USB_NO_OUT_ENDPOINT");
         } catch (error) {
@@ -118,6 +163,7 @@ export class DeviceBridgeWebUsbTransport {
         this.device = null;
         this.interfaceNumber = null;
         this.endpointNumber = null;
+        this.packetSize = 64;
         if (!device) {
             return;
         }
@@ -143,13 +189,19 @@ export class DeviceBridgeWebUsbTransport {
         }
         const device = this.device;
         const endpointNumber = this.endpointNumber;
-        const chunkSize = 16384;
+        const packetSize = this.packetSize || 64;
+        const chunkSize = Math.min(512, Math.max(packetSize, packetSize * 4));
         for (let offset = 0; offset < uint8Array.length; offset += chunkSize) {
             const chunk = uint8Array.subarray(
                 offset,
                 Math.min(offset + chunkSize, uint8Array.length)
             );
-            await device.transferOut(endpointNumber, chunk);
+            const result = await device.transferOut(endpointNumber, chunk);
+            if (result.status !== "ok") {
+                throw new Error(
+                    _t("USB transfer failed (%s).", result.status)
+                );
+            }
         }
     }
 }

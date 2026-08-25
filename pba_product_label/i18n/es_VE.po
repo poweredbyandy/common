@@ -1,0 +1,42 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* pba_product_label
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-08-25 19:10+0000\n"
+"PO-Revision-Date: 2026-08-25 19:10+0000\n"
+"Last-Translator: andyengit\n"
+"Language-Team: Spanish (Venezuela)\n"
+"Language: es_VE\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n == 1) ? 0 : ((n != 0 && n % 1000000 == 0) ? 1 : 2);\n"
+
+#. module: pba_product_label
+#: model:ir.module.module,shortdesc:pba_product_label.module_pba_product_label
+msgid "PBA Product Label"
+msgstr "Etiqueta de producto PBA"
+
+#. module: pba_product_label
+#: model:ir.module.module,summary:pba_product_label.module_pba_product_label
+msgid "ZPL product labels with a generated company logo"
+msgstr "Etiquetas ZPL de producto con el logo de la empresa generado"
+
+#. module: pba_product_label
+#: model:ir.actions.report,name:pba_product_label.action_report_label_product_product
+msgid "Product Label (ZPL)"
+msgstr "Etiqueta de producto (ZPL)"
+
+#. module: pba_product_label
+#: model:ir.model,name:pba_product_label.model_report_pba_product_label_label_product_product_view
+msgid "PBA Product Label (ZPL)"
+msgstr "Etiqueta de producto PBA (ZPL)"
+
+#. module: pba_product_label
+#: model:ir.model,name:pba_product_label.model_product_label_layout
+msgid "Choose the sheet layout to print the labels"
+msgstr "Elija el formato de hoja para imprimir las etiquetas"

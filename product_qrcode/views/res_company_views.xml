@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_company_form_qr_label_logo" model="ir.ui.view">
+        <field name="name">res.company.form.qr.label.logo</field>
+        <field name="model">res.company</field>
+        <field name="inherit_id" ref="base.view_company_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='general_info']/group" position="inside">
+                <group string="Product QR Label" name="product_qr_label">
+                    <field name="qr_label_logo" widget="image"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -7,3 +7,6 @@ Authorize and share hardware devices across browsers and computers.
   other users/devices in the same company can send jobs to it through Odoo bus.
 * Frontend proxy tries local connection first, then falls back to a remote
   online gateway.
+* Assign ``ir.actions.report`` records to a printer so each device has a
+  configured report list. Printing those reports sends the job to the
+  device; other reports keep the standard Odoo behavior.

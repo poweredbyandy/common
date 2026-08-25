@@ -28,6 +28,7 @@
                 <field name="vendor_ids"/>
                 <field name="product_ids"/>
                 <field name="company_id" groups="base.group_multi_company"/>
+                <field name="report_count" optional="hide"/>
                 <field name="active"/>
             </list>
         </field>
@@ -44,6 +45,13 @@
                         type="action"
                         string="Register USB device"
                         class="btn-primary"
+                    />
+                    <button
+                        name="action_print_test"
+                        type="object"
+                        string="Print test"
+                        class="btn-secondary"
+                        invisible="device_type not in ('printer', 'label_printer') or protocol == 'none'"
                     />
                 </header>
                 <sheet>
@@ -90,6 +98,20 @@
                                 </list>
                             </field>
                         </page>
+                        <page
+                            string="Reports"
+                            name="reports"
+                            invisible="device_type not in ('printer', 'label_printer')"
+                        >
+                            <field name="report_ids" nolabel="1" options="{'no_create': True}">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="model"/>
+                                    <field name="report_type"/>
+                                    <field name="report_name"/>
+                                </list>
+                            </field>
+                        </page>
                     </notebook>
                 </sheet>
             </form>
@@ -105,6 +127,7 @@
                 <field name="code"/>
                 <field name="device_type"/>
                 <filter string="Printers" name="printers" domain="[('device_type', 'in', ('printer', 'label_printer'))]"/>
+                <filter string="With reports" name="with_reports" domain="[('report_ids', '!=', False)]"/>
                 <filter string="Archived" name="inactive" domain="[('active', '=', False)]"/>
                 <group expand="0" string="Group By">
                     <filter string="Device type" name="group_device_type" context="{'group_by': 'device_type'}"/>

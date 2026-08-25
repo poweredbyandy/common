@@ -1,3 +1,8 @@
+import base64
+import io
+
+from PIL import Image
+
 from odoo.exceptions import UserError
 from odoo.tests import TransactionCase, tagged
 
@@ -65,3 +70,36 @@ class TestProductQrZpl(TransactionCase):
         product = self.env["product.product"].new({"name": "Draft Product"})
         with self.assertRaises(UserError):
             self.report._build_label_zpl(product, "product")
+
+    def _png_b64(self, color=(0, 0, 0)):
+        image = Image.new("RGB", (16, 16), color)
+        buffer = io.BytesIO()
+        image.save(buffer, format="PNG")
+        return base64.b64encode(buffer.getvalue())
+
+    def test_label_uses_qr_label_logo(self):
+        self.env.company.qr_label_logo = self._png_b64()
+        zpl = self.report._build_label_zpl(self.product, "product")
+        self.assertIn("^GFA,", zpl)
+
+    def test_label_falls_back_to_company_logo(self):
+        self.env.company.write(
+            {
+                "qr_label_logo": False,
+                "logo": self._png_b64((20, 20, 20)),
+            }
+        )
+        self.assertFalse(self.env.company.uses_default_logo)
+        zpl = self.report._build_label_zpl(self.product, "product")
+        self.assertIn("^GFA,", zpl)
+
+    def test_label_skips_default_company_logo(self):
+        self.env.company.write(
+            {
+                "qr_label_logo": False,
+                "logo": self.env["res.company"]._get_logo(),
+            }
+        )
+        self.assertTrue(self.env.company.uses_default_logo)
+        zpl = self.report._build_label_zpl(self.product, "product")
+        self.assertNotIn("^GFA,", zpl)

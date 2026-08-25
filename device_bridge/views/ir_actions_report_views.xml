@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="act_report_xml_view_device_bridge" model="ir.ui.view">
+        <field name="name">ir.actions.report.device.bridge</field>
+        <field name="model">ir.actions.report</field>
+        <field name="inherit_id" ref="base.act_report_xml_view"/>
+        <field name="arch" type="xml">
+            <field name="report_type" position="after">
+                <field
+                    name="device_bridge_ids"
+                    widget="many2many_tags"
+                    options="{'no_create': True}"
+                    groups="device_bridge.group_device_bridge_manager"
+                />
+            </field>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="label_product_product_view">
+        <t t-foreach="quantity.items()" t-as="barcode_and_qty_by_product">
+            <t t-set="product" t-value="barcode_and_qty_by_product[0]"/>
+            <t t-foreach="barcode_and_qty_by_product[1]" t-as="product_info">
+                <t t-set="barcode" t-value="product_info['barcode']"/>
+                <t t-foreach="range(product_info['quantity'])" t-as="qty">
+                    <t t-translation="off">
+^XA
+<t t-if="company_logo_gfa"><t t-out="company_logo_gfa"/>
+</t>
+^CI28
+<t t-set="top" t-value="60"/>
+<t t-set="gap" t-value="27"/>
+^FT175,<t t-out="top"/>^A0N,25,17^FD<t t-out="zpl_text(product.name[:37])"/>^FS
+<t t-if="len(product.name) &gt; 37">
+<t t-set="top" t-value="top + gap"/>
+^FT175,<t t-out="top"/>^A0N,25,18^FD<t t-out="zpl_text(product.name[37:])"/>^FS
+</t>
+^FO175,<t t-out="top + 5"/>^GB345,3,3^FS
+
+<t t-set="top" t-value="top + gap"/>
+<t t-set="top" t-value="top + 5"/>
+
+^FT175,<t t-out="top"/>^A0N,25,18^FD<t t-out="zpl_text(product.default_code or '')"/>^FS
+<t t-set="top" t-value="top + gap"/>
+^FT125,90^A0R,19,25^FD<t t-out="zpl_text(company.phone or '')"/>^FS
+^FT175,<t t-out="top"/>^A0N,25,18^FD<t t-out="zpl_text(company.name or '')"/>^FS
+<t t-set="top" t-value="top + gap"/>
+<t t-if="barcode">
+^FO165,<t t-out="top - 10"/>^BY2
+^BCN,<t t-out="200 - top"/>,Y,N,N
+^FD<t t-out="zpl_text(barcode)"/>^FS
+</t>
+^XZ
+                    </t>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

@@ -1,0 +1,406 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* device_bridge
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-08-25 18:30+0000\n"
+"PO-Revision-Date: 2026-08-25 18:30+0000\n"
+"Last-Translator: andyengit\n"
+"Language-Team: Spanish (Venezuela)\n"
+"Language: es_VE\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n == 1) ? 0 : ((n != 0 && n % 1000000 == 0) ? 1 : 2);\n"
+
+#. module: device_bridge
+#: model:ir.module.module,shortdesc:device_bridge.module_device_bridge
+#: model:ir.ui.menu,name:device_bridge.device_bridge_menu_root
+#: model:ir.module.category,name:device_bridge.module_category_device_bridge
+#: model:ir.model,name:device_bridge.model_device_bridge
+msgid "Device Bridge"
+msgstr "Puente de dispositivos"
+
+#. module: device_bridge
+#: model:ir.module.module,summary:device_bridge.module_device_bridge
+msgid "Authorize and share hardware devices (WebUSB, WebSocket gateway, etc.)"
+msgstr "Autoriza y comparte dispositivos de hardware (WebUSB, puerta de enlace WebSocket, etc.)"
+
+#. module: device_bridge
+#: model:ir.model,name:device_bridge.model_device_bridge_authorization
+msgid "Device Bridge Authorization"
+msgstr "Autorización del puente de dispositivos"
+
+#. module: device_bridge
+#: model:ir.model,name:device_bridge.model_device_bridge_gateway
+msgid "Device Bridge Gateway"
+msgstr "Puerta de enlace del puente de dispositivos"
+
+#. module: device_bridge
+#: model:ir.model,name:device_bridge.model_ir_actions_report
+msgid "Report Action"
+msgstr "Acción de reporte"
+
+#. module: device_bridge
+#: model:ir.model.fields,field_description:device_bridge.field_device_bridge__report_ids
+#: model_terms:ir.ui.view,arch_db:device_bridge.device_bridge_view_form
+msgid "Reports"
+msgstr "Reportes"
+
+#. module: device_bridge
+#: model:ir.model.fields,help:device_bridge.field_device_bridge__report_ids
+msgid "Reports that can be printed on this device."
+msgstr "Reportes que se pueden imprimir en este dispositivo."
+
+#. module: device_bridge
+#: model:ir.model.fields,field_description:device_bridge.field_ir_actions_report__device_bridge_ids
+msgid "Device Bridge printers"
+msgstr "Impresoras del puente de dispositivos"
+
+#. module: device_bridge
+#: model:ir.model.fields,help:device_bridge.field_ir_actions_report__device_bridge_ids
+msgid "Printers that can print this report through Device Bridge."
+msgstr "Impresoras que pueden imprimir este reporte a través del puente de dispositivos."
+
+#. module: device_bridge
+#: model:ir.model.fields,field_description:device_bridge.field_device_bridge__report_count
+msgid "Report Count"
+msgstr "Cantidad de reportes"
+
+#. module: device_bridge
+#. odoo-python
+#: code:addons/device_bridge/models/device_bridge.py:0
+msgid "Reports can only be assigned to a printer."
+msgstr "Los reportes solo se pueden asignar a una impresora."
+
+#. module: device_bridge
+#: model_terms:ir.ui.view,arch_db:device_bridge.device_bridge_view_search
+msgid "With reports"
+msgstr "Con reportes"
+
+#. module: device_bridge
+#: model:ir.model.fields,field_description:device_bridge.field_device_bridge__device_type
+#: model_terms:ir.ui.view,arch_db:device_bridge.device_bridge_view_search
+msgid "Device type"
+msgstr "Tipo de dispositivo"
+
+#. module: device_bridge
+#: model:ir.model.fields.selection,name:device_bridge.selection__device_bridge__device_type__printer
+msgid "Printer"
+msgstr "Impresora"
+
+#. module: device_bridge
+#: model:ir.model.fields.selection,name:device_bridge.selection__device_bridge__device_type__label_printer
+msgid "Label printer"
+msgstr "Impresora de etiquetas"
+
+#. module: device_bridge
+#: model:ir.model.fields.selection,name:device_bridge.selection__device_bridge__device_type__scanner
+msgid "Barcode scanner"
+msgstr "Lector de códigos de barras"
+
+#. module: device_bridge
+#: model:ir.model.fields.selection,name:device_bridge.selection__device_bridge__device_type__scale
+msgid "Scale"
+msgstr "Balanza"
+
+#. module: device_bridge
+#: model:ir.model.fields.selection,name:device_bridge.selection__device_bridge__device_type__cash_drawer
+msgid "Cash drawer"
+msgstr "Cajón de dinero"
+
+#. module: device_bridge
+#: model:ir.model.fields.selection,name:device_bridge.selection__device_bridge__device_type__display
+msgid "Customer display"
+msgstr "Pantalla del cliente"
+
+#. module: device_bridge
+#: model:ir.model.fields.selection,name:device_bridge.selection__device_bridge__device_type__other
+msgid "Other"
+msgstr "Otro"
+
+#. module: device_bridge
+#: model:ir.actions.act_window,name:device_bridge.device_bridge_action
+#: model:ir.ui.menu,name:device_bridge.device_bridge_menu_devices
+msgid "Devices"
+msgstr "Dispositivos"
+
+#. module: device_bridge
+#: model:ir.actions.client,name:device_bridge.device_bridge_action_register
+#: model:ir.ui.menu,name:device_bridge.device_bridge_menu_register
+#: model_terms:ir.ui.view,arch_db:device_bridge.device_bridge_view_list
+msgid "Register device"
+msgstr "Registrar dispositivo"
+
+#. module: device_bridge
+#: model:ir.actions.act_window,name:device_bridge.device_bridge_authorization_action
+#: model:ir.model.fields,field_description:device_bridge.field_device_bridge__authorization_ids
+#: model:ir.ui.menu,name:device_bridge.device_bridge_menu_authorizations
+#: model_terms:ir.ui.view,arch_db:device_bridge.device_bridge_view_form
+msgid "Authorizations"
+msgstr "Autorizaciones"
+
+#. module: device_bridge
+#: model:ir.actions.act_window,name:device_bridge.device_bridge_gateway_action
+#: model:ir.model.fields,field_description:device_bridge.field_device_bridge__gateway_ids
+#: model:ir.model.fields,field_description:device_bridge.field_device_bridge_authorization__gateway_ids
+#: model:ir.ui.menu,name:device_bridge.device_bridge_menu_gateways
+#: model_terms:ir.ui.view,arch_db:device_bridge.device_bridge_view_form
+msgid "Gateways"
+msgstr "Puertas de enlace"
+
+#. module: device_bridge
+#: model_terms:ir.ui.view,arch_db:device_bridge.device_bridge_view_form
+msgid "Register USB device"
+msgstr "Registrar dispositivo USB"
+
+#. module: device_bridge
+#: model_terms:ir.ui.view,arch_db:device_bridge.device_bridge_view_form
+msgid "Device name"
+msgstr "Nombre del dispositivo"
+
+#. module: device_bridge
+#: model_terms:ir.ui.view,arch_db:device_bridge.device_bridge_view_form
+msgid "Device"
+msgstr "Dispositivo"
+
+#. module: device_bridge
+#: model_terms:ir.ui.view,arch_db:device_bridge.device_bridge_view_search
+msgid "Printers"
+msgstr "Impresoras"
+
+#. module: device_bridge
+#: model_terms:ir.ui.view,arch_db:device_bridge.device_bridge_view_search
+msgid "Archived"
+msgstr "Archivado"
+
+#. module: device_bridge
+#: model_terms:ir.ui.view,arch_db:device_bridge.device_bridge_view_search
+msgid "Group By"
+msgstr "Agrupar por"
+
+#. module: device_bridge
+#: model_terms:ir.ui.view,arch_db:device_bridge.device_bridge_view_search
+msgid "Protocol"
+msgstr "Protocolo"
+
+#. module: device_bridge
+#: model:ir.model.fields,field_description:device_bridge.field_device_bridge__connection_types
+msgid "Connection types"
+msgstr "Tipos de conexión"
+
+#. module: device_bridge
+#: model:ir.model.fields,help:device_bridge.field_device_bridge__connection_types
+msgid "Comma-separated: webusb, websocket, serial, ..."
+msgstr "Separados por coma: webusb, websocket, serial, ..."
+
+#. module: device_bridge
+#: model:ir.model.fields,field_description:device_bridge.field_device_bridge__vendor_ids
+msgid "USB Vendor IDs"
+msgstr "IDs de fabricante USB"
+
+#. module: device_bridge
+#: model:ir.model.fields,help:device_bridge.field_device_bridge__vendor_ids
+msgid "Comma-separated USB vendor IDs in hex, e.g. 0483,0416,0fe6"
+msgstr "IDs de fabricante USB en hexadecimal, separados por coma, p. ej. 0483,0416,0fe6"
+
+#. module: device_bridge
+#: model:ir.model.fields,field_description:device_bridge.field_device_bridge__product_ids
+msgid "USB Product IDs"
+msgstr "IDs de producto USB"
+
+#. module: device_bridge
+#: model:ir.model.fields,help:device_bridge.field_device_bridge__product_ids
+msgid "Optional comma-separated USB product IDs in hex."
+msgstr "IDs de producto USB opcionales en hexadecimal, separados por coma."
+
+#. module: device_bridge
+#: model:ir.model.fields,help:device_bridge.field_device_bridge__code
+msgid "Technical code used by JS proxies (e.g. pos80)."
+msgstr "Código técnico usado por los proxies JS (p. ej. pos80)."
+
+#. module: device_bridge
+#: model:ir.model.constraint,message:device_bridge.constraint_device_bridge_device_bridge_code_uniq
+msgid "The device code must be unique."
+msgstr "El código del dispositivo debe ser único."
+
+#. module: device_bridge
+#. odoo-python
+#: code:addons/device_bridge/models/device_bridge.py:0
+msgid "A technical code is required."
+msgstr "Se requiere un código técnico."
+
+#. module: device_bridge
+#. odoo-python
+#: code:addons/device_bridge/models/device_bridge.py:0
+msgid "Device name is required."
+msgstr "El nombre del dispositivo es obligatorio."
+
+#. module: device_bridge
+#. odoo-python
+#: code:addons/device_bridge/models/device_bridge.py:0
+msgid "Invalid device type."
+msgstr "Tipo de dispositivo no válido."
+
+#. module: device_bridge
+#. odoo-python
+#: code:addons/device_bridge/models/device_bridge.py:0
+msgid "Invalid protocol."
+msgstr "Protocolo no válido."
+
+#. module: device_bridge
+#. odoo-python
+#: code:addons/device_bridge/models/device_bridge.py:0
+msgid "Select a USB device before saving."
+msgstr "Seleccione un dispositivo USB antes de guardar."
+
+#. module: device_bridge
+#. odoo-python
+#: code:addons/device_bridge/models/device_bridge_authorization.py:0
+#: code:addons/device_bridge/models/device_bridge_gateway.py:0
+msgid "Unknown device code: %s"
+msgstr "Código de dispositivo desconocido: %s"
+
+#. module: device_bridge
+#. odoo-javascript
+#: code:addons/device_bridge/static/src/xml/device_bridge_register_action.xml:0
+msgid "Loading..."
+msgstr "Cargando..."
+
+#. module: device_bridge
+#. odoo-javascript
+#: code:addons/device_bridge/static/src/xml/device_bridge_register_action.xml:0
+msgid ""
+"Select the physical USB device, choose its type and save.\n"
+"                        The authorization is stored for this user and browser."
+msgstr ""
+"Seleccione el dispositivo USB físico, elija su tipo y guarde.\n"
+"                        La autorización se guarda para este usuario y navegador."
+
+#. module: device_bridge
+#. odoo-javascript
+#: code:addons/device_bridge/static/src/xml/device_bridge_register_action.xml:0
+msgid "USB device"
+msgstr "Dispositivo USB"
+
+#. module: device_bridge
+#. odoo-javascript
+#: code:addons/device_bridge/static/src/xml/device_bridge_register_action.xml:0
+msgid "Select USB device"
+msgstr "Seleccionar dispositivo USB"
+
+#. module: device_bridge
+#. odoo-javascript
+#: code:addons/device_bridge/static/src/xml/device_bridge_register_action.xml:0
+msgid "Selecting..."
+msgstr "Seleccionando..."
+
+#. module: device_bridge
+#. odoo-javascript
+#: code:addons/device_bridge/static/src/xml/device_bridge_register_action.xml:0
+msgid "Name"
+msgstr "Nombre"
+
+#. module: device_bridge
+#. odoo-javascript
+#: code:addons/device_bridge/static/src/xml/device_bridge_register_action.xml:0
+msgid "Technical code"
+msgstr "Código técnico"
+
+#. module: device_bridge
+#. odoo-javascript
+#: code:addons/device_bridge/static/src/xml/device_bridge_register_action.xml:0
+msgid "Share over WebSocket when this browser is online"
+msgstr "Compartir por WebSocket cuando este navegador esté en línea"
+
+#. module: device_bridge
+#. odoo-javascript
+#: code:addons/device_bridge/static/src/xml/device_bridge_register_action.xml:0
+msgid "Cancel"
+msgstr "Cancelar"
+
+#. module: device_bridge
+#. odoo-javascript
+#: code:addons/device_bridge/static/src/xml/device_bridge_register_action.xml:0
+msgid "Save device"
+msgstr "Guardar dispositivo"
+
+#. module: device_bridge
+#. odoo-javascript
+#: code:addons/device_bridge/static/src/xml/device_bridge_register_action.xml:0
+msgid "Saving..."
+msgstr "Guardando..."
+
+#. module: device_bridge
+#. odoo-python
+#: code:addons/device_bridge/models/ir_actions_report.py:0
+msgid "The report produced no data to print."
+msgstr "El reporte no produjo datos para imprimir."
+
+#. module: device_bridge
+#. odoo-javascript
+#: code:addons/device_bridge/static/src/js/device_bridge_report_action.js:0
+msgid "Sent to printer %s."
+msgstr "Enviado a la impresora %s."
+
+#. module: device_bridge
+#. odoo-javascript
+#: code:addons/device_bridge/static/src/js/device_bridge_report_action.js:0
+msgid "Sent to printers: %s"
+msgstr "Enviado a las impresoras: %s"
+
+#. module: device_bridge
+#. odoo-javascript
+#: code:addons/device_bridge/static/src/js/device_bridge_report_action.js:0
+msgid "Could not print"
+msgstr "No se pudo imprimir"
+
+#. module: device_bridge
+#: model_terms:ir.ui.view,arch_db:device_bridge.device_bridge_view_form
+
+msgid "Print test"
+msgstr "Imprimir prueba"
+
+#. module: device_bridge
+#. odoo-python
+#: code:addons/device_bridge/models/device_bridge.py:0
+
+msgid "Test print is only available for printers."
+msgstr "La impresión de prueba solo está disponible para impresoras."
+
+#. module: device_bridge
+#. odoo-python
+#: code:addons/device_bridge/models/device_bridge.py:0
+
+msgid "This device has no print protocol."
+msgstr "Este dispositivo no tiene protocolo de impresión."
+
+#. module: device_bridge
+#. odoo-javascript
+#: code:addons/device_bridge/static/src/js/device_bridge_print_test_action.js:0
+
+msgid "Missing printer code for the test print."
+msgstr "Falta el código de la impresora para la prueba."
+
+#. module: device_bridge
+#. odoo-javascript
+#: code:addons/device_bridge/static/src/js/device_bridge_print_test_action.js:0
+
+msgid "Test sent to printer %s."
+msgstr "Prueba enviada a la impresora %s."
+
+#. module: device_bridge
+#. odoo-javascript
+#: code:addons/device_bridge/static/src/js/device_bridge_print_test_action.js:0
+
+msgid "Could not print test"
+msgstr "No se pudo imprimir la prueba"
+
+#. module: device_bridge
+#. odoo-javascript
+#: code:addons/device_bridge/static/src/js/device_bridge_webusb_transport.js:0
+msgid "USB transfer failed (%s)."
+msgstr "Falló el envío USB (%s)."

@@ -93,3 +93,18 @@ msgstr "No hay etiquetas de producto para imprimir."
 #: code:addons/product_qrcode/wizard/product_label_layout.py:0
 msgid "No product variants found to print."
 msgstr "No se encontraron variantes de producto para imprimir."
+
+#. module: product_qrcode
+#: model:ir.model.fields,field_description:product_qrcode.field_res_company__qr_label_logo
+msgid "QR Label Logo"
+msgstr "Logo de etiqueta QR"
+
+#. module: product_qrcode
+#: model:ir.model.fields,help:product_qrcode.field_res_company__qr_label_logo
+msgid "Logo printed on ZPL product QR labels. If empty, the company logo is used."
+msgstr "Logo impreso en las etiquetas QR ZPL del producto. Si está vacío, se usa el logo de la compañía."
+
+#. module: product_qrcode
+#: model_terms:ir.ui.view,arch_db:product_qrcode.view_company_form_qr_label_logo
+msgid "Product QR Label"
+msgstr "Etiqueta QR del producto"
