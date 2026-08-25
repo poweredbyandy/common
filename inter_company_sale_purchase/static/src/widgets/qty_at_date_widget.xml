@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="inter_company_sale_purchase.QtyAtDatePopover"
+       t-inherit="sale_stock.QtyAtDatePopover"
+       t-inherit-mode="extension">
+        <xpath expr="//button" position="before">
+            <t t-set="icCompanies" t-value="props.record.data.ic_free_qty_by_company or []"/>
+            <t t-if="icCompanies.length">
+                <h6 class="mt-2">Other Companies</h6>
+                <table class="table table-borderless table-sm mb-2">
+                    <tbody>
+                        <tr t-foreach="icCompanies" t-as="icRow" t-key="icRow.company_id">
+                            <td>
+                                <strong t-out="icRow.company_name"/>
+                                <br/>
+                                <small>Available (not reserved)</small>
+                            </td>
+                            <td class="text-end">
+                                <b t-out="icRow.free_qty"/>
+                                <t t-if="props.record.data.product_uom">
+                                    <t t-out="props.record.data.product_uom[1]"/>
+                                </t>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </t>
+        </xpath>
+    </t>
+</templates>

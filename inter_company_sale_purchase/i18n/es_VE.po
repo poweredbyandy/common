@@ -288,3 +288,21 @@ msgstr "El usuario intercompañía %(user)s de la compañía %(company)s está a
 #, python-format
 msgid "Inter-company user %(user)s for company %(company)s is missing access: %(access)s. Grant those groups or choose another user."
 msgstr "Al usuario intercompañía %(user)s de %(company)s le faltan permisos: %(access)s. Asígnele esos grupos o elija otro usuario."
+
+#. module: inter_company_sale_purchase
+#: model:ir.model.fields,field_description:inter_company_sale_purchase.field_sale_order_line__ic_free_qty_by_company
+msgid "Free Qty Other Companies"
+msgstr "Cantidad libre otras compañías"
+
+#. module: inter_company_sale_purchase
+#. odoo-javascript
+#: code:addons/inter_company_sale_purchase/static/src/widgets/qty_at_date_widget.xml:0
+msgid "Other Companies"
+msgstr "Otras compañías"
+
+#. module: inter_company_sale_purchase
+#. odoo-javascript
+#: code:addons/inter_company_sale_purchase/static/src/widgets/qty_at_date_widget.xml:0
+msgid "Available (not reserved)"
+msgstr "Disponible (no reservado)"
+

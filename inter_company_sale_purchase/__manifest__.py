@@ -1,6 +1,6 @@
 {
     "name": "Inter Company Sale/Purchase Sync",
-    "version": "18.0.1.1.1",
+    "version": "18.0.1.2.0",
     "category": "Sales",
     "summary": "Bidirectional inter-company sale and purchase synchronization",
     "author": "andyengit",
@@ -18,7 +18,13 @@
         "views/res_company_views.xml",
         "views/res_config_settings_views.xml",
         "views/purchase_order_views.xml",
+        "views/sale_order_views.xml",
     ],
+    "assets": {
+        "web.assets_backend": [
+            "inter_company_sale_purchase/static/src/widgets/qty_at_date_widget.xml",
+        ],
+    },
     "installable": True,
     "application": False,
 }

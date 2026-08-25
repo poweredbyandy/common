@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_order_form_inter_company_qty_widget" model="ir.ui.view">
+        <field name="name">sale.order.form.inter.company.qty.widget</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale_stock.view_order_form_inherit_sale_stock_qty"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page/field[@name='order_line']/list/field[@name='display_qty_widget']" position="after">
+                <field name="ic_free_qty_by_company" column_invisible="True"/>
+            </xpath>
+            <xpath expr="//page/field[@name='order_line']/form//field[@name='display_qty_widget']" position="after">
+                <field name="ic_free_qty_by_company" invisible="1"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>
