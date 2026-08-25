@@ -38,6 +38,7 @@ def _row(left, right="", width=LINE_WIDTH):
 
 LOCATION_PREFIX = "---> "
 QTY_WIDTH = 3
+NAME_INDENT = 7
 
 
 def _qty_label(qty):
@@ -303,17 +304,12 @@ class StockPicking(models.Model):
         return rows
 
     def _pba_pos80_product_rows(self, qty, code, name):
-        prefix = "%s %s | " % (_qty_cell(qty), code)
-        indent = " " * min(len(prefix), LINE_WIDTH - 8)
-        wrap_width = LINE_WIDTH - len(indent)
-        if len(prefix) >= LINE_WIDTH:
-            rows = [_clip("%s %s |" % (_qty_cell(qty), code))]
-            rows.extend(indent + chunk for chunk in _wrap(name, wrap_width))
-            return rows
-        first, remain = _split_first_line(name, LINE_WIDTH - len(prefix))
-        rows = [prefix + first]
-        if remain:
-            rows.extend(indent + chunk for chunk in _wrap(remain, wrap_width))
+        rows = [_clip("%s %s" % (_qty_cell(qty), code))]
+        indent = " " * NAME_INDENT
+        wrap_width = LINE_WIDTH - NAME_INDENT
+        for chunk in _wrap(name, wrap_width):
+            if chunk:
+                rows.append(indent + chunk)
         return rows
 
     def _pba_pos80_ticket_bytes(self):

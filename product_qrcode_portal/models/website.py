@@ -1,4 +1,4 @@
-from urllib.parse import parse_qs, quote, unquote, urlparse
+from urllib.parse import parse_qs, quote, unquote, urlencode, urlparse
 
 from odoo import fields, models
 
@@ -36,54 +36,111 @@ class Website(models.Model):
                 return unquote(suffix).strip()
         return value
 
-    def _find_product_by_qr_code(self, value):
+    def _extract_product_qr_company_id(self, value):
+        value = (value or "").strip()
+        if not value:
+            return None
+        parsed = urlparse(value)
+        if not parsed.query:
+            return None
+        params = parse_qs(parsed.query)
+        company_ids = params.get("company_id") or []
+        if not company_ids or not str(company_ids[0]).isdigit():
+            return None
+        return int(company_ids[0])
+
+    def _resolve_portal_qr_company(self, company_id=None):
         self.ensure_one()
+        if company_id is not None:
+            try:
+                resolved_id = int(company_id)
+            except (TypeError, ValueError):
+                resolved_id = False
+            if resolved_id:
+                company = self.env["res.company"].sudo().browse(resolved_id).exists()
+                if company:
+                    return company
+        return self.company_id
+
+    def _portal_qr_product_company_domain(self, company):
+        return [
+            "|",
+            ("company_id", "=", False),
+            ("company_id", "in", company.ids),
+        ]
+
+    def _find_product_by_qr_code(self, value, company=None):
+        self.ensure_one()
+        company = company or self.company_id
         code = self._extract_product_qr_code(value)
         if not code:
             return self.env["product.product"]
         Product = self.env["product.product"].sudo()
-        product = Product.search(
-            [
-                "|",
-                "|",
-                ("barcode", "=", code),
-                ("default_code", "=", code),
-                ("qr_code", "=", code),
-            ],
-            limit=1,
-        )
+        domain = self._portal_qr_product_company_domain(company) + [
+            "|",
+            "|",
+            ("barcode", "=", code),
+            ("default_code", "=", code),
+            ("qr_code", "=", code),
+        ]
+        product = Product.search(domain, limit=1)
         if not product and code.isdigit():
-            product = Product.browse(int(code)).exists()
+            candidate = Product.browse(int(code)).exists()
+            if (
+                candidate
+                and candidate.active
+                and candidate.company_id in (False, company)
+            ):
+                product = candidate
         if product and product.active:
             return product
         return self.env["product.product"]
 
     def _is_product_qr_portal_allowed(self, product):
         self.ensure_one()
-        return bool(
+        if not (
             product
             and product.active
             and product.sale_ok
             and product.website_published
-        )
+        ):
+            return False
+        template = product.product_tmpl_id
+        if hasattr(template, "can_access_from_current_website"):
+            return template.can_access_from_current_website(self.id)
+        if template.website_id and template.website_id != self:
+            return False
+        return True
 
-    def _get_product_qr_portal_url(self, product):
+    def _get_product_qr_portal_url(self, product, company=None):
         self.ensure_one()
         code = product.qr_code
         if not code:
             return False
-        return "%s/product-qr?code=%s" % (
+        company = company or self.company_id
+        params = {
+            "code": str(code),
+            "company_id": company.id,
+        }
+        return "%s/product-qr?%s" % (
             self.get_base_url().rstrip("/"),
-            quote(str(code), safe=""),
+            urlencode(params),
         )
 
-    def _get_product_qr_portal_target_url(self, product):
+    def _get_product_qr_portal_target_url(self, product, company=None):
         self.ensure_one()
         product.ensure_one()
         code = product.qr_code
+        company = company or self.company_id
         action = self.product_qr_portal_action
         if action == "website_product" and product.website_url:
             return product.website_url
         if action == "auto_order" and code:
-            return "/auto-order?code=%s" % quote(str(code), safe="")
+            params = urlencode(
+                {
+                    "code": str(code),
+                    "company_id": company.id,
+                }
+            )
+            return "/auto-order?%s" % params
         return False

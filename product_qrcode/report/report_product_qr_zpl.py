@@ -45,8 +45,16 @@ class ReportProductQrZpl(models.AbstractModel):
         return r"\&".join(lines[:max_lines])
 
     @api.model
-    def _get_qr_payload(self, product, mode):
+    def _get_qr_payload(self, product, mode, report_data=None):
         if mode == "portal":
+            report_data = report_data or {}
+            website_id = report_data.get("portal_qr_website_id")
+            if website_id:
+                website = self.env["website"].browse(int(website_id)).exists()
+                if website and hasattr(website, "_get_product_qr_portal_url"):
+                    url = website._get_product_qr_portal_url(product)
+                    if url:
+                        return url
             url = getattr(product, "portal_qr_url", False)
             if not url:
                 raise UserError(
@@ -206,8 +214,8 @@ class ReportProductQrZpl(models.AbstractModel):
         return ""
 
     @api.model
-    def _build_label_zpl(self, product, mode, footer=None):
-        qr_payload = self._get_qr_payload(product, mode)
+    def _build_label_zpl(self, product, mode, footer=None, report_data=None):
+        qr_payload = self._get_qr_payload(product, mode, report_data=report_data)
         product_name = self._zpl_wrap_name(product.name or product.display_name)
         code = self._zpl_sanitize(product.default_code or product.qr_code or "")
         footer_text = self._zpl_sanitize(footer or product.env.company.name or "")
@@ -286,7 +294,7 @@ class ReportProductQrZpl(models.AbstractModel):
     def _build_zpl_body(self, data):
         chunks = []
         for product, quantity, mode in self._iter_label_jobs(data):
-            label = self._build_label_zpl(product, mode)
+            label = self._build_label_zpl(product, mode, report_data=data)
             for _unused in range(max(int(quantity), 0)):
                 chunks.append(label)
         if not chunks:

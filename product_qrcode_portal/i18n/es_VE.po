@@ -87,6 +87,16 @@ msgstr ""
 "Enlace del sitio web codificado en el QR de portal. Al escanearlo se sigue "
 "la acción configurada. La imagen se dibuja en el navegador."
 
+#. module: product_qrcode_portal
+#: model:ir.model.fields,field_description:product_qrcode_portal.field_product_label_layout__portal_qr_website_id
+msgid "Portal QR Website"
+msgstr "Sitio web del QR de portal"
+
+#. module: product_qrcode_portal
+#: model:ir.model.fields,help:product_qrcode_portal.field_product_label_layout__portal_qr_website_id
+msgid "Website domain and company encoded in the portal QR URL."
+msgstr "Dominio del sitio web y empresa codificados en la URL del QR de portal."
+
 
 
 #. module: product_qrcode_portal

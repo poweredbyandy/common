@@ -88,9 +88,10 @@ class Website(models.Model):
 
     def _get_auto_order_page_url(self, code=None):
         self.ensure_one()
-        path = "/auto-order"
+        params = {"company_id": self.company_id.id}
         if code:
-            path = "%s?%s" % (path, urlencode({"code": code}))
+            params["code"] = self._extract_auto_order_code(code)
+        path = "/auto-order?%s" % urlencode(params)
         lang = self._get_auto_order_lang()
         return request.env["ir.http"]._url_for(
             path, lang_code=lang.code if lang else None
@@ -150,44 +151,67 @@ class Website(models.Model):
 
     def _find_auto_order_product(self, code):
         self.ensure_one()
+        company_id = None
+        if hasattr(self, "_extract_product_qr_company_id"):
+            company_id = self._extract_product_qr_company_id(code)
+        company = (
+            self._resolve_portal_qr_company(company_id)
+            if hasattr(self, "_resolve_portal_qr_company")
+            else self.company_id
+        )
         if hasattr(self, "_find_product_by_qr_code"):
-            product = self._find_product_by_qr_code(code)
+            product = self._find_product_by_qr_code(code, company=company)
         else:
-            product = self._find_product_by_auto_order_code(code)
+            product = self._find_product_by_auto_order_code(code, company=company)
         if product and self._is_auto_order_product_allowed(product):
             return product
         return self.env["product.product"]
 
-    def _find_product_by_auto_order_code(self, value):
+    def _find_product_by_auto_order_code(self, value, company=None):
         self.ensure_one()
+        company = company or self.company_id
         extracted = self._extract_auto_order_code(value)
         if not extracted:
             return self.env["product.product"]
         Product = self.env["product.product"].sudo()
-        product = Product.search(
-            [
-                "|",
-                "|",
-                ("barcode", "=", extracted),
-                ("default_code", "=", extracted),
-                ("qr_code", "=", extracted),
-            ],
-            limit=1,
-        )
+        domain = [
+            "|",
+            ("company_id", "=", False),
+            ("company_id", "in", company.ids),
+            "|",
+            "|",
+            ("barcode", "=", extracted),
+            ("default_code", "=", extracted),
+            ("qr_code", "=", extracted),
+        ]
+        product = Product.search(domain, limit=1)
         if not product and extracted.isdigit():
-            product = Product.browse(int(extracted)).exists()
+            candidate = Product.browse(int(extracted)).exists()
+            if (
+                candidate
+                and candidate.active
+                and candidate.company_id in (False, company)
+            ):
+                product = candidate
         if product and product.active:
             return product
         return self.env["product.product"]
 
     def _is_auto_order_product_allowed(self, product):
         self.ensure_one()
-        return bool(
+        if not (
             product
             and product.active
             and product.sale_ok
             and self.has_ecommerce_access()
-        )
+        ):
+            return False
+        template = product.product_tmpl_id
+        if hasattr(template, "can_access_from_current_website"):
+            return template.can_access_from_current_website(self.id)
+        if template.website_id and template.website_id != self:
+            return False
+        return True
 
     def _get_auto_order_boot_props(self, scan_code=None):
         self.ensure_one()

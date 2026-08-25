@@ -66,7 +66,8 @@ class TestPbaPrinterDelivery(TransactionCase):
         self.assertIn(picking.name, text)
         self.assertEqual(text.count(self.partner.name), 1)
         self.assertIn(self.partner.vat, text)
-        self.assertIn("  2x POS80-SKU | POS80 product", text)
+        self.assertIn("  2x POS80-SKU", text)
+        self.assertIn("%sPOS80 product" % (" " * 7), text)
         self.assertNotIn("No product lines", text)
         self.assertIn("SO-POS80", text)
         stock_label = self.env.ref("stock.stock_location_stock").complete_name
@@ -278,13 +279,17 @@ class TestPbaPrinterDelivery(TransactionCase):
         text = picking._pba_pos80_ticket_bytes().decode("cp1252", "replace")
         header_001 = "---> %s" % loc_001.complete_name
         header_002 = "---> %s" % loc_002.complete_name
-        line_001 = "  4x POS80-SKU | POS80 product"
-        line_002 = "  2x OTHER-SKU | Other product with a name long"
-        wrap_line = "%senough to wrap" % (" " * len("  2x OTHER-SKU | "))
+        line_001 = "  4x POS80-SKU"
+        name_001 = "%sPOS80 product" % (" " * 7)
+        line_002 = "  2x OTHER-SKU"
+        name_002 = "%sOther product with a name long enough to" % (" " * 7)
+        wrap_line = "%swrap" % (" " * 7)
         self.assertIn(header_001, text)
         self.assertIn(header_002, text)
         self.assertIn(line_001, text)
+        self.assertIn(name_001, text)
         self.assertIn(line_002, text)
+        self.assertIn(name_002, text)
         self.assertIn(wrap_line, text)
         self.assertLess(text.index(header_001), text.index(line_001))
         self.assertLess(text.index(line_001), text.index(header_002))

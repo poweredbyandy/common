@@ -1,6 +1,6 @@
 {
     "name": "PBA POS-80 Delivery Printer",
-    "version": "18.0.1.2.2",
+    "version": "18.0.1.2.3",
     "category": "Inventory/Inventory",
     "summary": "Print outgoing pickings on a POS-80 via Device Bridge",
     "author": "andyengit",

@@ -1,6 +1,6 @@
 {
     "name": "Website Auto Order Scanner",
-    "version": "18.0.1.8.2",
+    "version": "18.0.1.8.3",
     "category": "Website/Website",
     "summary": "Public OWL portal to scan barcodes or QR codes and buy with the website cart",
     "author": "andyengit",
