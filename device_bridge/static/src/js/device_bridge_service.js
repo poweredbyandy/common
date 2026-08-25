@@ -1,5 +1,6 @@
 /** @odoo-module **/
 
+import { rpc } from "@web/core/network/rpc";
 import { registry } from "@web/core/registry";
 import { DeviceBridgeProxy } from "@device_bridge/js/device_bridge_proxy";
 
@@ -25,6 +26,37 @@ export const deviceBridgeService = {
             }
             return proxies.get(deviceCode);
         }
+
+        async function shareAuthorizedDevices() {
+            let codes = [];
+            try {
+                codes = await rpc(
+                    "/web/dataset/call_kw/device.bridge/get_shareable_device_codes",
+                    {
+                        model: "device.bridge",
+                        method: "get_shareable_device_codes",
+                        args: [],
+                        kwargs: {},
+                    }
+                );
+            } catch {
+                return;
+            }
+            for (const deviceCode of codes || []) {
+                try {
+                    await getProxy(deviceCode).connect({
+                        forcePicker: false,
+                        allowPicker: false,
+                        persistDevice: true,
+                        shareGateway: true,
+                    });
+                } catch {
+                    /* USB not available in this browser */
+                }
+            }
+        }
+
+        shareAuthorizedDevices();
 
         return {
             getProxy,

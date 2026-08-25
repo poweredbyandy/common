@@ -1,9 +1,11 @@
 /** @odoo-module **/
 
 import { registry } from "@web/core/registry";
+import { DeviceBridgeProxy } from "@device_bridge/js/device_bridge_proxy";
 import {
     getLocalGateway,
     getLocalProxy,
+    setLocalProxy,
 } from "@device_bridge/js/device_bridge_local_registry";
 import { getDeviceBridgeBrowserKey } from "@device_bridge/js/device_bridge_client_key";
 
@@ -30,14 +32,18 @@ export const deviceBridgeGatewayService = {
             if (payload.browser_key !== browserKey) {
                 return;
             }
-            const proxy = getLocalProxy(payload.device_code);
-            const gateway = getLocalGateway(payload.device_code);
-            if (!proxy || !gateway) {
-                return;
+            let proxy = getLocalProxy(payload.device_code);
+            if (!proxy) {
+                proxy = new DeviceBridgeProxy({
+                    deviceCode: payload.device_code,
+                });
+                setLocalProxy(payload.device_code, proxy);
             }
+            const gateway = getLocalGateway(payload.device_code);
             if (
-                gateway.id !== payload.gateway_id ||
-                gateway.channel_token !== payload.channel_token
+                gateway &&
+                (gateway.id !== payload.gateway_id ||
+                    gateway.channel_token !== payload.channel_token)
             ) {
                 return;
             }
@@ -58,6 +64,7 @@ export const deviceBridgeGatewayService = {
                 await proxy.printLocal(bytes, {
                     shareGateway: true,
                     allowPicker: false,
+                    persistDevice: true,
                 });
             } catch (error) {
                 console.warn("device_bridge gateway print failed", error);

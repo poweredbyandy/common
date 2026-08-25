@@ -13,8 +13,9 @@
 6. From a client (POS, inventory, etc.), connect with ``DeviceBridgeProxy``
    using that device code.
 7. While connected, the browser registers as an online **gateway** (heartbeat).
-8. Another device without USB can print with ``printRaw(..., { mode: 'auto' })``:
-   it uses local USB when available, otherwise sends the job to an online
-   gateway. If the configured printer cannot be reached, the browser asks
-   for a USB device and prints once without saving it as the default.
+8. Printing uses the configured printer first (local USB already granted in
+   this browser). If that USB is not on this PC, the job goes to an online
+   gateway on the PC that has the printer. The USB picker opens only when
+   neither the configured printer nor a gateway is available. A one-off USB
+   that is not the configured printer is not saved as the default.
 9. Review authorizations and gateways under *Device Bridge*.

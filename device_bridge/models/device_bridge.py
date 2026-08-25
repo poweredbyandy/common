@@ -266,6 +266,26 @@ class DeviceBridge(models.Model):
         }
 
     @api.model
+    def get_shareable_device_codes(self):
+        Auth = self.env["device.bridge.authorization"]
+        auths = Auth.search(
+            [
+                ("user_id", "=", self.env.uid),
+                ("active", "=", True),
+                ("connection_type", "=", "webusb"),
+            ]
+        )
+        codes = []
+        for device in auths.mapped("device_id"):
+            if not device.active:
+                continue
+            if "websocket" not in device._connection_type_list():
+                continue
+            if device.code not in codes:
+                codes.append(device.code)
+        return codes
+
+    @api.model
     def get_printers_for_report(self, report_ref):
         report = self.env["ir.actions.report"]._get_report(report_ref)
         printers = report.device_bridge_ids.filtered(

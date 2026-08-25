@@ -52,3 +52,15 @@ class TestDeviceBridgeAuthorization(TransactionCase):
             self.Auth.search_count([("browser_key", "=", "browser-key-2")]),
             1,
         )
+
+    def test_get_shareable_device_codes(self):
+        self.Auth.authorize_device(
+            {
+                "device_code": self.device.code,
+                "browser_key": "browser-key-share",
+                "vendor_id": 1046,
+                "product_id": 20481,
+            }
+        )
+        codes = self.env["device.bridge"].get_shareable_device_codes()
+        self.assertIn(self.device.code, codes)

@@ -338,24 +338,11 @@ export class DeviceBridgeProxy {
         }
         if (selected?.device) {
             await this.transport.claim(selected.device);
-            if (persistDevice) {
-                this.authorizedDeviceId = selected.authorized?.id || null;
-                if (this.authorizedDeviceId) {
-                    await callModel(
-                        "device.bridge.authorization",
-                        "touch_authorization",
-                        [this.authorizedDeviceId, this.browserKey]
-                    );
-                } else {
-                    await this._authorizeCurrentDevice();
-                }
-                if (shareGateway) {
-                    await this._registerGateway();
-                }
-                if (typeof this.onLocalConnected === "function") {
-                    await this.onLocalConnected(this);
-                }
-            }
+            await this._afterClaim({
+                persistDevice,
+                shareGateway,
+                authorized: selected.authorized,
+            });
             return this.transport.device;
         }
 
@@ -369,16 +356,44 @@ export class DeviceBridgeProxy {
             filters: pickerFilters,
         });
         await this.transport.claim(device);
-        if (persistDevice) {
-            await this._authorizeCurrentDevice();
-            if (shareGateway) {
-                await this._registerGateway();
-            }
-            if (typeof this.onLocalConnected === "function") {
-                await this.onLocalConnected(this);
-            }
-        }
+        const configuredFilters = await this.getFilters({ picker: true });
+        const matchesConfigured = this._deviceMatchesFilters(
+            device,
+            configuredFilters
+        );
+        await this._afterClaim({
+            persistDevice: persistDevice && matchesConfigured,
+            shareGateway: shareGateway && matchesConfigured,
+            authorized: null,
+        });
         return this.transport.device;
+    }
+
+    async _afterClaim({
+        persistDevice = true,
+        shareGateway = true,
+        authorized = null,
+    } = {}) {
+        this._ephemeralSession = !persistDevice;
+        if (!persistDevice) {
+            return;
+        }
+        this.authorizedDeviceId = authorized?.id || null;
+        if (this.authorizedDeviceId) {
+            await callModel(
+                "device.bridge.authorization",
+                "touch_authorization",
+                [this.authorizedDeviceId, this.browserKey]
+            );
+        } else {
+            await this._authorizeCurrentDevice();
+        }
+        if (shareGateway) {
+            await this._registerGateway();
+        }
+        if (typeof this.onLocalConnected === "function") {
+            await this.onLocalConnected(this);
+        }
     }
 
     async disconnect({ keepGateway = false } = {}) {
@@ -455,7 +470,8 @@ export class DeviceBridgeProxy {
                 }
             }
         } finally {
-            if (!persistDevice) {
+            if (!persistDevice || this._ephemeralSession) {
+                this._ephemeralSession = false;
                 await this.disconnect({ keepGateway: true });
             }
         }
@@ -487,10 +503,10 @@ export class DeviceBridgeProxy {
         let silentError;
         try {
             return await this.printLocal(uint8Array, {
-                ...options,
                 forcePicker: false,
                 allowPicker: false,
                 persistDevice: true,
+                shareGateway: true,
             });
         } catch (error) {
             silentError = error;
@@ -498,17 +514,17 @@ export class DeviceBridgeProxy {
         try {
             return await this.printRemote(uint8Array, options);
         } catch (remoteError) {
-            if (options.forcePicker === false && options.allowPicker === false) {
+            if (options.allowPicker === false) {
                 throw silentError || remoteError;
             }
             try {
+                const pickerFilters = await this.getFilters({ picker: true });
                 return await this.printLocal(uint8Array, {
-                    ...options,
                     forcePicker: true,
                     allowPicker: true,
-                    persistDevice: false,
-                    shareGateway: false,
-                    filters: [{}],
+                    persistDevice: true,
+                    shareGateway: true,
+                    filters: pickerFilters,
                 });
             } catch (pickerError) {
                 if (remoteError?.message === "DEVICE_BRIDGE_NO_GATEWAY") {
