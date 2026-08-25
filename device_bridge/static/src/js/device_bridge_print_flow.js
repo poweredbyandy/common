@@ -4,6 +4,8 @@ import { _t } from "@web/core/l10n/translation";
 import { ConfirmationDialog } from "@web/core/confirmation_dialog/confirmation_dialog";
 import { formatDeviceBridgeError } from "@device_bridge/js/device_bridge_proxy";
 
+export const DEVICE_BRIDGE_CANCELLED = "DEVICE_BRIDGE_CANCELLED";
+
 function askPrintOnThisComputer(env) {
     return new Promise((resolve) => {
         let settled = false;
@@ -44,7 +46,9 @@ export async function printThroughDeviceBridge(env, deviceCode, bytes) {
         env.services.ui.unblock();
         const useLocal = await askPrintOnThisComputer(env);
         if (!useLocal) {
-            throw error;
+            const cancelled = new Error(DEVICE_BRIDGE_CANCELLED);
+            cancelled.cause = error;
+            throw cancelled;
         }
         env.services.ui.block();
         await env.services.device_bridge.printRaw(deviceCode, bytes, {

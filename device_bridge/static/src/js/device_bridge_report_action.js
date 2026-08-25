@@ -3,6 +3,7 @@
 import { _t } from "@web/core/l10n/translation";
 import { registry } from "@web/core/registry";
 import {
+    DEVICE_BRIDGE_CANCELLED,
     formatDeviceBridgeError,
     printThroughDeviceBridge,
 } from "@device_bridge/js/device_bridge_print_flow";
@@ -63,31 +64,35 @@ async function deviceBridgeReportActionHandler(action, options, env) {
     }
 
     const bytes = base64ToUint8Array(job.data_b64);
-    const printerNames = job.printers.map((printer) => printer.name || printer.code);
+    const printedNames = [];
     const errors = [];
-    let printed = 0;
+    let cancelled = false;
     for (const printer of job.printers) {
         env.services.ui.block();
         try {
             await printThroughDeviceBridge(env, printer.code, bytes);
-            printed += 1;
+            printedNames.push(printer.name || printer.code);
+            break;
         } catch (error) {
+            if (error?.message === DEVICE_BRIDGE_CANCELLED) {
+                cancelled = true;
+                break;
+            }
             errors.push(formatDeviceBridgeError(error));
         } finally {
             env.services.ui.unblock();
         }
     }
 
-    if (printed) {
-        const names = printerNames.join(", ");
+    if (printedNames.length) {
+        const names = printedNames.join(", ");
         env.services.notification.add(
-            printed === 1
+            printedNames.length === 1
                 ? _t("Sent to printer %s.", names)
                 : _t("Sent to printers: %s", names),
             { type: "success" }
         );
-    }
-    if (errors.length) {
+    } else if (errors.length && !cancelled) {
         env.services.notification.add(errors.join("\n"), {
             title: _t("Could not print"),
             type: "danger",

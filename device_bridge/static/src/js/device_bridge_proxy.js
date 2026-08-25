@@ -35,6 +35,9 @@ export function formatDeviceBridgeError(error) {
     if (error.message === "DEVICE_BRIDGE_NOT_CONFIGURED") {
         return _t("Device is not configured in Odoo.");
     }
+    if (error.message === "DEVICE_BRIDGE_CANCELLED") {
+        return _t("Print cancelled.");
+    }
     if (error.message === "DEVICE_BRIDGE_NO_GATEWAY") {
         return _t(
             "No online gateway found. Keep a browser connected to the physical device."
@@ -501,29 +504,34 @@ export class DeviceBridgeProxy {
         if (mode === "local") {
             return this.printLocal(uint8Array, options);
         }
+        const localOptions = {
+            forcePicker: false,
+            allowPicker: false,
+            persistDevice: true,
+            shareGateway: true,
+        };
         if (this.isConnected) {
-            return this.printLocal(uint8Array, {
-                forcePicker: false,
-                allowPicker: false,
-                persistDevice: true,
-                shareGateway: true,
-            });
+            return this.printLocal(uint8Array, localOptions);
+        }
+        if (getLocalGateway(this.deviceCode)) {
+            try {
+                return await this.printLocal(uint8Array, localOptions);
+            } catch {
+            }
         }
         const localUsb = await this._findAuthorizedBrowserDevice();
         if (localUsb) {
-            return this.printLocal(uint8Array, {
-                forcePicker: false,
-                allowPicker: false,
-                persistDevice: true,
-                shareGateway: true,
-            });
+            return this.printLocal(uint8Array, localOptions);
         }
+        let gateways = [];
         try {
-            return await this.printRemote(uint8Array, options);
-        } catch (remoteError) {
-            const err = new Error("DEVICE_BRIDGE_NO_GATEWAY");
-            err.cause = remoteError;
-            throw err;
+            gateways = await this.listOnlineGateways();
+        } catch {
+            gateways = [];
         }
+        if (gateways.length) {
+            return this.printRemote(uint8Array, options);
+        }
+        throw new Error("DEVICE_BRIDGE_NO_GATEWAY");
     }
 }

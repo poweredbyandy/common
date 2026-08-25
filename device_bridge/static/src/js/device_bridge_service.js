@@ -3,6 +3,10 @@
 import { rpc } from "@web/core/network/rpc";
 import { registry } from "@web/core/registry";
 import { DeviceBridgeProxy } from "@device_bridge/js/device_bridge_proxy";
+import {
+    getLocalProxy,
+    setLocalProxy,
+} from "@device_bridge/js/device_bridge_local_registry";
 
 export const deviceBridgeService = {
     dependencies: ["device_bridge_gateway"],
@@ -14,17 +18,17 @@ export const deviceBridgeService = {
             if (!deviceCode) {
                 throw new Error("deviceCode is required");
             }
-            if (!proxies.has(deviceCode)) {
-                proxies.set(
+            let proxy = getLocalProxy(deviceCode) || proxies.get(deviceCode);
+            if (!proxy) {
+                proxy = new DeviceBridgeProxy({
                     deviceCode,
-                    new DeviceBridgeProxy({
-                        deviceCode,
-                        filters: options.filters || [],
-                        enableGateway: options.enableGateway !== false,
-                    })
-                );
+                    filters: options.filters || [],
+                    enableGateway: options.enableGateway !== false,
+                });
             }
-            return proxies.get(deviceCode);
+            proxies.set(deviceCode, proxy);
+            setLocalProxy(deviceCode, proxy);
+            return proxy;
         }
 
         async function shareAuthorizedDevices() {

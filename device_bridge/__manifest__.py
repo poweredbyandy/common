@@ -1,6 +1,6 @@
 {
     "name": "Device Bridge",
-    "version": "18.0.1.4.7",
+    "version": "18.0.1.4.8",
     "category": "Productivity",
     "summary": "Authorize and share hardware devices (WebUSB, WebSocket gateway, etc.)",
     "author": "andyengit",

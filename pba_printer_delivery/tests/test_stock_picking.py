@@ -27,6 +27,26 @@ class TestPbaPrinterDelivery(TransactionCase):
         )
         cls.env.user.groups_id = [Command.link(cls.notify_group.id)]
         cls.env.company.pba_pos80_auto_print = True
+        cls.printer = cls._create_test_printer()
+
+    @classmethod
+    def _create_test_printer(cls):
+        if "device.bridge" not in cls.env:
+            return False
+        report = cls.env.ref(
+            "pba_printer_delivery.action_report_stock_picking_pos80"
+        )
+        printer = cls.env["device.bridge"].create(
+            {
+                "name": "Test POS-80",
+                "code": "test_pos80_ticket",
+                "device_type": "printer",
+                "protocol": "escpos",
+                "connection_types": "webusb,websocket",
+            }
+        )
+        printer.write({"report_ids": [(4, report.id)]})
+        return printer
 
     def _create_picking(self, picking_type_xmlid, dest_xmlid, **extra):
         picking_type = self.env.ref(picking_type_xmlid)
@@ -73,8 +93,12 @@ class TestPbaPrinterDelivery(TransactionCase):
         stock_label = self.env.ref("stock.stock_location_stock").complete_name
         self.assertIn("---> %s" % stock_label, text)
         payload = picking._pba_pos80_ticket_payload()
-        self.assertEqual(payload["device_code"], "pos80")
-        self.assertIn("pos80", payload["device_codes"])
+        if self.printer:
+            self.assertEqual(payload["device_code"], self.printer.code)
+            self.assertIn(self.printer.code, payload["device_codes"])
+        else:
+            self.assertFalse(payload["device_code"])
+            self.assertEqual(payload["device_codes"], [])
         self.assertEqual(payload["picking_id"], picking.id)
         self.assertEqual(base64.b64decode(payload["data_b64"]), raw)
 
@@ -98,6 +122,8 @@ class TestPbaPrinterDelivery(TransactionCase):
         self.assertEqual(content, picking._pba_pos80_ticket_bytes())
 
     def test_outgoing_autoprint_notifies_when_gateway_missing(self):
+        if not self.printer:
+            self.skipTest("device_bridge is not installed")
         sent = []
 
         def _bus_send(self, notification_type, message, /, *, subchannel=None):
@@ -123,7 +149,7 @@ class TestPbaPrinterDelivery(TransactionCase):
         ]
         self.assertEqual(len(print_jobs), 1)
         self.assertEqual(print_jobs[0]["picking_id"], picking.id)
-        self.assertEqual(print_jobs[0]["device_code"], "pos80")
+        self.assertEqual(print_jobs[0]["device_code"], self.printer.code)
         picking._pba_pos80_autoprint()
         self.assertEqual(
             len(
@@ -294,3 +320,89 @@ class TestPbaPrinterDelivery(TransactionCase):
         self.assertLess(text.index(header_001), text.index(line_001))
         self.assertLess(text.index(line_001), text.index(header_002))
         self.assertLess(text.index(header_002), text.index(line_002))
+
+    def _patch_print_notify(self):
+        sent = []
+
+        def _bus_send(self, notification_type, message, /, *, subchannel=None):
+            sent.append((notification_type, message))
+
+        self.patch(type(self.env["res.users"]), "_bus_send", _bus_send)
+        if "device.bridge.gateway" in self.env:
+            self.patch(
+                type(self.env["device.bridge.gateway"]),
+                "send_raw_job",
+                lambda self, *args, **kwargs: (_ for _ in ()).throw(
+                    Exception("no gateway")
+                ),
+            )
+        return sent
+
+    def test_assign_picking_after_create_autoprints(self):
+        if not self.printer:
+            self.skipTest("device_bridge is not installed")
+        sent = self._patch_print_notify()
+        dest = self.env.ref("stock.stock_location_customers")
+        stock = self.env.ref("stock.stock_location_stock")
+        picking = self.env["stock.picking"].create(
+            {
+                "picking_type_id": self.env.ref("stock.picking_type_out").id,
+                "location_id": stock.id,
+                "location_dest_id": dest.id,
+                "partner_id": self.partner.id,
+            }
+        )
+        self.assertNotIn(
+            "pba.stock.picking/print_pos80",
+            [notify_type for notify_type, _payload in sent],
+        )
+        move = self.env["stock.move"].create(
+            {
+                "name": self.product.name,
+                "product_id": self.product.id,
+                "product_uom_qty": 1,
+                "product_uom": self.product.uom_id.id,
+                "location_id": stock.id,
+                "location_dest_id": dest.id,
+            }
+        )
+        move.write({"picking_id": picking.id})
+        move._assign_picking_post_process(new=True)
+        print_jobs = [
+            payload
+            for notify_type, payload in sent
+            if notify_type == "pba.stock.picking/print_pos80"
+        ]
+        self.assertEqual(len(print_jobs), 1)
+        self.assertEqual(print_jobs[0]["picking_id"], picking.id)
+
+    def test_sale_confirm_autoprints_outgoing_picking(self):
+        if not self.printer:
+            self.skipTest("device_bridge is not installed")
+        sent = self._patch_print_notify()
+        self.product.sale_ok = True
+        order = self.env["sale.order"].create(
+            {
+                "partner_id": self.partner.id,
+                "order_line": [
+                    Command.create(
+                        {
+                            "product_id": self.product.id,
+                            "product_uom_qty": 1,
+                        }
+                    )
+                ],
+            }
+        )
+        order.action_confirm()
+        picking = order.picking_ids.filtered(
+            lambda rec: rec.picking_type_code == "outgoing"
+        )
+        self.assertTrue(picking)
+        print_jobs = [
+            payload
+            for notify_type, payload in sent
+            if notify_type == "pba.stock.picking/print_pos80"
+        ]
+        self.assertEqual(len(print_jobs), 1)
+        self.assertEqual(print_jobs[0]["picking_id"], picking.id)

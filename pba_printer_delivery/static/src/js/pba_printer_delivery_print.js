@@ -5,6 +5,7 @@ import { ConfirmationDialog } from "@web/core/confirmation_dialog/confirmation_d
 
 export const POS80_DEVICE_CODE = "pos80";
 export const POS80_PRINT_NOTIFICATION = "pba.stock.picking/print_pos80";
+export const POS80_PRINT_CANCELLED = "DEVICE_BRIDGE_CANCELLED";
 export const POS80_USB_FILTERS = [
     { vendorId: 0x0483 },
     { vendorId: 0x0416 },
@@ -117,7 +118,9 @@ export async function printPos80ThroughBridge(env, deviceCode, bytes) {
         env.services.ui.unblock();
         const useLocal = await askPrintOnThisComputer(env);
         if (!useLocal) {
-            throw error;
+            const cancelled = new Error(POS80_PRINT_CANCELLED);
+            cancelled.cause = error;
+            throw cancelled;
         }
         env.services.ui.block();
         await printPos80Bytes(env, deviceCode, bytes, {
@@ -141,7 +144,7 @@ export function jobDeviceCodes(job) {
     if (job?.device_code) {
         return [job.device_code];
     }
-    return [POS80_DEVICE_CODE];
+    return [];
 }
 
 export async function printPos80JobThroughBridge(env, job) {
@@ -152,6 +155,9 @@ export async function printPos80JobThroughBridge(env, job) {
             await printPos80ThroughBridge(env, code, bytes);
             return code;
         } catch (error) {
+            if (error?.message === POS80_PRINT_CANCELLED) {
+                throw error;
+            }
             lastError = error;
         }
     }

@@ -1,6 +1,6 @@
 {
     "name": "PBA POS-80 Delivery Printer",
-    "version": "18.0.1.2.3",
+    "version": "18.0.1.2.6",
     "category": "Inventory/Inventory",
     "summary": "Print outgoing pickings on a POS-80 via Device Bridge",
     "author": "andyengit",
@@ -9,6 +9,7 @@
     "license": "LGPL-3",
     "depends": [
         "stock",
+        "sale_stock",
         "bus",
         "pba_bus_picking_notification",
     ],
@@ -24,7 +25,6 @@
             "pba_printer_delivery/static/src/js/pba_printer_delivery_action.js",
         ],
     },
-    "post_init_hook": "post_init_hook",
     "installable": True,
     "application": False,
 }

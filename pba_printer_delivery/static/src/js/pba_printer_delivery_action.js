@@ -3,6 +3,7 @@
 import { _t } from "@web/core/l10n/translation";
 import { registry } from "@web/core/registry";
 import {
+    POS80_PRINT_CANCELLED,
     formatPos80PrintError,
     printPos80JobThroughBridge,
 } from "@pba_printer_delivery/js/pba_printer_delivery_print";
@@ -54,12 +55,17 @@ async function _printPos80PickingIds(env, pickingIds) {
     }
     const errors = [];
     let printed = 0;
+    let cancelled = false;
     for (const job of jobs) {
         env.services.ui.block();
         try {
             await printPos80JobThroughBridge(env, job);
             printed += 1;
         } catch (error) {
+            if (error?.message === POS80_PRINT_CANCELLED) {
+                cancelled = true;
+                break;
+            }
             errors.push(formatPos80PrintError(error));
         } finally {
             env.services.ui.unblock();
@@ -72,8 +78,7 @@ async function _printPos80PickingIds(env, pickingIds) {
                 : _t("Sent %s tickets to the POS-80.", printed),
             { type: "success" }
         );
-    }
-    if (errors.length) {
+    } else if (errors.length && !cancelled) {
         env.services.notification.add(errors.join("\n"), {
             title: _t("Could not print"),
             type: "danger",

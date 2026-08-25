@@ -437,3 +437,9 @@ msgstr "Pendiente"
 #: code:addons/device_bridge/models/device_bridge_gateway.py:0
 msgid "Invalid gateway."
 msgstr "Puerta de enlace no válida."
+
+#. module: device_bridge
+#. odoo-javascript
+#: code:addons/device_bridge/static/src/js/device_bridge_proxy.js:0
+msgid "Print cancelled."
+msgstr "Impresión cancelada."

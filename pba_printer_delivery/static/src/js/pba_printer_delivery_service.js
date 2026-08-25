@@ -4,7 +4,7 @@ import { registry } from "@web/core/registry";
 import {
     POS80_PRINT_NOTIFICATION,
     getDeviceBridge,
-    printPos80JobLocal,
+    printPos80JobThroughBridge,
 } from "@pba_printer_delivery/js/pba_printer_delivery_print";
 
 export const pbaPrinterDeliveryService = {
@@ -16,7 +16,7 @@ export const pbaPrinterDeliveryService = {
                 return;
             }
             try {
-                await printPos80JobLocal(env, payload);
+                await printPos80JobThroughBridge(env, payload);
             } catch {
                 return;
             }
