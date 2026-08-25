@@ -1,0 +1,180 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* pba_printer_delivery
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-08-25 20:40+0000\n"
+"PO-Revision-Date: 2026-08-25 20:40+0000\n"
+"Last-Translator: andyengit\n"
+"Language-Team: Spanish (Venezuela)\n"
+"Language: es_VE\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n == 1) ? 0 : ((n != 0 && n % 1000000 == 0) ? 1 : 2);\n"
+
+#. module: pba_printer_delivery
+#: model:ir.module.module,shortdesc:pba_printer_delivery.module_pba_printer_delivery
+msgid "PBA POS-80 Delivery Printer"
+msgstr "Impresora POS-80 de entregas PBA"
+
+#. module: pba_printer_delivery
+#: model:ir.module.module,summary:pba_printer_delivery.module_pba_printer_delivery
+msgid "Print outgoing pickings on a POS-80 via Device Bridge"
+msgstr "Imprime albaranes de salida en una POS-80 a través de Device Bridge"
+
+#. module: pba_printer_delivery
+#: model:ir.model.fields,field_description:pba_printer_delivery.field_res_company__pba_pos80_auto_print
+msgid "Auto-print deliveries on POS-80"
+msgstr "Imprimir entregas automáticamente en POS-80"
+
+#. module: pba_printer_delivery
+#: model:ir.model.fields,field_description:pba_printer_delivery.field_res_config_settings__pba_pos80_auto_print
+#: model_terms:ir.ui.view,arch_db:pba_printer_delivery.res_config_settings_view_form
+msgid "Auto-print POS-80"
+msgstr "Impresión automática POS-80"
+
+#. module: pba_printer_delivery
+#: model_terms:ir.ui.view,arch_db:pba_printer_delivery.res_config_settings_view_form
+msgid "Print outgoing pickings on the POS-80 when they are created. Uses Device Bridge when it is installed."
+msgstr "Imprime los albaranes de salida en la POS-80 al crearlos. Usa Device Bridge cuando está instalado."
+
+#. module: pba_printer_delivery
+#: model_terms:ir.ui.view,arch_db:pba_printer_delivery.stock_picking_view_form_pos80
+msgid "Print POS-80"
+msgstr "Imprimir POS-80"
+
+#. module: pba_printer_delivery
+#: code:addons/pba_printer_delivery/models/stock_picking.py:0
+msgid "Delivery"
+msgstr "Entrega"
+
+#. module: pba_printer_delivery
+#: code:addons/pba_printer_delivery/models/stock_picking.py:0
+msgid "Customer"
+msgstr "Cliente"
+
+#. module: pba_printer_delivery
+#: code:addons/pba_printer_delivery/models/stock_picking.py:0
+msgid "VAT"
+msgstr "RIF"
+
+#. module: pba_printer_delivery
+#: code:addons/pba_printer_delivery/models/stock_picking.py:0
+msgid "Origin"
+msgstr "Origen"
+
+#. module: pba_printer_delivery
+#: code:addons/pba_printer_delivery/models/stock_picking.py:0
+msgid "Date"
+msgstr "Fecha"
+
+#. module: pba_printer_delivery
+#: code:addons/pba_printer_delivery/models/stock_picking.py:0
+msgid "No product lines"
+msgstr "Sin líneas de producto"
+
+#. module: pba_printer_delivery
+#. odoo-javascript
+#: code:addons/pba_printer_delivery/static/src/js/pba_printer_delivery_print.js:0
+msgid "Device Bridge is not installed. Install it to print on the POS-80."
+msgstr "Device Bridge no está instalado. Instálelo para imprimir en la POS-80."
+
+#. module: pba_printer_delivery
+#. odoo-javascript
+#: code:addons/pba_printer_delivery/static/src/js/pba_printer_delivery_print.js:0
+msgid "POS-80 is not configured in Device Bridge. Register the printer."
+msgstr "La POS-80 no está configurada en Device Bridge. Registre la impresora."
+
+#. module: pba_printer_delivery
+#. odoo-javascript
+#: code:addons/pba_printer_delivery/static/src/js/pba_printer_delivery_print.js:0
+msgid "No online POS-80 gateway. Keep a browser connected to the printer."
+msgstr "No hay gateway POS-80 en línea. Mantenga un navegador conectado a la impresora."
+
+#. module: pba_printer_delivery
+#. odoo-javascript
+#: code:addons/pba_printer_delivery/static/src/js/pba_printer_delivery_print.js:0
+msgid "The POS-80 is not available in this browser. Select it once or keep a gateway online."
+msgstr "La POS-80 no está disponible en este navegador. Selecciónela una vez o mantenga un gateway en línea."
+
+#. module: pba_printer_delivery
+#. odoo-javascript
+#: code:addons/pba_printer_delivery/static/src/js/pba_printer_delivery_print.js:0
+msgid "WebUSB is not available. Use Chrome or Edge over HTTPS."
+msgstr "WebUSB no está disponible. Use Chrome o Edge en HTTPS."
+
+#. module: pba_printer_delivery
+#. odoo-javascript
+#: code:addons/pba_printer_delivery/static/src/js/pba_printer_delivery_print.js:0
+msgid "USB permission denied. Close other tabs using the printer or assign WinUSB with Zadig on Windows."
+msgstr "Permiso USB denegado. Cierre otras pestañas que usen la impresora o asigne WinUSB con Zadig en Windows."
+
+#. module: pba_printer_delivery
+#. odoo-javascript
+#: code:addons/pba_printer_delivery/static/src/js/pba_printer_delivery_print.js:0
+msgid "No compatible USB OUT endpoint was found on the POS-80."
+msgstr "No se encontró un endpoint USB de salida compatible en la POS-80."
+
+#. module: pba_printer_delivery
+#. odoo-javascript
+#: code:addons/pba_printer_delivery/static/src/js/pba_printer_delivery_print.js:0
+msgid "No printer was selected."
+msgstr "No se seleccionó una impresora."
+
+#. module: pba_printer_delivery
+#. odoo-javascript
+#: code:addons/pba_printer_delivery/static/src/js/pba_printer_delivery_print.js:0
+msgid "Could not print on the POS-80."
+msgstr "No se pudo imprimir en la POS-80."
+
+#. module: pba_printer_delivery
+#. odoo-javascript
+#: code:addons/pba_printer_delivery/static/src/js/pba_printer_delivery_print.js:0
+msgid "Configured printer not found"
+msgstr "No se encontró la impresora configurada"
+
+#. module: pba_printer_delivery
+#. odoo-javascript
+#: code:addons/pba_printer_delivery/static/src/js/pba_printer_delivery_print.js:0
+msgid "The configured POS-80 is not online. Do you want to print on this computer?"
+msgstr "La POS-80 configurada no está en línea. ¿Desea imprimir en este equipo?"
+
+#. module: pba_printer_delivery
+#. odoo-javascript
+#: code:addons/pba_printer_delivery/static/src/js/pba_printer_delivery_print.js:0
+msgid "Print on this computer"
+msgstr "Imprimir en este equipo"
+
+#. module: pba_printer_delivery
+#. odoo-javascript
+#: code:addons/pba_printer_delivery/static/src/js/pba_printer_delivery_print.js:0
+msgid "Cancel"
+msgstr "Cancelar"
+
+#. module: pba_printer_delivery
+#. odoo-javascript
+#: code:addons/pba_printer_delivery/static/src/js/pba_printer_delivery_action.js:0
+msgid "There is no picking to print."
+msgstr "No hay albarán para imprimir."
+
+#. module: pba_printer_delivery
+#. odoo-javascript
+#: code:addons/pba_printer_delivery/static/src/js/pba_printer_delivery_action.js:0
+msgid "Sent to the POS-80."
+msgstr "Enviado a la POS-80."
+
+#. module: pba_printer_delivery
+#. odoo-javascript
+#: code:addons/pba_printer_delivery/static/src/js/pba_printer_delivery_action.js:0
+msgid "Sent %s tickets to the POS-80."
+msgstr "Se enviaron %s tickets a la POS-80."
+
+#. module: pba_printer_delivery
+#. odoo-javascript
+#: code:addons/pba_printer_delivery/static/src/js/pba_printer_delivery_action.js:0
+msgid "Could not print"
+msgstr "No se pudo imprimir"

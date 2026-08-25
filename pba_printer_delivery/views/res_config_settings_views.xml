@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.pba.printer.delivery</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="stock.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//setting[@id='signature_delivery_orders']" position="after">
+                <setting
+                    id="pba_pos80_auto_print"
+                    company_dependent="1"
+                    string="Auto-print POS-80"
+                    help="Print outgoing pickings on the POS-80 when they are created. Uses Device Bridge when it is installed."
+                >
+                    <field name="pba_pos80_auto_print"/>
+                </setting>
+            </xpath>
+        </field>
+    </record>
+</odoo>

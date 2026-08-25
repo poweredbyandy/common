@@ -1,0 +1,53 @@
+===========================
+PBA POS-80 Delivery Printer
+===========================
+
+Print outgoing pickings on an 80 mm ESC/POS thermal printer (POS-80).
+
+Description
+===========
+
+* Builds a delivery ticket with company, customer, origin, date and product lines.
+* Prints automatically when an outgoing picking is created.
+* Adds a **Print POS-80** button on the picking form for reprints.
+* Uses Device Bridge for the USB or gateway connection when that module is
+  installed. This module does not depend on Device Bridge.
+
+Use Cases / Context
+===================
+
+Warehouse staff need the delivery ticket as soon as a picking exists, without
+opening a report dialog. The ticket must reach the POS-80 that is already
+shared through Device Bridge, including a browser that keeps the printer online
+as a gateway.
+
+Configuration
+=============
+
+#. Install **Device Bridge** on the database that has the POS-80 (recommended).
+#. Register the printer with code ``pos80`` (the module creates it on install
+   when Device Bridge is already present).
+#. Keep a Chrome or Edge tab connected so the gateway stays online, or print
+   from the computer that has the USB cable.
+#. Grant **Receive picking notifications** to warehouse users so their browsers
+   can print locally when no gateway is online.
+#. Inventory settings: enable or disable **Auto-print POS-80** per company.
+
+Usage
+=====
+
+#. Confirm a sales order or create an outgoing picking. The POS-80 prints the
+   delivery ticket when auto-print is enabled.
+#. Open the picking and click **Print POS-80** to reprint.
+#. If the configured printer is offline, the client asks whether to print on
+   this computer and opens the USB picker.
+
+Authors
+=======
+
+* andyengit
+
+Contributors
+============
+
+* andyengit
