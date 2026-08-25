@@ -4,7 +4,6 @@ import { Component, onMounted, useEffect, useState } from "@odoo/owl";
 import { _t } from "@web/core/l10n/translation";
 import { registry } from "@web/core/registry";
 import { standardFieldProps } from "@web/views/fields/standard_field_props";
-import qrcode from "./lib/qrcode";
 
 export class QrCodeField extends Component {
     static template = "product_qrcode.QrCodeField";
@@ -37,11 +36,12 @@ export class QrCodeField extends Component {
             return;
         }
         try {
-            if (typeof qrcode !== "function") {
+            const qrcodeFn = globalThis.qrcode;
+            if (typeof qrcodeFn !== "function") {
                 throw new Error("QR library unavailable");
             }
-            qrcode.stringToBytes = qrcode.stringToBytesFuncs["UTF-8"];
-            const qr = qrcode(0, "M");
+            qrcodeFn.stringToBytes = qrcodeFn.stringToBytesFuncs["UTF-8"];
+            const qr = qrcodeFn(0, "M");
             qr.addData(value);
             qr.make();
             const cellSize = 4;

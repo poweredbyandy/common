@@ -1,6 +1,6 @@
 {
     "name": "Product QR Code",
-    "version": "18.0.1.4.0",
+    "version": "18.0.1.4.1",
     "category": "Inventory/Inventory",
     "summary": "Generate and display a QR code for each product",
     "author": "andyengit",
@@ -18,7 +18,7 @@
     ],
     "assets": {
         "web.assets_backend": [
-            "product_qrcode/static/src/lib/qrcode.js",
+            "product_qrcode/static/lib/qrcode.js",
             "product_qrcode/static/src/qr_code_field.js",
             "product_qrcode/static/src/qr_code_field.xml",
             "product_qrcode/static/src/qr_code_field.scss",
