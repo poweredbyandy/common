@@ -100,6 +100,7 @@ class TestPbaPrinterDelivery(TransactionCase):
             self.assertFalse(payload["device_code"])
             self.assertEqual(payload["device_codes"], [])
         self.assertEqual(payload["picking_id"], picking.id)
+        self.assertEqual(payload["company_id"], picking.company_id.id)
         self.assertEqual(base64.b64decode(payload["data_b64"]), raw)
 
     def test_action_print_returns_report_action(self):
@@ -121,7 +122,7 @@ class TestPbaPrinterDelivery(TransactionCase):
         self.assertEqual(extension, "text")
         self.assertEqual(content, picking._pba_pos80_ticket_bytes())
 
-    def test_outgoing_autoprint_notifies_when_gateway_missing(self):
+    def test_outgoing_autoprint_skips_bus_when_gateway_missing(self):
         if not self.printer:
             self.skipTest("device_bridge is not installed")
         sent = []
@@ -142,24 +143,19 @@ class TestPbaPrinterDelivery(TransactionCase):
             "stock.picking_type_out",
             "stock.stock_location_customers",
         )
-        print_jobs = [
-            payload
-            for notify_type, payload in sent
-            if notify_type == "pba.stock.picking/print_pos80"
-        ]
-        self.assertEqual(len(print_jobs), 1)
-        self.assertEqual(print_jobs[0]["picking_id"], picking.id)
-        self.assertEqual(print_jobs[0]["device_code"], self.printer.code)
+        self.assertTrue(picking.pba_pos80_auto_printed)
+        self.assertFalse(
+            any(
+                notify_type == "pba.stock.picking/print_pos80"
+                for notify_type, _payload in sent
+            )
+        )
         picking._pba_pos80_autoprint()
-        self.assertEqual(
-            len(
-                [
-                    payload
-                    for notify_type, payload in sent
-                    if notify_type == "pba.stock.picking/print_pos80"
-                ]
-            ),
-            1,
+        self.assertFalse(
+            any(
+                notify_type == "pba.stock.picking/print_pos80"
+                for notify_type, _payload in sent
+            )
         )
 
     def test_incoming_picking_does_not_autoprint(self):
@@ -368,13 +364,13 @@ class TestPbaPrinterDelivery(TransactionCase):
         )
         move.write({"picking_id": picking.id})
         move._assign_picking_post_process(new=True)
-        print_jobs = [
-            payload
-            for notify_type, payload in sent
-            if notify_type == "pba.stock.picking/print_pos80"
-        ]
-        self.assertEqual(len(print_jobs), 1)
-        self.assertEqual(print_jobs[0]["picking_id"], picking.id)
+        self.assertTrue(picking.pba_pos80_auto_printed)
+        self.assertFalse(
+            any(
+                notify_type == "pba.stock.picking/print_pos80"
+                for notify_type, _payload in sent
+            )
+        )
 
     def test_sale_confirm_autoprints_outgoing_picking(self):
         if not self.printer:
@@ -399,10 +395,57 @@ class TestPbaPrinterDelivery(TransactionCase):
             lambda rec: rec.picking_type_code == "outgoing"
         )
         self.assertTrue(picking)
-        print_jobs = [
-            payload
-            for notify_type, payload in sent
-            if notify_type == "pba.stock.picking/print_pos80"
-        ]
-        self.assertEqual(len(print_jobs), 1)
-        self.assertEqual(print_jobs[0]["picking_id"], picking.id)
+        self.assertTrue(all(picking.mapped("pba_pos80_auto_printed")))
+        self.assertFalse(
+            any(
+                notify_type == "pba.stock.picking/print_pos80"
+                for notify_type, _payload in sent
+            )
+        )
+
+    def test_other_company_printer_is_ignored(self):
+        if not self.printer:
+            self.skipTest("device_bridge is not installed")
+        other = self.env["res.company"].create({"name": "POS80 Other Company"})
+        self.printer.company_id = other
+        sent = self._patch_print_notify()
+        picking = self._create_picking(
+            "stock.picking_type_out",
+            "stock.stock_location_customers",
+        )
+        self.assertEqual(picking._pba_pos80_printer_codes(), [])
+        self.assertFalse(picking.pba_pos80_auto_printed)
+        self.assertFalse(
+            any(
+                notify_type == "pba.stock.picking/print_pos80"
+                for notify_type, _payload in sent
+            )
+        )
+
+    def test_autoprint_sends_company_to_gateway(self):
+        if not self.printer or "device.bridge.gateway" not in self.env:
+            self.skipTest("device_bridge is not installed")
+        calls = []
+
+        def _send_raw(self, device_code, data_b64, gateway_id=None, company_id=None):
+            calls.append(
+                {
+                    "device_code": device_code,
+                    "company_id": company_id,
+                }
+            )
+            return {"job_id": "test-job"}
+
+        self.patch(
+            type(self.env["device.bridge.gateway"]),
+            "send_raw_job",
+            _send_raw,
+        )
+        picking = self._create_picking(
+            "stock.picking_type_out",
+            "stock.stock_location_customers",
+        )
+        self.assertTrue(picking.pba_pos80_auto_printed)
+        self.assertEqual(len(calls), 1)
+        self.assertEqual(calls[0]["device_code"], self.printer.code)
+        self.assertEqual(calls[0]["company_id"], picking.company_id.id)

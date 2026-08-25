@@ -19,6 +19,8 @@ function base64ToUint8Array(value) {
 async function deviceBridgePrintTestAction(env, action) {
     const deviceCode =
         action.params?.device_code || action.context?.device_code;
+    const companyId =
+        action.params?.company_id || action.context?.company_id || false;
     if (!deviceCode) {
         env.services.notification.add(_t("Missing printer code for the test print."), {
             type: "danger",
@@ -29,12 +31,12 @@ async function deviceBridgePrintTestAction(env, action) {
     const job = await env.services.orm.call(
         "device.bridge",
         "get_test_print_payload",
-        [deviceCode]
+        [deviceCode, companyId]
     );
     const bytes = base64ToUint8Array(job.data_b64);
     env.services.ui.block();
     try {
-        await printThroughDeviceBridge(env, deviceCode, bytes);
+        await printThroughDeviceBridge(env, deviceCode, bytes, { companyId });
         env.services.notification.add(
             _t("Test sent to printer %s.", job.name || deviceCode),
             { type: "success" }

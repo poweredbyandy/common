@@ -17,3 +17,5 @@
    device, print jobs are queued and the printer PC pulls them to print. If
    the gateway is not found, Odoo asks whether to print on this computer.
 9. Review authorizations and gateways under *Device Bridge*.
+10. Open *Device Bridge > Print queue* to see pending jobs. Select stuck
+    jobs and delete them so they are not printed later.

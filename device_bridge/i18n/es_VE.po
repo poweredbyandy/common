@@ -164,6 +164,7 @@ msgstr "Nombre del dispositivo"
 
 #. module: device_bridge
 #: model_terms:ir.ui.view,arch_db:device_bridge.device_bridge_view_form
+#: model_terms:ir.ui.view,arch_db:device_bridge.device_bridge_print_job_view_search
 msgid "Device"
 msgstr "Dispositivo"
 
@@ -430,6 +431,8 @@ msgstr "Trabajo de impresión del puente de dispositivos"
 
 #. module: device_bridge
 #: model:ir.model.fields,field_description:device_bridge.field_device_bridge_print_job__state
+#: model:ir.model.fields.selection,name:device_bridge.selection__device_bridge_print_job__state__pending
+#: model_terms:ir.ui.view,arch_db:device_bridge.device_bridge_print_job_view_search
 msgid "Pending"
 msgstr "Pendiente"
 
@@ -443,3 +446,74 @@ msgstr "Puerta de enlace no válida."
 #: code:addons/device_bridge/static/src/js/device_bridge_proxy.js:0
 msgid "Print cancelled."
 msgstr "Impresión cancelada."
+
+#. module: device_bridge
+#. odoo-python
+#: code:addons/device_bridge/models/device_bridge.py:0
+msgid "The device code %s already belongs to another company."
+msgstr "El código de dispositivo %s ya pertenece a otra empresa."
+
+#. module: device_bridge
+#. odoo-python
+#: code:addons/device_bridge/models/device_bridge_gateway.py:0
+msgid "Gateway is not connected to this company."
+msgstr "La puerta de enlace no está conectada a esta empresa."
+
+#. module: device_bridge
+#: model:ir.actions.act_window,name:device_bridge.device_bridge_print_job_action
+#: model:ir.ui.menu,name:device_bridge.device_bridge_menu_print_jobs
+msgid "Print queue"
+msgstr "Cola de impresión"
+
+#. module: device_bridge
+#: model_terms:ir.ui.view,arch_db:device_bridge.device_bridge_print_job_view_form
+msgid "Print job"
+msgstr "Trabajo de impresión"
+
+#. module: device_bridge
+#: model_terms:ir.ui.view,arch_db:device_bridge.device_bridge_print_job_view_search
+msgid "Queued"
+msgstr "En cola"
+
+#. module: device_bridge
+#: model:ir.model.fields.selection,name:device_bridge.selection__device_bridge_print_job__state__processing
+#: model_terms:ir.ui.view,arch_db:device_bridge.device_bridge_print_job_view_search
+msgid "Processing"
+msgstr "Procesando"
+
+#. module: device_bridge
+#: model:ir.model.fields.selection,name:device_bridge.selection__device_bridge_print_job__state__done
+#: model_terms:ir.ui.view,arch_db:device_bridge.device_bridge_print_job_view_search
+msgid "Done"
+msgstr "Hecho"
+
+#. module: device_bridge
+#: model:ir.model.fields.selection,name:device_bridge.selection__device_bridge_print_job__state__error
+#: model_terms:ir.ui.view,arch_db:device_bridge.device_bridge_print_job_view_search
+msgid "Error"
+msgstr "Error"
+
+#. module: device_bridge
+#: model_terms:ir.ui.view,arch_db:device_bridge.device_bridge_print_job_view_search
+msgid "Status"
+msgstr "Estado"
+
+#. module: device_bridge
+#: model_terms:ir.ui.view,arch_db:device_bridge.device_bridge_print_job_view_search
+msgid "Company"
+msgstr "Empresa"
+
+#. module: device_bridge
+#: model_terms:ir.actions.act_window,help:device_bridge.device_bridge_print_job_action
+msgid "No queued print jobs"
+msgstr "No hay trabajos de impresión en cola"
+
+#. module: device_bridge
+#: model_terms:ir.actions.act_window,help:device_bridge.device_bridge_print_job_action
+msgid ""
+"Jobs stay here when a gateway is offline or a print did not"
+" finish. Select them and delete them to clear the queue."
+msgstr ""
+"Los trabajos quedan aquí cuando la puerta de enlace está fuera de línea"
+" o una impresión no terminó. Selecciónelos y elimínelos para vaciar la cola."
+

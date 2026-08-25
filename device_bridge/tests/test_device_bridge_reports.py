@@ -58,6 +58,7 @@ class TestDeviceBridgeReports(TransactionCase):
         payload = self.env["device.bridge"].get_device_payload(self.printer.code)
         self.assertEqual(payload["report_ids"], self.report.ids)
         self.assertEqual(payload["report_names"], [self.report.report_name])
+        self.assertEqual(payload["company_id"], self.printer.company_id.id)
 
     def test_prepare_print_without_printer_returns_false(self):
         job = self.env["ir.actions.report"].prepare_device_bridge_print(
@@ -193,3 +194,92 @@ class TestDeviceBridgeReports(TransactionCase):
 
     def test_print_job_table_ensure(self):
         self.assertTrue(self.env["device.bridge.print.job"]._ensure_table())
+
+    def test_get_printers_for_report_filters_company(self):
+        other = self.env["res.company"].create({"name": "Bridge Other Company"})
+        self.printer.write({"report_ids": [(4, self.report.id)]})
+        self.assertEqual(
+            len(self.env["device.bridge"].get_printers_for_report(self.report)),
+            1,
+        )
+        self.printer.company_id = other
+        self.assertEqual(
+            self.env["device.bridge"].get_printers_for_report(self.report),
+            [],
+        )
+        self.assertEqual(
+            len(
+                self.env["device.bridge"].get_printers_for_report(
+                    self.report, other.id
+                )
+            ),
+            1,
+        )
+
+    def test_send_raw_job_rejects_other_company(self):
+        other = self.env["res.company"].create({"name": "Bridge Isolated Company"})
+        self.env.user.company_ids |= other
+        self.printer.write({"connection_types": "webusb,websocket"})
+        auth = self.env["device.bridge.authorization"].authorize_device(
+            {
+                "device_code": self.printer.code,
+                "browser_key": "browser-key-company",
+                "vendor_id": 1046,
+                "product_id": 20481,
+            }
+        )
+        self.env["device.bridge.gateway"].register_gateway(
+            self.printer.code,
+            "browser-key-company",
+            auth["id"],
+            "Company PC",
+        )
+        self.assertTrue(
+            self.env["device.bridge.gateway"].get_online_gateways(
+                self.printer.code, self.env.company.id
+            )
+        )
+        self.assertEqual(
+            self.env["device.bridge.gateway"].get_online_gateways(
+                self.printer.code, other.id
+            ),
+            [],
+        )
+        with self.assertRaises(UserError):
+            self.env["device.bridge.gateway"].send_raw_job(
+                self.printer.code,
+                base64.b64encode(b"OTHER-CO").decode(),
+                None,
+                other.id,
+            )
+
+    def test_print_queue_action_allows_unlink(self):
+        action = self.env.ref("device_bridge.device_bridge_print_job_action")
+        self.assertEqual(action.res_model, "device.bridge.print.job")
+        self.assertTrue(self.env.ref("device_bridge.device_bridge_menu_print_jobs"))
+        self.printer.write({"connection_types": "webusb,websocket"})
+        auth = self.env["device.bridge.authorization"].authorize_device(
+            {
+                "device_code": self.printer.code,
+                "browser_key": "browser-key-queue",
+                "vendor_id": 1046,
+                "product_id": 20481,
+            }
+        )
+        self.env["device.bridge.gateway"].register_gateway(
+            self.printer.code,
+            "browser-key-queue",
+            auth["id"],
+            "Queue PC",
+        )
+        queued = self.env["device.bridge.gateway"].send_raw_job(
+            self.printer.code,
+            base64.b64encode(b"QUEUE-JOB").decode(),
+        )
+        print_job = self.env["device.bridge.print.job"].search(
+            [("name", "=", queued["job_id"])],
+            limit=1,
+        )
+        self.assertEqual(print_job.state, "pending")
+        print_job.unlink()
+        self.assertFalse(print_job.exists())

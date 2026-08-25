@@ -70,8 +70,8 @@ export const deviceBridgeService = {
             async printRaw(deviceCode, uint8Array, options = {}) {
                 return getProxy(deviceCode, options).printRaw(uint8Array, options);
             },
-            async listOnlineGateways(deviceCode) {
-                return getProxy(deviceCode).listOnlineGateways();
+            async listOnlineGateways(deviceCode, options = {}) {
+                return getProxy(deviceCode).listOnlineGateways(options.companyId);
             },
         };
     },

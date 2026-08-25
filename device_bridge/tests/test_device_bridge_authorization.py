@@ -64,3 +64,17 @@ class TestDeviceBridgeAuthorization(TransactionCase):
         )
         codes = self.env["device.bridge"].get_shareable_device_codes()
         self.assertIn(self.device.code, codes)
+
+    def test_get_shareable_device_codes_skips_other_company(self):
+        self.Auth.authorize_device(
+            {
+                "device_code": self.device.code,
+                "browser_key": "browser-key-other-co",
+                "vendor_id": 1046,
+                "product_id": 20481,
+            }
+        )
+        other = self.env["res.company"].create({"name": "Auth Other Company"})
+        self.device.company_id = other
+        codes = self.env["device.bridge"].get_shareable_device_codes()
+        self.assertNotIn(self.device.code, codes)

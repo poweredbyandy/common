@@ -32,11 +32,12 @@ function askPrintOnThisComputer(env) {
     });
 }
 
-export async function printThroughDeviceBridge(env, deviceCode, bytes) {
+export async function printThroughDeviceBridge(env, deviceCode, bytes, options = {}) {
     try {
         await env.services.device_bridge.printRaw(deviceCode, bytes, {
             mode: "auto",
             allowPicker: false,
+            companyId: options.companyId || false,
         });
         return "bridge";
     } catch (error) {
@@ -57,6 +58,7 @@ export async function printThroughDeviceBridge(env, deviceCode, bytes) {
             allowPicker: true,
             persistDevice: true,
             shareGateway: true,
+            companyId: options.companyId || false,
         });
         return "local";
     }

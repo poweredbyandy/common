@@ -101,14 +101,16 @@ export async function printPos80Bytes(env, deviceCode, bytes, options = {}) {
         persistDevice: options.persistDevice !== false,
         shareGateway: options.shareGateway !== false,
         filters: POS80_USB_FILTERS,
+        companyId: options.companyId || false,
     });
 }
 
-export async function printPos80ThroughBridge(env, deviceCode, bytes) {
+export async function printPos80ThroughBridge(env, deviceCode, bytes, options = {}) {
     try {
         await printPos80Bytes(env, deviceCode, bytes, {
             mode: "auto",
             allowPicker: false,
+            companyId: options.companyId,
         });
         return "bridge";
     } catch (error) {
@@ -129,6 +131,7 @@ export async function printPos80ThroughBridge(env, deviceCode, bytes) {
             allowPicker: true,
             persistDevice: true,
             shareGateway: true,
+            companyId: options.companyId,
         });
         return "local";
     }
@@ -149,10 +152,11 @@ export function jobDeviceCodes(job) {
 
 export async function printPos80JobThroughBridge(env, job) {
     const bytes = base64ToUint8Array(job.data_b64);
+    const companyId = job.company_id || false;
     let lastError;
     for (const code of jobDeviceCodes(job)) {
         try {
-            await printPos80ThroughBridge(env, code, bytes);
+            await printPos80ThroughBridge(env, code, bytes, { companyId });
             return code;
         } catch (error) {
             if (error?.message === POS80_PRINT_CANCELLED) {
@@ -166,12 +170,14 @@ export async function printPos80JobThroughBridge(env, job) {
 
 export async function printPos80JobLocal(env, job) {
     const bytes = base64ToUint8Array(job.data_b64);
+    const companyId = job.company_id || false;
     let lastError;
     for (const code of jobDeviceCodes(job)) {
         try {
             await printPos80Bytes(env, code, bytes, {
                 mode: "local",
                 allowPicker: false,
+                companyId,
             });
             return code;
         } catch (error) {

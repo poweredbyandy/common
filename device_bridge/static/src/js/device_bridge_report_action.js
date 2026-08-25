@@ -70,7 +70,9 @@ async function deviceBridgeReportActionHandler(action, options, env) {
     for (const printer of job.printers) {
         env.services.ui.block();
         try {
-            await printThroughDeviceBridge(env, printer.code, bytes);
+            await printThroughDeviceBridge(env, printer.code, bytes, {
+                companyId: printer.company_id || job.company_id,
+            });
             printedNames.push(printer.name || printer.code);
             break;
         } catch (error) {

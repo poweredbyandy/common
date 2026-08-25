@@ -39,4 +39,12 @@
         sequence="30"
         groups="device_bridge.group_device_bridge_manager"
     />
+    <menuitem
+        id="device_bridge_menu_print_jobs"
+        name="Print queue"
+        parent="device_bridge_menu_root"
+        action="device_bridge_print_job_action"
+        sequence="40"
+        groups="device_bridge.group_device_bridge_user"
+    />
 </odoo>

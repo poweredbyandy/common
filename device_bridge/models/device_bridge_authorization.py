@@ -132,9 +132,8 @@ class DeviceBridgeAuthorization(models.Model):
         device_code = vals.get("device_code") or vals.get("printer_code")
         browser_key = self._normalize_browser_key(vals.get("browser_key"))
         Device = self.env["device.bridge"]
-        device = Device.search(
-            [("code", "=", device_code), ("active", "=", True)], limit=1
-        )
+        company = Device._company_from_id(vals.get("company_id"))
+        device = Device._find_active_by_code(device_code, company)
         if not device:
             raise UserError(_("Unknown device code: %s") % device_code)
 

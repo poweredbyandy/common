@@ -7,3 +7,5 @@
   ``ir.actions.report`` records that this device should print.
 * The same assignment is available on each report form as
   **Device Bridge printers**.
+* Use *Device Bridge > Print queue* to delete jobs that stayed pending
+  when a gateway was offline.

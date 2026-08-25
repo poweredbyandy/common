@@ -80,12 +80,14 @@ class DeviceBridgeGateway(models.Model):
         ]
 
     @api.model
-    def register_gateway(self, device_code, browser_key, authorization_id, label=None):
+    def register_gateway(
+        self, device_code, browser_key, authorization_id, label=None, company_id=None
+    ):
         Auth = self.env["device.bridge.authorization"]
         Device = self.env["device.bridge"]
         browser_key = Auth._normalize_browser_key(browser_key)
-        device = Device.search(
-            [("code", "=", device_code), ("active", "=", True)], limit=1
+        device = Device._find_active_by_code(
+            device_code, Device._company_from_id(company_id)
         )
         if not device:
             raise UserError(_("Unknown device code: %s") % device_code)
@@ -175,11 +177,10 @@ class DeviceBridgeGateway(models.Model):
         return True
 
     @api.model
-    def get_online_gateways(self, device_code):
+    def get_online_gateways(self, device_code, company_id=None):
         Device = self.env["device.bridge"]
-        device = Device.search(
-            [("code", "=", device_code), ("active", "=", True)], limit=1
-        )
+        company = Device._company_from_id(company_id)
+        device = Device._find_active_by_code(device_code, company)
         if not device:
             return []
         if "websocket" not in device._connection_type_list():
@@ -188,15 +189,11 @@ class DeviceBridgeGateway(models.Model):
             [("device_id", "=", device.id)] + self._online_domain(),
             order="last_seen desc",
         )
-        # Share within same company by default
-        allowed_companies = self.env.companies
-        gateways = gateways.filtered(
-            lambda g: not g.company_id or g.company_id in allowed_companies
-        )
-        return [g._to_public_payload() for g in gateways]
+        gateways = gateways.filtered(lambda gateway: gateway.company_id == company)
+        return [gateway._to_public_payload() for gateway in gateways]
 
     @api.model
-    def send_raw_job(self, device_code, data_b64, gateway_id=None):
+    def send_raw_job(self, device_code, data_b64, gateway_id=None, company_id=None):
         if not data_b64:
             raise UserError(_("Empty print payload."))
         try:
@@ -207,9 +204,8 @@ class DeviceBridgeGateway(models.Model):
             raise UserError(_("Empty print payload."))
 
         Device = self.env["device.bridge"]
-        device = Device.search(
-            [("code", "=", device_code), ("active", "=", True)], limit=1
-        )
+        company = Device._company_from_id(company_id)
+        device = Device._find_active_by_code(device_code, company)
         if not device:
             raise UserError(_("Unknown device code: %s") % device_code)
         if "websocket" not in device._connection_type_list():
@@ -229,8 +225,8 @@ class DeviceBridgeGateway(models.Model):
                 )
                 % device.name
             )
-        if gateway.company_id and gateway.company_id not in self.env.companies:
-            raise AccessError(_("Gateway belongs to another company."))
+        if gateway.company_id != company:
+            raise AccessError(_("Gateway is not connected to this company."))
 
         Job = self.env["device.bridge.print.job"]
         if not Job._ensure_table():

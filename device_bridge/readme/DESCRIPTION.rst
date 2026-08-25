@@ -10,3 +10,4 @@ Authorize and share hardware devices across browsers and computers.
 * Assign ``ir.actions.report`` records to a printer so each device has a
   configured report list. Printing those reports sends the job to the
   device; other reports keep the standard Odoo behavior.
+* Review and delete stuck jobs from *Device Bridge > Print queue*.

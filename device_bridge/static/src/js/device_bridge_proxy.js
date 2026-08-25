@@ -108,6 +108,8 @@ export class DeviceBridgeProxy {
         this.authorizedDeviceId = null;
         this.devicePayload = null;
         this.enableGateway = options.enableGateway !== false;
+        this.companyId = options.companyId || false;
+        this.devicePayloadCompanyId = false;
         this.onLocalConnected = options.onLocalConnected || null;
         this.onLocalDisconnected = options.onLocalDisconnected || null;
     }
@@ -132,17 +134,22 @@ export class DeviceBridgeProxy {
         return getLocalGateway(this.deviceCode);
     }
 
-    async loadDevicePayload() {
-        if (this.devicePayload) {
+    async loadDevicePayload(companyId) {
+        const resolved = companyId || this.companyId || false;
+        if (this.devicePayload && this.devicePayloadCompanyId === resolved) {
             return this.devicePayload;
         }
-        const payload = await callModel("device.bridge", "get_device_payload", [
-            this.deviceCode,
-        ]);
+        const payload = await callModel(
+            "device.bridge",
+            "get_device_payload",
+            [this.deviceCode],
+            { company_id: resolved }
+        );
         if (!payload?.id) {
             throw new Error("DEVICE_BRIDGE_NOT_CONFIGURED");
         }
         this.devicePayload = payload;
+        this.devicePayloadCompanyId = resolved;
         return payload;
     }
 
@@ -253,6 +260,7 @@ export class DeviceBridgeProxy {
                 {
                     device_code: this.deviceCode,
                     browser_key: this.browserKey,
+                    company_id: this.companyId || false,
                     connection_type: "webusb",
                     vendor_id: device.vendorId,
                     product_id: device.productId,
@@ -272,12 +280,17 @@ export class DeviceBridgeProxy {
         }
         setLocalProxy(this.deviceCode, this);
         const register = async () =>
-            callModel("device.bridge.gateway", "register_gateway", [
-                this.deviceCode,
-                this.browserKey,
-                this.authorizedDeviceId || false,
-                this.deviceLabel || false,
-            ]);
+            callModel(
+                "device.bridge.gateway",
+                "register_gateway",
+                [
+                    this.deviceCode,
+                    this.browserKey,
+                    this.authorizedDeviceId || false,
+                    this.deviceLabel || false,
+                ],
+                { company_id: this.companyId || false }
+            );
         try {
             if (!this.authorizedDeviceId) {
                 await this._authorizeCurrentDevice();
@@ -411,10 +424,13 @@ export class DeviceBridgeProxy {
         }
     }
 
-    async listOnlineGateways() {
-        return callModel("device.bridge.gateway", "get_online_gateways", [
-            this.deviceCode,
-        ]);
+    async listOnlineGateways(companyId) {
+        return callModel(
+            "device.bridge.gateway",
+            "get_online_gateways",
+            [this.deviceCode],
+            { company_id: companyId || false }
+        );
     }
 
     async ensureOnlineGateway({ allowPicker = false } = {}) {
@@ -433,11 +449,12 @@ export class DeviceBridgeProxy {
     async printRemote(uint8Array, options = {}) {
         const data_b64 = bytesToBase64(uint8Array);
         try {
-            return await callModel("device.bridge.gateway", "send_raw_job", [
-                this.deviceCode,
-                data_b64,
-                options.gatewayId || false,
-            ]);
+            return await callModel(
+                "device.bridge.gateway",
+                "send_raw_job",
+                [this.deviceCode, data_b64, options.gatewayId || false],
+                { company_id: options.companyId || false }
+            );
         } catch (error) {
             const msg = (error?.data?.message || error?.message || "").toLowerCase();
             if (msg.includes("no online gateway")) {
@@ -497,6 +514,9 @@ export class DeviceBridgeProxy {
         if (!uint8Array?.length) {
             throw new Error(_t("There is no data to print."));
         }
+        if (options.companyId) {
+            this.companyId = options.companyId;
+        }
         const mode = options.mode || "auto";
         if (mode === "remote") {
             return this.printRemote(uint8Array, options);
@@ -525,7 +545,7 @@ export class DeviceBridgeProxy {
         }
         let gateways = [];
         try {
-            gateways = await this.listOnlineGateways();
+            gateways = await this.listOnlineGateways(options.companyId);
         } catch {
             gateways = [];
         }

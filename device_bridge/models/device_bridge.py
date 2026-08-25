@@ -218,8 +218,32 @@ class DeviceBridge(models.Model):
         return bytes(payload)
 
     @api.model
-    def get_test_print_payload(self, code):
-        device = self.search([("code", "=", code), ("active", "=", True)], limit=1)
+    def _company_from_id(self, company_id=None):
+        if company_id:
+            company = self.env["res.company"].browse(int(company_id)).exists()
+            if company:
+                return company
+        return self.env.company
+
+    @api.model
+    def _find_active_by_code(self, code, company=None):
+        if not code:
+            return self.browse()
+        if isinstance(company, int):
+            company = self.env["res.company"].browse(company).exists()
+        company = company or self.env.company
+        return self.search(
+            [
+                ("code", "=", code),
+                ("active", "=", True),
+                ("company_id", "=", company.id),
+            ],
+            limit=1,
+        )
+
+    @api.model
+    def get_test_print_payload(self, code, company_id=None):
+        device = self._find_active_by_code(code, company_id)
         if not device:
             raise UserError(_("Unknown device code: %s") % code)
         if device.device_type not in PRINTER_DEVICE_TYPES:
@@ -236,27 +260,30 @@ class DeviceBridge(models.Model):
 
     def action_print_test(self):
         self.ensure_one()
-        self.get_test_print_payload(self.code)
+        self.get_test_print_payload(self.code, self.company_id.id)
         return {
             "type": "ir.actions.client",
             "tag": "device_bridge_print_test",
             "params": {
                 "device_code": self.code,
+                "company_id": self.company_id.id,
             },
             "context": {
                 "device_code": self.code,
+                "company_id": self.company_id.id,
             },
         }
 
     @api.model
-    def get_device_payload(self, code):
-        device = self.search([("code", "=", code), ("active", "=", True)], limit=1)
+    def get_device_payload(self, code, company_id=None):
+        device = self._find_active_by_code(code, company_id)
         if not device:
             return {}
         return {
             "id": device.id,
             "name": device.name,
             "code": device.code,
+            "company_id": device.company_id.id,
             "device_type": device.device_type,
             "protocol": device.protocol,
             "connection_types": device._connection_type_list(),
@@ -279,6 +306,8 @@ class DeviceBridge(models.Model):
         for device in auths.mapped("device_id"):
             if not device.active:
                 continue
+            if device.company_id != self.env.company:
+                continue
             if "websocket" not in device._connection_type_list():
                 continue
             if device.code not in codes:
@@ -286,13 +315,17 @@ class DeviceBridge(models.Model):
         return codes
 
     @api.model
-    def get_printers_for_report(self, report_ref):
+    def get_printers_for_report(self, report_ref, company_id=None):
         report = self.env["ir.actions.report"]._get_report(report_ref)
+        company = self._company_from_id(company_id)
         printers = report.device_bridge_ids.filtered(
             lambda device: device.active
             and device.device_type in PRINTER_DEVICE_TYPES
+            and device.company_id == company
         )
-        return [self.get_device_payload(printer.code) for printer in printers]
+        return [
+            self.get_device_payload(printer.code, company.id) for printer in printers
+        ]
 
     @api.model
     def get_register_defaults(self):
@@ -340,8 +373,19 @@ class DeviceBridge(models.Model):
         connection_types = "webusb,websocket" if share_websocket else "webusb"
 
         device = self.with_context(active_test=False).search(
-            [("code", "=", code)], limit=1
+            [("code", "=", code), ("company_id", "=", self.env.company.id)],
+            limit=1,
         )
+        if not device:
+            conflict = self.with_context(active_test=False).search(
+                [("code", "=", code)],
+                limit=1,
+            )
+            if conflict:
+                raise UserError(
+                    _("The device code %s already belongs to another company.")
+                    % code
+                )
         device_vals = {
             "name": name,
             "code": code,

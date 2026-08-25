@@ -7,7 +7,6 @@ from odoo.tools.misc import format_date
 
 _logger = logging.getLogger(__name__)
 
-POS80_PRINT_NOTIFICATION = "pba.stock.picking/print_pos80"
 LINE_WIDTH = 48
 
 
@@ -129,9 +128,7 @@ class StockPicking(models.Model):
             try:
                 with self.env.cr.savepoint():
                     payload = picking._pba_pos80_ticket_payload()
-                    if picking._pba_pos80_try_gateway_print(payload):
-                        continue
-                    picking._pba_pos80_notify_local_print(payload)
+                    picking._pba_pos80_try_gateway_print(payload)
             except Exception:
                 _logger.exception(
                     "POS-80 auto-print failed for picking %s",
@@ -149,16 +146,20 @@ class StockPicking(models.Model):
         return bool(self.company_id.pba_pos80_auto_print)
 
     def _pba_pos80_printer_codes(self):
+        self.ensure_one()
         report = self.env.ref(
             "pba_printer_delivery.action_report_stock_picking_pos80",
             raise_if_not_found=False,
         )
         if not report or "device_bridge_ids" not in report._fields:
             return []
+        company = self.company_id
         codes = []
-        for code in report.device_bridge_ids.filtered("active").mapped("code"):
-            if code and code not in codes:
-                codes.append(code)
+        for device in report.device_bridge_ids.filtered(
+            lambda rec: rec.active and rec.company_id == company
+        ):
+            if device.code and device.code not in codes:
+                codes.append(device.code)
         return codes
 
     def _pba_pos80_try_gateway_print(self, payload):
@@ -171,33 +172,20 @@ class StockPicking(models.Model):
         ]
         if not codes:
             return False
+        company_id = payload.get("company_id") or self.company_id.id
         for code in codes:
             try:
                 with self.env.cr.savepoint():
                     self.env["device.bridge.gateway"].send_raw_job(
                         code,
                         payload["data_b64"],
+                        None,
+                        company_id,
                     )
                 return True
             except Exception:
                 _logger.debug("POS-80 gateway print skipped", exc_info=True)
         return False
-
-    def _pba_pos80_notify_users(self):
-        users = self.env.user
-        if "device.bridge.gateway" in self.env:
-            codes = self._pba_pos80_printer_codes()
-            devices = self.env["device.bridge"].sudo().search(
-                [("code", "in", codes), ("active", "=", True)]
-            )
-            gateways = self.env["device.bridge.gateway"].sudo().search(
-                [("device_id", "in", devices.ids)]
-            )
-            users |= gateways.mapped("user_id")
-        return users
-
-    def _pba_pos80_notify_local_print(self, payload):
-        self._pba_pos80_notify_users()._bus_send(POS80_PRINT_NOTIFICATION, payload)
 
     def _pba_pos80_ticket_payload(self):
         self.ensure_one()
@@ -206,6 +194,7 @@ class StockPicking(models.Model):
         return {
             "picking_id": self.id,
             "name": self.name,
+            "company_id": self.company_id.id,
             "device_code": codes[0] if codes else False,
             "device_codes": codes,
             "data_b64": base64.b64encode(raw).decode(),
