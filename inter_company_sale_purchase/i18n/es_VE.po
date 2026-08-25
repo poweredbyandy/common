@@ -306,3 +306,66 @@ msgstr "Otras compañías"
 msgid "Available (not reserved)"
 msgstr "Disponible (no reservado)"
 
+#. module: inter_company_sale_purchase
+#: model:ir.model.fields,field_description:inter_company_sale_purchase.field_res_company__ic_allow_confirm_ic_purchase
+#: model:ir.model.fields,field_description:inter_company_sale_purchase.field_res_config_settings__ic_allow_confirm_ic_purchase
+msgid "Allow confirming inter-company purchases"
+msgstr "Permitir confirmar compras intercompañía"
+
+#. module: inter_company_sale_purchase
+#. odoo-python
+#: code:addons/inter_company_sale_purchase/models/purchase_order.py:0
+#, python-format
+msgid "Inter-company purchase orders cannot be confirmed for company %(company)s. Enable 'Allow confirming inter-company purchases' in Sale/Purchase Sync settings."
+msgstr "No se pueden confirmar pedidos de compra intercompañía para %(company)s. Active 'Permitir confirmar compras intercompañía' en Sincronización compra/venta."
+
+#. module: inter_company_sale_purchase
+#: model_terms:ir.ui.view,arch_db:inter_company_sale_purchase.purchase_order_form_inter_company_link
+msgid "Sync Inter-Company Sale"
+msgstr "Sincronizar venta intercompañía"
+
+#. module: inter_company_sale_purchase
+#: model_terms:ir.ui.view,arch_db:inter_company_sale_purchase.sale_order_form_inter_company_link
+msgid "Sync Inter-Company Purchase"
+msgstr "Sincronizar compra intercompañía"
+
+#. module: inter_company_sale_purchase
+#. odoo-python
+#: code:addons/inter_company_sale_purchase/models/purchase_order.py:0
+#, python-format
+msgid "This purchase order is already synchronized or cannot be synced."
+msgstr "Este pedido de compra ya está sincronizado o no se puede sincronizar."
+
+#. module: inter_company_sale_purchase
+#. odoo-python
+#: code:addons/inter_company_sale_purchase/models/sale_order.py:0
+#, python-format
+msgid "This sales order is already synchronized or cannot be synced."
+msgstr "Este pedido de venta ya está sincronizado o no se puede sincronizar."
+
+#. module: inter_company_sale_purchase
+#. odoo-python
+#: code:addons/inter_company_sale_purchase/models/purchase_order.py:0
+#, python-format
+msgid "Could not create the inter-company sales order."
+msgstr "No se pudo crear el pedido de venta intercompañía."
+
+#. module: inter_company_sale_purchase
+#. odoo-python
+#: code:addons/inter_company_sale_purchase/models/sale_order.py:0
+#, python-format
+msgid "Could not create the inter-company purchase order."
+msgstr "No se pudo crear el pedido de compra intercompañía."
+
+#. module: inter_company_sale_purchase
+#. odoo-python
+#: code:addons/inter_company_sale_purchase/models/purchase_order.py:0
+msgid "Inter-Company Sale Order"
+msgstr "Pedido de venta intercompañía"
+
+#. module: inter_company_sale_purchase
+#. odoo-python
+#: code:addons/inter_company_sale_purchase/models/sale_order.py:0
+msgid "Inter-Company Purchase Order"
+msgstr "Pedido de compra intercompañía"
+

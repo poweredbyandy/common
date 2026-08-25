@@ -6,25 +6,28 @@ class ResCompany(models.Model):
     _inherit = "res.company"
 
     ic_so_from_po = fields.Boolean(
-        string="Generate Sales Orders from Purchases",
+        string="Sync Sale from Purchase",
+        default=True,
     )
     ic_po_from_so = fields.Boolean(
-        string="Generate Purchase Orders from Sales",
+        string="Sync Purchase from Sale",
+        default=True,
     )
     ic_so_state = fields.Selection(
         selection=[
             ("draft", "Create quotation"),
             ("confirmed", "Create and confirm"),
         ],
-        string="Sales Order Automation",
+        string="Sale document state",
         default="draft",
+        help="Applied when the purchase is confirmed (if allowed). While the purchase is draft, the sale stays draft.",
     )
     ic_po_state = fields.Selection(
         selection=[
             ("draft", "Create RFQ"),
             ("confirmed", "Create and confirm"),
         ],
-        string="Purchase Order Automation",
+        string="Purchase document state",
         default="draft",
     )
     ic_picking_mode = fields.Selection(
@@ -33,8 +36,9 @@ class ResCompany(models.Model):
             ("sync_qty", "Synchronize quantities"),
             ("validate", "Synchronize and validate"),
         ],
-        string="Picking Automation",
+        string="Picking sync (optional)",
         default="none",
+        help="Pickings are not synchronized by default.",
     )
     ic_invoice_mode = fields.Selection(
         selection=[
@@ -42,12 +46,13 @@ class ResCompany(models.Model):
             ("draft", "Create in draft"),
             ("posted", "Create and post"),
         ],
-        string="Invoice Automation",
-        default="none",
+        string="Vendor bill from customer invoice",
+        default="draft",
+        help="When a customer invoice is posted, create the vendor bill on the other company.",
     )
     ic_user_id = fields.Many2one(
         comodel_name="res.users",
-        string="Inter-Company User",
+        string="Sync user",
         default=SUPERUSER_ID,
         domain=["|", ("active", "=", True), ("id", "=", SUPERUSER_ID)],
         help="User used to create counterpart documents. Must belong to this company "
@@ -55,7 +60,7 @@ class ResCompany(models.Model):
     )
     ic_warehouse_id = fields.Many2one(
         comodel_name="stock.warehouse",
-        string="Inter-Company Warehouse",
+        string="Sync warehouse",
         compute="_compute_ic_stock_defaults",
         store=True,
         readonly=False,
@@ -63,7 +68,7 @@ class ResCompany(models.Model):
     )
     ic_receipt_type_id = fields.Many2one(
         comodel_name="stock.picking.type",
-        string="Inter-Company Receipt Type",
+        string="Sync receipt operation",
         compute="_compute_ic_stock_defaults",
         store=True,
         readonly=False,
@@ -71,7 +76,7 @@ class ResCompany(models.Model):
     )
     ic_purchase_journal_id = fields.Many2one(
         comodel_name="account.journal",
-        string="Inter-Company Purchase Journal",
+        string="Sync purchase journal",
         compute="_compute_ic_purchase_journal_id",
         store=True,
         readonly=False,
@@ -81,18 +86,36 @@ class ResCompany(models.Model):
         string="Block Unshared Products",
         help="Raise an error when a product belongs to a single company.",
     )
+    ic_allow_confirm_ic_purchase = fields.Boolean(
+        string="Allow confirming inter-company purchases",
+        default=False,
+        help="If disabled, purchase orders to another company in this database cannot be confirmed. "
+        "Enable this to allow confirmation; the linked sale stays draft while the purchase is draft.",
+    )
 
     @api.model
     def _find_company_from_partner(self, partner_id):
         if not partner_id:
             return self.browse()
-        return self.sudo().search([("partner_id", "parent_of", partner_id)], limit=1)
+        partner = self.env["res.partner"].sudo().browse(partner_id)
+        commercial = partner.commercial_partner_id
+        company = self.sudo().search([("partner_id", "=", commercial.id)], limit=1)
+        if company:
+            return company
+        return self.sudo().search([("partner_id", "parent_of", commercial.id)], limit=1)
+
+    def _ic_get_warehouse(self):
+        self.ensure_one()
+        warehouse = self.ic_warehouse_id
+        if warehouse and warehouse.company_id == self:
+            return warehouse
+        return (
+            self.env["stock.warehouse"]
+            .sudo()
+            .search([("company_id", "=", self.id)], limit=1)
+        )
 
     def _ic_ensure_user(self, rights=()):
-        """Return the inter-company user after ensuring company + ACL access.
-
-        :param rights: iterable among sale, purchase, account, stock
-        """
         self.ensure_one()
         user = self.ic_user_id
         if not user:
@@ -110,6 +133,8 @@ class ResCompany(models.Model):
                     company=self.name,
                 )
             )
+        if user_sudo.id == SUPERUSER_ID or user_sudo._is_superuser():
+            return user
         group_map = {
             "sale": ("sales_team.group_sale_salesman", _("Sales")),
             "purchase": ("purchase.group_purchase_user", _("Purchase")),
@@ -151,10 +176,6 @@ class ResCompany(models.Model):
             )
         )
         for company in self:
-            if not (company.ic_so_from_po or company.ic_po_from_so):
-                company.ic_warehouse_id = False
-                company.ic_receipt_type_id = False
-                continue
             if not company.ic_warehouse_id:
                 whs = warehouses.get(company, self.env["stock.warehouse"])
                 company.ic_warehouse_id = whs[:1]

@@ -60,6 +60,7 @@ class TestInterCompanySalePurchaseCommon(AccountTestInvoicingCommon):
                 "ic_warehouse_id": warehouse_a.id,
                 "ic_receipt_type_id": receipt_a.id,
                 "ic_purchase_journal_id": journal_a.id,
+                "ic_allow_confirm_ic_purchase": True,
             }
         )
         cls.company_b.write(
@@ -74,5 +75,6 @@ class TestInterCompanySalePurchaseCommon(AccountTestInvoicingCommon):
                 "ic_warehouse_id": warehouse_b.id,
                 "ic_receipt_type_id": receipt_b.id,
                 "ic_purchase_journal_id": journal_b.id,
+                "ic_allow_confirm_ic_purchase": True,
             }
         )

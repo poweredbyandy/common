@@ -18,10 +18,8 @@ class TestIcSecurity(TestInterCompanySalePurchaseCommon):
             }
         )
         self.company_b.ic_user_id = weak_user
-        po = (
-            self.env["purchase.order"]
-            .with_company(self.company_a)
-            .create(
+        with self.assertRaises(UserError) as error:
+            self.env["purchase.order"].with_company(self.company_a).create(
                 {
                     "partner_id": self.company_b.partner_id.id,
                     "company_id": self.company_a.id,
@@ -40,9 +38,6 @@ class TestIcSecurity(TestInterCompanySalePurchaseCommon):
                     ],
                 }
             )
-        )
-        with self.assertRaises(UserError) as error:
-            po.with_company(self.company_a).button_confirm()
         self.assertIn("missing access", str(error.exception).lower())
 
     def test_buyer_without_vendor_company_gets_price_and_stock(self):

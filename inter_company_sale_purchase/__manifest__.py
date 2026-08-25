@@ -1,6 +1,6 @@
 {
     "name": "Inter Company Sale/Purchase Sync",
-    "version": "18.0.1.2.0",
+    "version": "18.0.1.2.4",
     "category": "Sales",
     "summary": "Bidirectional inter-company sale and purchase synchronization",
     "author": "andyengit",
@@ -25,6 +25,7 @@
             "inter_company_sale_purchase/static/src/widgets/qty_at_date_widget.xml",
         ],
     },
+    "post_init_hook": "post_init_hook",
     "installable": True,
     "application": False,
 }

@@ -48,3 +48,7 @@ class ResConfigSettings(models.TransientModel):
         related="company_id.ic_block_unshared_product",
         readonly=False,
     )
+    ic_allow_confirm_ic_purchase = fields.Boolean(
+        related="company_id.ic_allow_confirm_ic_purchase",
+        readonly=False,
+    )

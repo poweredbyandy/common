@@ -6,28 +6,28 @@
         <field name="inherit_id" ref="base.view_company_form"/>
         <field name="arch" type="xml">
             <xpath expr="//notebook" position="inside">
-                <page string="Inter-Company Transactions" name="inter_company_sale_purchase">
+                <page string="Sale/Purchase Sync" name="ic_sale_purchase_sync">
                     <group>
-                        <group string="Documents">
+                        <group string="Orders">
                             <field name="ic_so_from_po"/>
                             <field name="ic_so_state" widget="radio" invisible="not ic_so_from_po"/>
+                            <field name="ic_warehouse_id"
+                                     invisible="not ic_so_from_po"
+                                     options="{'no_create_edit': True}"/>
                             <field name="ic_po_from_so"/>
                             <field name="ic_po_state" widget="radio" invisible="not ic_po_from_so"/>
+                            <field name="ic_receipt_type_id"
+                                     invisible="not ic_po_from_so"
+                                     options="{'no_create_edit': True}"/>
+                        </group>
+                        <group string="Invoices and user">
                             <field name="ic_invoice_mode" widget="radio"/>
                             <field name="ic_purchase_journal_id"
                                      invisible="ic_invoice_mode == 'none'"
                                      required="ic_invoice_mode != 'none'"
                                      options="{'no_create_edit': True}"/>
-                        </group>
-                        <group string="Stock and User">
-                            <field name="ic_picking_mode" widget="radio"/>
                             <field name="ic_user_id" options="{'no_create_edit': True}"/>
-                            <field name="ic_warehouse_id"
-                                     invisible="not ic_so_from_po and not ic_po_from_so"
-                                     options="{'no_create_edit': True}"/>
-                            <field name="ic_receipt_type_id"
-                                     invisible="not ic_po_from_so"
-                                     options="{'no_create_edit': True}"/>
+                            <field name="ic_allow_confirm_ic_purchase"/>
                             <field name="ic_block_unshared_product"/>
                         </group>
                     </group>

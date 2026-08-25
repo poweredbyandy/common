@@ -5,59 +5,82 @@
         <field name="model">res.config.settings</field>
         <field name="inherit_id" ref="base_setup.res_config_settings_view_form"/>
         <field name="arch" type="xml">
-            <xpath expr="//setting[@id='inter_company']" position="replace">
-                <setting id="inter_company"
-                         string="Inter-Company Transactions"
-                         company_dependent="1"
-                         help="Automatically generate counterpart documents between companies"
-                         groups="base.group_multi_company">
-                    <div class="content-group">
-                        <div class="row mt16">
-                            <field name="ic_so_from_po" class="oe_inline"/>
-                            <label for="ic_so_from_po" class="o_light_label"/>
-                        </div>
-                        <div class="row" invisible="not ic_so_from_po">
-                            <label for="ic_so_state" class="col-lg-3 o_light_label"/>
-                            <field name="ic_so_state" widget="radio" class="oe_inline"/>
-                        </div>
-                        <div class="row mt8">
-                            <field name="ic_po_from_so" class="oe_inline"/>
-                            <label for="ic_po_from_so" class="o_light_label"/>
-                        </div>
-                        <div class="row" invisible="not ic_po_from_so">
-                            <label for="ic_po_state" class="col-lg-3 o_light_label"/>
-                            <field name="ic_po_state" widget="radio" class="oe_inline"/>
-                        </div>
-                        <div class="row mt8">
-                            <label for="ic_invoice_mode" class="col-lg-3 o_light_label"/>
-                            <field name="ic_invoice_mode" widget="radio" class="oe_inline"/>
-                        </div>
-                        <div class="row" invisible="ic_invoice_mode == 'none'">
-                            <label for="ic_purchase_journal_id" class="col-lg-3 o_light_label"/>
-                            <field name="ic_purchase_journal_id" options="{'no_create_edit': True}"/>
-                        </div>
-                        <div class="row mt8">
-                            <label for="ic_picking_mode" class="col-lg-3 o_light_label"/>
-                            <field name="ic_picking_mode" widget="radio" class="oe_inline"/>
-                        </div>
-                        <div class="row mt8">
-                            <label for="ic_user_id" class="col-lg-3 o_light_label"/>
+            <xpath expr="//div[@id='companies']" position="after">
+                <div id="ic_sale_purchase_sync_settings" groups="base.group_multi_company">
+                    <block title="Sale/Purchase Sync"
+                           name="ic_sale_purchase_sync_block">
+                        <setting id="ic_sync_so_from_po_setting"
+                                 string="Create sale from purchase"
+                                 company_dependent="1"
+                                 help="When this company is the vendor on another company's purchase order, create the counterpart sales order here. Independent from Odoo Enterprise Inter-Company Transactions.">
+                            <field name="ic_so_from_po"/>
+                            <div class="content-group" invisible="not ic_so_from_po">
+                                <div class="row mt16">
+                                    <label for="ic_so_state" class="col-lg-4 o_light_label" string="Sale state"/>
+                                    <field name="ic_so_state" widget="radio" class="oe_inline"/>
+                                </div>
+                                <div class="row mt8">
+                                    <label for="ic_warehouse_id" class="col-lg-4 o_light_label" string="Warehouse"/>
+                                    <field name="ic_warehouse_id" options="{'no_create_edit': True}" class="oe_inline"/>
+                                </div>
+                            </div>
+                        </setting>
+
+                        <setting id="ic_sync_po_from_so_setting"
+                                 string="Create purchase from sale"
+                                 company_dependent="1"
+                                 help="When this company is the customer on another company's sales order, create the counterpart purchase order here.">
+                            <field name="ic_po_from_so"/>
+                            <div class="content-group" invisible="not ic_po_from_so">
+                                <div class="row mt16">
+                                    <label for="ic_po_state" class="col-lg-4 o_light_label" string="Purchase state"/>
+                                    <field name="ic_po_state" widget="radio" class="oe_inline"/>
+                                </div>
+                                <div class="row mt8">
+                                    <label for="ic_receipt_type_id" class="col-lg-4 o_light_label" string="Receipt operation"/>
+                                    <field name="ic_receipt_type_id" options="{'no_create_edit': True}" class="oe_inline"/>
+                                </div>
+                            </div>
+                        </setting>
+
+                        <setting id="ic_allow_confirm_ic_purchase_setting"
+                                 string="Allow confirming inter-company purchases"
+                                 company_dependent="1"
+                                 help="By default inter-company purchase orders stay as RFQ. Enable this to allow confirmation. Linked sales stay draft while the purchase is draft.">
+                            <field name="ic_allow_confirm_ic_purchase"/>
+                        </setting>
+
+                        <setting id="ic_sync_invoice_setting"
+                                 string="Create vendor bill from customer invoice"
+                                 company_dependent="1"
+                                 help="When a customer invoice is posted to this company, create the vendor bill here (draft by default).">
+                            <field name="ic_invoice_mode" widget="radio"/>
+                            <div class="content-group" invisible="ic_invoice_mode == 'none'">
+                                <div class="row mt16">
+                                    <label for="ic_purchase_journal_id" class="col-lg-4 o_light_label" string="Purchase journal"/>
+                                    <field name="ic_purchase_journal_id"
+                                             options="{'no_create_edit': True}"
+                                             required="ic_invoice_mode != 'none'"
+                                             class="oe_inline"/>
+                                </div>
+                            </div>
+                        </setting>
+
+                        <setting id="ic_sync_user_setting"
+                                 string="User that creates documents"
+                                 company_dependent="1"
+                                 help="Technical user used to create counterpart documents in this company.">
                             <field name="ic_user_id" options="{'no_create_edit': True}"/>
-                        </div>
-                        <div class="row" invisible="not ic_so_from_po and not ic_po_from_so">
-                            <label for="ic_warehouse_id" class="col-lg-3 o_light_label"/>
-                            <field name="ic_warehouse_id" options="{'no_create_edit': True}"/>
-                        </div>
-                        <div class="row" invisible="not ic_po_from_so">
-                            <label for="ic_receipt_type_id" class="col-lg-3 o_light_label"/>
-                            <field name="ic_receipt_type_id" options="{'no_create_edit': True}"/>
-                        </div>
-                        <div class="row mt8">
-                            <field name="ic_block_unshared_product" class="oe_inline"/>
-                            <label for="ic_block_unshared_product" class="o_light_label"/>
-                        </div>
-                    </div>
-                </setting>
+                        </setting>
+
+                        <setting id="ic_sync_block_product_setting"
+                                 string="Block unshared products"
+                                 company_dependent="1"
+                                 help="Prevent sync when a product belongs to a single company and is not shared.">
+                            <field name="ic_block_unshared_product"/>
+                        </setting>
+                    </block>
+                </div>
             </xpath>
         </field>
     </record>

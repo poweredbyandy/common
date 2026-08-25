@@ -16,8 +16,18 @@ class PurchaseOrder(models.Model):
         copy=False,
         index="btree_not_null",
     )
+    ic_sale_order_id = fields.Many2one(
+        comodel_name="sale.order",
+        string="Inter-Company Sale Order",
+        readonly=True,
+        copy=False,
+        index="btree_not_null",
+    )
     is_intercompany_vendor = fields.Boolean(
         compute="_compute_is_intercompany_vendor",
+    )
+    ic_show_sync_button = fields.Boolean(
+        compute="_compute_ic_show_sync_button",
     )
 
     @api.depends("partner_id")
@@ -28,18 +38,178 @@ class PurchaseOrder(models.Model):
                 order.partner_id and Company._find_company_from_partner(order.partner_id.id)
             )
 
-    def button_approve(self, force=False):
-        res = super().button_approve(force=force)
+    @api.depends(
+        "partner_id",
+        "auto_generated",
+        "ic_sale_order_id",
+        "order_line",
+        "company_id",
+    )
+    def _compute_ic_show_sync_button(self):
         for order in self:
-            company = self.env["res.company"]._find_company_from_partner(order.partner_id.id)
-            if company and company.ic_so_from_po and not order.auto_generated:
-                order.sudo()._ic_create_sale_order(company)
+            order.ic_show_sync_button = order._ic_can_manual_sync()
+
+    def _ic_can_manual_sync(self):
+        self.ensure_one()
+        if (
+            not self.id
+            or self.auto_generated
+            or self.ic_sale_order_id
+            or not self.order_line
+        ):
+            return False
+        vendor_company = self._ic_get_vendor_company()
+        if not vendor_company or not vendor_company.ic_so_from_po:
+            return False
+        existing = (
+            self.env["sale.order"]
+            .sudo()
+            .search([("auto_purchase_order_id", "=", self.id)], limit=1)
+        )
+        return not bool(existing)
+
+    def action_ic_sync_sale_order(self):
+        self.ensure_one()
+        if not self._ic_can_manual_sync():
+            raise UserError(
+                _("This purchase order is already synchronized or cannot be synced.")
+            )
+        force_draft = self.state in ("draft", "sent")
+        sale_order = self._ic_sync_counterpart_sale(force_draft=force_draft)
+        if not sale_order:
+            raise UserError(_("Could not create the inter-company sales order."))
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Inter-Company Sale Order"),
+            "res_model": "sale.order",
+            "view_mode": "form",
+            "res_id": sale_order.id,
+            "target": "current",
+        }
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        orders = super().create(vals_list)
+        if self.env.context.get("skip_ic_po_create_sync"):
+            return orders
+        for order in orders.filtered(
+            lambda po: po.state in ("draft", "sent") and not po.auto_generated
+        ):
+            order._ic_sync_counterpart_sale(force_draft=True)
+        return orders
+
+    def write(self, vals):
+        res = super().write(vals)
+        sync_keys = {"partner_id", "order_line", "dest_address_id", "date_planned", "currency_id"}
+        if sync_keys.intersection(vals):
+            for order in self.filtered(lambda po: po.state in ("draft", "sent") and not po.auto_generated):
+                order._ic_sync_counterpart_sale(force_draft=True)
         return res
 
-    def _ic_create_sale_order(self, company):
+    def button_approve(self, force=False):
+        self._ic_check_confirm_allowed()
+        to_approve = self.filtered(lambda order: order._approval_allowed())
+        res = super().button_approve(force=force)
+        for order in to_approve:
+            if order.state not in ("purchase", "done"):
+                continue
+            order._ic_sync_counterpart_sale(force_draft=False)
+        return res
+
+    def button_confirm(self):
+        self._ic_check_confirm_allowed()
+        res = super().button_confirm()
+        for order in self:
+            if order.state not in ("purchase", "done"):
+                continue
+            order._ic_sync_counterpart_sale(force_draft=False)
+        return res
+
+    def _ic_get_vendor_company(self):
         self.ensure_one()
+        if not self.partner_id:
+            return self.env["res.company"]
+        company = self.env["res.company"]._find_company_from_partner(self.partner_id.id)
+        if company and company != self.company_id:
+            return company
+        return self.env["res.company"]
+
+    def _ic_check_confirm_allowed(self):
+        for order in self:
+            if order.auto_generated:
+                continue
+            vendor_company = order._ic_get_vendor_company()
+            if not vendor_company:
+                continue
+            if not order.company_id.ic_allow_confirm_ic_purchase:
+                raise UserError(
+                    _(
+                        "Inter-company purchase orders cannot be confirmed for company %(company)s. "
+                        "Enable 'Allow confirming inter-company purchases' in Sale/Purchase Sync settings.",
+                        company=order.company_id.name,
+                    )
+                )
+
+    def _ic_sync_counterpart_sale(self, force_draft=True):
+        self.ensure_one()
+        if self.auto_generated or not self.order_line:
+            return self.env["sale.order"]
+        vendor_company = self._ic_get_vendor_company()
+        if not vendor_company:
+            return self.env["sale.order"]
+        if not vendor_company.ic_so_from_po:
+            return self.env["sale.order"]
+
+        sale_order = self.ic_sale_order_id
+        if not sale_order:
+            sale_order = (
+                self.env["sale.order"]
+                .sudo()
+                .search([("auto_purchase_order_id", "=", self.id)], limit=1)
+            )
+            if sale_order:
+                self.sudo().write({"ic_sale_order_id": sale_order.id})
+
+        if sale_order:
+            if force_draft or self.state in ("draft", "sent"):
+                if sale_order.state in ("draft", "sent"):
+                    self._ic_update_sale_order_lines(sale_order, vendor_company)
+                return sale_order
+            return self._ic_confirm_linked_sale_order(sale_order, vendor_company)
+
+        return self.sudo()._ic_create_sale_order(vendor_company, force_draft=force_draft)
+
+    def _ic_update_sale_order_lines(self, sale_order, company):
+        self.ensure_one()
+        commands = [(5, 0, 0)]
+        for line in self.order_line.sudo():
+            commands.append((0, 0, self._prepare_ic_sale_order_line_data(line, company)))
+        sale_order.sudo().write(
+            {
+                "client_order_ref": self.name,
+                "date_order": self.date_order,
+                "commitment_date": self.date_planned,
+                "order_line": commands,
+            }
+        )
+
+    def _ic_confirm_linked_sale_order(self, sale_order, company):
+        self.ensure_one()
+        if sale_order.state not in ("draft", "sent"):
+            return sale_order
+        if company.ic_so_state != "confirmed":
+            return sale_order
+        ic_user = company._ic_ensure_user(["sale", "stock"])
+        sale_order.with_user(ic_user).with_company(company).with_context(
+            allowed_company_ids=company.ids
+        ).sudo().action_confirm()
+        return sale_order
+
+    def _ic_create_sale_order(self, company, force_draft=True):
+        self.ensure_one()
+        confirm_sale = (not force_draft) and company.ic_so_state == "confirmed"
         rights = ["sale"]
-        if company.ic_so_state == "confirmed":
+        if confirm_sale:
             rights.append("stock")
         ic_user = company._ic_ensure_user(rights)
         self._ic_check_shared_products(company)
@@ -69,9 +239,11 @@ class PurchaseOrder(models.Model):
                 company=self.company_id.name,
             )
         )
+        vals = {"ic_sale_order_id": sale_order.id}
         if not self.partner_ref:
-            self.sudo().with_company(self.company_id).write({"partner_ref": sale_order.name})
-        if company.ic_so_state == "confirmed":
+            vals["partner_ref"] = sale_order.name
+        self.sudo().with_company(self.company_id).write(vals)
+        if confirm_sale:
             sale_order.with_user(ic_user).with_company(company).with_context(
                 allowed_company_ids=company.ids
             ).sudo().action_confirm()
@@ -95,8 +267,8 @@ class PurchaseOrder(models.Model):
     def _prepare_ic_sale_order_data(self, name, partner, company, direct_delivery_address):
         self.ensure_one()
         partner_addr = partner.sudo().address_get(["invoice", "delivery", "contact"])
-        warehouse = company.ic_warehouse_id
-        if not warehouse or warehouse.company_id != company:
+        warehouse = company._ic_get_warehouse()
+        if not warehouse:
             raise UserError(
                 _(
                     "Configure a warehouse for company %(name)s in Inter-Company settings.",
@@ -107,15 +279,17 @@ class PurchaseOrder(models.Model):
         picking_warehouse_partner = self.picking_type_id.warehouse_id.partner_id
         if picking_warehouse_partner:
             shipping_partner_id = picking_warehouse_partner.id
+        pricelist = partner.property_product_pricelist
         return {
             "name": self.env["ir.sequence"].sudo().next_by_code("sale.order") or "/",
             "company_id": company.id,
             "client_order_ref": name,
             "partner_id": partner.id,
-            "pricelist_id": partner.property_product_pricelist.id,
+            "pricelist_id": pricelist.id if pricelist else False,
             "partner_invoice_id": partner_addr["invoice"],
             "date_order": self.date_order,
             "fiscal_position_id": self.env["account.fiscal.position"]
+            .sudo()
             .with_company(company)
             ._get_fiscal_position(partner)
             .id,
@@ -150,7 +324,6 @@ class PurchaseOrder(models.Model):
             "customer_lead": line.product_id.sale_delay if line.product_id else 0.0,
         }
 
-
     def _get_product_price_and_data(self, product):
         self.ensure_one()
         product_infos = super()._get_product_price_and_data(product)
@@ -171,4 +344,3 @@ class PurchaseOrder(models.Model):
         if price is not None:
             product_infos["price"] = price
         return product_infos
-

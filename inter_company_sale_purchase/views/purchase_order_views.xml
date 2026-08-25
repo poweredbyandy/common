@@ -26,4 +26,25 @@
             </xpath>
         </field>
     </record>
+
+    <record id="purchase_order_form_inter_company_link" model="ir.ui.view">
+        <field name="name">purchase.order.form.inter.company.link</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <field name="ic_show_sync_button" invisible="1"/>
+                <button name="action_ic_sync_sale_order"
+                        type="object"
+                        string="Sync Inter-Company Sale"
+                        class="btn-secondary"
+                        invisible="not ic_show_sync_button"
+                        data-hotkey="shift+i"/>
+            </xpath>
+            <xpath expr="//field[@name='partner_ref']" position="after">
+                <field name="ic_sale_order_id" readonly="1" invisible="not ic_sale_order_id"/>
+                <field name="auto_sale_order_id" readonly="1" invisible="not auto_sale_order_id"/>
+            </xpath>
+        </field>
+    </record>
 </odoo>
