@@ -23,12 +23,30 @@ class SaleOrder(models.Model):
         copy=False,
         index="btree_not_null",
     )
+    ic_purchase_order_display = fields.Char(
+        string="Inter-Company Purchase Order",
+        compute="_compute_ic_purchase_order_display",
+    )
     is_intercompany_customer = fields.Boolean(
         compute="_compute_is_intercompany_customer",
     )
     ic_show_sync_button = fields.Boolean(
         compute="_compute_ic_show_sync_button",
     )
+
+    @api.depends("ic_purchase_order_id", "auto_purchase_order_id")
+    def _compute_ic_purchase_order_display(self):
+        for order in self:
+            purchase_order = (
+                order.sudo().ic_purchase_order_id or order.sudo().auto_purchase_order_id
+            )
+            if purchase_order:
+                order.ic_purchase_order_display = "%s (%s)" % (
+                    purchase_order.name,
+                    purchase_order.company_id.name,
+                )
+            else:
+                order.ic_purchase_order_display = False
 
     @api.depends("partner_id")
     def _compute_is_intercompany_customer(self):
@@ -54,20 +72,21 @@ class SaleOrder(models.Model):
 
     def _ic_can_manual_sync(self):
         self.ensure_one()
+        order = self.sudo()
         if (
-            not self.id
-            or self.auto_generated
-            or self.ic_purchase_order_id
-            or not self.order_line
+            not order.id
+            or order.auto_generated
+            or order.ic_purchase_order_id
+            or not order.order_line
         ):
             return False
-        company = self.env["res.company"]._find_company_from_partner(self.partner_id.id)
-        if not company or company == self.company_id or not company.ic_po_from_so:
+        company = self.env["res.company"]._find_company_from_partner(order.partner_id.id)
+        if not company or company == order.company_id or not company.ic_po_from_so:
             return False
         existing = (
             self.env["purchase.order"]
             .sudo()
-            .search([("auto_sale_order_id", "=", self.id)], limit=1)
+            .search([("auto_sale_order_id", "=", order.id)], limit=1)
         )
         return not bool(existing)
 
@@ -82,12 +101,18 @@ class SaleOrder(models.Model):
         if not purchase_order:
             raise UserError(_("Could not create the inter-company purchase order."))
         return {
-            "type": "ir.actions.act_window",
-            "name": _("Inter-Company Purchase Order"),
-            "res_model": "purchase.order",
-            "view_mode": "form",
-            "res_id": purchase_order.id,
-            "target": "current",
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "title": _("Inter-Company Sync"),
+                "message": _(
+                    "Purchase order %(name)s created in company %(company)s.",
+                    name=purchase_order.sudo().name,
+                    company=purchase_order.sudo().company_id.name,
+                ),
+                "type": "success",
+                "sticky": False,
+            },
         }
 
     def write(self, vals):
@@ -114,17 +139,20 @@ class SaleOrder(models.Model):
 
     def _ic_get_linked_purchase_order(self):
         self.ensure_one()
-        purchase_order = self.ic_purchase_order_id
-        if not purchase_order and self.auto_purchase_order_id:
-            purchase_order = self.auto_purchase_order_id
+        order = self.sudo()
+        purchase_order = order.ic_purchase_order_id
+        if not purchase_order:
+            purchase_order = order.auto_purchase_order_id
         if not purchase_order:
             purchase_order = (
                 self.env["purchase.order"]
                 .sudo()
                 .search([("auto_sale_order_id", "=", self.id)], limit=1)
             )
-            if purchase_order and not self.ic_purchase_order_id:
-                self.sudo().write({"ic_purchase_order_id": purchase_order.id})
+            if purchase_order and not order.ic_purchase_order_id:
+                order.with_context(skip_ic_so_write_sync=True).write(
+                    {"ic_purchase_order_id": purchase_order.id}
+                )
         return purchase_order
 
     def _ic_sync_counterpart_purchase(self):
@@ -134,7 +162,10 @@ class SaleOrder(models.Model):
         if self.state not in ("draft", "sent"):
             return self.env["purchase.order"]
         purchase_order = self._ic_get_linked_purchase_order()
-        if not purchase_order or purchase_order.state not in ("draft", "sent"):
+        if not purchase_order:
+            return self.env["purchase.order"]
+        purchase_order = purchase_order.sudo()
+        if purchase_order.state not in ("draft", "sent"):
             return purchase_order
         company = purchase_order.company_id
         self._ic_update_purchase_order_lines(purchase_order, company)
@@ -142,16 +173,18 @@ class SaleOrder(models.Model):
 
     def _ic_update_purchase_order_lines(self, purchase_order, company):
         self.ensure_one()
+        purchase_order = purchase_order.sudo()
         commands = [(5, 0, 0)]
         for line in self.order_line.sudo():
             commands.append(
                 (0, 0, self._prepare_ic_purchase_order_line_data(line, self.date_order, company))
             )
-        purchase_order.with_context(
+        purchase_order.with_company(company).with_context(
+            allowed_company_ids=company.ids,
             skip_ic_po_write_sync=True,
             skip_ic_po_create_sync=True,
             skip_ic_po_price_compute=True,
-        ).sudo().write(
+        ).write(
             {
                 "partner_ref": self.name,
                 "date_order": self.date_order,
@@ -159,17 +192,18 @@ class SaleOrder(models.Model):
                 "order_line": commands,
             }
         )
-        so_lines = self.order_line.filtered(lambda line: not line.display_type)
+        so_lines = self.order_line.sudo().filtered(lambda line: not line.display_type)
         po_lines = purchase_order.order_line.filtered(lambda line: not line.display_type)
         for so_line, po_line in zip(so_lines, po_lines):
             line_vals = self._prepare_ic_purchase_order_line_data(
                 so_line, self.date_order, company
             )
-            po_line.with_context(
+            po_line.with_company(company).with_context(
+                allowed_company_ids=company.ids,
                 skip_ic_po_write_sync=True,
                 skip_ic_po_price_compute=True,
                 skip_ic_so_write_sync=True,
-            ).sudo().write(
+            ).write(
                 {
                     "price_unit": line_vals["price_unit"],
                     "discount": line_vals.get("discount", 0.0),
@@ -179,7 +213,8 @@ class SaleOrder(models.Model):
 
     def _ic_try_create_purchase_order(self, force_draft=False):
         self.ensure_one()
-        if not self.company_id or self.auto_generated or self.ic_purchase_order_id:
+        order = self.sudo()
+        if not order.company_id or order.auto_generated or order.ic_purchase_order_id:
             return self.env["purchase.order"]
         existing = (
             self.env["purchase.order"]
@@ -187,11 +222,13 @@ class SaleOrder(models.Model):
             .search([("auto_sale_order_id", "=", self.id)], limit=1)
         )
         if existing:
-            if not self.ic_purchase_order_id:
-                self.sudo().write({"ic_purchase_order_id": existing.id})
+            if not order.ic_purchase_order_id:
+                order.with_context(skip_ic_so_write_sync=True).write(
+                    {"ic_purchase_order_id": existing.id}
+                )
             return existing
-        company = self.env["res.company"]._find_company_from_partner(self.partner_id.id)
-        if not company or company == self.company_id:
+        company = self.env["res.company"]._find_company_from_partner(order.partner_id.id)
+        if not company or company == order.company_id:
             return self.env["purchase.order"]
         if not company.ic_po_from_so:
             self.message_post(

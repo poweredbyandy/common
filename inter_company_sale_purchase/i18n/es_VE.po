@@ -369,3 +369,24 @@ msgstr "Pedido de venta intercompañía"
 msgid "Inter-Company Purchase Order"
 msgstr "Pedido de compra intercompañía"
 
+#. module: inter_company_sale_purchase
+#. odoo-python
+#: code:addons/inter_company_sale_purchase/models/sale_order.py:0
+#: code:addons/inter_company_sale_purchase/models/purchase_order.py:0
+msgid "Inter-Company Sync"
+msgstr "Sincronización intercompañía"
+
+#. module: inter_company_sale_purchase
+#. odoo-python
+#: code:addons/inter_company_sale_purchase/models/sale_order.py:0
+#, python-format
+msgid "Purchase order %(name)s created in company %(company)s."
+msgstr "Pedido de compra %(name)s creado en la compañía %(company)s."
+
+#. module: inter_company_sale_purchase
+#. odoo-python
+#: code:addons/inter_company_sale_purchase/models/purchase_order.py:0
+#, python-format
+msgid "Sales order %(name)s created in company %(company)s."
+msgstr "Pedido de venta %(name)s creado en la compañía %(company)s."
+

@@ -31,12 +31,14 @@ class TestSoToPo(TestInterCompanySalePurchaseCommon):
             )
         )
         so.action_ic_sync_purchase_order()
-        po = so.ic_purchase_order_id
+        po = so.sudo().ic_purchase_order_id
         self.assertTrue(po)
         self.assertEqual(po.state, "draft")
         self.assertAlmostEqual(po.order_line.price_unit, 100.0)
-        so.order_line.write({"price_unit": 175.0})
-        self.assertAlmostEqual(po.order_line.price_unit, 175.0)
+        so.with_company(self.company_b).with_context(
+            allowed_company_ids=self.company_b.ids
+        ).order_line.write({"price_unit": 175.0})
+        self.assertAlmostEqual(po.sudo().order_line.price_unit, 175.0)
 
     def test_po_creates_so_and_so_price_updates_po(self):
         po = (
@@ -62,10 +64,12 @@ class TestSoToPo(TestInterCompanySalePurchaseCommon):
                 }
             )
         )
-        so = po.ic_sale_order_id
+        so = po.sudo().ic_sale_order_id
         self.assertTrue(so)
-        so.with_company(self.company_b).order_line.write({"price_unit": 155.0})
-        self.assertAlmostEqual(po.order_line.price_unit, 155.0)
+        so.with_company(self.company_b).with_context(
+            allowed_company_ids=self.company_b.ids
+        ).order_line.write({"price_unit": 155.0})
+        self.assertAlmostEqual(po.sudo().order_line.price_unit, 155.0)
 
     def test_so_creates_draft_po(self):
         so = (

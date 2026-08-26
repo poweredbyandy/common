@@ -42,8 +42,7 @@
                         data-hotkey="shift+i"/>
             </xpath>
             <xpath expr="//field[@name='partner_ref']" position="after">
-                <field name="ic_sale_order_id" readonly="1" invisible="not ic_sale_order_id"/>
-                <field name="auto_sale_order_id" readonly="1" invisible="not auto_sale_order_id"/>
+                <field name="ic_sale_order_display" readonly="1" invisible="not ic_sale_order_display"/>
             </xpath>
         </field>
     </record>

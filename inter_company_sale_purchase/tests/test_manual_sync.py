@@ -32,12 +32,12 @@ class TestManualSync(TestInterCompanySalePurchaseCommon):
                 }
             )
         )
-        self.assertFalse(po.ic_sale_order_id)
+        self.assertFalse(po.sudo().ic_sale_order_id)
         self.assertTrue(po.ic_show_sync_button)
         action = po.action_ic_sync_sale_order()
-        so = po.ic_sale_order_id
+        self.assertEqual(action["type"], "ir.actions.client")
+        so = po.sudo().ic_sale_order_id
         self.assertTrue(so)
-        self.assertEqual(so.id, action["res_id"])
         self.assertEqual(so.company_id, self.company_b)
         self.assertEqual(so.state, "draft")
         self.assertFalse(po.ic_show_sync_button)
@@ -68,12 +68,12 @@ class TestManualSync(TestInterCompanySalePurchaseCommon):
                 }
             )
         )
-        self.assertFalse(so.ic_purchase_order_id)
+        self.assertFalse(so.sudo().ic_purchase_order_id)
         self.assertTrue(so.ic_show_sync_button)
         action = so.action_ic_sync_purchase_order()
-        po = so.ic_purchase_order_id
+        self.assertEqual(action["type"], "ir.actions.client")
+        po = so.sudo().ic_purchase_order_id
         self.assertTrue(po)
-        self.assertEqual(po.id, action["res_id"])
         self.assertEqual(po.company_id, self.company_a)
         self.assertEqual(po.state, "draft")
         self.assertFalse(so.ic_show_sync_button)
