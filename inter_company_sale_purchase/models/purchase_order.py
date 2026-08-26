@@ -100,6 +100,8 @@ class PurchaseOrder(models.Model):
 
     def write(self, vals):
         res = super().write(vals)
+        if self.env.context.get("skip_ic_po_write_sync"):
+            return res
         sync_keys = {"partner_id", "order_line", "dest_address_id", "date_planned", "currency_id"}
         if sync_keys.intersection(vals):
             for order in self.filtered(lambda po: po.state in ("draft", "sent") and not po.auto_generated):
@@ -184,7 +186,7 @@ class PurchaseOrder(models.Model):
         commands = [(5, 0, 0)]
         for line in self.order_line.sudo():
             commands.append((0, 0, self._prepare_ic_sale_order_line_data(line, company)))
-        sale_order.sudo().write(
+        sale_order.with_context(skip_ic_so_write_sync=True).sudo().write(
             {
                 "client_order_ref": self.name,
                 "date_order": self.date_order,

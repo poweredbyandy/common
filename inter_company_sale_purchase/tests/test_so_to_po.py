@@ -6,6 +6,67 @@ from .common import TestInterCompanySalePurchaseCommon
 @tagged("post_install", "-at_install")
 class TestSoToPo(TestInterCompanySalePurchaseCommon):
 
+    def test_so_price_change_updates_draft_po(self):
+        so = (
+            self.env["sale.order"]
+            .with_company(self.company_b)
+            .create(
+                {
+                    "partner_id": self.company_a.partner_id.id,
+                    "company_id": self.company_b.id,
+                    "order_line": [
+                        (
+                            0,
+                            0,
+                            {
+                                "product_id": self.product.id,
+                                "name": self.product.name,
+                                "product_uom_qty": 2.0,
+                                "price_unit": 100.0,
+                                "product_uom": self.product.uom_id.id,
+                            },
+                        )
+                    ],
+                }
+            )
+        )
+        so.action_ic_sync_purchase_order()
+        po = so.ic_purchase_order_id
+        self.assertTrue(po)
+        self.assertEqual(po.state, "draft")
+        self.assertAlmostEqual(po.order_line.price_unit, 100.0)
+        so.order_line.write({"price_unit": 175.0})
+        self.assertAlmostEqual(po.order_line.price_unit, 175.0)
+
+    def test_po_creates_so_and_so_price_updates_po(self):
+        po = (
+            self.env["purchase.order"]
+            .with_company(self.company_a)
+            .create(
+                {
+                    "partner_id": self.company_b.partner_id.id,
+                    "company_id": self.company_a.id,
+                    "order_line": [
+                        (
+                            0,
+                            0,
+                            {
+                                "product_id": self.product.id,
+                                "name": self.product.name,
+                                "product_qty": 2.0,
+                                "price_unit": 80.0,
+                                "product_uom": self.product.uom_id.id,
+                            },
+                        )
+                    ],
+                }
+            )
+        )
+        so = po.ic_sale_order_id
+        self.assertTrue(so)
+        so.with_company(self.company_b).order_line.write({"price_unit": 155.0})
+        self.assertAlmostEqual(po.order_line.price_unit, 155.0)
+
     def test_so_creates_draft_po(self):
         so = (
             self.env["sale.order"]

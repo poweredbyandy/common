@@ -90,11 +90,92 @@ class SaleOrder(models.Model):
             "target": "current",
         }
 
+    def write(self, vals):
+        res = super().write(vals)
+        if self.env.context.get("skip_ic_so_write_sync"):
+            return res
+        sync_keys = {
+            "partner_id",
+            "order_line",
+            "date_order",
+            "currency_id",
+            "commitment_date",
+        }
+        if sync_keys.intersection(vals):
+            for order in self.filtered(lambda so: so.state in ("draft", "sent")):
+                order._ic_sync_counterpart_purchase()
+        return res
+
     def _action_confirm(self):
         res = super()._action_confirm()
         for order in self:
             order._ic_try_create_purchase_order(force_draft=False)
         return res
+
+    def _ic_get_linked_purchase_order(self):
+        self.ensure_one()
+        purchase_order = self.ic_purchase_order_id
+        if not purchase_order and self.auto_purchase_order_id:
+            purchase_order = self.auto_purchase_order_id
+        if not purchase_order:
+            purchase_order = (
+                self.env["purchase.order"]
+                .sudo()
+                .search([("auto_sale_order_id", "=", self.id)], limit=1)
+            )
+            if purchase_order and not self.ic_purchase_order_id:
+                self.sudo().write({"ic_purchase_order_id": purchase_order.id})
+        return purchase_order
+
+    def _ic_sync_counterpart_purchase(self):
+        self.ensure_one()
+        if self.env.context.get("skip_ic_so_write_sync") or not self.order_line:
+            return self.env["purchase.order"]
+        if self.state not in ("draft", "sent"):
+            return self.env["purchase.order"]
+        purchase_order = self._ic_get_linked_purchase_order()
+        if not purchase_order or purchase_order.state not in ("draft", "sent"):
+            return purchase_order
+        company = purchase_order.company_id
+        self._ic_update_purchase_order_lines(purchase_order, company)
+        return purchase_order
+
+    def _ic_update_purchase_order_lines(self, purchase_order, company):
+        self.ensure_one()
+        commands = [(5, 0, 0)]
+        for line in self.order_line.sudo():
+            commands.append(
+                (0, 0, self._prepare_ic_purchase_order_line_data(line, self.date_order, company))
+            )
+        purchase_order.with_context(
+            skip_ic_po_write_sync=True,
+            skip_ic_po_create_sync=True,
+            skip_ic_po_price_compute=True,
+        ).sudo().write(
+            {
+                "partner_ref": self.name,
+                "date_order": self.date_order,
+                "currency_id": self.currency_id.id,
+                "order_line": commands,
+            }
+        )
+        so_lines = self.order_line.filtered(lambda line: not line.display_type)
+        po_lines = purchase_order.order_line.filtered(lambda line: not line.display_type)
+        for so_line, po_line in zip(so_lines, po_lines):
+            line_vals = self._prepare_ic_purchase_order_line_data(
+                so_line, self.date_order, company
+            )
+            po_line.with_context(
+                skip_ic_po_write_sync=True,
+                skip_ic_po_price_compute=True,
+                skip_ic_so_write_sync=True,
+            ).sudo().write(
+                {
+                    "price_unit": line_vals["price_unit"],
+                    "discount": line_vals.get("discount", 0.0),
+                    "product_qty": line_vals["product_qty"],
+                }
+            )
 
     def _ic_try_create_purchase_order(self, force_draft=False):
         self.ensure_one()

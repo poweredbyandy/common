@@ -97,9 +97,31 @@ class PurchaseOrderLine(models.Model):
                 )
         return price
 
+    def write(self, vals):
+        res = super().write(vals)
+        if self.env.context.get("skip_ic_po_write_sync"):
+            return res
+        sync_keys = {
+            "price_unit",
+            "product_qty",
+            "discount",
+            "product_id",
+            "product_uom",
+            "name",
+        }
+        if sync_keys.intersection(vals):
+            orders = self.mapped("order_id").filtered(
+                lambda po: po.state in ("draft", "sent") and not po.auto_generated
+            )
+            for order in orders:
+                order._ic_sync_counterpart_sale(force_draft=True)
+        return res
+
     @api.depends("product_qty", "product_uom", "company_id", "order_id.partner_id")
     def _compute_price_unit_and_date_planned_and_name(self):
         super()._compute_price_unit_and_date_planned_and_name()
+        if self.env.context.get("skip_ic_po_price_compute"):
+            return
         for line in self:
             if not line.product_id or line.invoice_lines or not line.company_id:
                 continue
