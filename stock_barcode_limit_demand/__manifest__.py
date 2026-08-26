@@ -1,6 +1,6 @@
 {
     "name": "Stock Barcode Limit Demand",
-    "version": "18.0.1.0.0",
+    "version": "18.0.1.0.1",
     "category": "Inventory/Inventory",
     "summary": "Block barcode scans that exceed the requested transfer quantity",
     "author": "andyengit",
@@ -9,6 +9,7 @@
     "license": "LGPL-3",
     "depends": [
         "stock_barcode",
+        "stock_barcode_auto_lot",
     ],
     "data": [
         "views/stock_picking_type_views.xml",
