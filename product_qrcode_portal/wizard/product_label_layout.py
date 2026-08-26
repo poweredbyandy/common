@@ -21,19 +21,13 @@ class ProductLabelLayout(models.TransientModel):
     def _prepare_report_data(self):
         self.ensure_one()
         if self.print_format == "qr_label_url":
-            if self.custom_quantity <= 0:
-                raise UserError(_("You need to set a positive quantity."))
             website = self.portal_qr_website_id or self.env["website"].get_current_website()
             if not website:
                 raise UserError(_("Select a website for the portal QR URL."))
             if self.product_tmpl_ids:
                 products = self.product_tmpl_ids.mapped("product_variant_ids")
-                active_model = "product.template"
-                product_keys = self.product_tmpl_ids.ids
             elif self.product_ids:
                 products = self.product_ids
-                active_model = "product.product"
-                product_keys = self.product_ids.ids
             else:
                 raise UserError(
                     _(
@@ -51,14 +45,9 @@ class ProductLabelLayout(models.TransientModel):
                     _("Portal QR URL is not available for: %s")
                     % ", ".join(missing.mapped("display_name"))
                 )
-            data = {
-                "active_model": active_model,
-                "layout_wizard": self.id,
-                "quantity_by_product": {
-                    str(product_id): self.custom_quantity for product_id in product_keys
-                },
-                "zpl_qr_mode": "portal",
-                "portal_qr_website_id": website.id,
-            }
+            data = self._prepare_qr_label_report_data(
+                "portal",
+                extra_data={"portal_qr_website_id": website.id},
+            )
             return "product_qrcode.action_report_product_qr_zpl", data
         return super()._prepare_report_data()

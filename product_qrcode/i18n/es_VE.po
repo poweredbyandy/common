@@ -86,6 +86,16 @@ msgstr "El código QR del producto no está disponible para %s."
 
 #. module: product_qrcode
 #: code:addons/product_qrcode/report/report_product_qr_zpl.py:0
+msgid "VER PRECIO"
+msgstr "VER PRECIO"
+
+#. module: product_qrcode
+#: code:addons/product_qrcode/report/report_product_qr_zpl.py:0
+msgid "LOT"
+msgstr "LOTE"
+
+#. module: product_qrcode
+#: code:addons/product_qrcode/report/report_product_qr_zpl.py:0
 msgid "No product labels to print."
 msgstr "No hay etiquetas de producto para imprimir."
 

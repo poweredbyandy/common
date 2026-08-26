@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="stock_picking_type_form_barcode_limit_demand" model="ir.ui.view">
+        <field name="name">stock.picking.type.form.barcode.limit.demand</field>
+        <field name="model">stock.picking.type</field>
+        <field name="inherit_id" ref="stock_barcode.stock_barcode_view_picking_type_form"/>
+        <field name="arch" type="xml">
+            <field name="barcode_allow_extra_product" position="after">
+                <field name="barcode_block_over_demand"/>
+            </field>
+        </field>
+    </record>
+</odoo>

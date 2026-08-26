@@ -165,6 +165,12 @@ class TestProductQRCodePortal(WebsiteSaleCommon):
         )
         expected_url = self.website._get_product_qr_portal_url(self.product)
         self.assertIn(expected_url, zpl)
+        self.assertEqual(zpl.count("^BQN,2,4"), 1)
+        self.assertIn("^BQN,2,3", zpl)
+        self.assertIn("VER PRECIO", zpl)
+        self.assertIn("^A0N,22,22", zpl)
+        self.assertIn("^FO450,160", zpl)
+        self.assertIn(self.product.qr_code, zpl)
 
     def test_wizard_defaults_portal_website(self):
         wizard = self.env["product.label.layout"].create(

@@ -30,7 +30,13 @@ class TestProductQrZpl(TransactionCase):
         self.assertIn("Alternador Bosch", zpl)
         self.assertNotIn("Cargo 815 / 1721", zpl)
 
-    def test_zpl_sanitize_removes_control_characters(self):
+    def test_product_mode_keeps_single_qr_and_original_code_position(self):
+        zpl = self.report._build_label_zpl(self.product, "product")
+        self.assertEqual(zpl.count("^BQN"), 1)
+        self.assertNotIn("^BQN,2,3", zpl)
+        self.assertIn("^FO280,125", zpl)
+        self.assertIn("^FO280,145", zpl)
+
         self.assertEqual(
             self.report._zpl_sanitize("A^B~C\\D"),
             "A B C D",

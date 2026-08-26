@@ -12,6 +12,19 @@ from odoo.tools.misc import find_in_path
 
 LOGO_ORIGIN = (81, 212)
 LOGO_SIZE = (48, 48)
+PORTAL_CODE_LABEL_Y = 112
+PORTAL_CODE_VALUE_Y = 130
+PORTAL_CODE_FB_WIDTH = 305
+PORTAL_MINI_QR_ORIGIN = (450, 160)
+PORTAL_MINI_QR_MAG = 3
+PORTAL_URL_QR_CAPTION_Y = 198
+PORTAL_URL_QR_CAPTION_FONT = 22
+PRODUCT_CODE_LABEL_Y = 125
+PRODUCT_CODE_VALUE_Y = 145
+PRODUCT_CODE_FB_WIDTH = 305
+LOT_LABEL_Y = 175
+LOT_VALUE_Y = 195
+LOT_FB_WIDTH = 305
 
 
 class ReportProductQrZpl(models.AbstractModel):
@@ -45,7 +58,9 @@ class ReportProductQrZpl(models.AbstractModel):
         return r"\&".join(lines[:max_lines])
 
     @api.model
-    def _get_qr_payload(self, product, mode, report_data=None):
+    def _get_qr_payload(self, product, mode, report_data=None, lot_name=None):
+        if lot_name and mode != "portal":
+            return lot_name
         if mode == "portal":
             report_data = report_data or {}
             website_id = report_data.get("portal_qr_website_id")
@@ -69,6 +84,43 @@ class ReportProductQrZpl(models.AbstractModel):
                 % (product.display_name,)
             )
         return code
+
+    @api.model
+    def _get_product_code_qr_payload(self, product):
+        code = product.qr_code or product._get_qr_code_value()
+        if not code:
+            raise UserError(
+                _("Product QR code is not available for %s.")
+                % (product.display_name,)
+            )
+        return code
+
+    @api.model
+    def _append_portal_code_qr_zpl(self, parts, product, lot_name=None):
+        payload = lot_name or self._get_product_code_qr_payload(product)
+        parts.extend(
+            [
+                "\n",
+                "^FO%d,%d\n"
+                % (PORTAL_MINI_QR_ORIGIN[0], PORTAL_MINI_QR_ORIGIN[1]),
+                "^BQN,2,%d\n" % PORTAL_MINI_QR_MAG,
+                "^FDQA,%s^FS\n" % payload,
+            ]
+        )
+
+    @api.model
+    def _append_portal_url_qr_caption_zpl(self, parts):
+        caption = self._zpl_sanitize(_("VER PRECIO"))
+        parts.extend(
+            [
+                "\n",
+                "^FO81,%d\n" % PORTAL_URL_QR_CAPTION_Y,
+                "^A0N,%d,%d\n"
+                % (PORTAL_URL_QR_CAPTION_FONT, PORTAL_URL_QR_CAPTION_FONT),
+                "^FB200,1,0,C,0\n",
+                "^FD%s^FS\n" % caption,
+            ]
+        )
 
     @api.model
     def _decode_image_bytes(self, value):
@@ -214,12 +266,26 @@ class ReportProductQrZpl(models.AbstractModel):
         return ""
 
     @api.model
-    def _build_label_zpl(self, product, mode, footer=None, report_data=None):
-        qr_payload = self._get_qr_payload(product, mode, report_data=report_data)
+    def _build_label_zpl(
+        self, product, mode, footer=None, report_data=None, lot_name=None
+    ):
+        qr_payload = self._get_qr_payload(
+            product, mode, report_data=report_data, lot_name=lot_name
+        )
         product_name = self._zpl_wrap_name(product.name or product.display_name)
         code = self._zpl_sanitize(product.default_code or product.qr_code or "")
+        lot_text = self._zpl_sanitize(lot_name or "")
         footer_text = self._zpl_sanitize(footer or product.env.company.name or "")
         logo_gfa = self._label_logo_gfa(product.env.company)
+        code_label_y = (
+            PORTAL_CODE_LABEL_Y if mode == "portal" else PRODUCT_CODE_LABEL_Y
+        )
+        code_value_y = (
+            PORTAL_CODE_VALUE_Y if mode == "portal" else PRODUCT_CODE_VALUE_Y
+        )
+        code_fb_width = (
+            PORTAL_CODE_FB_WIDTH if mode == "portal" else PRODUCT_CODE_FB_WIDTH
+        )
 
         parts = [
             "^XA\n",
@@ -232,8 +298,13 @@ class ReportProductQrZpl(models.AbstractModel):
             "^FO81,25\n",
             "^BQN,2,4\n",
             "^FDQA,%s^FS\n" % qr_payload,
-            "\n",
-            "^FO280,20\n",
+        ]
+        if mode == "portal":
+            self._append_portal_url_qr_caption_zpl(parts)
+        parts.extend(
+            [
+                "\n",
+                "^FO280,20\n",
             "^A0N,14,14\n",
             "^FDPRODUCTO^FS\n",
             "\n",
@@ -242,15 +313,33 @@ class ReportProductQrZpl(models.AbstractModel):
             "^FB255,3,7,L,0\n",
             "^FD%s^FS\n" % product_name,
             "\n",
-            "^FO280,125\n",
+            "^FO280,%d\n" % code_label_y,
             "^A0N,14,14\n",
             "^FDCODIGO^FS\n",
             "\n",
-            "^FO280,145\n",
+            "^FO280,%d\n" % code_value_y,
             "^A0N,24,24\n",
-            "^FB305,1,0,L,0\n",
+            "^FB%d,1,0,L,0\n" % code_fb_width,
             "^FD%s^FS\n" % code,
-        ]
+            ]
+        )
+        if lot_text:
+            lot_label = self._zpl_sanitize(_("LOT"))
+            parts.extend(
+                [
+                    "\n",
+                    "^FO280,%d\n" % LOT_LABEL_Y,
+                    "^A0N,14,14\n",
+                    "^FD%s^FS\n" % lot_label,
+                    "\n",
+                    "^FO280,%d\n" % LOT_VALUE_Y,
+                    "^A0N,20,20\n",
+                    "^FB%d,1,0,L,0\n" % LOT_FB_WIDTH,
+                    "^FD%s^FS\n" % lot_text,
+                ]
+            )
+        if mode == "portal":
+            self._append_portal_code_qr_zpl(parts, product, lot_name=lot_name)
         if logo_gfa:
             parts.extend(["\n", logo_gfa, "\n"])
         if footer_text:
@@ -269,9 +358,16 @@ class ReportProductQrZpl(models.AbstractModel):
     @api.model
     def _iter_label_jobs(self, data):
         qty_map = data.get("quantity_by_product") or {}
+        custom_barcodes = data.get("custom_barcodes") or {}
         mode = data.get("zpl_qr_mode", "product")
         active_model = data.get("active_model")
         Product = self.env["product.product"].with_context(display_default_code=False)
+
+        product_ids = set()
+        for product_id in qty_map:
+            product_ids.add(int(product_id))
+        for product_id in custom_barcodes:
+            product_ids.add(int(product_id))
 
         if active_model == "product.template":
             templates = self.env["product.template"].browse(
@@ -280,21 +376,29 @@ class ReportProductQrZpl(models.AbstractModel):
             for template in templates.sorted("name", reverse=True):
                 quantity = qty_map.get(str(template.id), 1)
                 for product in template.product_variant_ids:
-                    yield product, quantity, mode
+                    yield product, quantity, mode, None
             return
 
-        products = Product.search(
-            [("id", "in", [int(product_id) for product_id in qty_map])],
-            order="name desc",
-        )
+        products = Product.search([("id", "in", list(product_ids))], order="name desc")
         for product in products:
-            yield product, qty_map.get(str(product.id), 1), mode
+            lot_entries = custom_barcodes.get(product.id) or custom_barcodes.get(
+                str(product.id)
+            )
+            if lot_entries:
+                for lot_name, quantity in lot_entries:
+                    yield product, quantity, mode, lot_name
+                continue
+            quantity = qty_map.get(str(product.id), 0)
+            if quantity:
+                yield product, quantity, mode, None
 
     @api.model
     def _build_zpl_body(self, data):
         chunks = []
-        for product, quantity, mode in self._iter_label_jobs(data):
-            label = self._build_label_zpl(product, mode, report_data=data)
+        for product, quantity, mode, lot_name in self._iter_label_jobs(data):
+            label = self._build_label_zpl(
+                product, mode, report_data=data, lot_name=lot_name
+            )
             for _unused in range(max(int(quantity), 0)):
                 chunks.append(label)
         if not chunks:
