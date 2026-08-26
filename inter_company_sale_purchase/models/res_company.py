@@ -28,7 +28,9 @@ class ResCompany(models.Model):
             ("confirmed", "Create and confirm"),
         ],
         string="Purchase document state",
-        default="draft",
+        default="confirmed",
+        help="Applied when the sales order is confirmed. While the sale is draft, "
+        "a manually synced purchase stays draft.",
     )
     ic_picking_mode = fields.Selection(
         selection=[

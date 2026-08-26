@@ -214,19 +214,21 @@ class SaleOrder(models.Model):
     def _ic_try_create_purchase_order(self, force_draft=False):
         self.ensure_one()
         order = self.sudo()
-        if not order.company_id or order.auto_generated or order.ic_purchase_order_id:
+        if not order.company_id or order.auto_generated:
             return self.env["purchase.order"]
-        existing = (
-            self.env["purchase.order"]
-            .sudo()
-            .search([("auto_sale_order_id", "=", self.id)], limit=1)
-        )
-        if existing:
-            if not order.ic_purchase_order_id:
-                order.with_context(skip_ic_so_write_sync=True).write(
-                    {"ic_purchase_order_id": existing.id}
+
+        purchase_order = self._ic_get_linked_purchase_order()
+        if purchase_order:
+            purchase_order = purchase_order.sudo()
+            if not force_draft and purchase_order.state in ("draft", "sent"):
+                self._ic_update_purchase_order_lines(
+                    purchase_order, purchase_order.company_id
                 )
-            return existing
+                return self._ic_confirm_linked_purchase_order(
+                    purchase_order, purchase_order.company_id
+                )
+            return purchase_order
+
         company = self.env["res.company"]._find_company_from_partner(order.partner_id.id)
         if not company or company == order.company_id:
             return self.env["purchase.order"]
@@ -240,6 +242,18 @@ class SaleOrder(models.Model):
             )
             return self.env["purchase.order"]
         return self.sudo()._ic_create_purchase_order(company, force_draft=force_draft)
+
+    def _ic_confirm_linked_purchase_order(self, purchase_order, company):
+        purchase_order = purchase_order.sudo()
+        if purchase_order.state not in ("draft", "sent"):
+            return purchase_order
+        if company.ic_po_state != "confirmed":
+            return purchase_order
+        ic_user = company._ic_ensure_user(["purchase", "stock"])
+        purchase_order.with_user(ic_user).with_company(company).with_context(
+            allowed_company_ids=company.ids
+        ).button_confirm()
+        return purchase_order
 
     def _ic_create_purchase_order(self, company, force_draft=False):
         self.ensure_one()
@@ -273,7 +287,9 @@ class SaleOrder(models.Model):
         vals = {"ic_purchase_order_id": purchase_order.id}
         if not self.client_order_ref:
             vals["client_order_ref"] = purchase_order.name
-        self.sudo().with_company(self.company_id).write(vals)
+        self.sudo().with_company(self.company_id).with_context(
+            skip_ic_so_write_sync=True
+        ).write(vals)
         if confirm_purchase:
             purchase_order.with_user(ic_user).with_company(company).with_context(
                 allowed_company_ids=company.ids

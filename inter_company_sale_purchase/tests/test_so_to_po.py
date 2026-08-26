@@ -71,6 +71,37 @@ class TestSoToPo(TestInterCompanySalePurchaseCommon):
         ).order_line.write({"price_unit": 155.0})
         self.assertAlmostEqual(po.sudo().order_line.price_unit, 155.0)
 
+    def test_so_confirm_confirms_existing_draft_po(self):
+        self.company_a.ic_po_state = "confirmed"
+        so = (
+            self.env["sale.order"]
+            .with_company(self.company_b)
+            .create(
+                {
+                    "partner_id": self.company_a.partner_id.id,
+                    "company_id": self.company_b.id,
+                    "order_line": [
+                        (
+                            0,
+                            0,
+                            {
+                                "product_id": self.product.id,
+                                "name": self.product.name,
+                                "product_uom_qty": 1.0,
+                                "price_unit": 70.0,
+                                "product_uom": self.product.uom_id.id,
+                            },
+                        )
+                    ],
+                }
+            )
+        )
+        so.action_ic_sync_purchase_order()
+        po = so.sudo().ic_purchase_order_id
+        self.assertEqual(po.state, "draft")
+        so.with_company(self.company_b).action_confirm()
+        self.assertIn(po.sudo().state, ("purchase", "done"))
+
     def test_so_creates_draft_po(self):
         so = (
             self.env["sale.order"]
