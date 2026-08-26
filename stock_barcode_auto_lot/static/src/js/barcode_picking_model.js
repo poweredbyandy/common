@@ -4,6 +4,23 @@ import { patch } from "@web/core/utils/patch";
 import BarcodePickingModel from "@stock_barcode/models/barcode_picking_model";
 
 patch(BarcodePickingModel.prototype, {
+    _incrementTrackedLine() {
+        if (this.useTrackingNumber) {
+            return true;
+        }
+        return super._incrementTrackedLine(...arguments);
+    },
+
+    async createNewLine(params) {
+        if (params.fieldsParams) {
+            await this._autoAssignLotOnLine(
+                params.copyOf || { product_id: params.fieldsParams.product_id },
+                params.fieldsParams
+            );
+        }
+        return super.createNewLine(...arguments);
+    },
+
     async updateLine(line, args) {
         await this._autoAssignLotOnLine(line, args);
         return super.updateLine(...arguments);
