@@ -24,7 +24,7 @@ class SaleOrderLine(models.Model):
         if sync_keys.intersection(vals):
             orders = self.mapped("order_id").filtered(lambda so: so.state in ("draft", "sent"))
             for order in orders:
-                order._ic_sync_counterpart_purchase()
+                order._ic_try_create_purchase_order(force_draft=True)
         return res
 
     @api.depends("product_id", "product_uom", "company_id", "order_id.company_id")

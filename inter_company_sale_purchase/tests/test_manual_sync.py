@@ -48,6 +48,7 @@ class TestManualSync(TestInterCompanySalePurchaseCommon):
         so = (
             self.env["sale.order"]
             .with_company(self.company_b)
+            .with_context(skip_ic_so_create_sync=True)
             .create(
                 {
                     "partner_id": self.company_a.partner_id.id,

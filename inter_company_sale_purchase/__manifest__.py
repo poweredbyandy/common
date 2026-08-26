@@ -1,6 +1,6 @@
 {
     "name": "Inter Company Sale/Purchase Sync",
-    "version": "18.0.1.2.7",
+    "version": "18.0.1.2.8",
     "category": "Sales",
     "summary": "Bidirectional inter-company sale and purchase synchronization",
     "author": "andyengit",

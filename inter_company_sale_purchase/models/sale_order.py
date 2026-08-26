@@ -115,6 +115,17 @@ class SaleOrder(models.Model):
             },
         }
 
+    @api.model_create_multi
+    def create(self, vals_list):
+        orders = super().create(vals_list)
+        if self.env.context.get("skip_ic_so_create_sync"):
+            return orders
+        for order in orders.filtered(
+            lambda so: so.state in ("draft", "sent") and not so.auto_generated
+        ):
+            order._ic_try_create_purchase_order(force_draft=True)
+        return orders
+
     def write(self, vals):
         res = super().write(vals)
         if self.env.context.get("skip_ic_so_write_sync"):
@@ -128,12 +139,12 @@ class SaleOrder(models.Model):
         }
         if sync_keys.intersection(vals):
             for order in self.filtered(lambda so: so.state in ("draft", "sent")):
-                order._ic_sync_counterpart_purchase()
+                order._ic_try_create_purchase_order(force_draft=True)
         return res
 
     def _action_confirm(self):
         res = super()._action_confirm()
-        for order in self:
+        for order in self.filtered(lambda so: not so.auto_generated):
             order._ic_try_create_purchase_order(force_draft=False)
         return res
 
@@ -155,20 +166,53 @@ class SaleOrder(models.Model):
                 )
         return purchase_order
 
-    def _ic_sync_counterpart_purchase(self):
+    def _ic_try_create_purchase_order(self, force_draft=False):
         self.ensure_one()
-        if self.env.context.get("skip_ic_so_write_sync") or not self.order_line:
+        order = self.sudo()
+        if not order.company_id or not order.order_line:
             return self.env["purchase.order"]
-        if self.state not in ("draft", "sent"):
-            return self.env["purchase.order"]
+
         purchase_order = self._ic_get_linked_purchase_order()
-        if not purchase_order:
+        if purchase_order:
+            purchase_order = purchase_order.sudo()
+            if purchase_order.state in ("draft", "sent"):
+                if order.state in ("draft", "sent") or not force_draft:
+                    self._ic_update_purchase_order_lines(
+                        purchase_order, purchase_order.company_id
+                    )
+                if not force_draft and not order.auto_generated:
+                    return self._ic_confirm_linked_purchase_order(
+                        purchase_order, purchase_order.company_id
+                    )
+            return purchase_order
+
+        if order.auto_generated:
             return self.env["purchase.order"]
+
+        company = self.env["res.company"]._find_company_from_partner(order.partner_id.id)
+        if not company or company == order.company_id:
+            return self.env["purchase.order"]
+        if not company.ic_po_from_so:
+            self.message_post(
+                body=_(
+                    "Inter-company purchase order was not created because company %(company)s "
+                    "has 'Generate Purchase Orders from Sales' disabled.",
+                    company=company.name,
+                )
+            )
+            return self.env["purchase.order"]
+        return self.sudo()._ic_create_purchase_order(company, force_draft=force_draft)
+
+    def _ic_confirm_linked_purchase_order(self, purchase_order, company):
         purchase_order = purchase_order.sudo()
         if purchase_order.state not in ("draft", "sent"):
             return purchase_order
-        company = purchase_order.company_id
-        self._ic_update_purchase_order_lines(purchase_order, company)
+        if company.ic_po_state != "confirmed":
+            return purchase_order
+        ic_user = company._ic_ensure_user(["purchase", "stock"])
+        purchase_order.with_user(ic_user).with_company(company).with_context(
+            allowed_company_ids=company.ids
+        ).button_confirm()
         return purchase_order
 
     def _ic_update_purchase_order_lines(self, purchase_order, company):
@@ -210,50 +254,6 @@ class SaleOrder(models.Model):
                     "product_qty": line_vals["product_qty"],
                 }
             )
-
-    def _ic_try_create_purchase_order(self, force_draft=False):
-        self.ensure_one()
-        order = self.sudo()
-        if not order.company_id or order.auto_generated:
-            return self.env["purchase.order"]
-
-        purchase_order = self._ic_get_linked_purchase_order()
-        if purchase_order:
-            purchase_order = purchase_order.sudo()
-            if not force_draft and purchase_order.state in ("draft", "sent"):
-                self._ic_update_purchase_order_lines(
-                    purchase_order, purchase_order.company_id
-                )
-                return self._ic_confirm_linked_purchase_order(
-                    purchase_order, purchase_order.company_id
-                )
-            return purchase_order
-
-        company = self.env["res.company"]._find_company_from_partner(order.partner_id.id)
-        if not company or company == order.company_id:
-            return self.env["purchase.order"]
-        if not company.ic_po_from_so:
-            self.message_post(
-                body=_(
-                    "Inter-company purchase order was not created because company %(company)s "
-                    "has 'Generate Purchase Orders from Sales' disabled.",
-                    company=company.name,
-                )
-            )
-            return self.env["purchase.order"]
-        return self.sudo()._ic_create_purchase_order(company, force_draft=force_draft)
-
-    def _ic_confirm_linked_purchase_order(self, purchase_order, company):
-        purchase_order = purchase_order.sudo()
-        if purchase_order.state not in ("draft", "sent"):
-            return purchase_order
-        if company.ic_po_state != "confirmed":
-            return purchase_order
-        ic_user = company._ic_ensure_user(["purchase", "stock"])
-        purchase_order.with_user(ic_user).with_company(company).with_context(
-            allowed_company_ids=company.ids
-        ).button_confirm()
-        return purchase_order
 
     def _ic_create_purchase_order(self, company, force_draft=False):
         self.ensure_one()
