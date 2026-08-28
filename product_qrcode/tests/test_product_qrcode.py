@@ -28,3 +28,8 @@ class TestProductQRCode(TransactionCase):
     def test_template_qr_fields(self):
         template = self.product.product_tmpl_id
         self.assertEqual(template.qr_code, self.product.qr_code)
+
+    def test_template_qr_code_depends_on_searchable_variants(self):
+        field = self.env["product.template"]._fields["qr_code"]
+        self.assertIn("product_variant_ids.qr_code", field.depends)
+        self.assertNotIn("product_variant_id.qr_code", field.depends)

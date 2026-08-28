@@ -123,6 +123,11 @@ class TestProductQRCodePortal(WebsiteSaleCommon):
         template = self.product.product_tmpl_id
         self.assertEqual(template.portal_qr_url, self.product.portal_qr_url)
 
+    def test_template_portal_qr_url_depends_on_searchable_variants(self):
+        field = self.env["product.template"]._fields["portal_qr_url"]
+        self.assertIn("product_variant_ids.portal_qr_url", field.depends)
+        self.assertNotIn("product_variant_id.portal_qr_url", field.depends)
+
     def test_portal_qr_url_uses_selected_website(self):
         other_website = self._get_other_website()
         url = other_website._get_product_qr_portal_url(self.product)

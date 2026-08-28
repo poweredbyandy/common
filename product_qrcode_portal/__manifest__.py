@@ -1,6 +1,6 @@
 {
     "name": "Product QR Code Portal",
-    "version": "18.0.1.4.0",
+    "version": "18.0.1.4.1",
     "category": "Website/Website",
     "summary": "Configure what happens when a product portal QR is scanned",
     "author": "andyengit",

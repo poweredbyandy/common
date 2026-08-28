@@ -1,4 +1,4 @@
-from odoo import fields, models
+from odoo import api, fields, models
 
 
 class ProductTemplate(models.Model):
@@ -6,5 +6,9 @@ class ProductTemplate(models.Model):
 
     portal_qr_url = fields.Char(
         string="Portal QR URL",
-        related="product_variant_id.portal_qr_url",
+        compute="_compute_portal_qr_url",
     )
+
+    @api.depends("product_variant_ids.portal_qr_url")
+    def _compute_portal_qr_url(self):
+        self._compute_template_field_from_variant_field("portal_qr_url")

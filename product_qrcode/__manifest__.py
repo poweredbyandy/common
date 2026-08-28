@@ -1,6 +1,6 @@
 {
     "name": "Product QR Code",
-    "version": "18.0.1.5.6",
+    "version": "18.0.1.5.7",
     "category": "Inventory/Inventory",
     "summary": "Generate and display a QR code for each product",
     "author": "andyengit",

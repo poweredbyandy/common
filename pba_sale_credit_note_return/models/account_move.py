@@ -314,15 +314,7 @@ class AccountMove(models.Model):
         if float_compare(
             sale_line.product_uom_qty, new_ordered, precision_rounding=rounding
         ) != 0:
-            order = sale_line.order_id
-            was_locked = order.locked
-            if was_locked:
-                order.locked = False
-            sale_line.with_context(skip_procurement=True).write({
-                "product_uom_qty": new_ordered,
-            })
-            if was_locked:
-                order.locked = True
+            sale_line._pba_write_ordered_qty_after_credit_note(new_ordered)
             reduced = max(reduced, reduce_ordered)
         return reduced
 

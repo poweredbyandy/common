@@ -32,15 +32,7 @@ class StockPicking(models.Model):
             rounding = line.product_uom.rounding
             if float_compare(line.product_uom_qty, new_qty, precision_rounding=rounding) == 0:
                 continue
-            order = line.order_id
-            was_locked = order.locked
-            if was_locked:
-                order.locked = False
-            line.with_context(skip_procurement=True).write({
-                "product_uom_qty": new_qty,
-            })
-            if was_locked:
-                order.locked = True
+            line._pba_write_ordered_qty_after_credit_note(new_qty)
         leftover_moves = sale_lines.move_ids.filtered(
             lambda move: move.state not in ("done", "cancel")
             and not move.origin_returned_move_id

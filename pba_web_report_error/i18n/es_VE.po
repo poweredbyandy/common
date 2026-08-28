@@ -1,0 +1,27 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* pba_web_report_error
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-08-27 22:15+0000\n"
+"PO-Revision-Date: 2026-08-27 22:15+0000\n"
+"Last-Translator: andyengit\n"
+"Language-Team: Spanish (Venezuela)\n"
+"Language: es_VE\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n == 1) ? 0 : ((n != 0 && n % 1000000 == 0) ? 1 : 2);\n"
+
+#. module: pba_web_report_error
+#: model:ir.module.module,shortdesc:pba_web_report_error.module_pba_web_report_error
+msgid "PBA Web Report Error"
+msgstr "Error HTTP de reportes PBA"
+
+#. module: pba_web_report_error
+#: model:ir.module.module,summary:pba_web_report_error.module_pba_web_report_error
+msgid "Serialize UserError and AccessError on HTTP report routes"
+msgstr "Serializa UserError y AccessError en las rutas HTTP de reportes"

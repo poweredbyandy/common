@@ -148,6 +148,108 @@ class TestCreditNoteReturn(TestSaleStockCommon):
         self.assertEqual(sale_order.order_line.qty_delivered, 0)
         self.assertEqual(sale_order.order_line.product_uom_qty, 0)
 
+    def test_validate_return_two_lines_sets_ordered_qty(self):
+        product_hi = self.env["product.product"].create({
+            "name": "Expensive return",
+            "type": "consu",
+            "is_storable": True,
+            "list_price": 596.56,
+            "invoice_policy": "delivery",
+            "taxes_id": False,
+        })
+        product_lo = self.env["product.product"].create({
+            "name": "Cheap return",
+            "type": "consu",
+            "is_storable": True,
+            "list_price": 5.396515,
+            "invoice_policy": "delivery",
+            "taxes_id": False,
+        })
+        for product in (product_hi, product_lo):
+            self.env["stock.quant"]._update_available_quantity(
+                product, self.warehouse.lot_stock_id, 10.0
+            )
+        sale_order = self.env["sale.order"].create({
+            "partner_id": self.partner_a.id,
+            "partner_invoice_id": self.partner_a.id,
+            "partner_shipping_id": self.partner_a.id,
+            "order_line": [
+                Command.create({
+                    "name": product_hi.name,
+                    "product_id": product_hi.id,
+                    "product_uom_qty": 1,
+                    "product_uom": product_hi.uom_id.id,
+                    "price_unit": 596.56,
+                }),
+                Command.create({
+                    "name": product_lo.name,
+                    "product_id": product_lo.id,
+                    "product_uom_qty": 1,
+                    "product_uom": product_lo.uom_id.id,
+                    "price_unit": 5.396515,
+                }),
+            ],
+            "pricelist_id": self.company_data["default_pricelist"].id,
+        })
+        _picking, invoice = self._deliver_and_invoice(sale_order)
+        credit_note = self._create_and_post_credit_note(invoice)
+        return_picking = credit_note.credit_note_return_picking_ids
+        return_picking.move_ids.write({"quantity": 1, "picked": True})
+        return_picking.button_validate()
+        self.assertEqual(return_picking.state, "done")
+        self.assertEqual(sum(sale_order.order_line.mapped("qty_delivered")), 0)
+        self.assertEqual(sum(sale_order.order_line.mapped("product_uom_qty")), 0)
+
+    def test_ordered_qty_update_with_ve_global_discount_does_not_block(self):
+        if "l10n.ve.sale.order.discount" not in self.env:
+            self.skipTest("l10n_ve_sale_loyalty is not installed")
+        Discount = self.env["l10n.ve.sale.order.discount"]
+        self.env.company.account_fiscal_country_id = self.env.ref("base.ve")
+        product_hi = self.env["product.product"].create({
+            "name": "Motosierra test",
+            "type": "consu",
+            "list_price": 596.56,
+            "taxes_id": False,
+        })
+        product_lo = self.env["product.product"].create({
+            "name": "Aceite test",
+            "type": "consu",
+            "list_price": 5.396515,
+            "taxes_id": False,
+        })
+        sale_order = self.env["sale.order"].create({
+            "partner_id": self.partner_a.id,
+            "order_line": [
+                Command.create({
+                    "product_id": product_hi.id,
+                    "product_uom_qty": 1,
+                    "price_unit": 596.56,
+                }),
+                Command.create({
+                    "product_id": product_lo.id,
+                    "product_uom_qty": 1,
+                    "price_unit": 5.396515,
+                }),
+            ],
+        })
+        reason = self.env["l10n.ve.discount.reason"]._l10n_ve_get_default()
+        if not reason:
+            reason = self.env["l10n.ve.discount.reason"].create({
+                "name": "Descuento",
+            })
+        Discount.create({
+            "sale_order_id": sale_order.id,
+            "reason_id": reason.id,
+            "amount": 153.68,
+            "discount_type": "fixed",
+            "amount_base": "untaxed",
+        })
+        sale_order.action_confirm()
+        for line in sale_order.order_line.sorted("id"):
+            line._pba_write_ordered_qty_after_credit_note(0.0)
+        self.assertEqual(sum(sale_order.order_line.mapped("product_uom_qty")), 0)
+        self.assertEqual(sale_order.l10n_ve_global_discount_ids.amount, 153.68)
+
     def test_validate_partial_return_keeps_remaining_ordered_qty(self):
         sale_order = self._get_new_sale_order(amount=10.0)
         _picking, invoice = self._deliver_and_invoice(sale_order)
