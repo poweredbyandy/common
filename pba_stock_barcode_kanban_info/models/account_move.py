@@ -30,10 +30,14 @@ class AccountMove(models.Model):
         sales = invoices.line_ids.sale_line_ids.order_id
         sales |= self.env["sale.order"].search([("invoice_ids", "in", invoices.ids)])
         pickings = sales.picking_ids
-        if "invoice_ids" in self.env["stock.picking"]._fields:
-            pickings |= self.env["stock.picking"].search(
-                [("invoice_ids", "in", invoices.ids)]
-            )
+        if "picking_ids" in invoices._fields:
+            pickings |= invoices.picking_ids
+        else:
+            invoice_field = self.env["stock.picking"]._fields.get("invoice_ids")
+            if invoice_field and (invoice_field.store or invoice_field.search):
+                pickings |= self.env["stock.picking"].search(
+                    [("invoice_ids", "in", invoices.ids)]
+                )
         if pickings:
             pickings._pba_notify_barcode_available()
         else:

@@ -25,7 +25,13 @@ class SaleOrderLine(models.Model):
         return True
 
     def _pba_check_sale_price_write(self, vals):
-        if self.env.user.has_group("pba_sale_price_group.group_pba_edit_sale_price"):
+        if (
+            self.env.context.get("pba_skip_sale_price_lock")
+            or self.env.context.get("sale_write_from_compute")
+            or self.env.context.get("force_price_recomputation")
+            or self.env.context.get("pricelist_update")
+            or self.env.user.has_group("pba_sale_price_group.group_pba_edit_sale_price")
+        ):
             return
         prec = self.env["decimal.precision"].precision_get("Product Price")
         for line in self.filtered(lambda l: l._pba_applies_sale_price_lock()):
