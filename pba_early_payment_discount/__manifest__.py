@@ -1,6 +1,6 @@
 {
     "name": "PBA Descuento por Pronto Pago",
-    "version": "18.0.1.9.0",
+    "version": "18.0.1.9.1",
     "summary": "Descuento por pronto pago con porcentaje variable por contacto y factura",
     "category": "Accounting",
     "author": "andyengit",
