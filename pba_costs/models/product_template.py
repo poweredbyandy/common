@@ -2,6 +2,7 @@ import logging
 
 from odoo import _, api, fields, models
 from odoo.exceptions import AccessError, UserError
+from odoo.tools.float_utils import float_compare
 from odoo.tools.safe_eval import safe_eval
 
 from .pba_constants import (
@@ -222,16 +223,56 @@ class ProductTemplate(models.Model):
         for template in self:
             template.pba_costs_readonly = readonly
 
-    @api.model
-    def _pba_check_product_cost_write_access(self, vals):
-        if self.env.su:
-            return
-        if not (set(vals) & PBA_PRODUCT_COST_WRITE_FIELDS):
-            return
-        if not pba_user_can_edit_all_costs(self.env):
-            raise AccessError(
-                _("You are not allowed to edit PBA costs on the product.")
+    def _pba_product_cost_value_differs(self, current, new_val, field_name):
+        if field_name == "pba_final_cost_formula_edit":
+            return (current or "").strip() != (new_val or "").strip()
+        return (
+            float_compare(current or 0.0, new_val or 0.0, precision_digits=6) != 0
+        )
+
+    def _pba_product_cost_value_is_set(self, field_name, value):
+        if field_name == "pba_final_cost_formula_edit":
+            formula = (value or "").strip()
+            if not formula or formula == DEFAULT_PBA_FINAL_COST_FORMULA:
+                return False
+            current = (
+                self.env["ir.config_parameter"]
+                .sudo()
+                .get_param(
+                    "pba_costs.final_cost_formula",
+                    DEFAULT_PBA_FINAL_COST_FORMULA,
+                )
+                or ""
+            ).strip() or DEFAULT_PBA_FINAL_COST_FORMULA
+            return formula != current
+        return float_compare(value or 0.0, 0.0, precision_digits=6) != 0
+
+    def _pba_product_cost_vals_change(self, field_name, value):
+        if self:
+            return any(
+                self._pba_product_cost_value_differs(
+                    rec[field_name],
+                    value,
+                    field_name,
+                )
+                for rec in self
             )
+        return self._pba_product_cost_value_is_set(field_name, value)
+
+    def _pba_check_product_cost_write_access(self, vals):
+        if self.env.su or pba_user_can_edit_all_costs(self.env):
+            return vals
+        cost_keys = [key for key in vals if key in PBA_PRODUCT_COST_WRITE_FIELDS]
+        if not cost_keys:
+            return vals
+        vals = dict(vals)
+        for key in cost_keys:
+            if self._pba_product_cost_vals_change(key, vals[key]):
+                raise AccessError(
+                    _("You are not allowed to edit PBA costs on the product.")
+                )
+            vals.pop(key, None)
+        return vals
 
     def _pba_find_last_purchase_order_line(self):
         self.ensure_one()
@@ -774,9 +815,12 @@ class ProductTemplate(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
-        cleaned_list = [_pba_strip_legacy_write_vals(dict(vals)) for vals in vals_list]
-        for vals in cleaned_list:
-            self._pba_check_product_cost_write_access(vals)
+        cleaned_list = [
+            self._pba_check_product_cost_write_access(
+                _pba_strip_legacy_write_vals(dict(vals))
+            )
+            for vals in vals_list
+        ]
         records = super().create(cleaned_list)
         for rec, vals in zip(records, cleaned_list):
             for cost_type, field_names in COST_FIELD_GROUPS:
@@ -787,8 +831,9 @@ class ProductTemplate(models.Model):
     def write(self, vals):
         if not self:
             return super().write(vals)
-        vals = _pba_strip_legacy_write_vals(vals)
-        self._pba_check_product_cost_write_access(vals)
+        vals = self._pba_check_product_cost_write_access(
+            _pba_strip_legacy_write_vals(vals)
+        )
         triggers_by_rec = {rec: rec._pba_cost_types_to_log_on_write(vals) for rec in self}
         res = super().write(vals)
         field_by_type = dict(COST_FIELD_GROUPS)

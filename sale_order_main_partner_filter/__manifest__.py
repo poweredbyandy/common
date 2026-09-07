@@ -1,6 +1,6 @@
 {
     "name": "Sale Orders Main Partner Filter",
-    "version": "18.0.1.0.0",
+    "version": "18.0.1.0.1",
     "category": "Sales",
     "summary": "Restrict sales order partner filters to main contacts",
     "author": "andyengit",

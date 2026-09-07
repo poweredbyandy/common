@@ -60,6 +60,48 @@ class TestPbaCostAccess(TransactionCase):
         self.assertTrue(tmpl.with_user(self.user_rfq).pba_costs_readonly)
         self.assertFalse(tmpl.with_user(self.user_all).pba_costs_readonly)
 
+    def test_read_user_can_write_product_non_cost_fields(self):
+        tmpl = self.product.product_tmpl_id.with_user(self.user_read)
+        tmpl.write({"name": "PBA Cost Access Product Updated"})
+        self.assertEqual(tmpl.name, "PBA Cost Access Product Updated")
+
+    def test_read_user_can_write_product_when_cost_vals_unchanged(self):
+        tmpl = self.product.product_tmpl_id.with_user(self.user_read)
+        tmpl.write(
+            {
+                "name": "PBA Cost Access Product Same Costs",
+                "pba_cost_freight_percent": 0.1,
+                "pba_utility_percent": 0.0,
+            }
+        )
+        self.assertEqual(tmpl.name, "PBA Cost Access Product Same Costs")
+        self.assertAlmostEqual(tmpl.pba_cost_freight_percent, 0.1)
+
+    def test_read_user_can_create_product_without_cost_changes(self):
+        product = (
+            self.env["product.product"]
+            .with_user(self.user_read)
+            .create(
+                {
+                    "name": "PBA Cost Access Created",
+                    "purchase_ok": True,
+                    "pba_cost_freight_percent": 0.0,
+                }
+            )
+        )
+        self.assertEqual(product.name, "PBA Cost Access Created")
+        self.assertAlmostEqual(product.product_tmpl_id.pba_cost_freight_percent, 0.0)
+
+    def test_read_user_cannot_create_product_with_costs(self):
+        with self.assertRaises(AccessError):
+            self.env["product.product"].with_user(self.user_read).create(
+                {
+                    "name": "PBA Cost Access Forbidden",
+                    "purchase_ok": True,
+                    "pba_cost_freight_percent": 0.15,
+                }
+            )
+
     def test_read_user_cannot_write_product_costs(self):
         tmpl = self.product.product_tmpl_id.with_user(self.user_read)
         with self.assertRaises(AccessError):
@@ -95,10 +137,19 @@ class TestPbaCostAccess(TransactionCase):
         with self.assertRaises(AccessError):
             line.with_user(self.user_rfq).write({"pba_cost_freight_percent": 0.4})
 
-    def test_rfq_confirm_applies_costs_to_product(self):
+    def test_rfq_confirm_does_not_apply_costs_to_product(self):
         order, line = self._create_rfq()
         line.with_user(self.user_rfq).write({"pba_cost_freight_percent": 0.25})
         order.with_user(self.user_rfq).button_confirm()
+        self.assertAlmostEqual(
+            self.product.product_tmpl_id.pba_cost_freight_percent,
+            0.1,
+        )
+
+    def test_update_sale_prices_applies_costs_to_product(self):
+        order, line = self._create_rfq()
+        line.with_user(self.user_rfq).write({"pba_cost_freight_percent": 0.25})
+        order.with_user(self.user_rfq).action_pba_update_sale_prices()
         self.assertAlmostEqual(
             self.product.product_tmpl_id.pba_cost_freight_percent,
             0.25,

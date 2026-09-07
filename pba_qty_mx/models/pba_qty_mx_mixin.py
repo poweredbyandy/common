@@ -1,7 +1,7 @@
 from odoo import _
 from odoo.exceptions import ValidationError
 from odoo.models import AbstractModel
-from odoo.tools import float_compare, float_is_zero
+from odoo.tools import float_compare, float_is_zero, float_round
 
 
 class PbaQtyMxMixin(AbstractModel):
@@ -17,8 +17,9 @@ class PbaQtyMxMixin(AbstractModel):
             return False
         if float_compare(qty, multiple, precision_rounding=rounding) < 0:
             return False
-        ratio = qty / multiple
-        return float_is_zero(ratio - round(ratio), precision_rounding=rounding)
+        steps = float_round(qty / multiple, precision_digits=0)
+        expected_qty = steps * multiple
+        return float_is_zero(qty - expected_qty, precision_digits=6)
 
     def _pba_qty_mx_raise_validation_error(self, product, qty, multiple):
         raise ValidationError(

@@ -13,7 +13,7 @@
                     class="btn-secondary"
                     groups="pba_costs.group_pba_costs_edit_rfq"
                     invisible="not order_line"
-                    confirm="¿Actualizar el precio de venta (PVP) en la ficha de los productos según las líneas de esta orden?"
+                    confirm="¿Actualizar los % de costo PBA y el precio de venta (PVP) en la ficha de los productos según las líneas de esta orden?"
                 />
             </xpath>
             <xpath expr="//field[@name='partner_ref']" position="after">

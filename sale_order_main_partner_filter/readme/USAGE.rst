@@ -1,4 +1,5 @@
 #. Open the Sales application.
 #. Open quotations or sales orders.
-#. Use the Customer search field.
-#. Select a main contact from the available companies and individuals.
+#. In the form, the Customer field only lists main contacts.
+#. In the search bar, the Customer field only lists main contacts
+   and matches the selected partner exactly.

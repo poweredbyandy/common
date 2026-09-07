@@ -468,27 +468,6 @@ class PurchaseOrderLine(models.Model):
     def _pba_invalidate_product_template_last_cost(self):
         self.product_id.product_tmpl_id._pba_invalidate_last_cost()
 
-    def _pba_percent_differs(self, current, baseline):
-        return (
-            float_compare(
-                current or 0.0,
-                baseline or 0.0,
-                precision_digits=6,
-            )
-            != 0
-        )
-
-    def _pba_price_differs(self, current, baseline):
-        digits = self._pba_price_precision_digits()
-        return (
-            float_compare(
-                current or 0.0,
-                baseline or 0.0,
-                precision_digits=digits,
-            )
-            != 0
-        )
-
     def _pba_build_template_sale_price_vals_from_line(self):
         self.ensure_one()
         if self.display_type or not self.product_id:
@@ -498,46 +477,22 @@ class PurchaseOrderLine(models.Model):
             return {}
         return {"list_price": self._pba_sale_price_for_template_list_price()}
 
-    def _pba_build_template_sync_vals_from_line(self):
+    def _pba_build_template_update_vals_from_line(self):
         self.ensure_one()
         if self.display_type or not self.product_id:
             return {}
-        tmpl_vals = {}
-        if self._pba_percent_differs(
-            self.pba_cost_discount_percent,
-            self.pba_cost_discount_percent_baseline,
-        ):
-            tmpl_vals["pba_cost_discount_percent"] = self.pba_cost_discount_percent
-        if self._pba_percent_differs(
-            self.pba_cost_freight_percent,
-            self.pba_cost_freight_percent_baseline,
-        ):
-            tmpl_vals["pba_cost_freight_percent"] = self.pba_cost_freight_percent
-        if self._pba_percent_differs(
-            self.pba_cost_tariff_percent,
-            self.pba_cost_tariff_percent_baseline,
-        ):
-            tmpl_vals["pba_cost_tariff_percent"] = self.pba_cost_tariff_percent
-        if self._pba_percent_differs(
-            self.pba_cost_operative_percent,
-            self.pba_cost_operative_percent_baseline,
-        ):
-            tmpl_vals["pba_cost_operative_percent"] = self.pba_cost_operative_percent
-        if self._pba_percent_differs(
-            self.pba_cost_nationalization_percent,
-            self.pba_cost_nationalization_percent_baseline,
-        ):
-            tmpl_vals["pba_cost_nationalization_percent"] = (
-                self.pba_cost_nationalization_percent
-            )
-        if self._pba_percent_differs(
-            self.pba_utility_percent,
-            self.pba_utility_percent_baseline,
-        ):
-            tmpl_vals["pba_utility_percent"] = self.pba_utility_percent
-        if self._pba_price_differs(
-            self.pba_sale_price_unit,
-            self.pba_sale_price_unit_baseline,
-        ):
-            tmpl_vals["list_price"] = self._pba_sale_price_for_template_list_price()
+        tmpl_vals = {
+            pct_f: self[pct_f] or 0.0
+            for pct_f, _base_f in self._pba_cost_percent_field_map()
+        }
+        tmpl_vals.update(self._pba_build_template_sale_price_vals_from_line())
         return tmpl_vals
+
+    def _pba_baseline_vals_from_line(self):
+        self.ensure_one()
+        vals = {
+            base_f: self[pct_f] or 0.0
+            for pct_f, base_f in self._pba_cost_percent_field_map()
+        }
+        vals["pba_sale_price_unit_baseline"] = self.pba_sale_price_unit
+        return vals
