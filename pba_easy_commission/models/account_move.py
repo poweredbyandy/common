@@ -243,6 +243,12 @@ class AccountMove(models.Model):
             lambda line: line.vendor_bill_id or line.state in ('invoiced', 'paid')
         ))
 
+    @api.model
+    def _pba_can_skip_commission_lock(self):
+        return self.env.user.has_group(
+            'pba_easy_commission.group_commission_bypass_lock'
+        )
+
     def _commission_line_key(self, payment_move_id, credit_note_move_id=False):
         return (payment_move_id, credit_note_move_id or False)
 
@@ -1342,7 +1348,10 @@ class AccountMove(models.Model):
         payment_commission_lines = self.env['account.move.commission.line'].sudo().search([
             ('payment_move_id', 'in', self.ids),
         ])
-        if payment_commission_lines.filtered('vendor_bill_id'):
+        if (
+            payment_commission_lines.filtered('vendor_bill_id')
+            and not self._pba_can_skip_commission_lock()
+        ):
             raise UserError(_(
                 'No se puede eliminar un asiento de pago con lineas de comision ya facturadas.'
             ))

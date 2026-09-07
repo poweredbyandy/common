@@ -28,8 +28,10 @@ class AccountPartialReconcile(models.Model):
             billed._sync_commission_lines_from_payments()
 
     def unlink(self):
-        if self.env.context.get("pba_skip_commission_unreconcile_check"):
-            return super().unlink()
+        skip_check = (
+            self.env.context.get("pba_skip_commission_unreconcile_check")
+            or self.env['account.move']._pba_can_skip_commission_lock()
+        )
         invoice_moves = self.env['account.move']
         for partial in self:
             partial_invoices = (partial.debit_move_id.move_id + partial.credit_move_id.move_id).filtered(
@@ -38,7 +40,7 @@ class AccountPartialReconcile(models.Model):
             blocked_invoice = partial_invoices.filtered('commission_line_ids').filtered(
                 lambda m: m._has_billed_commission_lines()
             )
-            if blocked_invoice:
+            if blocked_invoice and not skip_check:
                 raise UserError(_(
                     'No se puede desconciliar pagos en una factura con comisiones ya registradas. Factura: %(invoice)s',
                     invoice=blocked_invoice[0].name or blocked_invoice[0].ref or blocked_invoice[0].id,

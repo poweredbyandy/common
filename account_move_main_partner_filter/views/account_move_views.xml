@@ -7,7 +7,19 @@
         <field name="arch" type="xml">
             <field name="partner_id" position="attributes">
                 <attribute name="domain">[("parent_id", "=", False)]</attribute>
+                <attribute name="operator">=</attribute>
             </field>
+        </field>
+    </record>
+
+    <record id="account_move_view_form_main_partner" model="ir.ui.view">
+        <field name="name">account.move.form.main.partner</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='partner_id'][@widget='res_partner_many2one']" position="attributes">
+                <attribute name="domain">[("parent_id", "=", False)]</attribute>
+            </xpath>
         </field>
     </record>
 </odoo>

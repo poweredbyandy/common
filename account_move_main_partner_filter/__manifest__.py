@@ -1,6 +1,6 @@
 {
     "name": "Invoices Main Partner Filter",
-    "version": "18.0.1.0.0",
+    "version": "18.0.1.0.1",
     "category": "Accounting/Accounting",
     "summary": "Restrict invoice partner filters to main contacts",
     "author": "andyengit",

@@ -1,2 +1,2 @@
-This module restricts the partner selector in customer invoice and vendor bill
-searches to main contacts without a parent contact.
+This module restricts the partner selector on customer invoices, vendor bills
+and in their search bar to main contacts without a parent contact.

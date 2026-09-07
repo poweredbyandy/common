@@ -7,6 +7,7 @@
         <field name="arch" type="xml">
             <field name="partner_id" position="attributes">
                 <attribute name="domain">[("parent_id", "=", False)]</attribute>
+                <attribute name="operator">=</attribute>
             </field>
         </field>
     </record>
@@ -15,6 +16,18 @@
         <field name="name">purchase.order.search.main.partner</field>
         <field name="model">purchase.order</field>
         <field name="inherit_id" ref="purchase.purchase_order_view_search"/>
+        <field name="arch" type="xml">
+            <field name="partner_id" position="attributes">
+                <attribute name="domain">[("parent_id", "=", False)]</attribute>
+                <attribute name="operator">=</attribute>
+            </field>
+        </field>
+    </record>
+
+    <record id="purchase_order_view_form_main_partner" model="ir.ui.view">
+        <field name="name">purchase.order.form.main.partner</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_form"/>
         <field name="arch" type="xml">
             <field name="partner_id" position="attributes">
                 <attribute name="domain">[("parent_id", "=", False)]</attribute>

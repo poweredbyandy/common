@@ -1,6 +1,6 @@
 {
     "name": "Purchase Orders Main Partner Filter",
-    "version": "18.0.1.0.0",
+    "version": "18.0.1.0.1",
     "category": "Purchases",
     "summary": "Restrict purchase order partner filters to main contacts",
     "author": "andyengit",

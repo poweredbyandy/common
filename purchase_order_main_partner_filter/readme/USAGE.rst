@@ -1,4 +1,5 @@
 #. Open the Purchase application.
 #. Open requests for quotation or purchase orders.
-#. Use the Vendor search field.
-#. Select a main contact from the available companies and individuals.
+#. In the form, the Vendor field only lists main contacts.
+#. In the search bar, the Vendor field only lists main contacts
+   and matches the selected partner exactly.
