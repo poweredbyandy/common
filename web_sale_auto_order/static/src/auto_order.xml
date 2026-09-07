@@ -94,9 +94,9 @@
                             </div>
                             <div class="o_wsao_prices o_wsao_prices--muted">
                                 <span t-esc="line.price_pricelist_taxed_formatted"/>
-                                <small>with tax</small>
+                                <small t-if="showSubtotal">with tax</small>
                             </div>
-                            <div class="o_wsao_prices o_wsao_prices--muted">
+                            <div t-if="showSubtotal" class="o_wsao_prices o_wsao_prices--muted">
                                 <span t-esc="line.price_pricelist_untaxed_formatted"/>
                                 <small>without tax</small>
                             </div>
@@ -119,6 +119,7 @@
                 <div t-if="canCheckout" class="o_wsao_totals">
                     <div class="o_wsao_totals_head">
                         <button
+                            t-if="showSubtotal"
                             type="button"
                             class="o_wsao_totals_toggle"
                             t-on-click="toggleTotals"
@@ -134,8 +135,8 @@
                             </span>
                         </div>
                     </div>
-                    <t t-if="state.totalsExpanded">
-                        <div t-if="state.cart.rateLabel" class="o_wsao_totals_rate" t-esc="state.cart.rateLabel"/>
+                    <div t-if="state.cart.rateLabel and (!showSubtotal or state.totalsExpanded)" class="o_wsao_totals_rate" t-esc="state.cart.rateLabel"/>
+                    <t t-if="showSubtotal and state.totalsExpanded">
                         <div class="o_wsao_totals_subtotal">
                             <span class="o_wsao_price_pair">
                                 <strong t-esc="state.cart.amount_pricelist_untaxed_formatted"/>
@@ -190,13 +191,14 @@
                     </div>
                     <div class="o_wsao_price_grid">
                         <p class="o_wsao_price_row o_wsao_price_row--total">
-                            <span>With tax</span>
+                            <span t-if="showSubtotal">With tax</span>
+                            <span t-else="">Total</span>
                             <span class="o_wsao_price_pair">
                                 <strong t-esc="state.product.price_pricelist_taxed_formatted"/>
                                 <small t-if="!state.product.same_currency" t-esc="state.product.price_company_taxed_formatted"/>
                             </span>
                         </p>
-                        <p class="o_wsao_price_row o_wsao_price_row--subtotal">
+                        <p t-if="showSubtotal" class="o_wsao_price_row o_wsao_price_row--subtotal">
                             <span>Without tax</span>
                             <span class="o_wsao_price_pair">
                                 <strong t-esc="state.product.price_pricelist_untaxed_formatted"/>

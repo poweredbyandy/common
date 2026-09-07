@@ -86,6 +86,7 @@ class TestWebSaleAutoOrder(WebsiteSaleCommon):
         self.assertEqual(props["scanCode"], self.scan_product.barcode)
         self.assertEqual(props["buttonColor"], "#10b981")
         self.assertEqual(props["buttonTextColor"], "#052e16")
+        self.assertTrue(props["showSubtotal"])
         self.assertNotIn("cart", props)
         self.assertNotIn("product", props)
 
@@ -116,6 +117,15 @@ class TestWebSaleAutoOrder(WebsiteSaleCommon):
         with MockRequest(self._request_env(), website=website):
             props = website._get_auto_order_boot_props()
         self.assertEqual(props["buttonColor"], "#10b981")
+
+    def test_configured_show_subtotal(self):
+        self.website.auto_order_show_subtotal = False
+        website = self.website.with_user(self.public_user)
+        with MockRequest(self._request_env(), website=website):
+            boot = website._get_auto_order_boot_props()
+            page = website._get_auto_order_page_props()
+        self.assertFalse(boot["showSubtotal"])
+        self.assertFalse(page["showSubtotal"])
 
     def test_page_props_open_product_from_code(self):
         website = self.website.with_user(self.public_user)

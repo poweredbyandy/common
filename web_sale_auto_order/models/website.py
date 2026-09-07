@@ -46,6 +46,12 @@ class Website(models.Model):
         help="Language used on /auto-order. The language must be active on the "
         "website. Leave empty to use the website default language.",
     )
+    auto_order_show_subtotal = fields.Boolean(
+        string="Show Subtotal",
+        default=True,
+        help="If enabled, /auto-order shows the amount without tax next to "
+        "the total. Disable it to show only the total with tax.",
+    )
 
     def _sanitize_auto_order_color(self, value, default):
         color = (value or "").strip()
@@ -223,6 +229,7 @@ class Website(models.Model):
             "pricelistCurrencyName": pricelist_currency.name,
             "sameCurrency": company_currency == pricelist_currency,
             "scanCode": scan_code or "",
+            "showSubtotal": bool(self.auto_order_show_subtotal),
         }
         props.update(self._get_auto_order_button_colors())
         return props
@@ -236,6 +243,7 @@ class Website(models.Model):
             "companyCurrencyName": company_currency.name,
             "pricelistCurrencyName": pricelist.currency_id.name,
             "sameCurrency": company_currency == pricelist.currency_id,
+            "showSubtotal": bool(self.auto_order_show_subtotal),
         }
         props.update(self._get_auto_order_button_colors())
         if scan_code:

@@ -78,6 +78,7 @@ class ProductCatalogPricelistMixin(models.AbstractModel):
                         "name": pricelist.name + f" ({pricelist.currency_id.symbol})",
                         "price": price,
                         "company_currency_price": company_currency_price,
+                        "show_company_currency": pricelist.catalog_show_company_currency,
                         "currency_id": pricelist.currency_id.id,
                         "currency_symbol": pricelist.currency_id.symbol,
                         "company_currency_id": company.currency_id.id,

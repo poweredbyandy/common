@@ -27,4 +27,19 @@ patch(ProductCatalogOrderLine.prototype, {
             (pricelist) => pricelist.currency_id !== pricelist.company_currency_id
         );
     },
+
+    get showCompanyCurrencyColumn() {
+        return this.pricelists.some(
+            (pricelist) =>
+                pricelist.currency_id === pricelist.company_currency_id ||
+                pricelist.show_company_currency !== false
+        );
+    },
+
+    showPricelistCompanyCurrency(pricelist) {
+        return (
+            pricelist.currency_id === pricelist.company_currency_id ||
+            pricelist.show_company_currency !== false
+        );
+    },
 });

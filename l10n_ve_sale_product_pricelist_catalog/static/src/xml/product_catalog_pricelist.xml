@@ -30,7 +30,7 @@
                                     </td>
                                     <td
                                         t-if="showForeignPriceColumn"
-                                        class="o_product_catalog_pricelist_price text-end text-nowrap"
+                                        t-att-class="'o_product_catalog_pricelist_price text-end text-nowrap' + (showCompanyCurrencyColumn ? '' : ' fw-bold')"
                                     >
                                         <t
                                             t-if="pricelist.currency_id != pricelist.company_currency_id"
@@ -42,11 +42,17 @@
                                         <t t-else="">—</t>
                                     </td>
                                     <td
+                                        t-if="showCompanyCurrencyColumn"
                                         class="o_product_catalog_pricelist_price text-end text-nowrap fw-bold"
                                     >
-                                        <span
-                                            t-out="formatPrice(pricelist.company_currency_price, pricelist.company_currency_id, [false, 2])"
-                                        />
+                                        <t
+                                            t-if="showPricelistCompanyCurrency(pricelist)"
+                                        >
+                                            <span
+                                                t-out="formatPrice(pricelist.company_currency_price, pricelist.company_currency_id, [false, 2])"
+                                            />
+                                        </t>
+                                        <t t-else="">—</t>
                                     </td>
                                 </tr>
                             </t>

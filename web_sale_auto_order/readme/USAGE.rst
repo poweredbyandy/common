@@ -6,7 +6,7 @@
    in-app), tap Turn on camera and allow access. The rear camera preview
    stays at the top of the screen.
 #. Point the camera at a barcode or product QR, or type the code.
-#. Review the product, prices with and without tax, and internal notes.
+#. Review the product, the prices configured in Settings, and internal notes.
 #. Confirm to add the product to the website cart.
 #. Use Buy to save the order. The kiosk shows the order number and the extra
    message from Settings.

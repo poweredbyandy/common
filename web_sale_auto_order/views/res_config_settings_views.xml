@@ -45,6 +45,13 @@
                     </div>
                 </setting>
                 <setting
+                    id="auto_order_show_subtotal_setting"
+                    help="Show the amount without tax next to the total on /auto-order. Disable it to show only the total with tax."
+                >
+                    <field name="auto_order_show_subtotal"/>
+                    <span class="fa fa-lg fa-globe" title="Values set here are website-specific." groups="website.group_multi_website"/>
+                </setting>
+                <setting
                     id="auto_order_success_message_setting"
                     string="Success Extra Message"
                     help="Text shown under the saved order number after Buy. Example: Continue at the cashier to pay."

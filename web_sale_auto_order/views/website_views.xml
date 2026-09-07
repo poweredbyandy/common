@@ -10,6 +10,7 @@
                 <field name="auto_order_button_color" widget="color"/>
                 <field name="auto_order_button_text_color" widget="color"/>
                 <field name="auto_order_success_message"/>
+                <field name="auto_order_show_subtotal"/>
                 <field name="auto_order_lang_id" domain="[('id', 'in', language_ids)]"/>
             </group>
         </field>

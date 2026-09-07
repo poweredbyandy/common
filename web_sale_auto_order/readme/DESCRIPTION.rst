@@ -16,4 +16,5 @@ register that data at the cashier, then go pay. They can also remove every
 item from the cart.
 
 Prices are shown in the company currency and in the configured pricelist
-currency, both with and without taxes.
+currency. The website can show the subtotal without tax next to the total,
+or only the total with tax.

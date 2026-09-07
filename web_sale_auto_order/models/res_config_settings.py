@@ -30,3 +30,8 @@ class ResConfigSettings(models.TransientModel):
         readonly=False,
         string="Kiosk Language",
     )
+    auto_order_show_subtotal = fields.Boolean(
+        related="website_id.auto_order_show_subtotal",
+        readonly=False,
+        string="Show Subtotal",
+    )

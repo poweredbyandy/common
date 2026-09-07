@@ -19,6 +19,7 @@ export class AutoOrder extends Component {
         scanCode: { type: String, optional: true },
         buttonColor: { type: String, optional: true },
         buttonTextColor: { type: String, optional: true },
+        showSubtotal: { type: Boolean, optional: true },
     };
 
     setup() {
@@ -117,6 +118,10 @@ export class AutoOrder extends Component {
             return !this.state.product.same_currency;
         }
         return !cart.same_currency;
+    }
+
+    get showSubtotal() {
+        return this.props.showSubtotal !== false;
     }
 
     get cartItemsLabel() {

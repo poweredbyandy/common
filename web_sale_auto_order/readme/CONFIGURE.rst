@@ -6,6 +6,8 @@
 #. Choose the Scan and Order Pricelist. Leave it empty to use the website
    pricelist.
 #. Choose the Button Color and Button Text Color used on /auto-order.
+#. Enable Show Subtotal to display the amount without tax next to the
+   total. Disable it to show only the total with tax.
 #. Set the Success Extra Message shown after Buy, under the order number.
 #. Add Spanish (Venezuela) in Website Languages if it is missing, then choose
    the Kiosk Language used on /auto-order.
