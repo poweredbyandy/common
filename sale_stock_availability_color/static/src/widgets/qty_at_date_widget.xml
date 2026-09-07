@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+    <t t-inherit="sale_stock.QtyAtDate" t-inherit-mode="extension">
+        <xpath expr="//a" position="attributes">
+            <attribute name="t-attf-class">fa fa-area-chart cursor-pointer {{ availabilityColorClass }}</attribute>
+        </xpath>
+    </t>
+</templates>
