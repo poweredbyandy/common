@@ -172,6 +172,24 @@ class AccountMove(models.Model):
         help="Si esta activo, la factura queda excluida de metas, reportes y pagos de comision.",
     )
 
+    @api.model
+    def _get_view_cache_key(self, view_id=None, view_type="form", **options):
+        key = super()._get_view_cache_key(view_id, view_type, **options)
+        Period = self.env["goal.commission.period"]
+        return key + Period._period_search_view_cache_key(
+            view_id, "pba_goal_commision.view_move_search_customer_goal_commissions"
+        )
+
+    @api.model
+    def _get_view(self, view_id=None, view_type="form", **options):
+        arch, view = super()._get_view(view_id, view_type, **options)
+        Period = self.env["goal.commission.period"]
+        if Period._is_search_view(
+            view, "pba_goal_commision.view_move_search_customer_goal_commissions"
+        ):
+            Period._inject_period_search_filters(arch, with_domain=True)
+        return arch, view
+
     def _goal_commission_dashboard(self):
         return self.env["goal.commission.dashboard.mixin"]
 

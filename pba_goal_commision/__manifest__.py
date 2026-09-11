@@ -1,6 +1,6 @@
 {
     "name": "PBA Goal Commision",
-    "version": "18.0.1.17.0",
+    "version": "18.0.1.19.0",
     "post_init_hook": "post_init_hook",
     "summary": "Comisiones por metas de venta y cobro para vendedores",
     "author": "andyengit",
@@ -27,6 +27,9 @@
             "pba_goal_commision/static/src/goal_commission_reports/**/*.js",
             "pba_goal_commision/static/src/goal_commission_reports/**/*.xml",
             "pba_goal_commision/static/src/goal_commission_reports/**/*.scss",
+            "pba_goal_commision/static/src/goal_commission_dashboard/**/*.js",
+            "pba_goal_commision/static/src/goal_commission_dashboard/**/*.xml",
+            "pba_goal_commision/static/src/goal_commission_dashboard/**/*.scss",
         ],
     },
     "installable": True,

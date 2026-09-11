@@ -1,8 +1,9 @@
 from calendar import monthrange, month_name, month_abbr
 from datetime import date
 
+from lxml import etree
+
 from odoo import api, fields, models
-from odoo.osv import expression
 from odoo.tools.safe_eval import safe_eval
 
 MONTH_LABELS_ES = (
@@ -138,13 +139,60 @@ class GoalCommissionPeriod(models.Model):
 
     @api.model
     def action_with_period_for_invoice_list(self, action, period):
-        action = self.action_with_period_context(action, period)
-        if not period:
-            return action
-        action = dict(action)
-        domain = self._parse_action_domain(action.get("domain"))
-        action["domain"] = expression.AND([domain, self._payable_period_domain(period)])
-        return action
+        return self.action_with_period_context(action, period)
+
+    @api.model
+    def _period_filter_xml_name(self, period):
+        return "goal_period_%s" % period.month_key.replace("-", "_")
+
+    @api.model
+    def _unique_periods_by_month(self, company=None):
+        company = company or self.env.company
+        periods = self.sudo().search([], order="date_start desc, id desc")
+        by_month = {}
+        for period in periods:
+            existing = by_month.get(period.month_key)
+            if not existing or period.company_id == company:
+                by_month[period.month_key] = period
+        return self.browse(
+            [by_month[month_key].id for month_key in sorted(by_month, reverse=True)]
+        )
+
+    @api.model
+    def _is_search_view(self, view, xmlid):
+        ref = self.env.ref(xmlid, raise_if_not_found=False)
+        return bool(view and ref and view.id == ref.id)
+
+    @api.model
+    def _period_search_view_cache_key(self, view_id, xmlid):
+        ref = self.env.ref(xmlid, raise_if_not_found=False)
+        if not ref or view_id != ref.id:
+            return ()
+        return (
+            self.env.company.id,
+            tuple(
+                (period.month_key, period.id)
+                for period in self._unique_periods_by_month()
+            ),
+        )
+
+    @api.model
+    def _inject_period_search_filters(self, arch, with_domain=False):
+        separator = arch.find('.//separator[@string="Mes"]')
+        if separator is None:
+            return arch
+        parent = separator.getparent()
+        insert_at = list(parent).index(separator) + 1
+        for offset, period in enumerate(self._unique_periods_by_month()):
+            attrib = {
+                "string": period.name,
+                "name": self._period_filter_xml_name(period),
+                "context": "{'goal_commission_period_id': %s}" % period.id,
+            }
+            if with_domain:
+                attrib["domain"] = str(self._payable_period_domain(period))
+            parent.insert(insert_at + offset, etree.Element("filter", attrib))
+        return arch
 
     @api.model
     def _get_default_period(self, company=None):
@@ -290,25 +338,20 @@ class GoalCommissionPeriod(models.Model):
                 ("context", "like", "goal_commission_period_id"),
             ]
         ).unlink()
-        today = fields.Date.context_today(self)
-        for company in self.env.companies:
-            periods = self.search([("company_id", "=", company.id)], order="date_start desc")
-            default_period = self._get_default_period(company)
-            for period in periods:
-                for action_id in action_ids:
-                    action = self.env["ir.actions.act_window"].browse(action_id)
-                    model = action.res_model
-                    context = {"goal_commission_period_id": period.id}
-                    if model == "account.move":
-                        context["search_default_filter_goal_commission_collectible"] = 1
-                    Filter.create(
-                        {
-                            "name": period.name,
-                            "model_id": model,
-                            "user_id": False,
-                            "is_default": period == default_period,
-                            "action_id": action_id,
-                            "context": str(context),
-                            "domain": "[]",
-                        }
-                    )
+        for period in self._unique_periods_by_month():
+            for action_id in action_ids:
+                action = self.env["ir.actions.act_window"].browse(action_id)
+                context = {"goal_commission_period_id": period.id}
+                if action.res_model == "account.move":
+                    context["search_default_filter_goal_commission_collectible"] = 1
+                Filter.create(
+                    {
+                        "name": period.name,
+                        "model_id": action.res_model,
+                        "user_id": False,
+                        "is_default": False,
+                        "action_id": action_id,
+                        "context": str(context),
+                        "domain": "[]",
+                    }
+                )

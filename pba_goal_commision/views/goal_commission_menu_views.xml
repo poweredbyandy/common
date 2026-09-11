@@ -49,6 +49,9 @@
                 <field name="partner_id"/>
                 <field name="invoice_user_id"/>
                 <separator string="Mes"/>
+                <filter string="Mes de cobro"
+                        name="filter_goal_commission_payable_date"
+                        date="goal_commission_payable_date"/>
                 <filter string="Cobrable para comisionar"
                         name="filter_goal_commission_collectible"
                         domain="[('goal_commission_collectible', '=', True)]"/>

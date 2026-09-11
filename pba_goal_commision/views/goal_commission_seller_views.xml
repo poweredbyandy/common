@@ -151,6 +151,12 @@
         </field>
     </record>
 
+    <record id="action_goal_commission_dashboard" model="ir.actions.client">
+        <field name="name">Dashboard Vendedores</field>
+        <field name="tag">goal_commission_seller_dashboard</field>
+        <field name="target">current</field>
+    </record>
+
     <record id="action_goal_commission_sellers" model="ir.actions.act_window">
         <field name="name">Dashboard Vendedores</field>
         <field name="res_model">res.partner</field>

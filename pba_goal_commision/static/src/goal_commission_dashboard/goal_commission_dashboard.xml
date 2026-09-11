@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="pba_goal_commision.GoalCommissionSellerDashboard">
+        <div class="o_goal_commission_dashboard d-flex flex-column h-100 min-h-0 overflow-hidden">
+            <div class="o_goal_commission_dashboard_toolbar flex-shrink-0 p-3 border-bottom bg-view">
+                <div class="d-flex flex-wrap align-items-end gap-3">
+                    <div>
+                        <label class="form-label mb-1">Periodo</label>
+                        <div class="d-flex align-items-center gap-2">
+                            <button class="btn btn-outline-secondary"
+                                    t-on-click="goOlderPeriod"
+                                    t-att-disabled="state.loading or !canOlderPeriod"
+                                    title="Mes anterior">
+                                <i class="fa fa-chevron-left"/>
+                            </button>
+                            <select class="form-select o_goal_commission_dashboard_period"
+                                    t-model.number="state.periodId"
+                                    t-on-change="onPeriodChange"
+                                    t-att-disabled="state.loading or !state.periods.length">
+                                <t t-foreach="state.periods" t-as="period" t-key="period.id">
+                                    <option t-att-value="period.id" t-esc="period.name"/>
+                                </t>
+                            </select>
+                            <button class="btn btn-outline-secondary"
+                                    t-on-click="goNewerPeriod"
+                                    t-att-disabled="state.loading or !canNewerPeriod"
+                                    title="Mes siguiente">
+                                <i class="fa fa-chevron-right"/>
+                            </button>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" t-on-click="loadDashboard" t-att-disabled="state.loading">
+                        Actualizar
+                    </button>
+                </div>
+            </div>
+
+            <div class="o_goal_commission_dashboard_scroller flex-grow-1 min-h-0 overflow-auto p-3">
+                <div t-if="state.loading" class="text-center text-muted py-5">
+                    Cargando dashboard...
+                </div>
+                <div t-elif="!state.sellers.length" class="text-center text-muted py-5">
+                    No hay vendedores para el periodo seleccionado.
+                </div>
+                <div t-else="" class="o_goal_commission_dashboard_cards">
+                    <article t-foreach="state.sellers" t-as="seller" t-key="seller.id"
+                             class="o_goal_commission_seller_card"
+                             t-on-click="() => this.openSeller(seller.id)">
+                        <div class="o_goal_commission_seller_card_inner">
+                            <div class="o_goal_commission_seller_card_period" t-esc="seller.period_name or '—'"/>
+                            <div class="o_goal_commission_seller_card_header">
+                                <img t-if="seller.has_image"
+                                     t-att-src="'/web/image/res.partner/' + seller.id + '/image_128'"
+                                     class="o_goal_commission_seller_card_avatar rounded-circle"/>
+                                <div t-else="" class="o_goal_commission_seller_card_avatar rounded-circle o_goal_commission_seller_card_avatar_empty"/>
+                                <div class="o_goal_commission_seller_card_identity">
+                                    <div class="fw-bold text-truncate" t-esc="seller.name"/>
+                                    <div class="text-muted text-truncate">Pendiente: <t t-esc="seller.pending_display"/></div>
+                                </div>
+                            </div>
+                            <div class="o_goal_commission_seller_card_badges">
+                                <div class="text-muted mb-1" style="font-size:11px;">Metas del periodo</div>
+                                <div class="o_goal_commission_seller_card_badges_list" t-out="seller.tier_badges_html"/>
+                            </div>
+                            <div class="o_goal_commission_seller_card_gauges">
+                                <div class="text-center">
+                                    <div class="o_goal_commission_seller_card_gauge o_goal_commission_seller_card_gauge_invoice"
+                                         t-attf-style="--gauge-pct: {{ seller.invoice_tier_progress_pct or 0 }}">
+                                        <div class="o_goal_commission_seller_card_gauge_inner">
+                                            <t t-esc="seller.invoice_tier_progress_display"/>%
+                                        </div>
+                                    </div>
+                                    <div class="o_goal_commission_seller_card_gauge_label text-truncate">
+                                        Tramo actual: <t t-esc="seller.current_tier_name"/>
+                                    </div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="o_goal_commission_seller_card_gauge o_goal_commission_seller_card_gauge_collection"
+                                         t-attf-style="--gauge-pct: {{ seller.collection_progress_pct or 0 }}">
+                                        <div class="o_goal_commission_seller_card_gauge_inner">
+                                            <t t-esc="seller.collection_progress_display"/>%
+                                        </div>
+                                    </div>
+                                    <div class="o_goal_commission_seller_card_gauge_label">Cobrado / Facturado</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="o_goal_commission_seller_card_gauge o_goal_commission_seller_card_gauge_target"
+                                         t-attf-style="--gauge-pct: {{ seller.collected_target_progress_pct or 0 }}">
+                                        <div class="o_goal_commission_seller_card_gauge_inner">
+                                            <t t-esc="seller.collected_target_progress_display"/>%
+                                        </div>
+                                    </div>
+                                    <div class="o_goal_commission_seller_card_gauge_label">Cobrado vs tope tramo</div>
+                                </div>
+                            </div>
+                            <div class="o_goal_commission_seller_card_stats mt-2">
+                                <div class="text-truncate">Facturado: <strong t-esc="seller.invoice_amount_display"/> · Tope tramo: <strong t-esc="seller.tier_target_display"/></div>
+                                <div class="text-truncate">Cobrado: <strong t-esc="seller.collected_amount_display"/></div>
+                                <div class="text-truncate">Metas cumplidas: <strong t-esc="seller.achieved_tier_count"/> · <span class="text-muted" t-esc="seller.tier_achievement_display"/></div>
+                                <div>% Comision actual: <strong><t t-esc="seller.current_percent"/>%</strong></div>
+                            </div>
+                            <div class="o_goal_commission_seller_card_actions d-flex justify-content-between">
+                                <button class="btn btn-secondary btn-sm"
+                                        t-on-click="(ev) => this.openPending(ev, seller.id)">
+                                    Pendientes
+                                </button>
+                                <button t-if="seller.pending_invoice_count > 0"
+                                        class="btn btn-primary btn-sm"
+                                        t-on-click="(ev) => this.payCommissions(ev, seller.id)">
+                                    Pagar
+                                </button>
+                                <span t-else="" class="btn btn-primary btn-sm invisible">Pagar</span>
+                            </div>
+                        </div>
+                    </article>
+                </div>
+            </div>
+        </div>
+    </t>
+
+</templates>

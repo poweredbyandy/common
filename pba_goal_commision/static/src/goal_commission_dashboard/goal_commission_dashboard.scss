@@ -1,0 +1,161 @@
+.o_goal_commission_dashboard {
+    height: 100%;
+    min-height: 0;
+
+    .o_goal_commission_dashboard_period {
+        min-width: 220px;
+    }
+
+    .o_goal_commission_dashboard_scroller {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-y: auto;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .o_goal_commission_dashboard_cards {
+        display: flex;
+        flex-wrap: wrap;
+        align-content: flex-start;
+        gap: 16px;
+    }
+
+    .o_goal_commission_seller_card {
+        box-sizing: border-box;
+        flex: 0 0 460px;
+        width: 460px;
+        height: 560px;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        cursor: pointer;
+        border: 1px solid var(--border-color, #dee2e6);
+        background-color: var(--o-view-background-color, #fff);
+        border-radius: 0.25rem;
+    }
+
+    .o_goal_commission_seller_card_inner {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        padding: 0.85rem;
+    }
+
+    .o_goal_commission_seller_card_period {
+        flex: 0 0 28px;
+        margin-bottom: 0.65rem;
+        text-align: center;
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--text-muted, #6c757d);
+    }
+
+    .o_goal_commission_seller_card_header {
+        display: flex;
+        align-items: center;
+        flex: 0 0 56px;
+        margin-bottom: 0.65rem;
+        min-width: 0;
+    }
+
+    .o_goal_commission_seller_card_avatar {
+        flex: 0 0 56px;
+        width: 56px;
+        height: 56px;
+        object-fit: cover;
+        margin-right: 0.75rem;
+    }
+
+    .o_goal_commission_seller_card_avatar_empty {
+        background-color: #e9ecef;
+    }
+
+    .o_goal_commission_seller_card_identity {
+        min-width: 0;
+        flex: 1 1 auto;
+        font-size: 15px;
+    }
+
+    .o_goal_commission_seller_card_badges {
+        flex: 1 1 auto;
+        min-height: 64px;
+        max-height: 88px;
+        overflow: hidden;
+        margin-bottom: 0.65rem;
+    }
+
+    .o_goal_commission_seller_card_badges_list {
+        max-height: 64px;
+        overflow: hidden;
+    }
+
+    .o_goal_commission_seller_card_gauges {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        flex: 0 0 154px;
+    }
+
+    .o_goal_commission_seller_card_gauges > div {
+        width: 124px;
+        min-width: 0;
+    }
+
+    .o_goal_commission_seller_card_gauge {
+        width: 124px;
+        height: 124px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: conic-gradient(var(--gauge-color) calc(var(--gauge-pct, 0) * 1%), #e9ecef 0);
+    }
+
+    .o_goal_commission_seller_card_gauge_invoice {
+        --gauge-color: #714B67;
+    }
+
+    .o_goal_commission_seller_card_gauge_collection {
+        --gauge-color: #198754;
+    }
+
+    .o_goal_commission_seller_card_gauge_target {
+        --gauge-color: #0d6efd;
+    }
+
+    .o_goal_commission_seller_card_gauge_inner {
+        width: 88px;
+        height: 88px;
+        border-radius: 50%;
+        background: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 15px;
+        font-weight: 600;
+    }
+
+    .o_goal_commission_seller_card_gauge_label {
+        margin-top: 0.35rem;
+        font-size: 12px;
+        color: var(--text-muted, #6c757d);
+    }
+
+    .o_goal_commission_seller_card_stats {
+        flex: 0 0 auto;
+        min-height: 84px;
+        font-size: 14px;
+        line-height: 1.45;
+    }
+
+    .o_goal_commission_seller_card_actions {
+        flex: 0 0 36px;
+        margin-top: auto;
+        padding-top: 0.65rem;
+    }
+}
+
+.o_action:has(.o_goal_commission_dashboard) {
+    overflow: hidden;
+}

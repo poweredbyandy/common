@@ -2,7 +2,8 @@ import operator
 from collections import defaultdict
 
 from odoo import _, api, fields, models
-from odoo.exceptions import UserError
+from odoo.exceptions import AccessError, UserError
+from odoo.tools.misc import formatLang
 
 
 class ResPartner(models.Model):
@@ -143,6 +144,22 @@ class ResPartner(models.Model):
         string="Periodo Dashboard",
         compute="_compute_goal_dashboard_period_name",
     )
+
+    @api.model
+    def _get_view_cache_key(self, view_id=None, view_type="form", **options):
+        key = super()._get_view_cache_key(view_id, view_type, **options)
+        Period = self.env["goal.commission.period"]
+        return key + Period._period_search_view_cache_key(
+            view_id, "pba_goal_commision.view_goal_commission_seller_search"
+        )
+
+    @api.model
+    def _get_view(self, view_id=None, view_type="form", **options):
+        arch, view = super()._get_view(view_id, view_type, **options)
+        Period = self.env["goal.commission.period"]
+        if Period._is_search_view(view, "pba_goal_commision.view_goal_commission_seller_search"):
+            Period._inject_period_search_filters(arch, with_domain=False)
+        return arch, view
 
     @api.model
     def _get_goal_commission_period_from_context(self, company=None):
@@ -655,6 +672,7 @@ class ResPartner(models.Model):
             "type": "ir.actions.act_window",
             "res_model": "goal.commission.billing.wizard",
             "view_mode": "form",
+            "views": [[False, "form"]],
             "target": "new",
             "context": context,
         }
@@ -679,6 +697,7 @@ class ResPartner(models.Model):
             "type": "ir.actions.act_window",
             "res_model": "account.move",
             "view_mode": "list,form",
+            "views": [[False, "list"], [False, "form"]],
             "domain": domain,
             "context": context,
         }
@@ -690,15 +709,111 @@ class ResPartner(models.Model):
         return self.env.ref("pba_goal_commision.action_report_goal_commission_pending").report_action(self)
 
     @api.model
+    def _goal_commission_dashboard_format(self, amount, currency):
+        return formatLang(self.env, amount or 0.0, currency_obj=currency)
+
+    @api.model
+    def get_goal_commission_dashboard_data(self, period_id=False):
+        if not self.env.user.has_group("pba_goal_commision.group_goal_commission_user"):
+            raise AccessError(_("No tiene permiso para ver el dashboard de comisiones."))
+        Period = self.env["goal.commission.period"]
+        if not Period.search([("company_id", "in", self.env.companies.ids)], limit=1):
+            Period.sync_from_invoices()
+        periods = Period._unique_periods_by_month()
+        period = Period.browse(period_id).exists() if period_id else Period._get_default_period()
+        if not period:
+            period = Period._get_default_period()
+        is_admin = self.env.user.has_group("pba_goal_commision.group_goal_commission_admin")
+        domain = [
+            ("active", "=", True),
+            ("goal_commission_tier_ids", "!=", False),
+            ("user_ids", "!=", False),
+        ]
+        if not is_admin:
+            domain.append(("user_ids", "in", [self.env.uid]))
+        partners = self.search(domain, order="name")
+        ctx = {"goal_commission_period_id": period.id} if period else {}
+        partners = partners.with_context(**ctx)
+        field_names = [
+            "name",
+            "is_goal_commission_seller",
+            "goal_dashboard_period_name",
+            "goal_commission_pending_display",
+            "goal_tier_badges_html",
+            "goal_invoice_tier_progress_pct",
+            "goal_invoice_tier_progress_display",
+            "goal_commission_current_tier_name",
+            "goal_collection_progress_pct",
+            "goal_collection_progress_display",
+            "goal_collected_target_progress_pct",
+            "goal_collected_target_progress_display",
+            "goal_invoice_amount",
+            "goal_commission_current_tier_target",
+            "goal_collected_amount",
+            "goal_achieved_tier_count",
+            "goal_tier_achievement_display",
+            "goal_commission_current_percent",
+            "goal_commission_pending_invoice_count",
+            "goal_commission_currency_id",
+        ]
+        rows = partners.read(field_names) if partners else []
+        has_image_ids = set()
+        if partners:
+            has_image_ids = set(
+                self.env["ir.attachment"].sudo().search([
+                    ("res_model", "=", "res.partner"),
+                    ("res_field", "in", ["image_128", "image_1920"]),
+                    ("res_id", "in", partners.ids),
+                ]).mapped("res_id")
+            )
+        sellers = []
+        for row in rows:
+            if not row.get("is_goal_commission_seller"):
+                continue
+            currency = self.env["res.currency"].browse(row["goal_commission_currency_id"][0]) if row.get("goal_commission_currency_id") else self.env.company.currency_id
+            sellers.append(
+                {
+                    "id": row["id"],
+                    "name": row["name"],
+                    "has_image": row["id"] in has_image_ids,
+                    "period_name": row.get("goal_dashboard_period_name") or "",
+                    "pending_display": row.get("goal_commission_pending_display") or "—",
+                    "tier_badges_html": row.get("goal_tier_badges_html") or "",
+                    "invoice_tier_progress_pct": row.get("goal_invoice_tier_progress_pct") or 0.0,
+                    "invoice_tier_progress_display": row.get("goal_invoice_tier_progress_display") or "0.00",
+                    "current_tier_name": row.get("goal_commission_current_tier_name") or "—",
+                    "collection_progress_pct": row.get("goal_collection_progress_pct") or 0.0,
+                    "collection_progress_display": row.get("goal_collection_progress_display") or "0.00",
+                    "collected_target_progress_pct": row.get("goal_collected_target_progress_pct") or 0.0,
+                    "collected_target_progress_display": row.get("goal_collected_target_progress_display") or "0.00",
+                    "invoice_amount_display": self._goal_commission_dashboard_format(
+                        row.get("goal_invoice_amount"), currency
+                    ),
+                    "tier_target_display": self._goal_commission_dashboard_format(
+                        row.get("goal_commission_current_tier_target"), currency
+                    ),
+                    "collected_amount_display": self._goal_commission_dashboard_format(
+                        row.get("goal_collected_amount"), currency
+                    ),
+                    "achieved_tier_count": row.get("goal_achieved_tier_count") or 0,
+                    "tier_achievement_display": row.get("goal_tier_achievement_display") or "—",
+                    "current_percent": row.get("goal_commission_current_percent") or 0.0,
+                    "pending_invoice_count": row.get("goal_commission_pending_invoice_count") or 0,
+                }
+            )
+        return {
+            "is_admin": is_admin,
+            "periods": [{"id": rec.id, "name": rec.name} for rec in periods],
+            "period_id": period.id if period else False,
+            "period_name": period.name if period else "",
+            "sellers": sellers,
+        }
+
+    @api.model
     def action_goal_commission_dashboard_menu(self):
         period_model = self.env["goal.commission.period"]
         if not period_model.search([("company_id", "in", self.env.companies.ids)], limit=1):
             period_model.sync_from_invoices()
-        xmlid = (
-            "pba_goal_commision.action_goal_commission_sellers_admin"
-            if self.env.user.has_group("pba_goal_commision.group_goal_commission_admin")
-            else "pba_goal_commision.action_goal_commission_sellers"
+        return self.env["ir.actions.actions"]._for_xml_id(
+            "pba_goal_commision.action_goal_commission_dashboard"
         )
-        action = self.env["ir.actions.actions"]._for_xml_id(xmlid)
-        period = self.env["goal.commission.period"]._get_default_period()
-        return self.env["goal.commission.period"].action_with_period_context(action, period)
