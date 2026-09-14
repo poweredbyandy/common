@@ -31,7 +31,8 @@ Usage
    * ``messages``
    * ``history``
    * ``smb_app_state_sync``
-   * ``smb_message_echoes``
+   * ``message_echoes`` (messages sent through Cloud API by another app)
+   * ``smb_message_echoes`` (messages sent from WhatsApp Business)
    * ``account_update``
 
 3. Open *WhatsApp → Connect with Embedded Signup* and follow progressive
@@ -55,8 +56,16 @@ Usage
    Business App number (Coexistence). Keep the WhatsApp Business App open while
    contacts and history sync (must finish within 24 hours).
 
+   Alternatively choose **Setup = Dualhook** on the WhatsApp account. Connect
+   the WABA in Dualhook first, set this Odoo webhook URL and verify token
+   there, then paste WABA ID, Phone Number ID and the ``dh_live_`` key.
+   See https://dualhook.com/docs/waba-integration
+
 5. Incoming messages and messages sent from the Business App appear in
-   **Discuss → WhatsApp** (dedicated sidebar category). Notify users configured
+   **Discuss → WhatsApp** (dedicated sidebar category). Each outgoing
+   message shows whether it was sent from **API** (Odoo / Cloud API) or
+   from **WhatsApp Business**. The same split is available in
+   *WhatsApp → Messages* filters. Notify users configured
    on the WhatsApp account become channel members. Each chat can show tags next
    to its name (sidebar and header). The first automatic tag is the Odoo user
    who last replied (``Replied: Name``). Use **Edit Contact** in the chat

@@ -329,9 +329,8 @@ class MailWhatsappAccount(models.Model):
         if not self.sudo().token or not self.account_uid or not self.phone_uid:
             raise UserError(
                 _(
-                    "Configure WABA ID, Phone Number ID and Access Token first. "
-                    "In Settings, set Meta Environment to Test or Production "
-                    "(not Demo), then connect the account."
+                    "Configure WABA ID, Phone Number ID and Access Token "
+                    "(or Dualhook API key) first."
                 )
             )
 
@@ -350,6 +349,19 @@ class MailWhatsappAccount(models.Model):
         token = self.sudo().token
         waba = self.account_uid
         phone = self.phone_uid
+        if self.setup_mode == "dualhook" and key in {
+            "get_me_public_profile",
+            "get_me_email",
+            "debug_token",
+            "get_phone_numbers",
+            "get_subscribed_apps",
+            "post_subscribed_apps",
+        }:
+            return {
+                "skipped_reason": _(
+                    "This Graph call is not part of Dualhook Runtime API."
+                )
+            }
 
         if key == "get_me_public_profile":
             return wa_api._api_request_probe(

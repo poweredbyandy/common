@@ -59,7 +59,6 @@ def get_meta_credentials(env, environment=None):
         or ""
     ).strip()
 
-    # Legacy single-app keys (pre environment switch).
     if not app_id:
         app_id = (ICP.get_param("mail_whatsapp.meta_app_id") or "").strip()
     if not app_secret:

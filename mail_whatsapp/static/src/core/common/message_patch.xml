@@ -28,6 +28,22 @@
                 />
             </t>
         </xpath>
+        <xpath expr="//div[hasclass('o-mail-Message-textContent')]" position="before">
+            <div
+                t-if="showWhatsappFromApp"
+                class="o_mail_whatsapp_from_app small text-muted mb-1"
+                t-att-class="{'text-end': isAlignedRight}"
+            >
+                From App
+            </div>
+        </xpath>
+        <xpath expr="//div[hasclass('o-mail-Message-content')]" position="inside">
+            <div
+                t-if="message.whatsappStatus === 'error' and message.whatsappFailureReason"
+                class="small text-danger mt-1"
+                t-esc="message.whatsappFailureReason"
+            />
+        </xpath>
         <xpath expr="//div[hasclass('o-mail-Message-content')]/AttachmentList" position="before">
             <div
                 t-if="message.hasWhatsappButtons and !state.isEditing"

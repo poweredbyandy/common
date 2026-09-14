@@ -11,31 +11,70 @@ from odoo.addons.mail_whatsapp.tools.whatsapp_exception import WhatsAppError
 _logger = logging.getLogger(__name__)
 
 DEFAULT_API_VERSION = "v23.0"
+DUALHOOK_API_VERSION = "v25.0"
+META_API_HOST = "https://graph.facebook.com"
+DUALHOOK_API_HOST = "https://api.dualhook.com"
 MAX_RESPONSE_SIZE = 10 * 1024 * 1024
+PROVIDER_META = "meta"
+PROVIDER_DUALHOOK = "dualhook"
+DUALHOOK_PHONE_FIELDS = (
+    "id,display_phone_number,verified_name,is_on_biz_app,platform_type,"
+    "quality_rating,status,name_status,health_status"
+)
+DUALHOOK_WABA_FIELDS = (
+    "id,name,message_template_namespace,account_review_status,"
+    "business_verification_status,health_status"
+)
 
 
 class WhatsAppApi:
-    def __init__(self, env, token=None, phone_uid=None, app_uid=None, api_version=None):
+    def __init__(
+        self,
+        env,
+        token=None,
+        phone_uid=None,
+        app_uid=None,
+        api_version=None,
+        provider=PROVIDER_META,
+    ):
         self.env = env
         self.token = token
         self.phone_uid = phone_uid
         self.app_uid = app_uid
-        self.api_version = api_version or self._get_api_version()
-        self.endpoint = f"https://graph.facebook.com/{self.api_version}"
+        self.provider = provider or PROVIDER_META
+        if self.provider == PROVIDER_DUALHOOK:
+            self.api_version = api_version or DUALHOOK_API_VERSION
+            host = DUALHOOK_API_HOST
+        else:
+            self.api_version = api_version or self._get_api_version()
+            host = META_API_HOST
+        self.endpoint = f"{host}/{self.api_version}"
 
     @classmethod
     def from_account(cls, wa_account):
         wa_account.ensure_one()
         ICP = wa_account.env["ir.config_parameter"].sudo()
+        provider = (
+            PROVIDER_DUALHOOK
+            if wa_account.setup_mode == "dualhook"
+            else PROVIDER_META
+        )
         creds = get_meta_credentials(wa_account.env)
+        if provider == PROVIDER_DUALHOOK:
+            api_version = DUALHOOK_API_VERSION
+            app_uid = False
+        else:
+            api_version = ICP.get_param(
+                "mail_whatsapp.api_version", DEFAULT_API_VERSION
+            )
+            app_uid = wa_account.app_uid or creds["app_id"]
         return cls(
             env=wa_account.env,
             token=wa_account.sudo().token,
             phone_uid=wa_account.phone_uid,
-            app_uid=wa_account.app_uid or creds["app_id"],
-            api_version=ICP.get_param(
-                "mail_whatsapp.api_version", DEFAULT_API_VERSION
-            ),
+            app_uid=app_uid,
+            api_version=api_version,
+            provider=provider,
         )
 
     def _get_api_version(self):
@@ -44,6 +83,10 @@ class WhatsAppApi:
             .sudo()
             .get_param("mail_whatsapp.api_version", DEFAULT_API_VERSION)
         )
+
+    @property
+    def is_dualhook(self):
+        return self.provider == PROVIDER_DUALHOOK
 
     @staticmethod
     def _mask_secret(value, keep=6):
@@ -242,11 +285,19 @@ class WhatsAppApi:
     def _prepare_error_response(self, response):
         error = response.get("error") or {}
         desc = error.get("message", "")
+        code = error.get("code") or ""
+        reason = error.get("reason")
+        if code == "connection_not_routable":
+            desc = desc or _(
+                "The Dualhook connection cannot route requests."
+            )
+            if reason:
+                desc = "%s (%s)" % (desc, reason)
+            return (desc, code)
         if error.get("error_user_title"):
             desc += f" - {error['error_user_title']}"
         if error.get("error_user_msg"):
             desc += f"\n\n{error['error_user_msg']}"
-        code = error.get("code", "odoo")
         return (desc or _("Non-descript Error"), code)
 
     def _exchange_code_for_token(self, code, app_uid=None, app_secret=None):
@@ -395,11 +446,31 @@ class WhatsAppApi:
 
     def _get_phone_number_status(self, phone_uid=None, token=None):
         phone_uid = phone_uid or self.phone_uid
+        fields = (
+            DUALHOOK_PHONE_FIELDS
+            if self.is_dualhook
+            else "id,display_phone_number,verified_name,is_on_biz_app,platform_type"
+        )
         response = self._api_request(
             "GET",
             f"/{phone_uid}",
             auth_type="bearer",
-            params={"fields": "id,display_phone_number,verified_name,is_on_biz_app,platform_type"},
+            params={"fields": fields},
+            token=token,
+        )
+        return response.json()
+
+    def _get_waba_status(self, waba_id, token=None):
+        fields = (
+            DUALHOOK_WABA_FIELDS
+            if self.is_dualhook
+            else "id,name,account_review_status,business_verification_status"
+        )
+        response = self._api_request(
+            "GET",
+            f"/{waba_id}",
+            auth_type="bearer",
+            params={"fields": fields},
             token=token,
         )
         return response.json()
@@ -495,6 +566,11 @@ class WhatsAppApi:
         raise WhatsAppError(*self._prepare_error_response(response_json))
 
     def _get_whatsapp_document(self, document_id):
+        if self.is_dualhook:
+            response = self._api_request(
+                "GET", f"/{document_id}/content", auth_type="bearer"
+            )
+            return response.content
         response = self._api_request(
             "GET", f"/{document_id}", auth_type="bearer"
         )
@@ -522,11 +598,33 @@ class WhatsAppApi:
         raise WhatsAppError(*self._prepare_error_response(response_json))
 
     def _test_connection(self, account_uid=None):
+        if self.is_dualhook:
+            status = self._get_phone_number_status()
+            if not status.get("id"):
+                raise WhatsAppError(
+                    _("Could not validate the phone number ID."),
+                    failure_type="account",
+                )
+            if self.phone_uid and str(status.get("id")) != str(self.phone_uid):
+                raise WhatsAppError(
+                    _("Phone number ID does not match this Dualhook connection."),
+                    failure_type="account",
+                )
+            if account_uid:
+                waba = self._get_waba_status(account_uid)
+                if str(waba.get("id") or "") != str(account_uid):
+                    raise WhatsAppError(
+                        _(
+                            "WhatsApp Business Account ID does not match this "
+                            "Dualhook connection."
+                        ),
+                        failure_type="account",
+                    )
+            return status
         account_uid = account_uid or getattr(
             getattr(self, "wa_account_id", None), "account_uid", None
         )
         if not account_uid:
-            # from_account path: resolve via phone status
             status = self._get_phone_number_status()
             if not status.get("id"):
                 raise WhatsAppError(

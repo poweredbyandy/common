@@ -19,7 +19,7 @@ class MailMessage(models.Model):
     def _to_store(self, store: Store, **kwargs):
         super()._to_store(store, **kwargs)
         whatsapp_mail_messages = self.filtered(
-            lambda m: m.message_type == "whatsapp_message"
+            lambda m: m.message_type == "whatsapp_message" or m.wa_message_ids
         )
         if not whatsapp_mail_messages:
             return
@@ -28,7 +28,11 @@ class MailMessage(models.Model):
             .sudo()
             .search([("mail_message_id", "in", whatsapp_mail_messages.ids)])
         ):
-            values = {"whatsappStatus": wa_message.state}
+            values = {
+                "whatsappStatus": wa_message.state,
+                "whatsappFailureReason": wa_message.failure_reason or False,
+                "whatsappFromApp": wa_message.message_type in ("echo", "history"),
+            }
             origin_name, origin_url = wa_message._get_origin_document_info()
             if origin_name:
                 values["whatsappOriginName"] = origin_name

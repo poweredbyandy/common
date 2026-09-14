@@ -9,10 +9,10 @@ patch(Message.prototype, {
         return super.showSeenIndicator && this.message.whatsappStatus !== "error";
     },
 
-    /**
-     * Show WhatsApp icon (and document link) unless the previous message
-     * was already a WhatsApp message.
-     */
+    get showWhatsappFromApp() {
+        return Boolean(this.message.whatsappFromApp);
+    },
+
     get showWhatsappMeta() {
         if (this.message.message_type !== "whatsapp_message") {
             return false;
@@ -47,7 +47,9 @@ patch(Message.prototype, {
             read: _t("The message has been read by the recipient."),
             replied: _t("The recipient has replied to the message."),
             received: _t("The message has been successfully received."),
-            error: _t("There was an issue sending this message."),
+            error:
+                this.message.whatsappFailureReason
+                || _t("There was an issue sending this message."),
             bounced: _t("The message has been bounced."),
             cancel: _t("The message has been canceled."),
         };

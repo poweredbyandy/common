@@ -1,18 +1,24 @@
 Mail WhatsApp
 =============
 
-Integrates Odoo with the WhatsApp Cloud API using Meta **Coexistence**
-(WhatsApp Business App + Cloud API on the same phone number).
+Integrates Odoo with WhatsApp using one of three account setups:
 
-Onboarding uses the official Meta **Embedded Signup** OAuth flow with
-``featureType: whatsapp_business_app_onboarding``.
+* **Manual Cloud API** — paste WABA / phone / Meta token
+* **Embedded Signup** — Meta OAuth with
+  ``featureType: whatsapp_business_app_onboarding`` (Coexistence)
+* **Dualhook** — connect the WABA in Dualhook, then send through
+  ``https://api.dualhook.com/v25.0`` with a ``dh_live_`` key. Dualhook
+  configures Webhook Override so Meta delivers inbound webhooks to Odoo.
 
 Features
 --------
 
 * WhatsApp Business Account creation via Embedded Signup
 * Webhook handling for inbound messages, delivery statuses,
-  ``smb_message_echoes``, chat ``history`` sync and ``smb_app_state_sync``
+  ``message_echoes`` (Cloud API), ``smb_message_echoes`` (WhatsApp
+  Business app), chat ``history`` sync and ``smb_app_state_sync``
+* Discuss and message list distinguish messages sent from Odoo / API
+  versus WhatsApp Business (including edits and deletes from the app)
 * Discuss channels (``channel_type = whatsapp``) mirroring 1:1 conversations
 * Automatic contact and history synchronization after coexistence onboarding
 * Meta **Data Deletion Request Callback** (``signed_request``) with public

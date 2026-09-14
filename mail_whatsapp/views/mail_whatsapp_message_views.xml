@@ -4,8 +4,15 @@
         <field name="name">mail.whatsapp.message.view.list</field>
         <field name="model">mail.whatsapp.message</field>
         <field name="arch" type="xml">
-            <list string="WhatsApp Messages" create="0" edit="0">
+            <list
+                string="WhatsApp Messages"
+                create="0"
+                edit="0"
+                decoration-info="send_source == 'whatsapp_business'"
+                decoration-success="send_source == 'api'"
+            >
                 <field name="message_date"/>
+                <field name="send_source"/>
                 <field name="message_type"/>
                 <field name="state"/>
                 <field name="author_id"/>
@@ -27,6 +34,7 @@
                     <group>
                         <group>
                             <field name="message_date"/>
+                            <field name="send_source"/>
                             <field name="message_type"/>
                             <field name="state"/>
                             <field name="author_id"/>
@@ -57,7 +65,7 @@
         <field name="arch" type="xml">
             <graph string="WhatsApp Messages" type="line" sample="1">
                 <field name="message_date" interval="day"/>
-                <field name="message_type"/>
+                <field name="send_source"/>
             </graph>
         </field>
     </record>
@@ -68,7 +76,7 @@
         <field name="arch" type="xml">
             <pivot string="WhatsApp Messages" sample="1">
                 <field name="message_date" interval="day" type="row"/>
-                <field name="message_type" type="col"/>
+                <field name="send_source" type="col"/>
             </pivot>
         </field>
     </record>
@@ -85,12 +93,28 @@
                 <filter
                     name="filter_inbound"
                     string="Received"
-                    domain="[('message_type', '=', 'inbound')]"
+                    domain="[('send_source', '=', 'customer')]"
                 />
                 <filter
+                    name="filter_from_api"
+                    string="Sent from API"
+                    domain="[('send_source', '=', 'api')]"
+                />
+                <filter
+                    name="filter_from_business"
+                    string="Sent from WhatsApp Business"
+                    domain="[('send_source', '=', 'whatsapp_business')]"
+                />
+                <separator/>
+                <filter
                     name="filter_outbound"
-                    string="Sent"
+                    string="Outbound"
                     domain="[('message_type', '=', 'outbound')]"
+                />
+                <filter
+                    name="filter_echo"
+                    string="Business App Echo"
+                    domain="[('message_type', '=', 'echo')]"
                 />
                 <separator/>
                 <filter
@@ -103,6 +127,11 @@
                         name="group_date"
                         string="Date"
                         context="{'group_by': 'message_date:day'}"
+                    />
+                    <filter
+                        name="group_source"
+                        string="Sent From"
+                        context="{'group_by': 'send_source'}"
                     />
                     <filter
                         name="group_type"

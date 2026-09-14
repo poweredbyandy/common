@@ -1,7 +1,10 @@
+import logging
 import uuid
 
 from odoo import api, fields, models
 from odoo.tools import html2plaintext
+
+_logger = logging.getLogger(__name__)
 
 from odoo.addons.mail_whatsapp.tools import phone_validation as wa_phone_validation
 from odoo.addons.mail_whatsapp.tools.meta_credentials import is_demo_environment
@@ -49,6 +52,17 @@ class MailWhatsappMessage(models.Model):
             ("history", "History Sync"),
         ],
         default="outbound",
+    )
+    send_source = fields.Selection(
+        [
+            ("api", "Odoo / API"),
+            ("whatsapp_business", "WhatsApp Business"),
+            ("customer", "Customer"),
+        ],
+        string="Sent From",
+        compute="_compute_send_source",
+        store=True,
+        index=True,
     )
     state = fields.Selection(
         [
@@ -128,6 +142,17 @@ class MailWhatsappMessage(models.Model):
             "Each WhatsApp message must have a unique message ID.",
         ),
     ]
+
+    @api.depends("message_type")
+    def _compute_send_source(self):
+        mapping = {
+            "outbound": "api",
+            "echo": "whatsapp_business",
+            "history": "whatsapp_business",
+            "inbound": "customer",
+        }
+        for message in self:
+            message.send_source = mapping.get(message.message_type, "api")
 
     @api.depends("mobile_number")
     def _compute_mobile_number_formatted(self):
@@ -254,7 +279,11 @@ class MailWhatsappMessage(models.Model):
         for message in self.filtered("mail_message_id"):
             message.mail_message_id._bus_send_store(
                 message.mail_message_id,
-                {"whatsappStatus": message.state},
+                {
+                    "whatsappStatus": message.state,
+                    "whatsappFailureReason": message.failure_reason or False,
+                    "whatsappFromApp": message.message_type in ("echo", "history"),
+                },
             )
 
     def _send_demo_message(self):
@@ -299,7 +328,24 @@ class MailWhatsappMessage(models.Model):
                     }
                 )
                 continue
-            wa_api = WhatsAppApi.from_account(message.wa_account_id)
+            account = message.wa_account_id
+            token = (account.sudo().token or "").strip()
+            if account.setup_mode == "dualhook" and not token.startswith(
+                "dh_live_"
+            ):
+                message.write(
+                    {
+                        "state": "error",
+                        "failure_reason": (
+                            "Dualhook outbound API key is missing. "
+                            "Paste the dh_live_ key from Dualhook → "
+                            "Connection → Overview."
+                        ),
+                    }
+                )
+                message._notify_whatsapp_status()
+                continue
+            wa_api = WhatsAppApi.from_account(account)
             body = html2plaintext(message.mail_message_id.body or "")
             attachments = message.mail_message_id.attachment_ids
             try:
@@ -342,6 +388,11 @@ class MailWhatsappMessage(models.Model):
                     message.write({"msg_uid": msg_uid, "state": "sent"})
                     message._notify_whatsapp_status()
             except WhatsAppError as err:
+                _logger.warning(
+                    "WhatsApp send failed for message %s: %s",
+                    message.id,
+                    err,
+                )
                 message.write(
                     {
                         "state": "error",

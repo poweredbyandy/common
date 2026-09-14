@@ -8,11 +8,8 @@ Mail WhatsApp
 Description
 ===========
 
-Integrates Odoo with the WhatsApp Cloud API using Meta **Coexistence**
-(WhatsApp Business App + Cloud API on the same phone number).
-
-Onboarding uses the official Meta **Embedded Signup** OAuth flow with
-``featureType: whatsapp_business_app_onboarding``.
+Integrates Odoo with WhatsApp using Manual Cloud API, Meta Embedded Signup
+(Coexistence) or Dualhook (``dh_live_`` Runtime API + Webhook Override).
 
 Includes Meta privacy/login callbacks:
 
@@ -34,12 +31,16 @@ Usage
    * Graph API version
    * Webhook Verify Token
 
+   Or create the account with *Setup = Dualhook* and paste the ``dh_live_``
+   key after connecting the WABA in Dualhook.
+
 2. In the Meta App Dashboard, set the webhook callback URL shown on the
    WhatsApp account form (``/mail_whatsapp/webhook``) and subscribe to:
 
    * ``messages``
    * ``history``
-   * ``smb_message_echoes``
+   * ``message_echoes`` (Cloud API)
+   * ``smb_message_echoes`` (WhatsApp Business)
    * ``smb_app_state_sync``
    * ``account_update``
 
@@ -58,6 +59,7 @@ Usage
 
 6. Conversations appear in Discuss WhatsApp channels. Replies from Discuss are
    sent through Cloud API while the 24-hour customer service window is active.
+   Discuss labels outgoing messages as **API** or **WhatsApp Business**.
 
 Contributors
 ============

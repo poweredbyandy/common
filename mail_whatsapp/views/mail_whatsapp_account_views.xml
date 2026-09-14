@@ -57,7 +57,7 @@
                         string="Connect with Facebook Login"
                         class="btn-primary"
                         groups="mail_whatsapp.group_mail_whatsapp_admin"
-                        invisible="phone_uid and token and setup_mode == 'embedded_signup'"
+                        invisible="setup_mode == 'dualhook' or (phone_uid and token and setup_mode == 'embedded_signup')"
                     />
                     <button
                         name="action_open_templates"
@@ -123,29 +123,54 @@
                                         coexistence requires Meta onboarding; manual mode works when the
                                         number is already registered on Cloud API.
                                     </div>
+                                    <div
+                                        colspan="2"
+                                        class="text-muted"
+                                        invisible="setup_mode != 'embedded_signup'"
+                                    >
+                                        Use Connect with Facebook Login. Odoo exchanges the Meta
+                                        authorization code and subscribes webhooks on the WABA.
+                                    </div>
+                                    <div
+                                        colspan="2"
+                                        class="text-muted"
+                                        invisible="setup_mode != 'dualhook'"
+                                    >
+                                        Connect the WABA in Dualhook (Embedded Signup + Webhook Override).
+                                        Paste WABA ID, Phone Number ID and the dh_live_ key from
+                                        Dualhook → Connection → Overview. Use this form's Callback URL
+                                        and Verify Token in Dualhook before signup.
+                                    </div>
                                 </group>
                                 <group string="Credentials">
                                     <field
+                                        name="business_uid"
+                                        invisible="setup_mode != 'dualhook'"
+                                        placeholder="BUSINESS_ID"
+                                    />
+                                    <field
                                         name="account_uid"
-                                        required="setup_mode == 'manual'"
+                                        required="setup_mode in ('manual', 'dualhook')"
                                         placeholder="WABA ID"
                                     />
                                     <field
                                         name="phone_uid"
-                                        required="setup_mode == 'manual'"
+                                        required="setup_mode in ('manual', 'dualhook')"
                                         placeholder="Phone Number ID"
                                     />
                                     <field name="display_phone_number" />
                                     <field
                                         name="token"
                                         password="True"
-                                        required="setup_mode == 'manual'"
+                                        required="setup_mode in ('manual', 'dualhook')"
                                         groups="mail_whatsapp.group_mail_whatsapp_admin"
+                                        placeholder="dh_live_... when Dualhook"
                                     />
                                 </group>
                                 <group
                                     string="Meta App (from Settings)"
                                     groups="mail_whatsapp.group_mail_whatsapp_admin"
+                                    invisible="setup_mode == 'dualhook'"
                                 >
                                     <div colspan="2" class="text-muted">
                                         App ID / Secret se toman de

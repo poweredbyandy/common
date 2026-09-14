@@ -32,13 +32,16 @@ class MailWhatsappAccount(models.Model):
         [
             ("manual", "Manual Cloud API"),
             ("embedded_signup", "Embedded Signup"),
+            ("dualhook", "Dualhook"),
         ],
         default="manual",
         required=True,
         tracking=1,
         help="Manual: paste WABA/Phone/Token from Meta. "
-        "Embedded Signup: OAuth onboarding for third-party portfolios.",
+        "Embedded Signup: OAuth onboarding for third-party portfolios. "
+        "Dualhook: connect the WABA in Dualhook and paste the dh_live_ key.",
     )
+    business_uid = fields.Char(string="Meta Business ID", tracking=2)
     app_uid = fields.Char(string="App ID", tracking=2)
     app_secret = fields.Char(
         string="App Secret",
@@ -50,6 +53,9 @@ class MailWhatsappAccount(models.Model):
     token = fields.Char(
         string="Access Token",
         groups="mail_whatsapp.group_mail_whatsapp_admin",
+        help="Meta Cloud API access token. For Dualhook, paste the "
+        "outbound API key that starts with dh_live_ "
+        "(Connection → Overview). Do not use the webhook verify token.",
     )
     facebook_user_id = fields.Char(
         string="Facebook App-Scoped User ID",
@@ -150,11 +156,12 @@ class MailWhatsappAccount(models.Model):
                     secrets.choice(string.ascii_letters + string.digits)
                     for _ in range(16)
                 )
-            creds = get_meta_credentials(self.env)
-            if not vals.get("app_uid"):
-                vals["app_uid"] = creds["app_id"]
-            if not vals.get("app_secret"):
-                vals["app_secret"] = creds["app_secret"]
+            if vals.get("setup_mode") != "dualhook":
+                creds = get_meta_credentials(self.env)
+                if not vals.get("app_uid"):
+                    vals["app_uid"] = creds["app_id"]
+                if not vals.get("app_secret"):
+                    vals["app_secret"] = creds["app_secret"]
         return super().create(vals_list)
 
     @api.constrains("notify_user_ids")
@@ -162,6 +169,24 @@ class MailWhatsappAccount(models.Model):
         for account in self:
             if not account.notify_user_ids:
                 raise ValidationError(_("Users to notify is required."))
+
+    @api.constrains("setup_mode", "token", "phone_uid")
+    def _check_dualhook_runtime_key(self):
+        for account in self:
+            if account.setup_mode != "dualhook":
+                continue
+            if account.phone_uid == "demo_phone_number_id":
+                continue
+            token = (account.sudo().token or "").strip()
+            if token and not token.startswith("dh_live_"):
+                raise ValidationError(
+                    _(
+                        "Dualhook requires the outbound API key that starts "
+                        "with dh_live_. Create it in Dualhook → Connection → "
+                        "Overview → Outbound API key. The webhook verify "
+                        "token is a different value and cannot send messages."
+                    )
+                )
 
     @api.model
     def ensure_demo_account(self):
@@ -605,7 +630,7 @@ class MailWhatsappAccount(models.Model):
             "params": {
                 "type": "success",
                 "title": _("Templates synced"),
-                "message": _("WhatsApp templates were synchronized from Meta."),
+                "message": _("WhatsApp templates were synchronized."),
                 "next": {"type": "ir.actions.act_window_close"},
             },
         }
@@ -616,13 +641,17 @@ class MailWhatsappAccount(models.Model):
             raise UserError(
                 _(
                     "Fill WhatsApp Business Account ID, Phone Number ID and "
-                    "Access Token before testing."
+                    "Access Token (or Dualhook API key) before testing."
                 )
             )
         wa_api = WhatsAppApi.from_account(self)
         try:
             phone = wa_api._test_connection(account_uid=self.account_uid)
-            status = wa_api._get_phone_number_status()
+            status = (
+                phone
+                if self.setup_mode == "dualhook"
+                else wa_api._get_phone_number_status()
+            )
         except WhatsAppError as err:
             raise UserError(str(err)) from err
         self.write(
@@ -669,6 +698,8 @@ class MailWhatsappAccount(models.Model):
                 raise UserError(
                     _("Account is missing token or phone number ID.")
                 )
+            if account.setup_mode == "dualhook":
+                return account._action_sync_dualhook_coexistence()
             wa_api = WhatsAppApi.from_account(account)
             request_ids = []
             try:
@@ -704,6 +735,48 @@ class MailWhatsappAccount(models.Model):
                 )
                 raise UserError(str(err)) from err
         return True
+
+    def _action_sync_dualhook_coexistence(self):
+        self.ensure_one()
+        self.action_refresh_coexistence_status()
+        self.write(
+            {
+                "coexistence_sync_state": "history",
+                "coexistence_request_ids": (
+                    "dualhook:history is requested by Dualhook after "
+                    "webhook override; Runtime API has no smb_app_data"
+                ),
+            }
+        )
+        self.message_post(
+            body=_(
+                "Dualhook already asks Meta for contacts and chat history "
+                "once, right after Webhook Override is accepted. Odoo cannot "
+                "repeat that request (POST /smb_app_data is not in Dualhook "
+                "Runtime). Keep WhatsApp Business open and, in the app, allow "
+                "sharing chat history. Incoming history webhooks will appear "
+                "in Discuss. If the webhook was down during the first "
+                "request, Dualhook cannot replay it: reconnect the number "
+                "in Dualhook."
+            ),
+            subtype_xmlid="mail.mt_note",
+        )
+        return {
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "type": "warning",
+                "sticky": True,
+                "title": _("History is not downloaded from Odoo"),
+                "message": _(
+                    "Dualhook asks Meta for history only once after the "
+                    "webhook is verified. Keep WhatsApp Business open and "
+                    "allow history sharing. If nothing arrives, reconnect "
+                    "the WABA in Dualhook (the first request may have "
+                    "happened while the webhook returned 403)."
+                ),
+            },
+        }
 
     def action_refresh_coexistence_status(self):
         for account in self:
@@ -776,6 +849,13 @@ class MailWhatsappAccount(models.Model):
                     create_if_not_found=True,
                 )
             if not channel:
+                continue
+
+            if message_type == "revoke":
+                self._apply_whatsapp_revoke(messages)
+                continue
+            if message_type == "edit":
+                self._apply_whatsapp_edit(messages, wa_api)
                 continue
 
             kwargs = self._prepare_message_post_kwargs(
@@ -867,12 +947,85 @@ class MailWhatsappAccount(models.Model):
             return None
         return kwargs
 
-    def _process_message_echoes(self, value):
+    def _whatsapp_original_msg_uid(self, payload, event_key):
+        data = payload.get(event_key) or {}
+        return (
+            data.get("original_message_id")
+            or data.get("message_id")
+            or data.get("id")
+        )
+
+    def _apply_whatsapp_revoke(self, payload):
+        original_uid = self._whatsapp_original_msg_uid(payload, "revoke")
+        wa_message = self.env["mail.whatsapp.message"].sudo()._find_by_msg_uid(
+            original_uid
+        )
+        if not wa_message:
+            return
+        wa_message.write({"state": "cancel"})
+        mail_message = wa_message.mail_message_id
+        if mail_message:
+            mail_message.sudo().write(
+                {"body": plaintext2html(_("This message was deleted on WhatsApp."))}
+            )
+            mail_message._bus_send_store(
+                mail_message,
+                {"body": mail_message.body},
+            )
+        wa_message._notify_whatsapp_status()
+
+    def _apply_whatsapp_edit(self, payload, wa_api):
+        edit = payload.get("edit") or {}
+        original_uid = self._whatsapp_original_msg_uid(payload, "edit")
+        wa_message = self.env["mail.whatsapp.message"].sudo()._find_by_msg_uid(
+            original_uid
+        )
+        if not wa_message:
+            return
+        updated = edit.get("message") or payload
+        channel = wa_message._get_related_channel()
+        if not channel:
+            return
+        kwargs = self._prepare_message_post_kwargs(
+            wa_api,
+            updated,
+            updated.get("type"),
+            channel,
+            self.env["mail.whatsapp.message"],
+        )
+        mail_message = wa_message.mail_message_id
+        if kwargs is None or not kwargs.get("body") or not mail_message:
+            return
+        mail_message.sudo().write({"body": kwargs["body"]})
+        mail_message._bus_send_store(
+            mail_message,
+            {"body": mail_message.body},
+        )
+
+    def _iter_message_echoes(self, value):
+        return (
+            value.get("message_echoes")
+            or value.get("smb_message_echoes")
+            or value.get("messages")
+            or []
+        )
+
+    def _process_message_echoes(self, value, source="whatsapp_business"):
         wa_api = WhatsAppApi.from_account(self)
         Message = self.env["mail.whatsapp.message"].sudo()
-        for echo in value.get("message_echoes", []):
+        wa_message_type = (
+            "echo" if source == "whatsapp_business" else "outbound"
+        )
+        for echo in self._iter_message_echoes(value):
+            echo_type = echo.get("type")
+            if echo_type == "revoke":
+                self._apply_whatsapp_revoke(echo)
+                continue
+            if echo_type == "edit":
+                self._apply_whatsapp_edit(echo, wa_api)
+                continue
             msg_uid = echo.get("id")
-            if msg_uid and Message._find_by_msg_uid(msg_uid):
+            if not msg_uid or Message._find_by_msg_uid(msg_uid):
                 continue
             recipient = echo.get("to")
             if not recipient:
@@ -882,11 +1035,10 @@ class MailWhatsappAccount(models.Model):
             )
             if not channel:
                 continue
-            message_type = echo.get("type")
             kwargs = self._prepare_message_post_kwargs(
                 wa_api,
                 echo,
-                message_type,
+                echo_type,
                 channel,
                 self.env["mail.whatsapp.message"],
             )
@@ -899,7 +1051,7 @@ class MailWhatsappAccount(models.Model):
             mail_message = channel.with_context(
                 whatsapp_skip_send=True
             ).message_post(
-                message_type="comment",
+                message_type="whatsapp_message",
                 subtype_xmlid="mail.mt_comment",
                 author_id=author.id,
                 body=kwargs.get("body"),
@@ -908,7 +1060,7 @@ class MailWhatsappAccount(models.Model):
             Message.create(
                 {
                     "mail_message_id": mail_message.id,
-                    "message_type": "echo",
+                    "message_type": wa_message_type,
                     "mobile_number": f"+{recipient.lstrip('+')}",
                     "msg_uid": msg_uid,
                     "state": "sent",
@@ -976,7 +1128,7 @@ class MailWhatsappAccount(models.Model):
                         mail_message = channel.with_context(
                             whatsapp_skip_send=True
                         ).message_post(
-                            message_type="comment",
+                            message_type="whatsapp_message",
                             subtype_xmlid="mail.mt_comment",
                             author_id=author.id,
                             body=kwargs.get("body"),

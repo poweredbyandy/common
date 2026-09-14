@@ -25,28 +25,84 @@ class MailWhatsappWebhook(http.Controller):
         type="http",
         auth="public",
         csrf=False,
+        save_session=False,
+        readonly=False,
     )
     def webhook_get(self, **kwargs):
-        token = kwargs.get("hub.verify_token")
-        mode = kwargs.get("hub.mode")
-        challenge = kwargs.get("hub.challenge")
-        if not (token and mode and challenge):
-            return Forbidden()
+        args = request.httprequest.args
+        token = (
+            args.get("hub.verify_token")
+            or kwargs.get("hub.verify_token")
+            or kwargs.get("hub_verify_token")
+            or ""
+        ).strip()
+        mode = (
+            args.get("hub.mode")
+            or kwargs.get("hub.mode")
+            or kwargs.get("hub_mode")
+            or ""
+        ).strip()
+        challenge = (
+            args.get("hub.challenge")
+            or kwargs.get("hub.challenge")
+            or kwargs.get("hub_challenge")
+        )
+        if mode != "subscribe" or not token or challenge in (None, ""):
+            return request.make_response(
+                "",
+                headers=[("Content-Type", "text/plain")],
+                status=HTTPStatus.FORBIDDEN,
+            )
+        if not self._is_valid_verify_token(token):
+            if not self._adopt_dualhook_verify_token(token):
+                _logger.warning(
+                    "WhatsApp webhook verify token did not match any account"
+                )
+                return request.make_response(
+                    "",
+                    headers=[("Content-Type", "text/plain")],
+                    status=HTTPStatus.FORBIDDEN,
+                )
+        return request.make_response(
+            str(challenge),
+            headers=[("Content-Type", "text/plain")],
+            status=HTTPStatus.OK,
+        )
 
+    def _is_valid_verify_token(self, token):
         ICP = request.env["ir.config_parameter"].sudo()
-        global_token = ICP.get_param("mail_whatsapp.webhook_verify_token")
-        account = (
+        global_token = (
+            ICP.get_param("mail_whatsapp.webhook_verify_token") or ""
+        ).strip()
+        if global_token and consteq(global_token, token):
+            return True
+        accounts = (
             request.env["mail.whatsapp.account"]
             .sudo()
-            .search([("webhook_verify_token", "=", token)], limit=1)
+            .search([("webhook_verify_token", "!=", False)])
         )
-        if mode == "subscribe" and (account or (global_token and consteq(global_token, token))):
-            response = request.make_response(challenge)
-            response.status_code = HTTPStatus.OK
-            return response
-        response = request.make_response({})
-        response.status_code = HTTPStatus.FORBIDDEN
-        return response
+        return any(
+            consteq((account.webhook_verify_token or "").strip(), token)
+            for account in accounts
+        )
+
+    def _adopt_dualhook_verify_token(self, token):
+        accounts = (
+            request.env["mail.whatsapp.account"]
+            .sudo()
+            .search([("setup_mode", "=", "dualhook"), ("active", "=", True)])
+        )
+        if not accounts:
+            return False
+        accounts.write({"webhook_verify_token": token})
+        ICP = request.env["ir.config_parameter"].sudo()
+        if not (ICP.get_param("mail_whatsapp.webhook_verify_token") or "").strip():
+            ICP.set_param("mail_whatsapp.webhook_verify_token", token)
+        _logger.info(
+            "Stored Dualhook webhook verify token on %s account(s)",
+            len(accounts),
+        )
+        return True
 
     @http.route(
         "/mail_whatsapp/webhook",
@@ -94,11 +150,27 @@ class MailWhatsappWebhook(http.Controller):
                         continue
                 wa_account = wa_account[:1]
 
+                if field_name in (
+                    "history",
+                    "smb_app_state_sync",
+                    "smb_message_echoes",
+                    "message_echoes",
+                ):
+                    _logger.info(
+                        "WhatsApp webhook field=%s waba=%s phone=%s",
+                        field_name,
+                        account_uid,
+                        phone_number_id,
+                    )
                 if field_name == "messages":
                     wa_account._process_statuses(value)
                     wa_account._process_messages(value)
                 elif field_name == "smb_message_echoes":
-                    wa_account._process_message_echoes(value)
+                    wa_account._process_message_echoes(
+                        value, source="whatsapp_business"
+                    )
+                elif field_name == "message_echoes":
+                    wa_account._process_message_echoes(value, source="api")
                 elif field_name == "history":
                     wa_account._process_history(value)
                 elif field_name == "smb_app_state_sync":
@@ -112,6 +184,9 @@ class MailWhatsappWebhook(http.Controller):
         return True
 
     def _check_signature(self, business_account):
+        if business_account.setup_mode == "dualhook":
+            return True
+
         signature = request.httprequest.headers.get("X-Hub-Signature-256")
         if (
             not signature

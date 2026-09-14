@@ -161,6 +161,22 @@
                         </setting>
                     </block>
 
+                    <block
+                        title="Dualhook"
+                        name="mail_whatsapp_dualhook"
+                        invisible="mail_whatsapp_is_demo"
+                    >
+                        <setting
+                            string="Dualhook connection"
+                            help="Optional provider. Create the WhatsApp account with Setup = Dualhook. Connect the WABA in Dualhook, then paste WABA ID, Phone Number ID and the dh_live_ key. Dualhook configures Webhook Override so Meta delivers messages to the URL below."
+                        >
+                            <div class="text-muted">
+                                Dualhook dashboard:
+                                https://dualhook.com/docs/waba-integration
+                            </div>
+                        </setting>
+                    </block>
+
                     <block title="Shared / Callbacks" name="mail_whatsapp_shared">
                         <setting
                             string="Graph API Version"

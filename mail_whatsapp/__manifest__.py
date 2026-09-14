@@ -1,9 +1,9 @@
 {
     "name": "Mail WhatsApp",
-    "version": "18.0.1.36.0",
+    "version": "18.0.1.40.0",
     "images": ["static/description/icon.png"],
     "category": "Discuss",
-    "summary": "WhatsApp Cloud API with Meta Coexistence via Embedded Signup",
+    "summary": "WhatsApp Cloud API, Embedded Signup and Dualhook",
     "author": "andyengit",
     "maintainer": "andyengit",
     "website": "https://github.com/andyengit",
