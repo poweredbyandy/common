@@ -52,8 +52,9 @@ class SaleOrder(models.Model):
         products = self.env["product.product"].browse(
             [product.id for product in demand_by_product]
         ).sudo()
-        if warehouse:
-            products = products.with_context(warehouse_id=warehouse.id)
+        products = self._pba_restrict_qty_zero_products_for_availability(
+            products, warehouse
+        )
         free_by_id = {
             row["id"]: row["free_qty"]
             for row in products.read(["free_qty"], load=False)
@@ -84,3 +85,22 @@ class SaleOrder(models.Model):
             "cantidad disponible suficiente:\n%(lines)s",
             lines="\n".join(details),
         )
+
+    def _pba_restrict_qty_zero_products_for_availability(self, products, warehouse):
+        """Scope free_qty to the warehouse that actually limits the sale.
+
+        Fictional warehouses may go negative; availability is the linked real
+        warehouse when ``sale_stock_fictional_sync`` is installed.
+        """
+        self.ensure_one()
+        if not warehouse:
+            return products
+        real_wh = getattr(warehouse, "real_warehouse_id", False)
+        if getattr(warehouse, "is_fictional", False) and real_wh:
+            real_wh = real_wh.sudo()
+            real_company = real_wh.company_id
+            return products.with_company(real_company).with_context(
+                allowed_company_ids=[real_company.id],
+                warehouse_id=real_wh.id,
+            )
+        return products.with_context(warehouse_id=warehouse.id)
