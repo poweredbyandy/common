@@ -152,17 +152,9 @@ class ReportPickingEpl(models.AbstractModel):
 
     @api.model
     def _invoice_ref(self, picking):
-        if "sale_id" in picking._fields and picking.sale_id:
-            invs = picking.sale_id.invoice_ids.filtered(
-                lambda m: m.state == "posted" and m.move_type == "out_invoice"
-            )
-            if invs:
-                invs = invs.sorted(
-                    key=lambda m: (m.invoice_date or m.date, m.id),
-                    reverse=True,
-                )
-                m0 = invs[0]
-                return m0.name or m0.payment_reference or ""
+        invoice = picking._dispatch_invoice_for_picking()
+        if invoice:
+            return invoice.name or invoice.payment_reference or ""
         if "purchase_id" in picking._fields and picking.purchase_id:
             invs = picking.purchase_id.invoice_ids.filtered(
                 lambda m: m.state == "posted" and m.move_type == "in_invoice"

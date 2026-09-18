@@ -1,6 +1,6 @@
 {
     "name": "Inventario ESC/POS",
-    "version": "18.0.1.30.13",
+    "version": "18.0.1.31.0",
     "category": "Inventory",
     "summary": "Informes ESC/POS o ESC/P Epson matriz para stock (nota de despacho, etc.)",
     "author": "andyengit",
@@ -14,6 +14,7 @@
         "product_brand",
         "pba_internal_code",
         "l10n_ve_seniat",
+        "stock_picking_epl_webusb",
     ],
     "data": [
         "data/report_stock_picking_dispatch_escpos.xml",
