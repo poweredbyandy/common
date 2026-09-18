@@ -1,0 +1,1 @@
+from . import partner_company_property_sync_wizard

@@ -1,0 +1,1 @@
+from . import test_partner_company_property_sync

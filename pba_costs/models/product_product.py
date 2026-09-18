@@ -9,13 +9,13 @@ class ProductProduct(models.Model):
     pba_last_cost = fields.Monetary(
         related="product_tmpl_id.pba_last_cost",
         string="Último costo",
-        currency_field="cost_currency_id",
+        currency_field="pba_cost_currency_id",
         readonly=True,
     )
     pba_final_cost = fields.Monetary(
         related="product_tmpl_id.pba_final_cost",
         string="Costo final",
-        currency_field="cost_currency_id",
+        currency_field="pba_cost_currency_id",
         readonly=True,
     )
 

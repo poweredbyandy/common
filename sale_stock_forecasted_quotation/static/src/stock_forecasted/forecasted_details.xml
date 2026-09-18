@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-name="sale_stock_forecasted_quotation.ForecastedDetails" t-inherit="stock.ForecastedDetails" t-inherit-mode="extension">
+        <xpath expr="//tr[@name='draft_so_out']" position="replace">
+            <t t-foreach="props.docs.draft_sale_orders" t-as="sale_order" t-key="sale_order.id">
+                <tr name="draft_so_out" t-attf-class="#{sale_order.matched and 'o_grid_match table-info'}">
+                    <td colspan="2">Quotations</td>
+                    <td t-out="_formatFloat(-(sale_order.qty or 0))" class="text-end"/>
+                    <td>
+                        <a href="#"
+                            class="fw-bold"
+                            t-out="sale_order.name"
+                            t-on-click.prevent="() => this.props.openView('sale.order', 'form', sale_order.id)"/>
+                        <t t-if="sale_order.partner_name"> - <t t-out="sale_order.partner_name"/></t>
+                    </td>
+                </tr>
+            </t>
+        </xpath>
+    </t>
+</templates>

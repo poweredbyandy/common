@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="sale_product_search_qty.ProductQtyDropdownOption">
+        <span class="o_sale_product_qty_option_row d-flex align-items-center justify-content-between gap-2 w-100 min-w-0">
+            <span class="text-truncate" t-esc="option.label"/>
+            <span
+                t-if="option.qtyAvailable !== undefined"
+                class="badge rounded-pill flex-shrink-0"
+                t-att-class="option.qtyBadgeClass"
+                t-esc="option.qtyFormatted"
+            />
+        </span>
+    </t>
+
+</templates>

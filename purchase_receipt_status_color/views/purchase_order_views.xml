@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="purchase_order_view_tree_receipt_status" model="ir.ui.view">
+        <field name="name">purchase.order.list.receipt.status.color</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase_stock.purchase_order_view_tree_inherit"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='receipt_status']" position="attributes">
+                <attribute name="decoration-success">receipt_status == 'full'</attribute>
+                <attribute name="decoration-warning">receipt_status == 'partial'</attribute>
+                <attribute name="decoration-info">receipt_status == 'pending'</attribute>
+                <attribute name="decoration-danger"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

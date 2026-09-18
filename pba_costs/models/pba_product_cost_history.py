@@ -27,7 +27,7 @@ class PbaProductCostHistory(models.Model):
     amount = fields.Monetary(string="Costo", currency_field="currency_id")
     percent = fields.Float(string="% aplicado")
     currency_id = fields.Many2one(
-        related="product_tmpl_id.cost_currency_id",
+        related="product_tmpl_id.pba_cost_currency_id",
         store=True,
     )
     company_id = fields.Many2one(related="product_tmpl_id.company_id", store=True)

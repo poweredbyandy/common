@@ -13,6 +13,17 @@
                     name="pba_costs"
                     groups="base.group_system"
                 >
+                    <block title="Moneda de costos PBA">
+                        <setting
+                            string="Moneda de costos PBA"
+                            help="Se aplica a productos nuevos. Independiente de la moneda del costo estándar. Deje vacío para usar la moneda de la compañía."
+                        >
+                            <field
+                                name="pba_default_cost_currency_id"
+                                options="{'no_create': True}"
+                            />
+                        </setting>
+                    </block>
                     <block title="Costo final (fórmula global)">
                         <setting
                             string="Fórmula del costo final"

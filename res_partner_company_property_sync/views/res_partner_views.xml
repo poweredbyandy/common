@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_partner_form_company_property_sync" model="ir.ui.view">
+        <field name="name">res.partner.form.company.property.sync</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="account.view_partner_property_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='accounting']" position="inside">
+                <group string="Multi compañía" groups="account.group_account_manager,base.group_partner_manager">
+                    <button
+                        name="action_open_company_property_sync_wizard"
+                        type="object"
+                        string="Sincronizar propiedades entre compañías"
+                        class="btn-secondary"
+                    />
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="action_partner_company_property_sync_wizard_from_list" model="ir.actions.act_window">
+        <field name="name">Sincronizar propiedades entre compañías</field>
+        <field name="res_model">res.partner.company.property.sync.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="binding_model_id" ref="base.model_res_partner"/>
+        <field name="binding_view_types">list,form</field>
+    </record>
+</odoo>

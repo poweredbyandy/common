@@ -72,9 +72,25 @@ class ProductTemplate(models.Model):
         "de compra. Se usa como base de los costos PBA.",
     )
 
+    pba_force_cost_currency_id = fields.Many2one(
+        "res.currency",
+        string="Moneda de costos PBA",
+        default=lambda self: self._default_pba_force_cost_currency_id(),
+        help="Moneda de último costo, flete, arancel, operativo, nacionalización "
+        "y costo final. Si está vacía, se usa la moneda de la compañía. "
+        "No es la moneda del costo estándar del producto.",
+    )
+    pba_cost_currency_id = fields.Many2one(
+        "res.currency",
+        string="Moneda PBA",
+        compute="_compute_pba_cost_currency_id",
+        store=True,
+        precompute=True,
+    )
+
     pba_cost_discount = fields.Monetary(
         string="Descuento de Costo",
-        currency_field="cost_currency_id",
+        currency_field="pba_cost_currency_id",
         compute="_compute_pba_cost_discount",
         store=True,
         help="Importe: último costo × % Descuento de Costo.",
@@ -82,7 +98,7 @@ class ProductTemplate(models.Model):
 
     pba_utility_margin_amount = fields.Monetary(
         string="Importe utilidad (sobre costo final)",
-        currency_field="cost_currency_id",
+        currency_field="pba_cost_currency_id",
         compute="_compute_pba_utility_margin_amount",
     )
 
@@ -102,7 +118,7 @@ class ProductTemplate(models.Model):
 
     pba_cost_freight = fields.Monetary(
         string="Costo Flete",
-        currency_field="cost_currency_id",
+        currency_field="pba_cost_currency_id",
         compute="_compute_pba_cost_freight",
         store=True,
         help=PBA_COST_IMPORTE_HELP,
@@ -110,7 +126,7 @@ class ProductTemplate(models.Model):
 
     pba_cost_tariff = fields.Monetary(
         string="Costo Arancel",
-        currency_field="cost_currency_id",
+        currency_field="pba_cost_currency_id",
         compute="_compute_pba_cost_tariff",
         store=True,
         help=PBA_COST_IMPORTE_HELP,
@@ -118,7 +134,7 @@ class ProductTemplate(models.Model):
 
     pba_cost_operative = fields.Monetary(
         string="Costo Operativo",
-        currency_field="cost_currency_id",
+        currency_field="pba_cost_currency_id",
         compute="_compute_pba_cost_operative",
         store=True,
         help=PBA_COST_IMPORTE_HELP,
@@ -126,7 +142,7 @@ class ProductTemplate(models.Model):
 
     pba_cost_nationalization = fields.Monetary(
         string="Costo Nacionalización",
-        currency_field="cost_currency_id",
+        currency_field="pba_cost_currency_id",
         compute="_compute_pba_cost_nationalization",
         store=True,
         help=PBA_COST_IMPORTE_HELP,
@@ -141,15 +157,15 @@ class ProductTemplate(models.Model):
     pba_last_cost = fields.Monetary(
         string="Último costo",
         compute="_compute_pba_last_cost",
-        currency_field="cost_currency_id",
+        currency_field="pba_cost_currency_id",
         help="Precio unitario de la última compra confirmada (descuento aplicado), "
-        "en la UdM del producto y moneda de costo.",
+        "en la UdM del producto y moneda de costos PBA.",
     )
 
     pba_final_cost = fields.Monetary(
         string="Costo final",
         compute="_compute_pba_final_cost",
-        currency_field="cost_currency_id",
+        currency_field="pba_cost_currency_id",
         help="Calculado con la fórmula global (Ajustes ▸ PBA Costos o edición en la ficha del producto "
         "para usuarios con grupo Características técnicas). Por defecto: último costo más los cuatro importes PBA.",
     )
@@ -223,9 +239,59 @@ class ProductTemplate(models.Model):
         for template in self:
             template.pba_costs_readonly = readonly
 
+    def _default_pba_force_cost_currency_id(self):
+        currency_id = (
+            self.env["ir.config_parameter"]
+            .sudo()
+            .get_param("pba_costs.default_cost_currency_id")
+        )
+        try:
+            currency = self.env["res.currency"].browse(int(currency_id)).exists()
+        except (TypeError, ValueError):
+            return False
+        if not currency or currency == self.env.company.currency_id:
+            return False
+        return currency.id
+
+    @api.depends("pba_force_cost_currency_id", "company_id", "company_id.currency_id")
+    def _compute_pba_cost_currency_id(self):
+        for rec in self:
+            rec.pba_cost_currency_id = (
+                rec.pba_force_cost_currency_id
+                or rec.company_id.currency_id
+                or rec.env.company.currency_id
+            )
+
+    def _pba_resolved_cost_currency(self):
+        self.ensure_one()
+        return (
+            self.pba_cost_currency_id
+            or self.company_id.currency_id
+            or self.env.company.currency_id
+        )
+
+    def _pba_standard_price_in_pba_currency(self):
+        self.ensure_one()
+        amount = float(self.standard_price or 0.0)
+        from_currency = self.cost_currency_id or self.company_id.currency_id
+        to_currency = self._pba_resolved_cost_currency()
+        if not from_currency or not to_currency or from_currency == to_currency:
+            return amount
+        return from_currency._convert(
+            amount,
+            to_currency,
+            self.company_id or self.env.company,
+            fields.Date.context_today(self),
+            round=True,
+        )
+
     def _pba_product_cost_value_differs(self, current, new_val, field_name):
         if field_name == "pba_final_cost_formula_edit":
             return (current or "").strip() != (new_val or "").strip()
+        if field_name == "pba_force_cost_currency_id":
+            current_id = current.id if current else False
+            new_id = new_val.id if getattr(new_val, "id", None) else new_val
+            return (current_id or False) != (new_id or False)
         return (
             float_compare(current or 0.0, new_val or 0.0, precision_digits=6) != 0
         )
@@ -245,6 +311,8 @@ class ProductTemplate(models.Model):
                 or ""
             ).strip() or DEFAULT_PBA_FINAL_COST_FORMULA
             return formula != current
+        if field_name == "pba_force_cost_currency_id":
+            return bool(value)
         return float_compare(value or 0.0, 0.0, precision_digits=6) != 0
 
     def _pba_product_cost_vals_change(self, field_name, value):
@@ -345,12 +413,12 @@ class ProductTemplate(models.Model):
 
     @api.depends(
         "product_variant_ids",
-        "cost_currency_id",
+        "pba_cost_currency_id",
         "standard_price",
     )
     def _compute_pba_last_cost(self):
         for template in self:
-            fallback = template.standard_price or 0.0
+            fallback = template._pba_standard_price_in_pba_currency()
             line = template._pba_find_last_purchase_order_line()
             if not line:
                 template.pba_last_cost = fallback
@@ -361,7 +429,7 @@ class ProductTemplate(models.Model):
                     line.product_id.uom_id,
                 )
                 date = template._pba_last_purchase_line_conversion_date(line)
-                to_currency = template.cost_currency_id or line.company_id.currency_id
+                to_currency = template._pba_resolved_cost_currency()
                 template.pba_last_cost = line.currency_id._convert(
                     price_uom,
                     to_currency,
@@ -406,7 +474,7 @@ class ProductTemplate(models.Model):
     def _pba_convert_sale_amount_to_cost_currency(self, amount, rate_date=None):
         self.ensure_one()
         from_currency = self.currency_id or self.company_id.currency_id
-        to_currency = self.cost_currency_id or self.company_id.currency_id
+        to_currency = self._pba_resolved_cost_currency()
         if not from_currency or not to_currency or from_currency == to_currency:
             return float(amount or 0.0)
         conv_date = (
@@ -473,31 +541,33 @@ class ProductTemplate(models.Model):
                 rec.pba_utility_percent or 0.0
             )
 
+    def _pba_final_cost_in_sale_currency(self):
+        self.ensure_one()
+        fin = self.pba_final_cost or 0.0
+        to_c = self.currency_id or self.company_id.currency_id
+        from_c = self._pba_resolved_cost_currency()
+        if not to_c:
+            return 0.0
+        if from_c == to_c:
+            return fin
+        return from_c._convert(
+            fin,
+            to_c,
+            self.company_id,
+            fields.Date.context_today(self),
+            round=True,
+        )
+
     @api.depends(
         "pba_final_cost",
         "pba_utility_percent",
         "currency_id",
-        "cost_currency_id",
+        "pba_cost_currency_id",
         "company_id",
     )
     def _compute_pba_suggested_list_price(self):
         for rec in self:
-            fin = rec.pba_final_cost or 0.0
-            to_c = rec.currency_id or rec.company_id.currency_id
-            from_c = rec.cost_currency_id or rec.company_id.currency_id
-            if not to_c:
-                rec.pba_suggested_list_price = 0.0
-                continue
-            if from_c == to_c:
-                fin_sale = fin
-            else:
-                fin_sale = from_c._convert(
-                    fin,
-                    to_c,
-                    rec.company_id,
-                    fields.Date.context_today(rec),
-                    round=True,
-                )
+            fin_sale = rec._pba_final_cost_in_sale_currency()
             rec.pba_suggested_list_price = fin_sale * (
                 1.0 + (rec.pba_utility_percent or 0.0)
             )
@@ -516,7 +586,7 @@ class ProductTemplate(models.Model):
         "pba_cost_nationalization_percent",
         "standard_price",
         "list_price",
-        "cost_currency_id",
+        "pba_cost_currency_id",
     )
     def _compute_pba_final_cost(self):
         icp = self.env["ir.config_parameter"].sudo()
@@ -571,16 +641,17 @@ class ProductTemplate(models.Model):
             self._pba_find_last_purchase_order_line(),
         )
 
-    def _pba_convert_cost_amount_to_currency(
+    def _pba_convert_amount_from_currency(
         self,
         amount,
+        from_currency,
         target_currency,
         rate_date=None,
     ):
         self.ensure_one()
         if not target_currency:
             return 0.0
-        from_currency = self.cost_currency_id or self.company_id.currency_id
+        from_currency = from_currency or self.company_id.currency_id
         if not from_currency or from_currency == target_currency:
             return float(amount or 0.0)
         conv_date = (
@@ -591,13 +662,27 @@ class ProductTemplate(models.Model):
         return from_currency._convert(
             float(amount or 0.0),
             target_currency,
-            self.company_id,
+            self.company_id or self.env.company,
             conv_date,
             round=True,
         )
 
+    def _pba_convert_cost_amount_to_currency(
+        self,
+        amount,
+        target_currency,
+        rate_date=None,
+    ):
+        return self._pba_convert_amount_from_currency(
+            amount,
+            self._pba_resolved_cost_currency(),
+            target_currency,
+            rate_date=rate_date,
+        )
+
     @api.depends(
         "pba_cost_display_currency_id",
+        "pba_cost_currency_id",
         "cost_currency_id",
         "company_id",
         "standard_price",
@@ -621,8 +706,9 @@ class ProductTemplate(models.Model):
                 rec.pba_cost_nationalization_display_ccy = 0.0
                 continue
             rate_date = rec._pba_purchase_rate_date_for_display_currency()
-            rec.pba_standard_price_display_ccy = rec._pba_convert_cost_amount_to_currency(
+            rec.pba_standard_price_display_ccy = rec._pba_convert_amount_from_currency(
                 rec.standard_price,
+                rec.cost_currency_id or rec.company_id.currency_id,
                 ccy,
                 rate_date,
             )
@@ -723,7 +809,7 @@ class ProductTemplate(models.Model):
             "pba_cost_operative_percent": z(self.pba_cost_operative_percent),
             "pba_cost_nationalization_operation_total": base_after_discount,
             "pba_cost_nationalization_percent": z(self.pba_cost_nationalization_percent),
-            "standard_price": z(self.standard_price),
+            "standard_price": z(self._pba_standard_price_in_pba_currency()),
             "list_price": z(self.list_price),
         }
 

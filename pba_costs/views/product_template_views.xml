@@ -8,6 +8,7 @@
             <xpath expr="//page[@name='general_information']" position="after">
                 <page string="Costos" name="pba_costs" groups="pba_costs.group_pba_product_costs_tab">
                     <field name="pba_costs_readonly" invisible="1"/>
+                    <field name="pba_cost_currency_id" invisible="1"/>
                     <group>
                         <group string="Costo promedio">
                             <label
@@ -34,9 +35,15 @@
                         </group>
                         <group string="Último costo (compras)">
                             <field
+                                name="pba_force_cost_currency_id"
+                                options="{'no_create': True}"
+                                placeholder="Moneda de la compañía"
+                                readonly="pba_costs_readonly"
+                            />
+                            <field
                                 name="pba_last_cost"
                                 widget="monetary"
-                                options="{'currency_field': 'cost_currency_id', 'field_digits': True}"
+                                options="{'currency_field': 'pba_cost_currency_id', 'field_digits': True}"
                             />
                             <field
                                 name="pba_cost_discount_percent"
@@ -48,14 +55,14 @@
                                 name="pba_cost_discount"
                                 string="Descuento de Costo"
                                 widget="monetary"
-                                options="{'currency_field': 'cost_currency_id', 'field_digits': True}"
+                                options="{'currency_field': 'pba_cost_currency_id', 'field_digits': True}"
                                 readonly="1"
                             />
                             <field
                                 name="pba_final_cost"
                                 string="Costo final"
                                 widget="monetary"
-                                options="{'currency_field': 'cost_currency_id', 'field_digits': True}"
+                                options="{'currency_field': 'pba_cost_currency_id', 'field_digits': True}"
                             />
                             <field
                                 name="pba_utility_percent"
@@ -67,7 +74,7 @@
                                 name="pba_utility_margin_amount"
                                 string="Importe utilidad"
                                 widget="monetary"
-                                options="{'currency_field': 'cost_currency_id', 'field_digits': True}"
+                                options="{'currency_field': 'pba_cost_currency_id', 'field_digits': True}"
                                 readonly="1"
                             />
                             <field
@@ -191,7 +198,7 @@
                                     name="pba_cost_freight"
                                     string="Importe flete"
                                     widget="monetary"
-                                    options="{'currency_field': 'cost_currency_id', 'field_digits': True}"
+                                    options="{'currency_field': 'pba_cost_currency_id', 'field_digits': True}"
                                     readonly="1"
                                 />
                                 <button
@@ -215,7 +222,7 @@
                                     name="pba_cost_tariff"
                                     string="Importe arancel"
                                     widget="monetary"
-                                    options="{'currency_field': 'cost_currency_id', 'field_digits': True}"
+                                    options="{'currency_field': 'pba_cost_currency_id', 'field_digits': True}"
                                     readonly="1"
                                 />
                                 <button
@@ -241,7 +248,7 @@
                                     name="pba_cost_operative"
                                     string="Importe operativo"
                                     widget="monetary"
-                                    options="{'currency_field': 'cost_currency_id', 'field_digits': True}"
+                                    options="{'currency_field': 'pba_cost_currency_id', 'field_digits': True}"
                                     readonly="1"
                                 />
                                 <button
@@ -265,7 +272,7 @@
                                     name="pba_cost_nationalization"
                                     string="Importe nacionalización"
                                     widget="monetary"
-                                    options="{'currency_field': 'cost_currency_id', 'field_digits': True}"
+                                    options="{'currency_field': 'pba_cost_currency_id', 'field_digits': True}"
                                     readonly="1"
                                 />
                                 <button

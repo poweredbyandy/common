@@ -5,6 +5,7 @@ from odoo.tools.float_utils import float_compare
 from .pba_constants import (
     PBA_PURCHASE_LINE_COST_WRITE_FIELDS,
     pba_user_can_edit_purchase_costs,
+    pba_utility_percent_from_sale_and_cost,
 )
 
 
@@ -126,12 +127,16 @@ class PurchaseOrderLine(models.Model):
                     _("You are not allowed to edit PBA costs on this purchase order.")
                 )
 
-    @api.depends("product_id", "company_id")
+    @api.depends(
+        "product_id",
+        "product_id.product_tmpl_id.pba_cost_currency_id",
+        "company_id",
+    )
     def _compute_pba_cost_pba_currency_id(self):
         for line in self:
             if line.product_id:
                 line.pba_cost_pba_currency_id = (
-                    line.product_id.product_tmpl_id.cost_currency_id
+                    line.product_id.product_tmpl_id.pba_cost_currency_id
                     or line.company_id.currency_id
                 )
             else:
@@ -261,7 +266,7 @@ class PurchaseOrderLine(models.Model):
         if self.display_type or not self.product_id:
             return 0.0
         tmpl = self.product_id.product_tmpl_id
-        to_currency = tmpl.cost_currency_id or self.company_id.currency_id
+        to_currency = tmpl.pba_cost_currency_id or self.company_id.currency_id
         line_uom = self.product_uom or self.product_id.uom_po_id or self.product_id.uom_id
         if not line_uom:
             return 0.0
@@ -316,7 +321,7 @@ class PurchaseOrderLine(models.Model):
     def _pba_sale_price_for_template_list_price(self):
         self.ensure_one()
         tmpl = self.product_id.product_tmpl_id
-        from_c = tmpl.cost_currency_id or self.company_id.currency_id
+        from_c = tmpl.pba_cost_currency_id or self.company_id.currency_id
         to_c = tmpl.currency_id or self.company_id.currency_id
         line_dt = self.order_id.date_order
         if line_dt:
@@ -359,6 +364,35 @@ class PurchaseOrderLine(models.Model):
             line.pba_sale_price_unit = line.pba_sale_price_suggested
             line.pba_sale_price_unit_baseline = line.pba_sale_price_unit
 
+    def _pba_apply_utility_percent_from_sale_price_unit(self):
+        for line in self:
+            if line.display_type or not line.product_id:
+                continue
+            new_util = pba_utility_percent_from_sale_and_cost(
+                line.pba_sale_price_unit,
+                line.pba_projected_final_cost,
+            )
+            if (
+                float_compare(
+                    line.pba_utility_percent or 0.0,
+                    new_util,
+                    precision_digits=6,
+                )
+                == 0
+            ):
+                continue
+            super(PurchaseOrderLine, line).write({"pba_utility_percent": new_util})
+
+    @api.onchange("pba_sale_price_unit")
+    def _onchange_pba_sale_price_unit_recompute_utility(self):
+        for line in self:
+            if line.display_type or not line.product_id:
+                continue
+            line.pba_utility_percent = pba_utility_percent_from_sale_and_cost(
+                line.pba_sale_price_unit,
+                line.pba_projected_final_cost,
+            )
+
     @api.onchange(
         "pba_utility_percent",
         "pba_cost_discount_percent",
@@ -375,7 +409,8 @@ class PurchaseOrderLine(models.Model):
         for line in self:
             if line.display_type or not line.product_id:
                 continue
-            line.pba_sale_price_unit = line.pba_sale_price_suggested
+            fin = line.pba_projected_final_cost or 0.0
+            line.pba_sale_price_unit = fin * (1.0 + (line.pba_utility_percent or 0.0))
 
     @api.model
     def _pba_cost_percent_field_map(self):
@@ -430,6 +465,7 @@ class PurchaseOrderLine(models.Model):
                 super(PurchaseOrderLine, line).write(
                     {"pba_sale_price_unit_baseline": line.pba_sale_price_unit}
                 )
+                line._pba_apply_utility_percent_from_sale_price_unit()
                 continue
             su = line.pba_sale_price_suggested
             super(PurchaseOrderLine, line).write(
@@ -447,6 +483,11 @@ class PurchaseOrderLine(models.Model):
         if product_changed:
             vals = self._pba_prepare_vals_pba_cost_defaults(vals)
         old_templates = self.product_id.product_tmpl_id
+        update_utility_from_sale = (
+            "pba_sale_price_unit" in vals
+            and "pba_utility_percent" not in vals
+            and not product_changed
+        )
         res = super().write(vals)
         if product_changed:
             for line in self:
@@ -456,6 +497,8 @@ class PurchaseOrderLine(models.Model):
                 super(PurchaseOrderLine, line).write(
                     {"pba_sale_price_unit": su, "pba_sale_price_unit_baseline": su}
                 )
+        elif update_utility_from_sale:
+            self._pba_apply_utility_percent_from_sale_price_unit()
         (old_templates | self.product_id.product_tmpl_id)._pba_invalidate_last_cost()
         return res
 

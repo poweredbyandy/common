@@ -8,6 +8,16 @@ from .pba_constants import DEFAULT_PBA_FINAL_COST_FORMULA, pba_final_cost_dummy_
 class ResConfigSettings(models.TransientModel):
     _inherit = "res.config.settings"
 
+    pba_default_cost_currency_id = fields.Many2one(
+        "res.currency",
+        string="Moneda de costos PBA",
+        config_parameter="pba_costs.default_cost_currency_id",
+        help="Moneda aplicada a último costo, flete, arancel, operativo, "
+        "nacionalización y costo final en productos nuevos. "
+        "Si está vacía, se usa la moneda de la compañía. "
+        "Independiente de la moneda del costo estándar del producto.",
+    )
+
     pba_final_cost_formula = fields.Text(
         string="Fórmula global del costo final (PBA)",
         help="Expresión evaluada (safe_eval) para cada plantilla de producto. "

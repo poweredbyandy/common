@@ -72,3 +72,10 @@ def _pba_final_cost_formula_variable_names():
 
 def pba_final_cost_dummy_eval_context():
     return {k: 1.0 for k in _pba_final_cost_formula_variable_names()}
+
+
+def pba_utility_percent_from_sale_and_cost(sale_price, final_cost):
+    cost = float(final_cost or 0.0)
+    if not cost:
+        return 0.0
+    return (float(sale_price or 0.0) / cost) - 1.0

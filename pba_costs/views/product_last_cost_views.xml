@@ -7,6 +7,7 @@
         <field name="priority" eval="1"/>
         <field name="arch" type="xml">
             <xpath expr="//div[@name='standard_price_uom']" position="after">
+                <field name="pba_cost_currency_id" invisible="1"/>
                 <label
                     for="pba_last_cost"
                     string="Último costo"
@@ -23,7 +24,7 @@
                         name="pba_last_cost"
                         class="oe_inline"
                         widget="monetary"
-                        options="{'currency_field': 'cost_currency_id', 'field_digits': True}"
+                        options="{'currency_field': 'pba_cost_currency_id', 'field_digits': True}"
                     />
                     <span groups="uom.group_uom">
                         por
@@ -41,13 +42,14 @@
         <field name="priority" eval="1"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='standard_price']" position="after">
+                <field name="pba_cost_currency_id" column_invisible="True"/>
                 <field
                     name="pba_last_cost"
                     string="Último costo"
                     optional="show"
                     groups="pba_costs.group_pba_product_standard_cost_purchase_tax"
                     widget="monetary"
-                    options="{'currency_field': 'cost_currency_id', 'field_digits': True}"
+                    options="{'currency_field': 'pba_cost_currency_id', 'field_digits': True}"
                     readonly="1"
                 />
                 <field
@@ -56,7 +58,7 @@
                     optional="hide"
                     groups="pba_costs.group_pba_product_costs_tab"
                     widget="monetary"
-                    options="{'currency_field': 'cost_currency_id', 'field_digits': True}"
+                    options="{'currency_field': 'pba_cost_currency_id', 'field_digits': True}"
                 />
             </xpath>
         </field>
@@ -69,6 +71,7 @@
         <field name="priority" eval="1"/>
         <field name="arch" type="xml">
             <xpath expr="//group[@name='pricing']//div[field[@name='standard_price']]" position="after">
+                <field name="pba_cost_currency_id" invisible="1"/>
                 <label
                     for="pba_last_cost"
                     string="Último costo"
@@ -84,7 +87,7 @@
                         name="pba_last_cost"
                         class="oe_inline"
                         widget="monetary"
-                        options="{'currency_field': 'cost_currency_id', 'field_digits': True}"
+                        options="{'currency_field': 'pba_cost_currency_id', 'field_digits': True}"
                     />
                 </div>
             </xpath>
@@ -98,13 +101,14 @@
         <field name="priority" eval="1"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='standard_price']" position="after">
+                <field name="pba_cost_currency_id" column_invisible="True"/>
                 <field
                     name="pba_last_cost"
                     string="Último costo"
                     optional="show"
                     groups="pba_costs.group_pba_product_standard_cost_purchase_tax"
                     widget="monetary"
-                    options="{'currency_field': 'cost_currency_id', 'field_digits': True}"
+                    options="{'currency_field': 'pba_cost_currency_id', 'field_digits': True}"
                     readonly="1"
                 />
                 <field
@@ -113,7 +117,7 @@
                     optional="hide"
                     groups="pba_costs.group_pba_product_costs_tab"
                     widget="monetary"
-                    options="{'currency_field': 'cost_currency_id', 'field_digits': True}"
+                    options="{'currency_field': 'pba_cost_currency_id', 'field_digits': True}"
                 />
             </xpath>
         </field>

@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_order_form_product_search_qty" model="ir.ui.view">
+        <field name="name">sale.order.form.product.search.qty</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='order_line']/list//field[@name='product_template_id'][@widget='sol_product_many2one']" position="attributes">
+                <attribute name="context">{
+                    'partner_id': parent.partner_id,
+                    'quantity': product_uom_qty,
+                    'pricelist': parent.pricelist_id,
+                    'uom': product_uom,
+                    'company_id': parent.company_id,
+                    'default_list_price': price_unit,
+                    'default_uom_id': product_uom,
+                    'warehouse_id': parent.warehouse_id,
+                    'sale_product_search_show_qty': True,
+                }</attribute>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/list//field[@name='product_id'][@widget='sol_product_many2one']" position="attributes">
+                <attribute name="context">{
+                    'partner_id': parent.partner_id,
+                    'quantity': product_uom_qty,
+                    'pricelist': parent.pricelist_id,
+                    'uom': product_uom,
+                    'company_id': parent.company_id,
+                    'default_lst_price': price_unit,
+                    'default_uom_id': product_uom,
+                    'warehouse_id': parent.warehouse_id,
+                    'sale_product_search_show_qty': True,
+                }</attribute>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/form//field[@name='product_id'][@widget='many2one_barcode']" position="attributes">
+                <attribute name="context">{
+                    'partner_id': parent.partner_id,
+                    'quantity': product_uom_qty,
+                    'pricelist': parent.pricelist_id,
+                    'uom': product_uom,
+                    'company_id': parent.company_id,
+                    'default_uom_id': product_uom,
+                    'warehouse_id': parent.warehouse_id,
+                    'sale_product_search_show_qty': True,
+                }</attribute>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>
