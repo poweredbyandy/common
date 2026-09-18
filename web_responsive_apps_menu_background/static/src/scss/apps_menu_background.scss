@@ -1,0 +1,13 @@
+.app-menu-container.o_apps_menu_has_custom_bg {
+    &::before {
+        content: "";
+        pointer-events: none;
+        position: absolute;
+        inset: 0;
+        background-image: var(--o-apps-menu-bg-image);
+        background-repeat: no-repeat;
+        background-size: var(--o-apps-menu-bg-size);
+        background-position: var(--o-apps-menu-bg-position);
+        opacity: var(--o-apps-menu-bg-opacity);
+    }
+}

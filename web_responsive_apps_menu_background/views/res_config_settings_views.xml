@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.apps.menu.background</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="base.res_config_settings_view_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <app
+                    data-string="Apps Menu Background"
+                    string="Fondo del menú"
+                    name="web_responsive_apps_menu_background"
+                    groups="base.group_system"
+                >
+                    <block
+                        title="Fondo del menú de aplicaciones"
+                        name="apps_menu_background_block"
+                    >
+                        <setting
+                            string="Imagen de fondo"
+                            help="Imagen que se muestra detrás de las aplicaciones."
+                        >
+                            <field
+                                name="apps_menu_background_image"
+                                widget="image"
+                                class="w-25"
+                            />
+                        </setting>
+                        <setting
+                            string="Tamaño"
+                            help="Porcentaje de la pantalla. Puede elegir 100, 70, 50, 40, 20 o escribir otro valor."
+                        >
+                            <field name="apps_menu_background_size_preset" />
+                            <div class="o_row mt-2">
+                                <field name="apps_menu_background_size" />
+                                <span>%</span>
+                            </div>
+                        </setting>
+                        <setting
+                            string="Posición"
+                            help="Dónde se coloca la imagen en la pantalla."
+                        >
+                            <field name="apps_menu_background_position" />
+                        </setting>
+                        <setting
+                            string="Opacidad"
+                            help="0 es transparente y 100 es opaco."
+                        >
+                            <div class="o_row">
+                                <field name="apps_menu_background_opacity" />
+                                <span>%</span>
+                            </div>
+                        </setting>
+                    </block>
+                    <div class="alert alert-info" role="alert">
+                        Recargue la página para ver los cambios en el menú de
+                        aplicaciones.
+                    </div>
+                </app>
+            </xpath>
+        </field>
+    </record>
+</odoo>

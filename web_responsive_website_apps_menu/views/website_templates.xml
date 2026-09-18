@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <template id="layout" inherit_id="website.layout">
+        <xpath
+            expr="//a[hasclass('o_frontend_to_backend_apps_btn')]"
+            position="replace"
+        >
+            <a
+                href="/odoo"
+                title="Go to your Odoo Apps"
+                class="o_frontend_to_backend_apps_btn fa fa-th d-flex align-items-center justify-content-center text-decoration-none"
+            />
+        </xpath>
+        <xpath
+            expr="//div[hasclass('o_frontend_to_backend_apps_menu')]"
+            position="replace"
+        />
+    </template>
+</odoo>

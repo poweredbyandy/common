@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="view_company_form" model="ir.ui.view">
+        <field name="name">res.company.form.apps.menu.background</field>
+        <field name="model">res.company</field>
+        <field name="inherit_id" ref="base.view_company_form" />
+        <field name="arch" type="xml">
+            <notebook position="inside">
+                <page
+                    string="Fondo del menú"
+                    name="apps_menu_background"
+                    groups="base.group_system"
+                >
+                    <group>
+                        <group>
+                            <field
+                                name="apps_menu_background_image"
+                                widget="image"
+                                class="oe_avatar"
+                            />
+                            <field name="apps_menu_background_size_preset" />
+                            <label for="apps_menu_background_size" />
+                            <div class="o_row">
+                                <field name="apps_menu_background_size" />
+                                <span>%</span>
+                            </div>
+                            <field name="apps_menu_background_position" />
+                            <label for="apps_menu_background_opacity" />
+                            <div class="o_row">
+                                <field name="apps_menu_background_opacity" />
+                                <span>%</span>
+                            </div>
+                        </group>
+                    </group>
+                    <div class="alert alert-info mt-2 d-flex align-items-center" role="alert">
+                        <span class="fa fa-info fa-2x me-2" />
+                        Recargue la página para ver los cambios en el menú de
+                        aplicaciones.
+                    </div>
+                </page>
+            </notebook>
+        </field>
+    </record>
+</odoo>
