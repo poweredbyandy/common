@@ -1008,6 +1008,30 @@ class ProductTemplate(models.Model):
             },
         }
 
+    def action_pba_update_list_price(self):
+        self.ensure_one()
+        if not self.env.su and not pba_user_can_edit_all_costs(self.env):
+            raise AccessError(
+                _("You are not allowed to edit PBA costs on the product.")
+            )
+        digits = self.env["decimal.precision"].precision_get("Product Price")
+        price = self.pba_suggested_list_price or 0.0
+        if float_compare(price, 0.0, precision_digits=digits) <= 0:
+            raise UserError(
+                _("No hay precio de venta sugerido para actualizar.")
+            )
+        self.write({"list_price": price})
+        return {
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "title": _("Precio de venta"),
+                "message": _("Se actualizó el precio de venta con el precio sugerido."),
+                "type": "success",
+                "sticky": False,
+            },
+        }
+
     def action_pba_cost_history_freight(self):
         return self._pba_action_cost_history("freight")
 

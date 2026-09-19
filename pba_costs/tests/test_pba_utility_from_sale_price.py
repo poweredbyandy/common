@@ -92,3 +92,15 @@ class TestPbaUtilityFromSalePrice(TransactionCase):
             line_form.pba_sale_price_unit = 132.0
             self.assertAlmostEqual(line_form.pba_utility_percent, 0.5)
             self.assertAlmostEqual(line_form.pba_sale_price_unit, 132.0)
+
+    def test_update_list_price_from_suggested(self):
+        self.assertAlmostEqual(self.template.list_price, 100.0)
+        self.assertAlmostEqual(self.template.pba_suggested_list_price, 132.0)
+        action = self.template.action_pba_update_list_price()
+        self.assertAlmostEqual(self.template.list_price, 132.0)
+        self.assertEqual(action["tag"], "display_notification")
+
+    def test_update_list_price_from_variant(self):
+        self.product.action_pba_update_list_price()
+        self.assertAlmostEqual(self.template.list_price, 132.0)
+

@@ -170,3 +170,15 @@ class TestPbaCostAccess(TransactionCase):
         tmpl.write({"pba_last_cost": 99.0})
         self.assertAlmostEqual(tmpl.pba_last_cost, 99.0)
 
+    def test_read_user_cannot_update_list_price(self):
+        tmpl = self.product.product_tmpl_id.with_user(self.user_read)
+        with self.assertRaises(AccessError):
+            tmpl.action_pba_update_list_price()
+
+    def test_edit_all_user_can_update_list_price(self):
+        tmpl = self.product.product_tmpl_id
+        tmpl.write({"standard_price": 100.0, "pba_utility_percent": 0.2})
+        tmpl.invalidate_recordset(["pba_last_cost", "pba_suggested_list_price"])
+        tmpl.with_user(self.user_all).action_pba_update_list_price()
+        self.assertAlmostEqual(tmpl.list_price, tmpl.pba_suggested_list_price)
+

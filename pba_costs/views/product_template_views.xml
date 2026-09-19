@@ -92,6 +92,16 @@
                                 options="{'currency_field': 'currency_id', 'field_digits': True}"
                                 readonly="1"
                             />
+                            <button
+                                name="action_pba_update_list_price"
+                                type="object"
+                                string="Actualizar precio de venta"
+                                class="btn-secondary"
+                                icon="fa-refresh"
+                                colspan="2"
+                                invisible="pba_costs_readonly"
+                                confirm="¿Actualizar el precio de venta del producto con el precio sugerido?"
+                            />
                             <field name="pba_session_debug" invisible="1"/>
                             <div
                                 colspan="2"

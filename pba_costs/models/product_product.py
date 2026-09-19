@@ -22,6 +22,10 @@ class ProductProduct(models.Model):
         readonly=True,
     )
 
+    def action_pba_update_list_price(self):
+        self.ensure_one()
+        return self.product_tmpl_id.action_pba_update_list_price()
+
     def action_pba_last_cost_purchase_traceability(self):
         self.ensure_one()
         return self.product_tmpl_id.action_pba_last_cost_purchase_traceability()
