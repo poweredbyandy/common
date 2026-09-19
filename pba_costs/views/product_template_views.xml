@@ -44,6 +44,7 @@
                                 name="pba_last_cost"
                                 widget="monetary"
                                 options="{'currency_field': 'pba_cost_currency_id', 'field_digits': True}"
+                                readonly="pba_costs_readonly"
                             />
                             <field
                                 name="pba_cost_discount_percent"

@@ -157,9 +157,18 @@ class ProductTemplate(models.Model):
     pba_last_cost = fields.Monetary(
         string="Último costo",
         compute="_compute_pba_last_cost",
+        inverse="_inverse_pba_last_cost",
+        store=True,
+        readonly=False,
         currency_field="pba_cost_currency_id",
         help="Precio unitario de la última compra confirmada (descuento aplicado), "
-        "en la UdM del producto y moneda de costos PBA.",
+        "en la UdM del producto y moneda de costos PBA. "
+        "Se puede editar a mano; una compra posterior lo vuelve a calcular.",
+    )
+    pba_last_cost_manual = fields.Boolean(copy=False)
+    pba_last_cost_manual_amount = fields.Monetary(
+        currency_field="pba_cost_currency_id",
+        copy=False,
     )
 
     pba_final_cost = fields.Monetary(
@@ -313,6 +322,8 @@ class ProductTemplate(models.Model):
             return formula != current
         if field_name == "pba_force_cost_currency_id":
             return bool(value)
+        if field_name == "pba_last_cost":
+            return False
         return float_compare(value or 0.0, 0.0, precision_digits=6) != 0
 
     def _pba_product_cost_vals_change(self, field_name, value):
@@ -411,34 +422,57 @@ class ProductTemplate(models.Model):
             return line_dt.date() if hasattr(line_dt, "date") else line_dt
         return fields.Date.context_today(self)
 
+    def _pba_last_cost_automatic(self):
+        self.ensure_one()
+        fallback = self._pba_standard_price_in_pba_currency()
+        line = self._pba_find_last_purchase_order_line()
+        if not line:
+            return fallback
+        try:
+            price_uom = line.product_uom._compute_price(
+                line.price_unit_discounted,
+                line.product_id.uom_id,
+            )
+            date = self._pba_last_purchase_line_conversion_date(line)
+            to_currency = self._pba_resolved_cost_currency()
+            return line.currency_id._convert(
+                price_uom,
+                to_currency,
+                line.company_id,
+                date,
+                round=True,
+            )
+        except AccessError:
+            return fallback
+
     @api.depends(
         "product_variant_ids",
         "pba_cost_currency_id",
         "standard_price",
+        "pba_last_cost_manual",
+        "pba_last_cost_manual_amount",
     )
     def _compute_pba_last_cost(self):
         for template in self:
-            fallback = template._pba_standard_price_in_pba_currency()
-            line = template._pba_find_last_purchase_order_line()
-            if not line:
-                template.pba_last_cost = fallback
+            if template.pba_last_cost_manual:
+                template.pba_last_cost = template.pba_last_cost_manual_amount
                 continue
-            try:
-                price_uom = line.product_uom._compute_price(
-                    line.price_unit_discounted,
-                    line.product_id.uom_id,
+            template.pba_last_cost = template._pba_last_cost_automatic()
+
+    def _inverse_pba_last_cost(self):
+        for template in self:
+            automatic = template._pba_last_cost_automatic()
+            new_val = template.pba_last_cost or 0.0
+            if float_compare(automatic, new_val, precision_digits=6) == 0:
+                template.pba_last_cost_manual = False
+                template.pba_last_cost_manual_amount = 0.0
+                continue
+            if not self.env.su and not pba_user_can_edit_all_costs(self.env):
+                raise AccessError(
+                    _("You are not allowed to edit PBA costs on the product.")
                 )
-                date = template._pba_last_purchase_line_conversion_date(line)
-                to_currency = template._pba_resolved_cost_currency()
-                template.pba_last_cost = line.currency_id._convert(
-                    price_uom,
-                    to_currency,
-                    line.company_id,
-                    date,
-                    round=True,
-                )
-            except AccessError:
-                template.pba_last_cost = fallback
+            template.pba_last_cost_manual = True
+            template.pba_last_cost_manual_amount = new_val
 
     @api.depends(
         "product_variant_ids",
@@ -816,6 +850,14 @@ class ProductTemplate(models.Model):
     def _pba_invalidate_last_cost(self):
         if not self:
             return
+        manual = self.filtered("pba_last_cost_manual")
+        if manual:
+            manual.sudo().write(
+                {
+                    "pba_last_cost_manual": False,
+                    "pba_last_cost_manual_amount": 0.0,
+                }
+            )
         self.invalidate_recordset(
             [
                 "pba_last_cost",
@@ -830,6 +872,7 @@ class ProductTemplate(models.Model):
             ]
         )
         for fname in (
+            "pba_last_cost",
             "pba_cost_discount",
             "pba_cost_freight",
             "pba_cost_tariff",
@@ -855,7 +898,7 @@ class ProductTemplate(models.Model):
             batch._compute_pba_cost_tariff()
             batch._compute_pba_cost_operative()
             batch._compute_pba_cost_nationalization()
-            batch.flush_recordset(amount_fields)
+            batch.flush_recordset(["pba_last_cost"] + amount_fields)
             batch.invalidate_recordset(
                 [
                     "pba_final_cost",

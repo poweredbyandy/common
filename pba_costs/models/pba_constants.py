@@ -8,6 +8,7 @@ PBA_PRODUCT_COST_WRITE_FIELDS = frozenset(
         "pba_cost_operative_percent",
         "pba_cost_nationalization_percent",
         "pba_utility_percent",
+        "pba_last_cost",
         "pba_final_cost_formula_edit",
     }
 )

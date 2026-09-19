@@ -6,11 +6,14 @@ class ProductProduct(models.Model):
     _name = "product.product"
     _inherit = ["product.product", "pba.cost.currency.mixin"]
 
+    pba_costs_readonly = fields.Boolean(
+        related="product_tmpl_id.pba_costs_readonly",
+    )
     pba_last_cost = fields.Monetary(
         related="product_tmpl_id.pba_last_cost",
         string="Último costo",
         currency_field="pba_cost_currency_id",
-        readonly=True,
+        readonly=False,
     )
     pba_final_cost = fields.Monetary(
         related="product_tmpl_id.pba_final_cost",

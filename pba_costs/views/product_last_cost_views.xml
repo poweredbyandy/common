@@ -8,6 +8,7 @@
         <field name="arch" type="xml">
             <xpath expr="//div[@name='standard_price_uom']" position="after">
                 <field name="pba_cost_currency_id" invisible="1"/>
+                <field name="pba_costs_readonly" invisible="1"/>
                 <label
                     for="pba_last_cost"
                     string="Último costo"
@@ -25,6 +26,7 @@
                         class="oe_inline"
                         widget="monetary"
                         options="{'currency_field': 'pba_cost_currency_id', 'field_digits': True}"
+                        readonly="pba_costs_readonly"
                     />
                     <span groups="uom.group_uom">
                         por
@@ -83,11 +85,13 @@
                     class="o_row"
                     groups="pba_costs.group_pba_product_standard_cost_purchase_tax"
                 >
+                    <field name="pba_costs_readonly" invisible="1"/>
                     <field
                         name="pba_last_cost"
                         class="oe_inline"
                         widget="monetary"
                         options="{'currency_field': 'pba_cost_currency_id', 'field_digits': True}"
+                        readonly="pba_costs_readonly"
                     />
                 </div>
             </xpath>

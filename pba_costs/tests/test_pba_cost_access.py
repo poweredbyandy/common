@@ -159,3 +159,14 @@ class TestPbaCostAccess(TransactionCase):
         _order, line = self._create_rfq()
         line.with_user(self.user_all).write({"pba_cost_freight_percent": 0.3})
         self.assertAlmostEqual(line.pba_cost_freight_percent, 0.3)
+
+    def test_read_user_cannot_write_last_cost(self):
+        tmpl = self.product.product_tmpl_id.with_user(self.user_read)
+        with self.assertRaises(AccessError):
+            tmpl.write({"pba_last_cost": 99.0})
+
+    def test_edit_all_user_can_write_last_cost(self):
+        tmpl = self.product.product_tmpl_id.with_user(self.user_all)
+        tmpl.write({"pba_last_cost": 99.0})
+        self.assertAlmostEqual(tmpl.pba_last_cost, 99.0)
+
