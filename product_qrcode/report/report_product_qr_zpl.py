@@ -10,21 +10,10 @@ from odoo import _, api, models
 from odoo.exceptions import UserError
 from odoo.tools.misc import find_in_path
 
+REF_WIDTH = 600
+REF_HEIGHT = 300
 LOGO_ORIGIN = (81, 212)
 LOGO_SIZE = (48, 48)
-PORTAL_CODE_LABEL_Y = 112
-PORTAL_CODE_VALUE_Y = 130
-PORTAL_CODE_FB_WIDTH = 305
-PORTAL_MINI_QR_ORIGIN = (450, 160)
-PORTAL_MINI_QR_MAG = 3
-PORTAL_URL_QR_CAPTION_Y = 198
-PORTAL_URL_QR_CAPTION_FONT = 22
-PRODUCT_CODE_LABEL_Y = 125
-PRODUCT_CODE_VALUE_Y = 145
-PRODUCT_CODE_FB_WIDTH = 305
-LOT_LABEL_Y = 175
-LOT_VALUE_Y = 195
-LOT_FB_WIDTH = 305
 
 
 class ReportProductQrZpl(models.AbstractModel):
@@ -56,6 +45,62 @@ class ReportProductQrZpl(models.AbstractModel):
         if current and len(lines) < max_lines:
             lines.append(current)
         return r"\&".join(lines[:max_lines])
+
+    @api.model
+    def _scale_label_dot(self, value, size, reference, minimum=1):
+        return max(minimum, int(round(value * size / float(reference))))
+
+    @api.model
+    def _get_qr_label_layout(self, width_dots, height_dots):
+        def scale_x(value, minimum=1):
+            return self._scale_label_dot(value, width_dots, REF_WIDTH, minimum)
+
+        def scale_y(value, minimum=1):
+            return self._scale_label_dot(value, height_dots, REF_HEIGHT, minimum)
+
+        logo_width = scale_x(LOGO_SIZE[0])
+        logo_height = scale_y(LOGO_SIZE[1])
+        logo_x = scale_x(LOGO_ORIGIN[0])
+        logo_y = scale_y(LOGO_ORIGIN[1])
+        if logo_y + logo_height > height_dots - 4:
+            logo_y = max(4, height_dots - logo_height - 4)
+        footer_font = scale_y(11)
+        footer_y = scale_y(272)
+        if footer_y + footer_font > height_dots - 2:
+            footer_y = max(4, height_dots - footer_font - 2)
+        return {
+            "width": width_dots,
+            "height": height_dots,
+            "qr_origin": (scale_x(81), scale_y(25)),
+            "qr_mag": max(2, min(4, scale_x(4))),
+            "caption_origin": (scale_x(81), scale_y(198)),
+            "caption_font": scale_y(22, 12),
+            "caption_fb": scale_x(200),
+            "name_label_origin": (scale_x(280), scale_y(20)),
+            "name_label_font": scale_y(14, 10),
+            "name_origin": (scale_x(280), scale_y(38)),
+            "name_font": scale_y(18, 12),
+            "name_fb": scale_x(255),
+            "name_max_chars": max(12, int(round(26 * width_dots / float(REF_WIDTH)))),
+            "portal_code_label_y": scale_y(112),
+            "portal_code_value_y": scale_y(130),
+            "product_code_label_y": scale_y(125),
+            "product_code_value_y": scale_y(145),
+            "code_fb": scale_x(305),
+            "code_label_font": scale_y(14, 10),
+            "code_value_font": scale_y(24, 14),
+            "lot_label_y": scale_y(175),
+            "lot_value_y": scale_y(195),
+            "lot_fb": scale_x(305),
+            "lot_value_font": scale_y(20, 12),
+            "mini_qr_origin": (scale_x(450), scale_y(160)),
+            "mini_qr_mag": max(2, min(3, scale_x(3))),
+            "logo_origin": (logo_x, logo_y),
+            "logo_size": (logo_width, logo_height),
+            "footer_origin": (scale_x(81), footer_y),
+            "footer_font": footer_font,
+            "footer_fb": min(scale_x(450), max(40, width_dots - scale_x(81) - 4)),
+        }
 
     @api.model
     def _get_qr_payload(self, product, mode, report_data=None, lot_name=None):
@@ -96,28 +141,29 @@ class ReportProductQrZpl(models.AbstractModel):
         return code
 
     @api.model
-    def _append_portal_code_qr_zpl(self, parts, product, lot_name=None):
+    def _append_portal_code_qr_zpl(self, parts, product, layout, lot_name=None):
         payload = lot_name or self._get_product_code_qr_payload(product)
+        origin = layout["mini_qr_origin"]
         parts.extend(
             [
                 "\n",
-                "^FO%d,%d\n"
-                % (PORTAL_MINI_QR_ORIGIN[0], PORTAL_MINI_QR_ORIGIN[1]),
-                "^BQN,2,%d\n" % PORTAL_MINI_QR_MAG,
+                "^FO%d,%d\n" % (origin[0], origin[1]),
+                "^BQN,2,%d\n" % layout["mini_qr_mag"],
                 "^FDQA,%s^FS\n" % payload,
             ]
         )
 
     @api.model
-    def _append_portal_url_qr_caption_zpl(self, parts):
+    def _append_portal_url_qr_caption_zpl(self, parts, layout):
         caption = self._zpl_sanitize(_("VER PRECIO"))
+        origin = layout["caption_origin"]
+        font = layout["caption_font"]
         parts.extend(
             [
                 "\n",
-                "^FO81,%d\n" % PORTAL_URL_QR_CAPTION_Y,
-                "^A0N,%d,%d\n"
-                % (PORTAL_URL_QR_CAPTION_FONT, PORTAL_URL_QR_CAPTION_FONT),
-                "^FB200,1,0,C,0\n",
+                "^FO%d,%d\n" % (origin[0], origin[1]),
+                "^A0N,%d,%d\n" % (font, font),
+                "^FB%d,1,0,C,0\n" % layout["caption_fb"],
                 "^FD%s^FS\n" % caption,
             ]
         )
@@ -241,17 +287,21 @@ class ReportProductQrZpl(models.AbstractModel):
         )
 
     @api.model
-    def _logo_to_zpl_gfa(self, image_value):
+    def _logo_to_zpl_gfa(self, image_value, origin=LOGO_ORIGIN, size=LOGO_SIZE):
         image = self._open_image(self._decode_image_bytes(image_value))
         if image is None:
             return ""
-        return self._image_to_zpl_gfa(image)
+        return self._image_to_zpl_gfa(image, origin=origin, size=size)
 
     @api.model
-    def _label_logo_gfa(self, company=None):
+    def _label_logo_gfa(self, company=None, origin=None, size=None):
         company = company or self.env.company
+        origin = origin or LOGO_ORIGIN
+        size = size or LOGO_SIZE
         if company.qr_label_logo:
-            gfa = self._logo_to_zpl_gfa(company.qr_label_logo)
+            gfa = self._logo_to_zpl_gfa(
+                company.qr_label_logo, origin=origin, size=size
+            )
             if gfa:
                 return gfa
         if company.uses_default_logo:
@@ -260,7 +310,7 @@ class ReportProductQrZpl(models.AbstractModel):
             image = self._open_image(raw)
             if image is None:
                 continue
-            gfa = self._image_to_zpl_gfa(image)
+            gfa = self._image_to_zpl_gfa(image, origin=origin, size=size)
             if gfa:
                 return gfa
         return ""
@@ -272,56 +322,71 @@ class ReportProductQrZpl(models.AbstractModel):
         qr_payload = self._get_qr_payload(
             product, mode, report_data=report_data, lot_name=lot_name
         )
-        product_name = self._zpl_wrap_name(product.name or product.display_name)
+        width_dots, height_dots = product.env.company._get_qr_label_size_dots()
+        layout = self._get_qr_label_layout(width_dots, height_dots)
+        product_name = self._zpl_wrap_name(
+            product.name or product.display_name,
+            max_chars=layout["name_max_chars"],
+        )
         code = self._zpl_sanitize(product.default_code or product.qr_code or "")
         lot_text = self._zpl_sanitize(lot_name or "")
         footer_text = self._zpl_sanitize(footer or product.env.company.name or "")
-        logo_gfa = self._label_logo_gfa(product.env.company)
-        width_dots, height_dots = product.env.company._get_qr_label_size_dots()
-        code_label_y = (
-            PORTAL_CODE_LABEL_Y if mode == "portal" else PRODUCT_CODE_LABEL_Y
+        logo_gfa = self._label_logo_gfa(
+            product.env.company,
+            origin=layout["logo_origin"],
+            size=layout["logo_size"],
         )
-        code_value_y = (
-            PORTAL_CODE_VALUE_Y if mode == "portal" else PRODUCT_CODE_VALUE_Y
-        )
-        code_fb_width = (
-            PORTAL_CODE_FB_WIDTH if mode == "portal" else PRODUCT_CODE_FB_WIDTH
-        )
+        if mode == "portal":
+            code_label_y = layout["portal_code_label_y"]
+            code_value_y = layout["portal_code_value_y"]
+        else:
+            code_label_y = layout["product_code_label_y"]
+            code_value_y = layout["product_code_value_y"]
+        name_label = layout["name_label_origin"]
+        name_origin = layout["name_origin"]
+        qr_origin = layout["qr_origin"]
+        footer_origin = layout["footer_origin"]
 
         parts = [
             "^XA\n",
             "^CI28\n",
             "^PW%d\n" % width_dots,
             "^LL%d\n" % height_dots,
+            "^MNY\n",
+            "^LT0\n",
+            "^PON\n",
             "^LH0,0\n",
             "^LS0\n",
             "\n",
-            "^FO81,25\n",
-            "^BQN,2,4\n",
+            "^FO%d,%d\n" % (qr_origin[0], qr_origin[1]),
+            "^BQN,2,%d\n" % layout["qr_mag"],
             "^FDQA,%s^FS\n" % qr_payload,
         ]
         if mode == "portal":
-            self._append_portal_url_qr_caption_zpl(parts)
+            self._append_portal_url_qr_caption_zpl(parts, layout)
         parts.extend(
             [
                 "\n",
-                "^FO280,20\n",
-            "^A0N,14,14\n",
-            "^FDPRODUCTO^FS\n",
-            "\n",
-            "^FO280,38\n",
-            "^A0N,18,18\n",
-            "^FB255,3,7,L,0\n",
-            "^FD%s^FS\n" % product_name,
-            "\n",
-            "^FO280,%d\n" % code_label_y,
-            "^A0N,14,14\n",
-            "^FDCODIGO^FS\n",
-            "\n",
-            "^FO280,%d\n" % code_value_y,
-            "^A0N,24,24\n",
-            "^FB%d,1,0,L,0\n" % code_fb_width,
-            "^FD%s^FS\n" % code,
+                "^FO%d,%d\n" % (name_label[0], name_label[1]),
+                "^A0N,%d,%d\n"
+                % (layout["name_label_font"], layout["name_label_font"]),
+                "^FDPRODUCTO^FS\n",
+                "\n",
+                "^FO%d,%d\n" % (name_origin[0], name_origin[1]),
+                "^A0N,%d,%d\n" % (layout["name_font"], layout["name_font"]),
+                "^FB%d,3,7,L,0\n" % layout["name_fb"],
+                "^FD%s^FS\n" % product_name,
+                "\n",
+                "^FO%d,%d\n" % (name_label[0], code_label_y),
+                "^A0N,%d,%d\n"
+                % (layout["code_label_font"], layout["code_label_font"]),
+                "^FDCODIGO^FS\n",
+                "\n",
+                "^FO%d,%d\n" % (name_label[0], code_value_y),
+                "^A0N,%d,%d\n"
+                % (layout["code_value_font"], layout["code_value_font"]),
+                "^FB%d,1,0,L,0\n" % layout["code_fb"],
+                "^FD%s^FS\n" % code,
             ]
         )
         if lot_text:
@@ -329,27 +394,32 @@ class ReportProductQrZpl(models.AbstractModel):
             parts.extend(
                 [
                     "\n",
-                    "^FO280,%d\n" % LOT_LABEL_Y,
-                    "^A0N,14,14\n",
+                    "^FO%d,%d\n" % (name_label[0], layout["lot_label_y"]),
+                    "^A0N,%d,%d\n"
+                    % (layout["code_label_font"], layout["code_label_font"]),
                     "^FD%s^FS\n" % lot_label,
                     "\n",
-                    "^FO280,%d\n" % LOT_VALUE_Y,
-                    "^A0N,20,20\n",
-                    "^FB%d,1,0,L,0\n" % LOT_FB_WIDTH,
+                    "^FO%d,%d\n" % (name_label[0], layout["lot_value_y"]),
+                    "^A0N,%d,%d\n"
+                    % (layout["lot_value_font"], layout["lot_value_font"]),
+                    "^FB%d,1,0,L,0\n" % layout["lot_fb"],
                     "^FD%s^FS\n" % lot_text,
                 ]
             )
         if mode == "portal":
-            self._append_portal_code_qr_zpl(parts, product, lot_name=lot_name)
+            self._append_portal_code_qr_zpl(
+                parts, product, layout, lot_name=lot_name
+            )
         if logo_gfa:
             parts.extend(["\n", logo_gfa, "\n"])
         if footer_text:
             parts.extend(
                 [
                     "\n",
-                    "^FO81,272\n",
-                    "^A0N,11,11\n",
-                    "^FB450,1,0,C,0\n",
+                    "^FO%d,%d\n" % (footer_origin[0], footer_origin[1]),
+                    "^A0N,%d,%d\n"
+                    % (layout["footer_font"], layout["footer_font"]),
+                    "^FB%d,1,0,C,0\n" % layout["footer_fb"],
                     "^FD%s^FS\n" % footer_text,
                 ]
             )

@@ -7,6 +7,7 @@
    **ZPL QR (product code)**, set the quantity and confirm. The report returns
    ZPL text ready for a thermal printer. Each label includes ``^PW`` and
    ``^LL`` from the company size, so the printer does not need ZebraSetup for
-   the paper size.
+   the paper size. The field positions scale to that size so a 57 x 32 mm
+   label does not overflow onto the next sticker.
 #. The label prints the company QR label logo when it is set. Otherwise it
    prints the company logo.

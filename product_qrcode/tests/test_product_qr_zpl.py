@@ -146,6 +146,26 @@ class TestProductQrZpl(TransactionCase):
         with self.assertRaises(ValidationError):
             self.env.company.qr_label_width = 0
 
+    def test_layout_fits_57x32_mm(self):
+        self.env.company.write(
+            {
+                "qr_label_uom": "mm",
+                "qr_label_width": 57.0,
+                "qr_label_height": 32.0,
+                "qr_label_dpi": 203,
+            }
+        )
+        zpl = self.report._build_label_zpl(self.product, "product")
+        self.assertIn("^PW456\n", zpl)
+        self.assertIn("^LL256\n", zpl)
+        self.assertIn("^MNY\n", zpl)
+        self.assertIn("^LT0\n", zpl)
+        self.assertNotIn("^FO81,272", zpl)
+        for match in self.report._get_qr_label_layout(456, 256).values():
+            if isinstance(match, tuple) and len(match) == 2:
+                self.assertLess(match[0], 456)
+                self.assertLess(match[1], 256)
+
     def test_label_skips_default_company_logo(self):
         self.env.company.write(
             {
