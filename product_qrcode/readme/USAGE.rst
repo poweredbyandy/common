@@ -3,6 +3,9 @@
 #. Print or display the image so a camera can scan it.
 #. The scanner reads the barcode first, then the internal reference, then the
    product identifier.
+#. To print a PDF label, open **Print Labels**, choose a sheet format
+   (2 x 7, 4 x 7, 4 x 12 or Dymo) and confirm. The PDF keeps the barcode and
+   adds the product QR next to it.
 #. To print a ZPL label, open **Print Labels** from the product form, choose
    **ZPL QR (product code)**, set the quantity and confirm. The report returns
    ZPL text ready for a thermal printer. Each label includes ``^PW`` and

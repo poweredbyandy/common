@@ -1,6 +1,6 @@
 {
     "name": "Product QR Code",
-    "version": "18.0.1.8.3",
+    "version": "18.0.1.9.0",
     "category": "Inventory/Inventory",
     "summary": "Generate and display a QR code for each product",
     "author": "andyengit",
@@ -11,6 +11,7 @@
     "data": [
         "report/product_qr_paperformat.xml",
         "report/product_qr_reports.xml",
+        "report/product_label_templates.xml",
         "wizard/product_label_layout_views.xml",
         "views/product_product_views.xml",
         "views/product_template_views.xml",
@@ -22,6 +23,9 @@
             "product_qrcode/static/src/qr_code_field.js",
             "product_qrcode/static/src/qr_code_field.xml",
             "product_qrcode/static/src/qr_code_field.scss",
+        ],
+        "web.report_assets_common": [
+            "product_qrcode/static/src/scss/report_label_qr.scss",
         ],
     },
     "installable": True,

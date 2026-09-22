@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <template id="report_simple_label2x7" inherit_id="product.report_simple_label2x7">
+        <xpath expr="//strong[hasclass('o_label_price')]" position="attributes">
+            <attribute name="t-if">product.env.company.product_label_show_price</attribute>
+        </xpath>
+    </template>
+
+    <template id="report_simple_label4x7" inherit_id="product.report_simple_label4x7">
+        <xpath expr="//strong[hasclass('o_label_price_medium')]" position="attributes">
+            <attribute name="t-if">product.env.company.product_label_show_price</attribute>
+        </xpath>
+    </template>
+
+    <template id="report_simple_label4x12" inherit_id="product.report_simple_label4x12">
+        <xpath expr="//div[hasclass('o_label_price_medium')]" position="attributes">
+            <attribute name="t-if">product.env.company.product_label_show_price</attribute>
+        </xpath>
+    </template>
+
+    <template id="report_simple_label_dymo" inherit_id="product.report_simple_label_dymo">
+        <xpath expr="//strong[hasclass('o_label_price_small')]" position="attributes">
+            <attribute name="t-if">product.env.company.product_label_show_price</attribute>
+        </xpath>
+    </template>
+</odoo>
