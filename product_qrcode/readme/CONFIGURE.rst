@@ -8,4 +8,6 @@
    between labels.
 #. Set **QR Label DPI** to the printer resolution (203, 300 or 600 on most
    Zebra printers). The form shows the converted width and height in dots.
-#. If one print feeds a blank extra label, reduce the height by about 1 mm.
+#. If one print feeds a blank extra label, set **QR Label Feed Adjust** to a
+   negative value such as ``-16``. That shortens only the media feed, not the
+   printed design.

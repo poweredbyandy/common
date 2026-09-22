@@ -50,6 +50,13 @@ class ResCompany(models.Model):
         help="Printer resolution used to convert mm, cm or inches to dots. "
         "Typical Zebra values are 203, 300 or 600.",
     )
+    qr_label_feed_adjust = fields.Integer(
+        string="QR Label Feed Adjust",
+        default=-16,
+        help="Dots added to the media feed (^LL). The printed design stays "
+        "on the configured height. Use a negative value if a single print "
+        "feeds an extra blank label. Typical value: -16.",
+    )
     qr_label_width_dots = fields.Integer(
         string="Width (dots)",
         compute="_compute_qr_label_dots",
@@ -58,13 +65,24 @@ class ResCompany(models.Model):
         string="Height (dots)",
         compute="_compute_qr_label_dots",
     )
+    qr_label_feed_dots = fields.Integer(
+        string="Feed (dots)",
+        compute="_compute_qr_label_dots",
+    )
 
-    @api.depends("qr_label_uom", "qr_label_width", "qr_label_height", "qr_label_dpi")
+    @api.depends(
+        "qr_label_uom",
+        "qr_label_width",
+        "qr_label_height",
+        "qr_label_dpi",
+        "qr_label_feed_adjust",
+    )
     def _compute_qr_label_dots(self):
         for company in self:
             width_dots, height_dots = company._get_qr_label_size_dots()
             company.qr_label_width_dots = width_dots
             company.qr_label_height_dots = height_dots
+            company.qr_label_feed_dots = max(1, height_dots + company.qr_label_feed_adjust)
 
     @api.constrains("qr_label_width", "qr_label_height", "qr_label_dpi")
     def _check_qr_label_size(self):

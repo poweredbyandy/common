@@ -184,6 +184,27 @@ msgid "Height (dots)"
 msgstr "Alto (dots)"
 
 #. module: product_qrcode
+#: model:ir.model.fields,field_description:product_qrcode.field_res_company__qr_label_feed_adjust
+msgid "QR Label Feed Adjust"
+msgstr "Ajuste de avance de etiqueta QR"
+
+#. module: product_qrcode
+#: model:ir.model.fields,help:product_qrcode.field_res_company__qr_label_feed_adjust
+msgid ""
+"Dots added to the media feed (^LL). The printed design stays "
+"on the configured height. Use a negative value if a single print "
+"feeds an extra blank label. Typical value: -16."
+msgstr ""
+"Dots que se suman al avance del papel (^LL). El dibujo sigue usando el "
+"alto configurado. Use un valor negativo si al imprimir una sola avanza "
+"una etiqueta vacía. Valor típico: -16."
+
+#. module: product_qrcode
+#: model:ir.model.fields,field_description:product_qrcode.field_res_company__qr_label_feed_dots
+msgid "Feed (dots)"
+msgstr "Avance (dots)"
+
+#. module: product_qrcode
 #: model:ir.model.fields.selection,name:product_qrcode.selection__res_company__qr_label_uom__mm
 msgid "Millimeters (mm)"
 msgstr "Milímetros (mm)"

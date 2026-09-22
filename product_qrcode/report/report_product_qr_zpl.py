@@ -316,20 +316,29 @@ class ReportProductQrZpl(models.AbstractModel):
         return ""
 
     @api.model
+    def _get_qr_label_content_bottom(self, layout):
+        return max(
+            layout["footer_origin"][1] + layout["footer_font"],
+            layout["logo_origin"][1] + layout["logo_size"][1],
+            layout["caption_origin"][1] + layout["caption_font"],
+        )
+
+    @api.model
+    def _get_qr_label_feed_dots(self, company, layout):
+        minimum = self._get_qr_label_content_bottom(layout)
+        return max(1, minimum, layout["height"] + company.qr_label_feed_adjust)
+
+    @api.model
     def _build_label_zpl(
-        self,
-        product,
-        mode,
-        footer=None,
-        report_data=None,
-        lot_name=None,
-        use_gap_media=False,
+        self, product, mode, footer=None, report_data=None, lot_name=None
     ):
         qr_payload = self._get_qr_payload(
             product, mode, report_data=report_data, lot_name=lot_name
         )
-        width_dots, height_dots = product.env.company._get_qr_label_size_dots()
+        company = product.env.company
+        width_dots, height_dots = company._get_qr_label_size_dots()
         layout = self._get_qr_label_layout(width_dots, height_dots)
+        feed_dots = self._get_qr_label_feed_dots(company, layout)
         product_name = self._zpl_wrap_name(
             product.name or product.display_name,
             max_chars=layout["name_max_chars"],
@@ -338,7 +347,7 @@ class ReportProductQrZpl(models.AbstractModel):
         lot_text = self._zpl_sanitize(lot_name or "")
         footer_text = self._zpl_sanitize(footer or product.env.company.name or "")
         logo_gfa = self._label_logo_gfa(
-            product.env.company,
+            company,
             origin=layout["logo_origin"],
             size=layout["logo_size"],
         )
@@ -357,8 +366,8 @@ class ReportProductQrZpl(models.AbstractModel):
             "^XA\n",
             "^CI28\n",
             "^PW%d\n" % width_dots,
-            "^LL%d\n" % height_dots,
-            "^MN%s\n" % ("Y" if use_gap_media else "N"),
+            "^LL%d\n" % feed_dots,
+            "^MNY\n",
             "^LT0\n",
             "^PON\n",
             "^LH0,0\n",
@@ -477,21 +486,15 @@ class ReportProductQrZpl(models.AbstractModel):
 
     @api.model
     def _build_zpl_body(self, data):
-        copies = list(self._iter_label_copies(data))
-        if not copies:
-            raise UserError(_("No product labels to print."))
-        last_index = len(copies) - 1
         chunks = []
-        for index, (product, mode, lot_name) in enumerate(copies):
+        for product, mode, lot_name in self._iter_label_copies(data):
             chunks.append(
                 self._build_label_zpl(
-                    product,
-                    mode,
-                    report_data=data,
-                    lot_name=lot_name,
-                    use_gap_media=index < last_index,
+                    product, mode, report_data=data, lot_name=lot_name
                 )
             )
+        if not chunks:
+            raise UserError(_("No product labels to print."))
         return "".join(chunks)
 
     @api.model

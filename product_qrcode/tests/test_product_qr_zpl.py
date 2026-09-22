@@ -71,8 +71,8 @@ class TestProductQrZpl(TransactionCase):
         }
         zpl_body = self.report._build_zpl_body(data)
         self.assertEqual(zpl_body.count("^XZ"), 2)
-        self.assertEqual(zpl_body.count("^MNY\n"), 1)
-        self.assertEqual(zpl_body.count("^MNN\n"), 1)
+        self.assertEqual(zpl_body.count("^MNY\n"), 2)
+        self.assertNotIn("^MNN\n", zpl_body)
 
     def test_missing_qr_code_raises_user_error(self):
         product = self.env["product.product"].new({"name": "Draft Product"})
@@ -104,10 +104,11 @@ class TestProductQrZpl(TransactionCase):
     def test_default_label_size_is_600x300_dots(self):
         zpl = self.report._build_label_zpl(self.product, "product")
         self.assertIn("^PW600\n", zpl)
-        self.assertIn("^LL300\n", zpl)
-        self.assertIn("^MNN\n", zpl)
+        self.assertIn("^LL284\n", zpl)
+        self.assertIn("^MNY\n", zpl)
         self.assertEqual(self.env.company.qr_label_width_dots, 600)
         self.assertEqual(self.env.company.qr_label_height_dots, 300)
+        self.assertEqual(self.env.company.qr_label_feed_dots, 284)
 
     def test_label_size_from_millimeters(self):
         self.env.company.write(
@@ -120,7 +121,12 @@ class TestProductQrZpl(TransactionCase):
         )
         zpl = self.report._build_label_zpl(self.product, "product")
         self.assertIn("^PW400\n", zpl)
-        self.assertIn("^LL200\n", zpl)
+        self.assertIn("^MNY\n", zpl)
+        layout = self.report._get_qr_label_layout(400, 200)
+        self.assertIn(
+            "^LL%d\n" % self.report._get_qr_label_feed_dots(self.env.company, layout),
+            zpl,
+        )
 
     def test_label_size_from_centimeters_and_inches(self):
         company = self.env.company
@@ -160,9 +166,13 @@ class TestProductQrZpl(TransactionCase):
         )
         zpl = self.report._build_label_zpl(self.product, "product")
         self.assertIn("^PW456\n", zpl)
-        self.assertIn("^LL256\n", zpl)
-        self.assertIn("^MNN\n", zpl)
+        self.assertIn("^MNY\n", zpl)
         self.assertIn("^LT0\n", zpl)
+        layout = self.report._get_qr_label_layout(456, 256)
+        self.assertIn(
+            "^LL%d\n" % self.report._get_qr_label_feed_dots(self.env.company, layout),
+            zpl,
+        )
         self.assertNotIn("^FO81,272", zpl)
         for match in self.report._get_qr_label_layout(456, 256).values():
             if isinstance(match, tuple) and len(match) == 2:
