@@ -51,6 +51,10 @@ class ReportProductQrZpl(models.AbstractModel):
         return max(minimum, int(round(value * size / float(reference))))
 
     @api.model
+    def _get_qr_label_print_width(self, width_dots):
+        return max(int(width_dots), REF_WIDTH)
+
+    @api.model
     def _get_qr_label_layout(self, width_dots, height_dots):
         def scale_x(value, minimum=1):
             return self._scale_label_dot(value, width_dots, REF_WIDTH, minimum)
@@ -319,12 +323,13 @@ class ReportProductQrZpl(models.AbstractModel):
     def _build_calibrate_zpl(self, company=None):
         company = company or self.env.company
         width_dots, height_dots = company._get_qr_label_size_dots()
+        print_width = self._get_qr_label_print_width(width_dots)
         max_length = max(height_dots * 2, 400)
         return "".join(
             [
                 "^XA\n",
                 "^CI28\n",
-                "^PW%d\n" % width_dots,
+                "^PW%d\n" % print_width,
                 "^ML%d\n" % max_length,
                 "^MNY\n",
                 "^LT0\n",
@@ -353,7 +358,8 @@ class ReportProductQrZpl(models.AbstractModel):
         )
         company = product.env.company
         width_dots, height_dots = company._get_qr_label_size_dots()
-        layout = self._get_qr_label_layout(width_dots, height_dots)
+        print_width = self._get_qr_label_print_width(width_dots)
+        layout = self._get_qr_label_layout(print_width, height_dots)
         feed_dots = height_dots
         product_name = self._zpl_wrap_name(
             product.name or product.display_name,
@@ -381,7 +387,7 @@ class ReportProductQrZpl(models.AbstractModel):
         parts = [
             "^XA\n",
             "^CI28\n",
-            "^PW%d\n" % width_dots,
+            "^PW%d\n" % print_width,
         ]
         if not company.qr_label_auto_length:
             parts.append("^LL%d\n" % feed_dots)
