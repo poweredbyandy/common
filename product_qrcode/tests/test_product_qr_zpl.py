@@ -38,12 +38,12 @@ class TestProductQrZpl(TransactionCase):
         self.assertIn("Alternador Bosch", zpl)
         self.assertNotIn("Cargo 815 / 1721", zpl)
 
-    def test_product_mode_keeps_single_qr_and_compact_code_position(self):
+    def test_product_mode_scales_original_code_position(self):
         zpl = self.report._build_label_zpl(self.product, "product")
         self.assertEqual(zpl.count("^BQN"), 1)
         self.assertIn("^BQN,2,3", zpl)
-        self.assertIn("^FO148,100", zpl)
-        self.assertIn("^FO148,116", zpl)
+        self.assertIn("^FO213,103", zpl)
+        self.assertIn("^FO213,120", zpl)
 
         self.assertEqual(
             self.report._zpl_sanitize("A^B~C\\D"),
@@ -109,6 +109,22 @@ class TestProductQrZpl(TransactionCase):
         self.assertFalse(self.env.company.uses_default_logo)
         zpl = self.report._build_label_zpl(self.product, "product")
         self.assertIn("^GFA,", zpl)
+
+    def test_original_layout_kept_on_600x300(self):
+        self.env.company.write(
+            {
+                "qr_label_uom": "dots",
+                "qr_label_width": 600.0,
+                "qr_label_height": 300.0,
+                "qr_label_dpi": 203,
+                "qr_label_auto_length": False,
+            }
+        )
+        zpl = self.report._build_label_zpl(self.product, "product")
+        self.assertIn("^FO280,125", zpl)
+        self.assertIn("^FO280,145", zpl)
+        self.assertIn("^FO81,25", zpl)
+        self.assertIn("^BQN,2,4", zpl)
 
     def test_default_label_size_is_57x31_mm(self):
         zpl = self.report._build_label_zpl(self.product, "product")

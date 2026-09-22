@@ -183,7 +183,7 @@ class TestProductQRCodePortal(WebsiteSaleCommon):
         self.assertEqual(zpl.count("^BQN,2,3"), 1)
         self.assertIn("^BQN,2,2", zpl)
         self.assertIn("VER PRECIO", zpl)
-        self.assertIn("^FO368,155", zpl)
+        self.assertIn("^FO342,132", zpl)
         self.assertIn(self.product.qr_code, zpl)
 
     def test_wizard_defaults_portal_website(self):
