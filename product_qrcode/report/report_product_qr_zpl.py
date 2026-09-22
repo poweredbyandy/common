@@ -10,10 +10,10 @@ from odoo import _, api, models
 from odoo.exceptions import UserError
 from odoo.tools.misc import find_in_path
 
-REF_WIDTH = 600
-REF_HEIGHT = 300
-LOGO_ORIGIN = (81, 212)
-LOGO_SIZE = (48, 48)
+REF_WIDTH = 456
+REF_HEIGHT = 248
+LOGO_ORIGIN = (18, 200)
+LOGO_SIZE = (28, 28)
 
 
 class ReportProductQrZpl(models.AbstractModel):
@@ -64,42 +64,42 @@ class ReportProductQrZpl(models.AbstractModel):
         logo_y = scale_y(LOGO_ORIGIN[1])
         if logo_y + logo_height > height_dots - 4:
             logo_y = max(4, height_dots - logo_height - 4)
-        footer_font = scale_y(11)
-        footer_y = scale_y(272)
+        footer_font = scale_y(10)
+        footer_y = scale_y(232)
         if footer_y + footer_font > height_dots - 2:
             footer_y = max(4, height_dots - footer_font - 2)
         return {
             "width": width_dots,
             "height": height_dots,
-            "qr_origin": (scale_x(81), scale_y(25)),
-            "qr_mag": max(2, min(4, scale_x(4))),
-            "caption_origin": (scale_x(81), scale_y(198)),
-            "caption_font": scale_y(22, 12),
-            "caption_fb": scale_x(200),
-            "name_label_origin": (scale_x(280), scale_y(20)),
-            "name_label_font": scale_y(14, 10),
-            "name_origin": (scale_x(280), scale_y(38)),
-            "name_font": scale_y(18, 12),
-            "name_fb": scale_x(255),
-            "name_max_chars": max(12, int(round(26 * width_dots / float(REF_WIDTH)))),
-            "portal_code_label_y": scale_y(112),
-            "portal_code_value_y": scale_y(130),
-            "product_code_label_y": scale_y(125),
-            "product_code_value_y": scale_y(145),
-            "code_fb": scale_x(305),
-            "code_label_font": scale_y(14, 10),
-            "code_value_font": scale_y(24, 14),
-            "lot_label_y": scale_y(175),
-            "lot_value_y": scale_y(195),
-            "lot_fb": scale_x(305),
-            "lot_value_font": scale_y(20, 12),
-            "mini_qr_origin": (scale_x(450), scale_y(160)),
-            "mini_qr_mag": max(2, min(3, scale_x(3))),
+            "qr_origin": (scale_x(18), scale_y(14)),
+            "qr_mag": max(2, min(4, scale_x(3))),
+            "caption_origin": (scale_x(18), scale_y(122)),
+            "caption_font": scale_y(14, 12),
+            "caption_fb": scale_x(120),
+            "name_label_origin": (scale_x(148), scale_y(12)),
+            "name_label_font": scale_y(12, 10),
+            "name_origin": (scale_x(148), scale_y(26)),
+            "name_font": scale_y(16, 12),
+            "name_fb": scale_x(290),
+            "name_max_chars": max(12, int(round(22 * width_dots / float(REF_WIDTH)))),
+            "portal_code_label_y": scale_y(88),
+            "portal_code_value_y": scale_y(102),
+            "product_code_label_y": scale_y(100),
+            "product_code_value_y": scale_y(116),
+            "code_fb": scale_x(200),
+            "code_label_font": scale_y(12, 10),
+            "code_value_font": scale_y(20, 14),
+            "lot_label_y": scale_y(150),
+            "lot_value_y": scale_y(164),
+            "lot_fb": scale_x(200),
+            "lot_value_font": scale_y(16, 12),
+            "mini_qr_origin": (scale_x(368), scale_y(155)),
+            "mini_qr_mag": max(2, min(3, scale_x(2))),
             "logo_origin": (logo_x, logo_y),
             "logo_size": (logo_width, logo_height),
-            "footer_origin": (scale_x(81), footer_y),
+            "footer_origin": (scale_x(18), footer_y),
             "footer_font": footer_font,
-            "footer_fb": min(scale_x(450), max(40, width_dots - scale_x(81) - 4)),
+            "footer_fb": min(scale_x(420), max(40, width_dots - scale_x(18) - 4)),
         }
 
     @api.model
@@ -316,21 +316,37 @@ class ReportProductQrZpl(models.AbstractModel):
         return ""
 
     @api.model
-    def _get_qr_label_content_bottom(self, layout):
-        return max(
-            layout["footer_origin"][1] + layout["footer_font"],
-            layout["logo_origin"][1] + layout["logo_size"][1],
-            layout["caption_origin"][1] + layout["caption_font"],
+    def _build_calibrate_zpl(self, company=None):
+        company = company or self.env.company
+        width_dots, height_dots = company._get_qr_label_size_dots()
+        max_length = max(height_dots * 2, 400)
+        return "".join(
+            [
+                "^XA\n",
+                "^CI28\n",
+                "^PW%d\n" % width_dots,
+                "^ML%d\n" % max_length,
+                "^MNY\n",
+                "^LT0\n",
+                "^JUS\n",
+                "^XZ\n",
+                "~JC\n",
+                "~JL\n",
+                "^XA\n",
+                "^JUS\n",
+                "^XZ\n",
+            ]
         )
 
     @api.model
-    def _get_qr_label_feed_dots(self, company, layout):
-        minimum = self._get_qr_label_content_bottom(layout)
-        return max(1, minimum, layout["height"] + company.qr_label_feed_adjust)
-
-    @api.model
     def _build_label_zpl(
-        self, product, mode, footer=None, report_data=None, lot_name=None
+        self,
+        product,
+        mode,
+        footer=None,
+        report_data=None,
+        lot_name=None,
+        copies=1,
     ):
         qr_payload = self._get_qr_payload(
             product, mode, report_data=report_data, lot_name=lot_name
@@ -338,7 +354,7 @@ class ReportProductQrZpl(models.AbstractModel):
         company = product.env.company
         width_dots, height_dots = company._get_qr_label_size_dots()
         layout = self._get_qr_label_layout(width_dots, height_dots)
-        feed_dots = self._get_qr_label_feed_dots(company, layout)
+        feed_dots = height_dots
         product_name = self._zpl_wrap_name(
             product.name or product.display_name,
             max_chars=layout["name_max_chars"],
@@ -366,17 +382,27 @@ class ReportProductQrZpl(models.AbstractModel):
             "^XA\n",
             "^CI28\n",
             "^PW%d\n" % width_dots,
-            "^LL%d\n" % feed_dots,
-            "^MNY\n",
-            "^LT0\n",
-            "^PON\n",
-            "^LH0,0\n",
-            "^LS0\n",
-            "\n",
-            "^FO%d,%d\n" % (qr_origin[0], qr_origin[1]),
-            "^BQN,2,%d\n" % layout["qr_mag"],
-            "^FDQA,%s^FS\n" % qr_payload,
         ]
+        if not company.qr_label_auto_length:
+            parts.append("^LL%d\n" % feed_dots)
+        parts.extend(
+            [
+                "^MNY\n",
+                "^LT0\n",
+                "^PON\n",
+                "^LH0,0\n",
+                "^LS0\n",
+                "^PQ%d,0,0,N\n" % max(int(copies), 1),
+                "\n",
+            ]
+        )
+        parts.extend(
+            [
+                "^FO%d,%d\n" % (qr_origin[0], qr_origin[1]),
+                "^BQN,2,%d\n" % layout["qr_mag"],
+                "^FDQA,%s^FS\n" % qr_payload,
+            ]
+        )
         if mode == "portal":
             self._append_portal_url_qr_caption_zpl(parts, layout)
         parts.extend(
@@ -479,18 +505,19 @@ class ReportProductQrZpl(models.AbstractModel):
                 yield product, quantity, mode, None
 
     @api.model
-    def _iter_label_copies(self, data):
-        for product, quantity, mode, lot_name in self._iter_label_jobs(data):
-            for _unused in range(max(int(quantity), 0)):
-                yield product, mode, lot_name
-
-    @api.model
     def _build_zpl_body(self, data):
         chunks = []
-        for product, mode, lot_name in self._iter_label_copies(data):
+        for product, quantity, mode, lot_name in self._iter_label_jobs(data):
+            copies = max(int(quantity), 0)
+            if not copies:
+                continue
             chunks.append(
                 self._build_label_zpl(
-                    product, mode, report_data=data, lot_name=lot_name
+                    product,
+                    mode,
+                    report_data=data,
+                    lot_name=lot_name,
+                    copies=copies,
                 )
             )
         if not chunks:
@@ -500,6 +527,17 @@ class ReportProductQrZpl(models.AbstractModel):
     @api.model
     def _get_report_values(self, docids, data=None):
         data = data or {}
+        if data.get("zpl_calibrate"):
+            company = self.env.company
+            company_id = data.get("company_id")
+            if company_id:
+                company = self.env["res.company"].browse(int(company_id)).exists() or company
+            return {
+                "doc_ids": docids,
+                "doc_model": "product.product",
+                "docs": self.env["product.product"],
+                "zpl_body": Markup(self._build_calibrate_zpl(company)),
+            }
         zpl_body = self._build_zpl_body(data)
         return {
             "doc_ids": docids,

@@ -13,6 +13,14 @@ class TestProductQrZpl(TransactionCase):
     def setUpClass(cls):
         super().setUpClass()
         cls.report = cls.env["report.product_qrcode.report_product_qr_zpl_document"]
+        cls.env.company.write(
+            {
+                "qr_label_uom": "mm",
+                "qr_label_width": 57.0,
+                "qr_label_height": 31.0,
+                "qr_label_dpi": 203,
+            }
+        )
         cls.product = cls.env["product.product"].create(
             {
                 "name": "Alternador Bosch 14V para Ford Cargo 815 y 1721",
@@ -30,12 +38,12 @@ class TestProductQrZpl(TransactionCase):
         self.assertIn("Alternador Bosch", zpl)
         self.assertNotIn("Cargo 815 / 1721", zpl)
 
-    def test_product_mode_keeps_single_qr_and_original_code_position(self):
+    def test_product_mode_keeps_single_qr_and_compact_code_position(self):
         zpl = self.report._build_label_zpl(self.product, "product")
         self.assertEqual(zpl.count("^BQN"), 1)
-        self.assertNotIn("^BQN,2,3", zpl)
-        self.assertIn("^FO280,125", zpl)
-        self.assertIn("^FO280,145", zpl)
+        self.assertIn("^BQN,2,3", zpl)
+        self.assertIn("^FO148,100", zpl)
+        self.assertIn("^FO148,116", zpl)
 
         self.assertEqual(
             self.report._zpl_sanitize("A^B~C\\D"),
@@ -70,8 +78,9 @@ class TestProductQrZpl(TransactionCase):
             "zpl_qr_mode": "product",
         }
         zpl_body = self.report._build_zpl_body(data)
-        self.assertEqual(zpl_body.count("^XZ"), 2)
-        self.assertEqual(zpl_body.count("^MNY\n"), 2)
+        self.assertEqual(zpl_body.count("^XZ"), 1)
+        self.assertEqual(zpl_body.count("^MNY\n"), 1)
+        self.assertIn("^PQ2,0,0,N\n", zpl_body)
         self.assertNotIn("^MNN\n", zpl_body)
 
     def test_missing_qr_code_raises_user_error(self):
@@ -101,14 +110,13 @@ class TestProductQrZpl(TransactionCase):
         zpl = self.report._build_label_zpl(self.product, "product")
         self.assertIn("^GFA,", zpl)
 
-    def test_default_label_size_is_600x300_dots(self):
+    def test_default_label_size_is_57x31_mm(self):
         zpl = self.report._build_label_zpl(self.product, "product")
-        self.assertIn("^PW600\n", zpl)
-        self.assertIn("^LL284\n", zpl)
+        self.assertIn("^PW456\n", zpl)
+        self.assertIn("^LL248\n", zpl)
         self.assertIn("^MNY\n", zpl)
-        self.assertEqual(self.env.company.qr_label_width_dots, 600)
-        self.assertEqual(self.env.company.qr_label_height_dots, 300)
-        self.assertEqual(self.env.company.qr_label_feed_dots, 284)
+        self.assertEqual(self.env.company.qr_label_width_dots, 456)
+        self.assertEqual(self.env.company.qr_label_height_dots, 248)
 
     def test_label_size_from_millimeters(self):
         self.env.company.write(
@@ -121,12 +129,8 @@ class TestProductQrZpl(TransactionCase):
         )
         zpl = self.report._build_label_zpl(self.product, "product")
         self.assertIn("^PW400\n", zpl)
+        self.assertIn("^LL200\n", zpl)
         self.assertIn("^MNY\n", zpl)
-        layout = self.report._get_qr_label_layout(400, 200)
-        self.assertIn(
-            "^LL%d\n" % self.report._get_qr_label_feed_dots(self.env.company, layout),
-            zpl,
-        )
 
     def test_label_size_from_centimeters_and_inches(self):
         company = self.env.company
@@ -166,18 +170,33 @@ class TestProductQrZpl(TransactionCase):
         )
         zpl = self.report._build_label_zpl(self.product, "product")
         self.assertIn("^PW456\n", zpl)
+        self.assertIn("^LL256\n", zpl)
         self.assertIn("^MNY\n", zpl)
         self.assertIn("^LT0\n", zpl)
-        layout = self.report._get_qr_label_layout(456, 256)
-        self.assertIn(
-            "^LL%d\n" % self.report._get_qr_label_feed_dots(self.env.company, layout),
-            zpl,
-        )
         self.assertNotIn("^FO81,272", zpl)
         for match in self.report._get_qr_label_layout(456, 256).values():
             if isinstance(match, tuple) and len(match) == 2:
                 self.assertLess(match[0], 456)
                 self.assertLess(match[1], 256)
+
+    def test_calibrate_zpl_measures_gap_and_saves(self):
+        zpl = self.report._build_calibrate_zpl(self.env.company)
+        self.assertIn("~JC\n", zpl)
+        self.assertIn("~JL\n", zpl)
+        self.assertIn("^MNY\n", zpl)
+        self.assertIn("^JUS\n", zpl)
+        self.assertIn("^PW456\n", zpl)
+        action = self.env.company.action_calibrate_qr_label_printer()
+        self.assertTrue(self.env.company.qr_label_auto_length)
+        self.assertEqual(action.get("type"), "ir.actions.report")
+        self.assertTrue((action.get("data") or {}).get("zpl_calibrate"))
+
+    def test_auto_length_omits_ll(self):
+        self.env.company.qr_label_auto_length = True
+        zpl = self.report._build_label_zpl(self.product, "product")
+        self.assertNotIn("^LL", zpl)
+        self.assertIn("^MNY\n", zpl)
+        self.assertIn("^PW456\n", zpl)
 
     def test_label_skips_default_company_logo(self):
         self.env.company.write(

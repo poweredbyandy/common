@@ -9,6 +9,14 @@ class TestProductQRCodePortal(WebsiteSaleCommon):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        cls.env.company.write(
+            {
+                "qr_label_uom": "mm",
+                "qr_label_width": 57.0,
+                "qr_label_height": 31.0,
+                "qr_label_dpi": 203,
+            }
+        )
         cls.controller = ProductQRCodePortal()
         cls.product = cls.env["product.product"].create(
             {
@@ -170,11 +178,12 @@ class TestProductQRCodePortal(WebsiteSaleCommon):
         )
         expected_url = self.website._get_product_qr_portal_url(self.product)
         self.assertIn(expected_url, zpl)
-        self.assertEqual(zpl.count("^BQN,2,4"), 1)
-        self.assertIn("^BQN,2,3", zpl)
+        self.assertIn("^PW456\n", zpl)
+        self.assertIn("^LL248\n", zpl)
+        self.assertEqual(zpl.count("^BQN,2,3"), 1)
+        self.assertIn("^BQN,2,2", zpl)
         self.assertIn("VER PRECIO", zpl)
-        self.assertIn("^A0N,22,22", zpl)
-        self.assertIn("^FO450,160", zpl)
+        self.assertIn("^FO368,155", zpl)
         self.assertIn(self.product.qr_code, zpl)
 
     def test_wizard_defaults_portal_website(self):

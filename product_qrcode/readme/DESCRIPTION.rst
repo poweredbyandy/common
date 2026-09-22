@@ -9,4 +9,6 @@ ZPL labels can print a company-specific QR label logo. If that logo is empty,
 the company logo is used.
 
 The ZPL print width and label length are taken from the company label size.
-That size can be entered in millimeters, centimeters, inches or printer dots.
+The default is 57 x 31 mm so a 57 x 32 mm gap label does not skip a blank
+sticker. The size can be entered in millimeters, centimeters, inches or
+printer dots.

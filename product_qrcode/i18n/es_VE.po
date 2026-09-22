@@ -66,8 +66,8 @@ msgstr "Etiqueta QR del producto (ZPL)"
 
 #. module: product_qrcode
 #: model:report.paperformat,name:product_qrcode.paperformat_product_qr_zpl
-msgid "Product QR label (ZPL 600x300)"
-msgstr "Etiqueta QR del producto (ZPL 600x300)"
+msgid "Product QR label (ZPL 57x31 mm)"
+msgstr "Etiqueta QR del producto (ZPL 57x31 mm)"
 
 #. module: product_qrcode
 #: model:ir.model,name:product_qrcode.model_report_product_qrcode_report_product_qr_zpl_document
@@ -184,25 +184,23 @@ msgid "Height (dots)"
 msgstr "Alto (dots)"
 
 #. module: product_qrcode
-#: model:ir.model.fields,field_description:product_qrcode.field_res_company__qr_label_feed_adjust
-msgid "QR Label Feed Adjust"
-msgstr "Ajuste de avance de etiqueta QR"
+#: model:ir.model.fields,field_description:product_qrcode.field_res_company__qr_label_auto_length
+msgid "Use Printer Label Length"
+msgstr "Usar largo medido por la impresora"
 
 #. module: product_qrcode
-#: model:ir.model.fields,help:product_qrcode.field_res_company__qr_label_feed_adjust
+#: model:ir.model.fields,help:product_qrcode.field_res_company__qr_label_auto_length
 msgid ""
-"Dots added to the media feed (^LL). The printed design stays "
-"on the configured height. Use a negative value if a single print "
-"feeds an extra blank label. Typical value: -16."
+"After Zebra media calibration, the printer measures the gap "
+"and owns the feed length. Label jobs then omit ^LL."
 msgstr ""
-"Dots que se suman al avance del papel (^LL). El dibujo sigue usando el "
-"alto configurado. Use un valor negativo si al imprimir una sola avanza "
-"una etiqueta vacía. Valor típico: -16."
+"Tras calibrar el media, la impresora mide el hueco y controla el avance. "
+"Las etiquetas ya no envían ^LL."
 
 #. module: product_qrcode
-#: model:ir.model.fields,field_description:product_qrcode.field_res_company__qr_label_feed_dots
-msgid "Feed (dots)"
-msgstr "Avance (dots)"
+#: model_terms:ir.ui.view,arch_db:product_qrcode.view_company_form_qr_label_logo
+msgid "Calibrate Zebra media"
+msgstr "Calibrar media Zebra"
 
 #. module: product_qrcode
 #: model:ir.model.fields.selection,name:product_qrcode.selection__res_company__qr_label_uom__mm

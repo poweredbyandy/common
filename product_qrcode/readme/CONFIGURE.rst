@@ -3,11 +3,10 @@
 #. Upload **QR Label Logo** to print that image on ZPL QR labels.
 #. If the field is empty, the label uses the company logo. The default Odoo
    logo is not printed.
-#. Set **QR Label Size Unit** to millimeters, centimeters, inches or dots.
-#. Enter the physical label **width** and **height**. Do not include the gap
-   between labels.
-#. Set **QR Label DPI** to the printer resolution (203, 300 or 600 on most
-   Zebra printers). The form shows the converted width and height in dots.
-#. If one print feeds a blank extra label, set **QR Label Feed Adjust** to a
-   negative value such as ``-16``. That shortens only the media feed, not the
-   printed design.
+#. The default size is **57 x 31 mm** at 203 dpi, for 57 x 32 mm gap labels.
+   The extra millimeter is left for the gap sensor.
+#. To use another roll, set the unit and the physical width and height. Do
+   not include the gap between labels.
+#. Click **Calibrate Zebra media**. The printer feeds a few labels, measures
+   the gap (same idea as ZebraSetup) and stores that length. After that,
+   print jobs omit ``^LL`` and follow the printer.
