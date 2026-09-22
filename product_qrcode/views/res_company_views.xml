@@ -8,6 +8,12 @@
             <xpath expr="//page[@name='general_info']/group" position="inside">
                 <group string="Product QR Label" name="product_qr_label">
                     <field name="qr_label_logo" widget="image"/>
+                    <field name="qr_label_uom"/>
+                    <field name="qr_label_width"/>
+                    <field name="qr_label_height"/>
+                    <field name="qr_label_dpi"/>
+                    <field name="qr_label_width_dots" readonly="1"/>
+                    <field name="qr_label_height_dots" readonly="1"/>
                 </group>
             </xpath>
         </field>

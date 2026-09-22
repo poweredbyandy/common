@@ -5,6 +5,8 @@
    product identifier.
 #. To print a ZPL label, open **Print Labels** from the product form, choose
    **ZPL QR (product code)**, set the quantity and confirm. The report returns
-   ZPL text ready for a thermal printer.
+   ZPL text ready for a thermal printer. Each label includes ``^PW`` and
+   ``^LL`` from the company size, so the printer does not need ZebraSetup for
+   the paper size.
 #. The label prints the company QR label logo when it is set. Otherwise it
    prints the company logo.

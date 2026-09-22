@@ -7,3 +7,6 @@ a product does not generate images on the server.
 
 ZPL labels can print a company-specific QR label logo. If that logo is empty,
 the company logo is used.
+
+The ZPL print width and label length are taken from the company label size.
+That size can be entered in millimeters, centimeters, inches or printer dots.

@@ -3,7 +3,7 @@ import io
 
 from PIL import Image
 
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError, ValidationError
 from odoo.tests import TransactionCase, tagged
 
 
@@ -98,6 +98,53 @@ class TestProductQrZpl(TransactionCase):
         self.assertFalse(self.env.company.uses_default_logo)
         zpl = self.report._build_label_zpl(self.product, "product")
         self.assertIn("^GFA,", zpl)
+
+    def test_default_label_size_is_600x300_dots(self):
+        zpl = self.report._build_label_zpl(self.product, "product")
+        self.assertIn("^PW600\n", zpl)
+        self.assertIn("^LL300\n", zpl)
+        self.assertEqual(self.env.company.qr_label_width_dots, 600)
+        self.assertEqual(self.env.company.qr_label_height_dots, 300)
+
+    def test_label_size_from_millimeters(self):
+        self.env.company.write(
+            {
+                "qr_label_uom": "mm",
+                "qr_label_width": 50.0,
+                "qr_label_height": 25.0,
+                "qr_label_dpi": 203,
+            }
+        )
+        zpl = self.report._build_label_zpl(self.product, "product")
+        self.assertIn("^PW400\n", zpl)
+        self.assertIn("^LL200\n", zpl)
+
+    def test_label_size_from_centimeters_and_inches(self):
+        company = self.env.company
+        company.write(
+            {
+                "qr_label_uom": "cm",
+                "qr_label_width": 2.0,
+                "qr_label_height": 1.0,
+                "qr_label_dpi": 203,
+            }
+        )
+        self.assertEqual(company.qr_label_width_dots, 160)
+        self.assertEqual(company.qr_label_height_dots, 80)
+        company.write(
+            {
+                "qr_label_uom": "in",
+                "qr_label_width": 2.0,
+                "qr_label_height": 1.0,
+                "qr_label_dpi": 203,
+            }
+        )
+        self.assertEqual(company.qr_label_width_dots, 406)
+        self.assertEqual(company.qr_label_height_dots, 203)
+
+    def test_label_size_must_be_positive(self):
+        with self.assertRaises(ValidationError):
+            self.env.company.qr_label_width = 0
 
     def test_label_skips_default_company_logo(self):
         self.env.company.write(

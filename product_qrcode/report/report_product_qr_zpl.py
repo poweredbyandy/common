@@ -277,6 +277,7 @@ class ReportProductQrZpl(models.AbstractModel):
         lot_text = self._zpl_sanitize(lot_name or "")
         footer_text = self._zpl_sanitize(footer or product.env.company.name or "")
         logo_gfa = self._label_logo_gfa(product.env.company)
+        width_dots, height_dots = product.env.company._get_qr_label_size_dots()
         code_label_y = (
             PORTAL_CODE_LABEL_Y if mode == "portal" else PRODUCT_CODE_LABEL_Y
         )
@@ -290,8 +291,8 @@ class ReportProductQrZpl(models.AbstractModel):
         parts = [
             "^XA\n",
             "^CI28\n",
-            "^PW600\n",
-            "^LL300\n",
+            "^PW%d\n" % width_dots,
+            "^LL%d\n" % height_dots,
             "^LH0,0\n",
             "^LS0\n",
             "\n",

@@ -118,3 +118,97 @@ msgstr "Logo impreso en las etiquetas QR ZPL del producto. Si está vacío, se u
 #: model_terms:ir.ui.view,arch_db:product_qrcode.view_company_form_qr_label_logo
 msgid "Product QR Label"
 msgstr "Etiqueta QR del producto"
+
+#. module: product_qrcode
+#: model:ir.model.fields,field_description:product_qrcode.field_res_company__qr_label_uom
+msgid "QR Label Size Unit"
+msgstr "Unidad de tamaño de etiqueta QR"
+
+#. module: product_qrcode
+#: model:ir.model.fields,help:product_qrcode.field_res_company__qr_label_uom
+msgid ""
+"Unit used for QR label width and height. Dots are printer "
+"dots at the configured DPI."
+msgstr ""
+"Unidad usada para el ancho y el alto de la etiqueta QR. Dots son puntos "
+"de impresora a los DPI configurados."
+
+#. module: product_qrcode
+#: model:ir.model.fields,field_description:product_qrcode.field_res_company__qr_label_width
+msgid "QR Label Width"
+msgstr "Ancho de etiqueta QR"
+
+#. module: product_qrcode
+#: model:ir.model.fields,help:product_qrcode.field_res_company__qr_label_width
+msgid "Physical label width, not including the liner or side gaps."
+msgstr "Ancho físico de la etiqueta, sin incluir el liner ni los huecos laterales."
+
+#. module: product_qrcode
+#: model:ir.model.fields,field_description:product_qrcode.field_res_company__qr_label_height
+msgid "QR Label Height"
+msgstr "Alto de etiqueta QR"
+
+#. module: product_qrcode
+#: model:ir.model.fields,help:product_qrcode.field_res_company__qr_label_height
+msgid ""
+"Physical label height, not including the gap between labels. "
+"If a single print feeds an extra blank label, reduce this value "
+"by about 1 mm."
+msgstr ""
+"Alto físico de la etiqueta, sin incluir el hueco entre etiquetas. "
+"Si al imprimir una sola avanza una etiqueta vacía extra, reduzca este "
+"valor unos 1 mm."
+
+#. module: product_qrcode
+#: model:ir.model.fields,field_description:product_qrcode.field_res_company__qr_label_dpi
+msgid "QR Label DPI"
+msgstr "DPI de etiqueta QR"
+
+#. module: product_qrcode
+#: model:ir.model.fields,help:product_qrcode.field_res_company__qr_label_dpi
+msgid ""
+"Printer resolution used to convert mm, cm or inches to dots. "
+"Typical Zebra values are 203, 300 or 600."
+msgstr ""
+"Resolución de la impresora usada para convertir mm, cm o pulgadas a dots. "
+"Valores típicos de Zebra: 203, 300 o 600."
+
+#. module: product_qrcode
+#: model:ir.model.fields,field_description:product_qrcode.field_res_company__qr_label_width_dots
+msgid "Width (dots)"
+msgstr "Ancho (dots)"
+
+#. module: product_qrcode
+#: model:ir.model.fields,field_description:product_qrcode.field_res_company__qr_label_height_dots
+msgid "Height (dots)"
+msgstr "Alto (dots)"
+
+#. module: product_qrcode
+#: model:ir.model.fields.selection,name:product_qrcode.selection__res_company__qr_label_uom__mm
+msgid "Millimeters (mm)"
+msgstr "Milímetros (mm)"
+
+#. module: product_qrcode
+#: model:ir.model.fields.selection,name:product_qrcode.selection__res_company__qr_label_uom__cm
+msgid "Centimeters (cm)"
+msgstr "Centímetros (cm)"
+
+#. module: product_qrcode
+#: model:ir.model.fields.selection,name:product_qrcode.selection__res_company__qr_label_uom__in
+msgid "Inches (in)"
+msgstr "Pulgadas (in)"
+
+#. module: product_qrcode
+#: model:ir.model.fields.selection,name:product_qrcode.selection__res_company__qr_label_uom__dots
+msgid "Dots"
+msgstr "Dots"
+
+#. module: product_qrcode
+#: code:addons/product_qrcode/models/res_company.py:0
+msgid "QR label width and height must be greater than zero."
+msgstr "El ancho y el alto de la etiqueta QR deben ser mayores que cero."
+
+#. module: product_qrcode
+#: code:addons/product_qrcode/models/res_company.py:0
+msgid "QR label DPI must be greater than zero."
+msgstr "Los DPI de la etiqueta QR deben ser mayores que cero."
