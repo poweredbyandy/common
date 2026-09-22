@@ -317,7 +317,13 @@ class ReportProductQrZpl(models.AbstractModel):
 
     @api.model
     def _build_label_zpl(
-        self, product, mode, footer=None, report_data=None, lot_name=None
+        self,
+        product,
+        mode,
+        footer=None,
+        report_data=None,
+        lot_name=None,
+        use_gap_media=False,
     ):
         qr_payload = self._get_qr_payload(
             product, mode, report_data=report_data, lot_name=lot_name
@@ -352,7 +358,7 @@ class ReportProductQrZpl(models.AbstractModel):
             "^CI28\n",
             "^PW%d\n" % width_dots,
             "^LL%d\n" % height_dots,
-            "^MNY\n",
+            "^MN%s\n" % ("Y" if use_gap_media else "N"),
             "^LT0\n",
             "^PON\n",
             "^LH0,0\n",
@@ -464,16 +470,28 @@ class ReportProductQrZpl(models.AbstractModel):
                 yield product, quantity, mode, None
 
     @api.model
-    def _build_zpl_body(self, data):
-        chunks = []
+    def _iter_label_copies(self, data):
         for product, quantity, mode, lot_name in self._iter_label_jobs(data):
-            label = self._build_label_zpl(
-                product, mode, report_data=data, lot_name=lot_name
-            )
             for _unused in range(max(int(quantity), 0)):
-                chunks.append(label)
-        if not chunks:
+                yield product, mode, lot_name
+
+    @api.model
+    def _build_zpl_body(self, data):
+        copies = list(self._iter_label_copies(data))
+        if not copies:
             raise UserError(_("No product labels to print."))
+        last_index = len(copies) - 1
+        chunks = []
+        for index, (product, mode, lot_name) in enumerate(copies):
+            chunks.append(
+                self._build_label_zpl(
+                    product,
+                    mode,
+                    report_data=data,
+                    lot_name=lot_name,
+                    use_gap_media=index < last_index,
+                )
+            )
         return "".join(chunks)
 
     @api.model

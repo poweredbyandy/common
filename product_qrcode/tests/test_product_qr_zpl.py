@@ -71,6 +71,8 @@ class TestProductQrZpl(TransactionCase):
         }
         zpl_body = self.report._build_zpl_body(data)
         self.assertEqual(zpl_body.count("^XZ"), 2)
+        self.assertEqual(zpl_body.count("^MNY\n"), 1)
+        self.assertEqual(zpl_body.count("^MNN\n"), 1)
 
     def test_missing_qr_code_raises_user_error(self):
         product = self.env["product.product"].new({"name": "Draft Product"})
@@ -103,6 +105,7 @@ class TestProductQrZpl(TransactionCase):
         zpl = self.report._build_label_zpl(self.product, "product")
         self.assertIn("^PW600\n", zpl)
         self.assertIn("^LL300\n", zpl)
+        self.assertIn("^MNN\n", zpl)
         self.assertEqual(self.env.company.qr_label_width_dots, 600)
         self.assertEqual(self.env.company.qr_label_height_dots, 300)
 
@@ -158,7 +161,7 @@ class TestProductQrZpl(TransactionCase):
         zpl = self.report._build_label_zpl(self.product, "product")
         self.assertIn("^PW456\n", zpl)
         self.assertIn("^LL256\n", zpl)
-        self.assertIn("^MNY\n", zpl)
+        self.assertIn("^MNN\n", zpl)
         self.assertIn("^LT0\n", zpl)
         self.assertNotIn("^FO81,272", zpl)
         for match in self.report._get_qr_label_layout(456, 256).values():
