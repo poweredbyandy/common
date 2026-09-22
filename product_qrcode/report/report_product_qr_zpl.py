@@ -55,7 +55,27 @@ class ReportProductQrZpl(models.AbstractModel):
         return max(int(width_dots), REF_WIDTH)
 
     @api.model
-    def _get_qr_label_layout(self, width_dots, height_dots):
+    def _estimate_qr_modules(self, payload):
+        length = len(payload or "")
+        for capacity, modules in (
+            (14, 25),
+            (24, 29),
+            (34, 33),
+            (44, 37),
+            (58, 41),
+            (64, 45),
+            (84, 49),
+            (98, 53),
+            (119, 57),
+            (137, 61),
+            (155, 65),
+        ):
+            if length <= capacity:
+                return modules
+        return 69
+
+    @api.model
+    def _get_qr_label_layout(self, width_dots, height_dots, qr_payload=None):
         def scale_x(value, minimum=1):
             return self._scale_label_dot(value, width_dots, REF_WIDTH, minimum)
 
@@ -72,18 +92,26 @@ class ReportProductQrZpl(models.AbstractModel):
         footer_y = scale_y(272)
         if footer_y + footer_font > height_dots - 2:
             footer_y = max(4, height_dots - footer_font - 2)
+        qr_origin = (scale_x(81), scale_y(25))
+        qr_mag = max(2, min(4, scale_x(4)))
+        code_value_font = scale_y(24, 14)
+        caption_font = scale_y(22, 16)
+        qr_modules = self._estimate_qr_modules(qr_payload)
+        caption_y = qr_origin[1] + qr_modules * qr_mag + 6
+        if caption_y + caption_font > height_dots - 2:
+            caption_y = max(4, height_dots - caption_font - 2)
         return {
             "width": width_dots,
             "height": height_dots,
-            "qr_origin": (scale_x(81), scale_y(25)),
-            "qr_mag": max(2, min(4, scale_x(4))),
-            "caption_origin": (scale_x(81), scale_y(198)),
-            "caption_font": scale_y(22, 12),
+            "qr_origin": qr_origin,
+            "qr_mag": qr_mag,
+            "caption_origin": (scale_x(81), caption_y),
+            "caption_font": caption_font,
             "caption_fb": scale_x(200),
             "name_label_origin": (scale_x(280), scale_y(20)),
             "name_label_font": scale_y(14, 10),
             "name_origin": (scale_x(280), scale_y(38)),
-            "name_font": scale_y(18, 12),
+            "name_font": code_value_font,
             "name_fb": scale_x(255),
             "name_max_chars": max(12, int(round(26 * width_dots / float(REF_WIDTH)))),
             "portal_code_label_y": scale_y(112),
@@ -92,7 +120,7 @@ class ReportProductQrZpl(models.AbstractModel):
             "product_code_value_y": scale_y(145),
             "code_fb": scale_x(305),
             "code_label_font": scale_y(14, 10),
-            "code_value_font": scale_y(24, 14),
+            "code_value_font": code_value_font,
             "lot_label_y": scale_y(175),
             "lot_value_y": scale_y(195),
             "lot_fb": scale_x(305),
@@ -105,6 +133,22 @@ class ReportProductQrZpl(models.AbstractModel):
             "footer_font": footer_font,
             "footer_fb": min(scale_x(450), max(40, width_dots - scale_x(81) - 4)),
         }
+
+    @api.model
+    def _logo_overlaps_caption(self, layout, mode):
+        if mode != "portal":
+            return False
+        logo_x, logo_y = layout["logo_origin"]
+        logo_w, logo_h = layout["logo_size"]
+        cap_x, cap_y = layout["caption_origin"]
+        cap_w = layout["caption_fb"]
+        cap_h = layout["caption_font"]
+        return (
+            logo_x < cap_x + cap_w
+            and cap_x < logo_x + logo_w
+            and logo_y < cap_y + cap_h
+            and cap_y < logo_y + logo_h
+        )
 
     @api.model
     def _get_qr_payload(self, product, mode, report_data=None, lot_name=None):
@@ -302,6 +346,8 @@ class ReportProductQrZpl(models.AbstractModel):
         company = company or self.env.company
         origin = origin or LOGO_ORIGIN
         size = size or LOGO_SIZE
+        if not size[0] or not size[1]:
+            return ""
         if company.qr_label_logo:
             gfa = self._logo_to_zpl_gfa(
                 company.qr_label_logo, origin=origin, size=size
@@ -359,7 +405,9 @@ class ReportProductQrZpl(models.AbstractModel):
         company = product.env.company
         width_dots, height_dots = company._get_qr_label_size_dots()
         print_width = self._get_qr_label_print_width(width_dots)
-        layout = self._get_qr_label_layout(print_width, height_dots)
+        layout = self._get_qr_label_layout(
+            print_width, height_dots, qr_payload=qr_payload
+        )
         feed_dots = height_dots
         product_name = self._zpl_wrap_name(
             product.name or product.display_name,
@@ -457,7 +505,7 @@ class ReportProductQrZpl(models.AbstractModel):
             self._append_portal_code_qr_zpl(
                 parts, product, layout, lot_name=lot_name
             )
-        if logo_gfa:
+        if logo_gfa and not self._logo_overlaps_caption(layout, mode):
             parts.extend(["\n", logo_gfa, "\n"])
         if footer_text:
             parts.extend(

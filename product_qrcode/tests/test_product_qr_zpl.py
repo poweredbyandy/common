@@ -225,3 +225,22 @@ class TestProductQrZpl(TransactionCase):
         self.assertTrue(self.env.company.uses_default_logo)
         zpl = self.report._build_label_zpl(self.product, "product")
         self.assertNotIn("^GFA,", zpl)
+
+    def test_product_name_matches_code_font(self):
+        layout = self.report._get_qr_label_layout(600, 248)
+        self.assertEqual(layout["name_font"], layout["code_value_font"])
+        zpl = self.report._build_label_zpl(self.product, "product")
+        font = "^A0N,%d,%d\n" % (layout["name_font"], layout["name_font"])
+        self.assertGreaterEqual(zpl.count(font), 2)
+
+    def test_caption_sits_below_url_qr(self):
+        payload = "https://example.com/qr/CV-RH-5000?company_id=1"
+        layout = self.report._get_qr_label_layout(
+            600, 248, qr_payload=payload
+        )
+        qr_bottom = (
+            layout["qr_origin"][1]
+            + self.report._estimate_qr_modules(payload) * layout["qr_mag"]
+        )
+        self.assertGreaterEqual(layout["caption_origin"][1], qr_bottom)
+        self.assertLess(layout["caption_origin"][1], 248)

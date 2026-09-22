@@ -183,6 +183,19 @@ class TestProductQRCodePortal(WebsiteSaleCommon):
         self.assertEqual(zpl.count("^BQN,2,4"), 1)
         self.assertIn("^BQN,2,3", zpl)
         self.assertIn("VER PRECIO", zpl)
+        report = self.env["report.product_qrcode.report_product_qr_zpl_document"]
+        layout = report._get_qr_label_layout(
+            600, 248, qr_payload=expected_url
+        )
+        self.assertEqual(layout["name_font"], layout["code_value_font"])
+        self.assertIn(
+            "^FO%d,%d\n" % layout["caption_origin"],
+            zpl,
+        )
+        self.assertGreater(
+            layout["caption_origin"][1],
+            layout["qr_origin"][1],
+        )
         self.assertIn("^FO450,132", zpl)
         self.assertIn(self.product.qr_code, zpl)
 
