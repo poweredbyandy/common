@@ -1,31 +1,20 @@
 .o_label_sheet {
-    div.o_label_qr_column {
-        float: left;
-        width: 16mm;
-        padding: 0 2px;
-    }
-    div.o_label_qr {
-        padding: 0;
+    .o_label_qr {
         display: inline-block;
         vertical-align: middle;
+        padding: 0;
         img {
             display: block;
         }
     }
-    div.o_label_small_barcode {
-        .o_label_qr {
-            margin-left: 1mm;
-        }
+    .o_label_left_column > span,
+    .o_label_small_barcode > span,
+    .o_label_small_barcode > .o_label_name {
+        display: block;
     }
-    &.o_label_dymo {
-        div.o_label_small_barcode {
-            display: flex;
-            align-items: flex-start;
-            justify-content: space-between;
-            column-gap: 1mm;
-        }
-        .o_label_qr {
-            flex: 0 0 auto;
-        }
+    .o_label_left_column > div,
+    .o_label_small_barcode > div:not(.o_label_name) {
+        display: inline-block;
+        vertical-align: middle;
     }
 }

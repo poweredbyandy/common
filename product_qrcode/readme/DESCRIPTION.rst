@@ -6,7 +6,8 @@ The product form draws the QR image in the browser from that value, so opening
 a product does not generate images on the server.
 
 Standard PDF product labels (2x7, 4x7, 4x12 and Dymo) print that QR next to
-the barcode.
+the barcode. If Product QR Code Portal is installed, the PDF QR encodes the
+portal URL instead of the raw product code.
 
 ZPL labels can print a company-specific QR label logo. If that logo is empty,
 the company logo is used.

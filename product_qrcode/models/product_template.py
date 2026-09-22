@@ -13,3 +13,9 @@ class ProductTemplate(models.Model):
     @api.depends("product_variant_ids.qr_code")
     def _compute_qr_code(self):
         self._compute_template_field_from_variant_field("qr_code")
+
+    def _get_pdf_label_qr_value(self):
+        self.ensure_one()
+        if self.product_variant_id:
+            return self.product_variant_id._get_pdf_label_qr_value()
+        return self.qr_code

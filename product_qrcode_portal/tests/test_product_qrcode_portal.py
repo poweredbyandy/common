@@ -208,3 +208,43 @@ class TestProductQRCodePortal(WebsiteSaleCommon):
             }
         )
         self.assertTrue(wizard.portal_qr_website_id)
+
+    def test_pdf_label_qr_uses_portal_url(self):
+        expected_url = self.website._get_product_qr_portal_url(self.product)
+        self.assertEqual(
+            self.product.with_context(
+                portal_qr_website_id=self.website.id
+            )._get_pdf_label_qr_value(),
+            expected_url,
+        )
+        pricelist = self.env["product.pricelist"].search([], limit=1)
+        if not pricelist:
+            pricelist = self.env["product.pricelist"].create({"name": "Portal PDF"})
+        html = str(
+            self.env["ir.qweb"]._render(
+                "product.report_simple_label4x7",
+                {
+                    "product": self.product.with_context(
+                        portal_qr_website_id=self.website.id
+                    ),
+                    "barcode": self.product.barcode,
+                    "pricelist": pricelist,
+                    "extra_html": "",
+                    "make_invisible": False,
+                    "table_style": "",
+                },
+            )
+        )
+        self.assertIn('class="o_label_qr"', html)
+        self.assertIn("/product-qr?", html)
+        self.assertIn(expected_url, html)
+        wizard = self.env["product.label.layout"].create(
+            {
+                "print_format": "4x7xprice",
+                "custom_quantity": 1,
+                "product_ids": [(6, 0, self.product.ids)],
+                "portal_qr_website_id": self.website.id,
+            }
+        )
+        _xml_id, data = wizard._prepare_report_data()
+        self.assertEqual(data.get("portal_qr_website_id"), self.website.id)

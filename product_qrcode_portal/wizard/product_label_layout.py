@@ -50,4 +50,10 @@ class ProductLabelLayout(models.TransientModel):
                 extra_data={"portal_qr_website_id": website.id},
             )
             return "product_qrcode.action_report_product_qr_zpl", data
-        return super()._prepare_report_data()
+        xml_id, data = super()._prepare_report_data()
+        website = self.portal_qr_website_id or self.env[
+            "website"
+        ].get_current_website()
+        if website and isinstance(data, dict):
+            data["portal_qr_website_id"] = website.id
+        return xml_id, data

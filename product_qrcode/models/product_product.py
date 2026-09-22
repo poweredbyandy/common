@@ -28,3 +28,7 @@ class ProductProduct(models.Model):
         if isinstance(self.id, int):
             return str(self.id)
         return False
+
+    def _get_pdf_label_qr_value(self):
+        self.ensure_one()
+        return self.qr_code or self._get_qr_code_value()

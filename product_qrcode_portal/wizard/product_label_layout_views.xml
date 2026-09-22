@@ -8,7 +8,7 @@
             <field name="print_format" position="after">
                 <field
                     name="portal_qr_website_id"
-                    invisible="print_format != 'qr_label_url'"
+                    invisible="print_format in ('qr_label_code', 'zpl', 'zplxprice')"
                     options="{'no_create': True}"
                 />
             </field>

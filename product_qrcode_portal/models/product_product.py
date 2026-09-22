@@ -31,6 +31,12 @@ class ProductProduct(models.Model):
             return False
         return website._get_product_qr_portal_url(self)
 
+    def _get_pdf_label_qr_value(self):
+        url = self.get_portal_qr_url_for_website()
+        if url:
+            return url
+        return super()._get_pdf_label_qr_value()
+
     @api.depends("qr_code", "product_tmpl_id.website_id")
     def _compute_portal_qr_url(self):
         for product in self:

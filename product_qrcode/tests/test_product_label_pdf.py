@@ -48,4 +48,12 @@ class TestProductLabelPdf(TransactionCase):
                 "%s should print the barcode and the QR" % xmlid,
             )
             self.assertIn('class="o_label_qr"', html)
-            self.assertIn(self.product.qr_code, html)
+            self.assertIn(self.product._get_pdf_label_qr_value(), html)
+            digits = ">%s<" % self.product.barcode
+            self.assertIn(digits, html)
+            self.assertLess(
+                html.find('class="o_label_qr"'),
+                html.find(digits),
+                "%s must place the QR beside the barcode, not after its digits"
+                % xmlid,
+            )
