@@ -1,20 +1,68 @@
 .o_label_sheet {
-    .o_label_qr {
-        display: inline-block;
-        vertical-align: middle;
-        padding: 0;
+    .o_label_qr,
+    .o_label_qr_column {
+        padding: 0 !important;
+        overflow: visible;
         img {
             display: block;
+            width: 100%;
+            height: auto;
+            max-width: 100%;
         }
     }
-    .o_label_left_column > span,
-    .o_label_small_barcode > span,
-    .o_label_small_barcode > .o_label_name {
-        display: block;
+    .o_label_qr_column {
+        float: left;
+        width: 16mm;
+        margin: 0 1mm 0 0;
     }
-    .o_label_left_column > div,
-    .o_label_small_barcode > div:not(.o_label_name) {
-        display: inline-block;
-        vertical-align: middle;
+    .o_label_data_qr .o_label_left_column {
+        width: 50%;
+        overflow: visible;
+    }
+    .o_label_data_qr .o_label_qr_column {
+        margin-top: 1.3em;
+    }
+    .o_label_full.o_label_small_text.o_label_with_qr .o_label_left_column {
+        width: 32%;
+        overflow: visible;
+    }
+    .o_label_full.o_label_small_text.o_label_with_qr .o_label_qr_column {
+        width: 9mm;
+        margin-top: 0;
+    }
+    .o_label_barcode_qr {
+        overflow: hidden;
+    }
+    .o_label_barcode_qr > span,
+    .o_label_barcode_qr > .o_label_name {
+        display: block;
+        clear: both;
+        padding-left: 0;
+        padding-right: 0;
+    }
+    .o_label_barcode_qr > div {
+        float: left;
+        padding: 0 !important;
+        overflow: visible;
+    }
+    .o_label_barcode_qr > div:not(.o_label_qr):not(.o_label_name) {
+        width: 30mm;
+        margin-right: 2mm;
+    }
+    .o_label_barcode_qr > .o_label_qr {
+        float: left;
+        width: 12mm;
+    }
+    .o_label_full.o_label_small_text .o_label_barcode_qr > div:not(.o_label_qr):not(.o_label_name) {
+        width: 28mm;
+    }
+    .o_label_full.o_label_small_text .o_label_barcode_qr > .o_label_qr {
+        width: 8mm;
+    }
+    &.o_label_dymo .o_label_barcode_qr > div:not(.o_label_qr):not(.o_label_name) {
+        width: 38mm;
+    }
+    &.o_label_dymo .o_label_barcode_qr > .o_label_qr {
+        width: 12mm;
     }
 }

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="module_category_sale_cash_handoff" model="ir.module.category">
+        <field name="name">Entrega a caja</field>
+        <field name="sequence">25</field>
+    </record>
+
+    <record id="group_salesperson" model="res.groups">
+        <field name="name">Vendedor</field>
+        <field name="category_id" ref="module_category_sale_cash_handoff"/>
+        <field name="implied_ids" eval="[(4, ref('sales_team.group_sale_salesman'))]"/>
+        <field name="comment">Crea cotizaciones y las envía a caja. Deja de editarlas al entregarlas.</field>
+    </record>
+
+    <record id="group_cashier" model="res.groups">
+        <field name="name">Cajero</field>
+        <field name="category_id" ref="module_category_sale_cash_handoff"/>
+        <field name="implied_ids" eval="[(4, ref('group_salesperson')), (4, ref('sales_team.group_sale_salesman_all_leads'))]"/>
+        <field name="comment">Recibe cotizaciones, las corrige, las confirma o las devuelve al vendedor.</field>
+    </record>
+</odoo>

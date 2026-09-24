@@ -51,9 +51,16 @@ class TestProductLabelPdf(TransactionCase):
             self.assertIn(self.product._get_pdf_label_qr_value(), html)
             digits = ">%s<" % self.product.barcode
             self.assertIn(digits, html)
-            self.assertLess(
-                html.find('class="o_label_qr"'),
-                html.find(digits),
-                "%s must place the QR beside the barcode, not after its digits"
-                % xmlid,
-            )
+            if xmlid.endswith("label2x7"):
+                self.assertIn("o_label_qr_column", html)
+                self.assertIn("o_label_data_qr", html)
+            elif xmlid.endswith("label4x12"):
+                self.assertIn("o_label_qr_column", html)
+            else:
+                self.assertIn("o_label_barcode_qr", html)
+                self.assertLess(
+                    html.find('class="o_label_qr"'),
+                    html.find(digits),
+                    "%s must keep the QR beside the bars, not over them"
+                    % xmlid,
+                )

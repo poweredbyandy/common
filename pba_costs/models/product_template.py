@@ -2,7 +2,7 @@ import logging
 
 from odoo import _, api, fields, models
 from odoo.exceptions import AccessError, UserError
-from odoo.tools.float_utils import float_compare
+from odoo.tools.float_utils import float_compare, float_is_zero
 from odoo.tools.safe_eval import safe_eval
 
 from .pba_constants import (
@@ -112,8 +112,9 @@ class ProductTemplate(models.Model):
         string="Último precio de venta",
         compute="_compute_pba_last_sale_price",
         digits="Product Price",
-        help="Precio unitario de la última venta confirmada (descuento aplicado), "
-        "en la UdM del producto y moneda de venta. Si no hay ventas, se usa el precio de venta actual.",
+        help="Precio unitario de la última venta confirmada, sin el efecto de la lista "
+        "de precios, en la UdM del producto y moneda de venta. El descuento comercial "
+        "de la línea se mantiene. Si no hay ventas, se usa el precio de venta actual.",
     )
 
     pba_cost_freight = fields.Monetary(
@@ -414,6 +415,90 @@ class ProductTemplate(models.Model):
         discount_factor = 1.0 - (line.discount or 0.0) / 100.0
         return (line.price_unit or 0.0) * discount_factor
 
+    def _pba_sale_price_without_pricelist(self, line, sold_price):
+        """Undo the pricelist rule on the sold unit price.
+
+        The commercial line discount stays in ``sold_price``. When the sale
+        followed the rule, the result is that rule's catalog base. A manual
+        price is inverted with the same formula. A fixed price has no inverse:
+        the catalog base is used only when the sale matched that fixed price.
+        """
+        self.ensure_one()
+        rule = line.pricelist_item_id
+        if not rule or not line.product_id or not line.product_uom:
+            return sold_price
+        product = line.product_id.with_context(**line._get_product_price_context())
+        quantity = line.product_uom_qty or 1.0
+        uom = line.product_uom
+        date = line._get_order_date()
+        currency = line.currency_id or line.company_id.currency_id
+        if not currency:
+            return sold_price
+        forward = rule._compute_price(
+            product, quantity, uom, date, currency=currency
+        )
+        if currency.compare_amounts(forward, sold_price) == 0:
+            base = self._pba_pricelist_catalog_base(
+                rule, product, quantity, uom, date, currency, set()
+            )
+            return sold_price if base is None else base
+        return self._pba_inverse_pricelist_rule(
+            sold_price, rule, product, quantity, uom, date, set()
+        )
+
+    def _pba_inner_pricelist_rule(self, rule, product, quantity, uom, date):
+        rule_id = rule.base_pricelist_id._get_product_rule(
+            product,
+            quantity,
+            uom=uom,
+            date=date,
+        )
+        return self.env["product.pricelist.item"].browse(rule_id)
+
+    def _pba_pricelist_catalog_base(self, rule, product, quantity, uom, date, currency, seen):
+        if not rule or rule.id in seen:
+            return None
+        seen.add(rule.id)
+        if rule.base == "pricelist" and rule.base_pricelist_id:
+            inner = self._pba_inner_pricelist_rule(rule, product, quantity, uom, date)
+            if inner:
+                return self._pba_pricelist_catalog_base(
+                    inner, product, quantity, uom, date, currency, seen
+                )
+        return rule._compute_base_price(product, quantity, uom, date, currency)
+
+    def _pba_inverse_pricelist_rule(self, sold_price, rule, product, quantity, uom, date, seen):
+        if not rule or rule.id in seen or rule.compute_price == "fixed":
+            return sold_price
+        seen.add(rule.id)
+        price = sold_price
+        if rule.compute_price == "percentage":
+            factor = 1.0 - (rule.percent_price or 0.0) / 100.0
+            if float_is_zero(factor, precision_digits=6):
+                return sold_price
+            price = sold_price / factor
+        elif rule.compute_price == "formula":
+            surcharge = rule.price_surcharge or 0.0
+            product_uom = product.uom_id
+            if product_uom and uom and product_uom != uom:
+                surcharge = product_uom._compute_price(surcharge, uom)
+            discount = (
+                rule.price_discount
+                if rule.base != "standard_price"
+                else -rule.price_markup
+            )
+            factor = 1.0 - (discount or 0.0) / 100.0
+            if float_is_zero(factor, precision_digits=6):
+                return sold_price
+            price = (sold_price - surcharge) / factor
+        if rule.base == "pricelist" and rule.base_pricelist_id:
+            inner = self._pba_inner_pricelist_rule(rule, product, quantity, uom, date)
+            if inner and inner.compute_price != "fixed":
+                return self._pba_inverse_pricelist_rule(
+                    price, inner, product, quantity, uom, date, seen
+                )
+        return price
+
     def _pba_last_purchase_line_conversion_date(self, line):
         if not line:
             return fields.Date.context_today(self)
@@ -489,8 +574,9 @@ class ProductTemplate(models.Model):
                 continue
             try:
                 price_disc = template._pba_sale_line_unit_price_discounted(line)
+                price_base = template._pba_sale_price_without_pricelist(line, price_disc)
                 price_uom = line.product_uom._compute_price(
-                    price_disc,
+                    price_base,
                     line.product_id.uom_id,
                 )
                 date = template._pba_last_sale_line_conversion_date(line)

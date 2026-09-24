@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="sale_order_view_form_cash_handoff" model="ir.ui.view">
+        <field name="name">sale.order.form.cash.handoff</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header/field[@name='locked']" position="after">
+                <field name="locked_for_salesman" invisible="1"/>
+                <field name="is_salesman_locked" invisible="1"/>
+                <button
+                    name="action_send_to_cash"
+                    type="object"
+                    string="Enviar a Caja"
+                    class="btn-primary"
+                    data-hotkey="shift+c"
+                    groups="sale_cash_handoff.group_salesperson"
+                    invisible="locked_for_salesman or state == 'cancel'"
+                />
+                <button
+                    name="action_return_to_sales"
+                    type="object"
+                    string="Devolver a Ventas"
+                    data-hotkey="shift+d"
+                    groups="sale_cash_handoff.group_cashier"
+                    invisible="not locked_for_salesman"
+                />
+            </xpath>
+            <xpath expr="//button[@id='action_confirm']" position="attributes">
+                <attribute name="invisible">state != 'sent' or is_salesman_locked</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_confirm' and not(@id)]" position="attributes">
+                <attribute name="invisible">state != 'draft' or is_salesman_locked</attribute>
+            </xpath>
+            <xpath expr="//button[@id='create_invoice']" position="attributes">
+                <attribute name="invisible">invoice_status != 'to invoice' or is_salesman_locked</attribute>
+            </xpath>
+            <xpath expr="//div[hasclass('badge')]" position="after">
+                <div
+                    class="badge rounded-pill text-bg-info float-end fs-6 border-0"
+                    invisible="not locked_for_salesman"
+                >
+                    En caja
+                </div>
+            </xpath>
+            <xpath expr="//field[@name='partner_id']" position="attributes">
+                <attribute name="readonly">state in ['cancel', 'sale'] or is_salesman_locked</attribute>
+            </xpath>
+            <xpath expr="(//field[@name='partner_invoice_id'])[1]" position="attributes">
+                <attribute name="readonly">state == 'cancel' or locked or is_salesman_locked</attribute>
+            </xpath>
+            <xpath expr="(//field[@name='partner_invoice_id'])[2]" position="attributes">
+                <attribute name="readonly">state == 'cancel' or locked or is_salesman_locked</attribute>
+            </xpath>
+            <xpath expr="//field[@name='partner_shipping_id']" position="attributes">
+                <attribute name="readonly">state == 'cancel' or locked or is_salesman_locked</attribute>
+            </xpath>
+            <xpath expr="//field[@name='validity_date']" position="attributes">
+                <attribute name="readonly">state in ['cancel', 'sale'] or is_salesman_locked</attribute>
+            </xpath>
+            <xpath expr="(//field[@name='date_order'])[1]" position="attributes">
+                <attribute name="readonly">state in ['cancel', 'sale'] or is_salesman_locked</attribute>
+            </xpath>
+            <xpath expr="(//field[@name='date_order'])[2]" position="attributes">
+                <attribute name="readonly">state in ['cancel', 'sale'] or is_salesman_locked</attribute>
+            </xpath>
+            <xpath expr="(//field[@name='pricelist_id'])[1]" position="attributes">
+                <attribute name="readonly">state in ['cancel', 'sale'] or is_salesman_locked</attribute>
+            </xpath>
+            <xpath expr="(//field[@name='pricelist_id'])[2]" position="attributes">
+                <attribute name="readonly">state in ['cancel', 'sale'] or is_salesman_locked</attribute>
+            </xpath>
+            <xpath expr="//field[@name='payment_term_id']" position="attributes">
+                <attribute name="readonly">is_salesman_locked</attribute>
+            </xpath>
+            <xpath expr="//field[@name='order_line']" position="attributes">
+                <attribute name="readonly">state == 'cancel' or locked or is_salesman_locked</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_open_discount_wizard']" position="attributes">
+                <attribute name="invisible">is_salesman_locked</attribute>
+            </xpath>
+            <xpath expr="//field[@name='note']" position="attributes">
+                <attribute name="readonly">is_salesman_locked</attribute>
+            </xpath>
+            <xpath expr="//field[@name='user_id']" position="attributes">
+                <attribute name="readonly">is_salesman_locked</attribute>
+            </xpath>
+            <xpath expr="//field[@name='team_id']" position="attributes">
+                <attribute name="readonly">is_salesman_locked</attribute>
+            </xpath>
+            <xpath expr="//field[@name='client_order_ref']" position="attributes">
+                <attribute name="readonly">is_salesman_locked</attribute>
+            </xpath>
+            <xpath expr="//field[@name='fiscal_position_id']" position="attributes">
+                <attribute name="readonly">is_salesman_locked</attribute>
+            </xpath>
+            <xpath expr="//field[@name='commitment_date']" position="attributes">
+                <attribute name="readonly">state == 'cancel' or locked or is_salesman_locked</attribute>
+            </xpath>
+            <xpath expr="//field[@name='origin']" position="attributes">
+                <attribute name="readonly">is_salesman_locked</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="sale_order_view_search_cash_handoff" model="ir.ui.view">
+        <field name="name">sale.order.search.cash.handoff</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_sales_order_filter"/>
+        <field name="arch" type="xml">
+            <xpath expr="//filter[@name='my_sale_orders_filter']" position="after">
+                <separator/>
+                <filter
+                    string="En caja"
+                    name="filter_locked_for_salesman"
+                    domain="[('locked_for_salesman', '=', True)]"
+                />
+            </xpath>
+        </field>
+    </record>
+</odoo>

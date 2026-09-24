@@ -6,66 +6,79 @@
             <div
                 class="o_label_qr"
                 t-out="label_qr_value"
-                t-options="{'widget': 'barcode', 'symbology': 'QR', 'width': 120, 'height': 120, 'quiet': 0, 'img_style': qr_size or 'width:12mm;height:12mm;'}"
+                t-options="{'widget': 'barcode', 'symbology': 'QR', 'width': 160, 'height': 160, 'quiet': 0, 'img_style': qr_size or 'width:16mm;height:16mm;'}"
             />
         </t>
     </template>
 
     <template id="report_simple_label2x7" inherit_id="product.report_simple_label2x7">
-        <xpath expr="//t[@t-set='barcode_size']" position="after">
-            <t t-set="barcode_size" t-value="'width:24mm;height:12mm'"/>
+        <xpath expr="//div[hasclass('o_label_data')]" position="attributes">
+            <attribute name="class">o_label_data o_label_data_qr</attribute>
         </xpath>
-        <xpath expr="//div[hasclass('o_label_left_column')]/t[@t-if='barcode']/div" position="after">
+        <xpath expr="//div[hasclass('o_label_left_column')]" position="after">
+            <div class="o_label_qr_column">
+                <t t-call="product_qrcode.report_label_qr">
+                    <t t-set="qr_size" t-value="'width:16mm;height:16mm;'"/>
+                </t>
+            </div>
+        </xpath>
+    </template>
+
+    <template id="report_simple_label4x7" inherit_id="product.report_simple_label4x7">
+        <xpath expr="//div[hasclass('o_label_small_barcode')]" position="attributes">
+            <attribute name="class">text-center o_label_small_barcode o_label_barcode_qr</attribute>
+        </xpath>
+        <xpath expr="//t[@t-set='barcode_size']" position="after">
+            <t t-set="barcode_size" t-value="'width:30mm;height:8mm'"/>
+        </xpath>
+        <xpath expr="//div[hasclass('o_label_small_barcode')]/t[@t-if='barcode']/div" position="after">
             <t t-call="product_qrcode.report_label_qr">
                 <t t-set="qr_size" t-value="'width:12mm;height:12mm;'"/>
             </t>
         </xpath>
     </template>
 
-    <template id="report_simple_label4x7" inherit_id="product.report_simple_label4x7">
-        <xpath expr="//t[@t-set='barcode_size']" position="after">
-            <t t-set="barcode_size" t-value="'width:28mm;height:8mm'"/>
-        </xpath>
-        <xpath expr="//div[hasclass('o_label_small_barcode')]/t[@t-if='barcode']/div" position="after">
-            <t t-call="product_qrcode.report_label_qr">
-                <t t-set="qr_size" t-value="'width:10mm;height:10mm;'"/>
-            </t>
-        </xpath>
-    </template>
-
     <template id="report_simple_label4x12" inherit_id="product.report_simple_label4x12">
-        <xpath expr="//t[@t-set='barcode_size']" position="after">
-            <t t-set="barcode_size" t-value="'width:26mm;height:4mm'"/>
+        <xpath expr="//div[hasclass('o_label_full')]" position="attributes">
+            <attribute name="class">o_label_full o_label_small_text o_label_with_qr</attribute>
         </xpath>
-        <xpath expr="//div[hasclass('o_label_small_barcode')]/t[@t-if='barcode']/div" position="after">
-            <t t-call="product_qrcode.report_label_qr">
-                <t t-set="qr_size" t-value="'width:7mm;height:7mm;'"/>
-            </t>
+        <xpath expr="//div[hasclass('o_label_left_column')]" position="after">
+            <div class="o_label_qr_column">
+                <t t-call="product_qrcode.report_label_qr">
+                    <t t-set="qr_size" t-value="'width:8mm;height:8mm;'"/>
+                </t>
+            </div>
         </xpath>
     </template>
 
     <template id="report_simple_label4x12_no_price" inherit_id="product.report_simple_label4x12_no_price">
+        <xpath expr="//div[hasclass('o_label_small_barcode')]" position="attributes">
+            <attribute name="class">text-center o_label_small_barcode o_label_barcode_qr</attribute>
+        </xpath>
         <xpath expr="//t[@t-set='barcode_size']" position="after">
-            <t t-set="barcode_size" t-value="'width:26mm;height:4mm'"/>
+            <t t-set="barcode_size" t-value="'width:28mm;height:4mm'"/>
         </xpath>
         <xpath expr="//div[hasclass('o_label_small_barcode')]/t[@t-if='barcode']/div" position="after">
             <t t-call="product_qrcode.report_label_qr">
-                <t t-set="qr_size" t-value="'width:7mm;height:7mm;'"/>
+                <t t-set="qr_size" t-value="'width:8mm;height:8mm;'"/>
             </t>
         </xpath>
     </template>
 
     <template id="report_simple_label_dymo" inherit_id="product.report_simple_label_dymo">
+        <xpath expr="//div[hasclass('o_label_small_barcode')]" position="attributes">
+            <attribute name="class">text-start o_label_small_barcode o_label_barcode_qr</attribute>
+        </xpath>
         <xpath expr="//div[hasclass('o_label_small_barcode')]/t[@t-if='barcode']/div[1]" position="after">
             <t t-call="product_qrcode.report_label_qr">
-                <t t-set="qr_size" t-value="'width:10mm;height:10mm;'"/>
+                <t t-set="qr_size" t-value="'width:12mm;height:12mm;'"/>
             </t>
         </xpath>
     </template>
 
     <template id="report_productlabel_dymo" inherit_id="product.report_productlabel_dymo">
         <xpath expr="//t[@t-set='barcode_size']" position="after">
-            <t t-set="barcode_size" t-value="'width:36mm;height:7.5mm'"/>
+            <t t-set="barcode_size" t-value="'width:38mm;height:7.5mm'"/>
         </xpath>
     </template>
 </odoo>
