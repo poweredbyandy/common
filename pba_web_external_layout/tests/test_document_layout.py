@@ -23,6 +23,13 @@ class TestPbaDocumentLayout(TransactionCase):
         self.assertIn('name="due_date"', layout.preview)
         self.assertIn("line-height: 1.2", layout.preview)
         self.assertIn("background: transparent", layout.preview)
+        self.assertIn(
+            '[data-oe-model="sale.order"] .o_main_table tbody tr:nth-child(odd)',
+            layout.preview,
+        )
+        self.assertIn("background-color: #ffffff", layout.preview)
+        self.assertIn("background-color: #ececec", layout.preview)
+        self.assertIn("color: #212529", layout.preview)
         self.assertNotIn("PRESUPUESTO -", layout.preview)
 
     def test_document_layout_uses_selected_font(self):

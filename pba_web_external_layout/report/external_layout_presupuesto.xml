@@ -103,6 +103,16 @@
                 .o_report_layout_pba_presupuesto .o_main_table tbody tr:last-child td {
                     border-bottom: 0;
                 }
+                .o_report_layout_pba_presupuesto[data-oe-model="sale.order"] .o_main_table tbody tr:nth-child(odd) td {
+                    background-color: #ffffff;
+                    color: #212529;
+                }
+                .o_report_layout_pba_presupuesto[data-oe-model="sale.order"] .o_main_table tbody tr:nth-child(even) td {
+                    background-color: #ececec;
+                    color: #212529;
+                    -webkit-print-color-adjust: exact;
+                    print-color-adjust: exact;
+                }
                 .o_report_layout_pba_presupuesto .o_report_stockpicking_operations > table,
                 .o_report_layout_pba_presupuesto table[name="stock_move_table"],
                 .o_report_layout_pba_presupuesto table[name="stock_move_line_table"] {
