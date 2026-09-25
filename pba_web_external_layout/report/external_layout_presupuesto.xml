@@ -108,7 +108,7 @@
                     color: #212529;
                 }
                 .o_report_layout_pba_presupuesto[data-oe-model="sale.order"] .o_main_table tbody tr:nth-child(even) td {
-                    background-color: #ececec;
+                    background-color: <t t-out="company._pba_sale_line_stripe_color()"/>;
                     color: #212529;
                     -webkit-print-color-adjust: exact;
                     print-color-adjust: exact;

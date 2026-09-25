@@ -28,9 +28,16 @@ class TestPbaDocumentLayout(TransactionCase):
             layout.preview,
         )
         self.assertIn("background-color: #ffffff", layout.preview)
-        self.assertIn("background-color: #ececec", layout.preview)
+        self.assertIn(
+            "background-color: %s" % self.env.company._pba_sale_line_stripe_color(),
+            layout.preview,
+        )
         self.assertIn("color: #212529", layout.preview)
         self.assertNotIn("PRESUPUESTO -", layout.preview)
+
+    def test_sale_line_stripe_follows_presupuesto_color(self):
+        self.env.company.primary_color = "#dc3545"
+        self.assertEqual(self.env.company._pba_sale_line_stripe_color(), "#f9dbde")
 
     def test_document_layout_uses_selected_font(self):
         layout = self.env["base.document.layout"].create(
