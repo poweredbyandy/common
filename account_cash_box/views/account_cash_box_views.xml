@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="account_cash_box_view_search" model="ir.ui.view">
+        <field name="name">account.cash.box.search</field>
+        <field name="model">account.cash.box</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="journal_id"/>
+                <filter name="open" string="Open" domain="[('state', '=', 'open')]"/>
+                <filter name="closed" string="Closed" domain="[('state', '=', 'closed')]"/>
+                <group>
+                    <filter name="group_company" string="Company" context="{'group_by': 'company_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="account_cash_box_view_list" model="ir.ui.view">
+        <field name="name">account.cash.box.list</field>
+        <field name="model">account.cash.box</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="journal_id"/>
+                <field name="accounting_balance"/>
+                <field name="display_currency_id" column_invisible="True"/>
+                <field name="current_session_id"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="account_cash_box_view_form" model="ir.ui.view">
+        <field name="name">account.cash.box.form</field>
+        <field name="model">account.cash.box</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button
+                        name="action_open_open_wizard"
+                        type="object"
+                        string="Open Session"
+                        class="btn-primary"
+                        invisible="current_session_id"
+                    />
+                    <button
+                        name="action_open_sessions"
+                        type="object"
+                        string="Sessions"
+                    />
+                    <button
+                        name="action_open_journal_items"
+                        type="object"
+                        string="Journal Items"
+                        groups="account.group_account_readonly"
+                    />
+                    <field name="state" widget="statusbar" statusbar_visible="open,closed"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button
+                            name="action_open_sessions"
+                            type="object"
+                            class="oe_stat_button"
+                            icon="fa-clock-o"
+                        >
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">Sessions</span>
+                            </div>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1>
+                            <field name="name" placeholder="Main Cash"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="journal_id"/>
+                            <field name="accounting_balance"/>
+                            <field name="display_currency_id" invisible="1"/>
+                            <field name="current_session_id" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="user_ids" widget="many2many_tags"/>
+                            <field name="active" invisible="1"/>
+                            <field name="sequence" invisible="1"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="account_cash_box_action" model="ir.actions.act_window">
+        <field name="name">Cash Boxes</field>
+        <field name="res_model">account.cash.box</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

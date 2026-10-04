@@ -1,0 +1,29 @@
+.o_account_cash_box_systray_toggle {
+    position: relative;
+
+    .o_account_cash_box_systray_counter {
+        position: absolute;
+        top: 0;
+        right: 0;
+        transform: translate(30%, -20%);
+        font-size: 0.65rem;
+    }
+}
+
+.o_account_cash_box_systray_menu {
+    min-width: 22rem;
+    max-width: 26rem;
+}
+
+.o_account_cash_box_systray {
+    max-height: 70vh;
+    overflow: auto;
+}
+
+.o_account_cash_box_systray_balance {
+    letter-spacing: -0.02em;
+}
+
+.o_account_cash_box_dialog {
+    min-width: 18rem;
+}

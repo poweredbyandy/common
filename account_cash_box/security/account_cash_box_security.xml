@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="account_cash_box_rule_user" model="ir.rule">
+        <field name="name">Cash box: assigned cashiers</field>
+        <field name="model_id" ref="model_account_cash_box"/>
+        <field name="domain_force">['|', ('user_ids', '=', False), ('user_ids', 'in', [user.id])]</field>
+        <field name="groups" eval="[(4, ref('group_cash_box_user'))]"/>
+    </record>
+
+    <record id="account_cash_box_rule_manager" model="ir.rule">
+        <field name="name">Cash box: manager all</field>
+        <field name="model_id" ref="model_account_cash_box"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_cash_box_manager'))]"/>
+    </record>
+
+    <record id="account_cash_session_rule_user" model="ir.rule">
+        <field name="name">Cash session: assigned cashiers</field>
+        <field name="model_id" ref="model_account_cash_session"/>
+        <field name="domain_force">['|', ('box_id.user_ids', '=', False), ('box_id.user_ids', 'in', [user.id])]</field>
+        <field name="groups" eval="[(4, ref('group_cash_box_user'))]"/>
+    </record>
+
+    <record id="account_cash_session_rule_manager" model="ir.rule">
+        <field name="name">Cash session: manager all</field>
+        <field name="model_id" ref="model_account_cash_session"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_cash_box_manager'))]"/>
+    </record>
+
+    <record id="account_cash_move_rule_user" model="ir.rule">
+        <field name="name">Cash move: assigned cashiers</field>
+        <field name="model_id" ref="model_account_cash_move"/>
+        <field name="domain_force">['|', ('box_id.user_ids', '=', False), ('box_id.user_ids', 'in', [user.id])]</field>
+        <field name="groups" eval="[(4, ref('group_cash_box_user'))]"/>
+    </record>
+
+    <record id="account_cash_move_rule_manager" model="ir.rule">
+        <field name="name">Cash move: manager all</field>
+        <field name="model_id" ref="model_account_cash_move"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_cash_box_manager'))]"/>
+    </record>
+
+    <record id="account_cash_reason_rule_company" model="ir.rule">
+        <field name="name">Cash reason: multi-company</field>
+        <field name="model_id" ref="model_account_cash_reason"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+
+    <record id="account_cash_box_rule_company" model="ir.rule">
+        <field name="name">Cash box: multi-company</field>
+        <field name="model_id" ref="model_account_cash_box"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+
+    <record id="account_cash_session_rule_company" model="ir.rule">
+        <field name="name">Cash session: multi-company</field>
+        <field name="model_id" ref="model_account_cash_session"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+
+    <record id="account_cash_move_rule_company" model="ir.rule">
+        <field name="name">Cash move: multi-company</field>
+        <field name="model_id" ref="model_account_cash_move"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+</odoo>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="account_cash_open_view_form" model="ir.ui.view">
+        <field name="name">account.cash.open.form</field>
+        <field name="model">account.cash.open</field>
+        <field name="arch" type="xml">
+            <form>
+                <group>
+                    <field name="box_id" readonly="1"/>
+                    <field name="expected_balance"/>
+                    <field name="counted_balance"/>
+                    <field name="difference"/>
+                    <field name="currency_id" invisible="1"/>
+                    <field name="company_id" invisible="1"/>
+                    <field name="notes" placeholder="Optional opening notes"/>
+                </group>
+                <footer>
+                    <button name="action_confirm" type="object" string="Open" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

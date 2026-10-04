@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+<t t-name="account_cash_box.CashBoxSystray">
+    <Dropdown t-if="visible" position="'bottom-end'" state="dropdown" beforeOpen.bind="onBeforeOpen" menuClass="'o_account_cash_box_systray_menu'">
+        <button class="o_account_cash_box_systray_toggle" title="Cash Box">
+            <i class="fa fa-lg fa-money" role="img" aria-label="Cash Box"/>
+            <span t-if="openCount" class="o_account_cash_box_systray_counter badge rounded-pill" t-esc="openCount"/>
+        </button>
+        <t t-set-slot="content">
+            <div class="o_account_cash_box_systray">
+                <div class="o_account_cash_box_systray_header px-3 py-2 border-bottom">
+                    <strong>Cash Box</strong>
+                </div>
+                <div t-foreach="state.boxes" t-as="box" t-key="box.id" class="o_account_cash_box_systray_item px-3 py-3 border-bottom">
+                    <div class="d-flex justify-content-between align-items-start gap-2">
+                        <div>
+                            <div class="fw-bold" t-esc="box.name"/>
+                            <div class="text-muted small" t-esc="box.journal_name"/>
+                        </div>
+                        <span
+                            class="badge rounded-pill"
+                            t-att-class="box.state === 'open' ? 'text-bg-success' : 'text-bg-secondary'"
+                            t-esc="box.state === 'open' ? 'Open' : 'Closed'"
+                        />
+                    </div>
+                    <div class="o_account_cash_box_systray_balance fs-4 fw-bold my-2" t-esc="formatAmount(box, box.accounting_balance)"/>
+                    <div t-if="box.state === 'open'" class="small text-muted mb-2">
+                        <span t-esc="box.session_name"/>
+                        · In <t t-esc="formatAmount(box, box.amount_in)"/>
+                        · Out <t t-esc="formatAmount(box, box.amount_out)"/>
+                    </div>
+                    <div class="d-flex flex-wrap gap-2">
+                        <t t-if="box.can_open">
+                            <button class="btn btn-primary btn-sm" t-on-click="() => this.openOpenDialog(box)">Open</button>
+                        </t>
+                        <t t-if="box.can_move">
+                            <button class="btn btn-success btn-sm" t-on-click="() => this.openMoveDialog(box, 'in')">Cash In</button>
+                            <button class="btn btn-outline-danger btn-sm" t-on-click="() => this.openMoveDialog(box, 'out')">Cash Out</button>
+                            <button class="btn btn-warning btn-sm" t-on-click="() => this.openCloseDialog(box)">Close</button>
+                        </t>
+                        <button class="btn btn-light btn-sm" t-on-click="() => this.openStatusDialog(box)">Status</button>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </Dropdown>
+</t>
+
+</templates>

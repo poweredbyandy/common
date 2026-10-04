@@ -9,12 +9,17 @@ class AccountMoveLine(models.Model):
     pba_sale_price_editable = fields.Boolean(compute="_compute_pba_sale_price_editable")
 
     @api.depends_context("uid")
+    @api.depends("move_id")
     def _compute_pba_sale_price_editable(self):
         editable = self.env.user.has_group(
             "pba_sale_price_group.group_pba_edit_sale_price"
         )
         for line in self:
-            line.pba_sale_price_editable = editable
+            move = line.move_id
+            is_debit_note = bool(
+                move and "debit_origin_id" in move._fields and move.debit_origin_id
+            )
+            line.pba_sale_price_editable = editable or is_debit_note
 
     def _pba_applies_customer_sale_price_lock(self):
         self.ensure_one()
@@ -23,7 +28,7 @@ class AccountMoveLine(models.Model):
             return False
         if move.move_type in ("out_refund", "in_refund"):
             return False
-        if move.debit_origin_id:
+        if "debit_origin_id" in move._fields and move.debit_origin_id:
             return False
         if not move.is_sale_document(include_receipts=True):
             return False

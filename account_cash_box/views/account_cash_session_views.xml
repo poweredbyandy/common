@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="account_cash_session_view_search" model="ir.ui.view">
+        <field name="name">account.cash.session.search</field>
+        <field name="model">account.cash.session</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="box_id"/>
+                <field name="user_id"/>
+                <filter name="open" string="Open" domain="[('state', '=', 'open')]"/>
+                <filter name="closed" string="Closed" domain="[('state', '=', 'closed')]"/>
+                <separator/>
+                <filter name="today" string="Today" domain="[('date_open', '&gt;=', context_today().strftime('%Y-%m-%d'))]"/>
+                <group>
+                    <filter name="group_box" string="Cash Box" context="{'group_by': 'box_id'}"/>
+                    <filter name="group_user" string="Cashier" context="{'group_by': 'user_id'}"/>
+                    <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="account_cash_session_view_list" model="ir.ui.view">
+        <field name="name">account.cash.session.list</field>
+        <field name="model">account.cash.session</field>
+        <field name="arch" type="xml">
+            <list
+                create="false"
+                decoration-success="state == 'open'"
+                decoration-muted="state == 'closed'"
+            >
+                <field name="name"/>
+                <field name="box_id"/>
+                <field name="user_id"/>
+                <field name="date_open"/>
+                <field name="date_close"/>
+                <field name="opening_balance"/>
+                <field name="expected_balance"/>
+                <field name="closing_counted"/>
+                <field name="currency_id" column_invisible="True"/>
+                <field name="state" widget="badge" decoration-success="state == 'open'" decoration-muted="state == 'closed'"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="account_cash_session_view_form" model="ir.ui.view">
+        <field name="name">account.cash.session.form</field>
+        <field name="model">account.cash.session</field>
+        <field name="arch" type="xml">
+            <form create="false">
+                <header>
+                    <button
+                        name="action_open_in_wizard"
+                        type="object"
+                        string="Cash In"
+                        class="btn-primary"
+                        invisible="state != 'open'"
+                    />
+                    <button
+                        name="action_open_out_wizard"
+                        type="object"
+                        string="Cash Out"
+                        invisible="state != 'open'"
+                    />
+                    <button
+                        name="action_open_close_wizard"
+                        type="object"
+                        string="Close Session"
+                        class="btn-primary"
+                        invisible="state != 'open'"
+                    />
+                    <button
+                        name="action_open_journal_items"
+                        type="object"
+                        string="Journal Items"
+                        groups="account.group_account_readonly"
+                    />
+                    <button
+                        name="action_open_statement"
+                        type="object"
+                        string="Statement"
+                        invisible="not statement_id"
+                        groups="account.group_account_readonly"
+                    />
+                    <field name="state" widget="statusbar" statusbar_visible="open,closed"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1>
+                            <field name="name"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="box_id"/>
+                            <field name="journal_id"/>
+                            <field name="user_id"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                        <group>
+                            <field name="date_open"/>
+                            <field name="date_close"/>
+                            <field name="statement_id" groups="account.group_account_readonly"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                    </group>
+                    <group string="Balances">
+                        <group>
+                            <field name="opening_expected"/>
+                            <field name="opening_counted"/>
+                            <field name="opening_difference"/>
+                            <field name="opening_balance"/>
+                        </group>
+                        <group>
+                            <field name="amount_in"/>
+                            <field name="amount_out"/>
+                            <field name="amount_other"/>
+                            <field name="expected_balance"/>
+                            <field name="closing_counted" invisible="state != 'closed'"/>
+                            <field name="closing_difference" invisible="state != 'closed'"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="opening_notes"/>
+                        <field name="closing_notes" invisible="state != 'closed'"/>
+                    </group>
+                    <field name="move_ids">
+                        <list>
+                            <field name="date"/>
+                            <field name="move_type"/>
+                            <field name="reason_id"/>
+                            <field name="partner_id"/>
+                            <field name="amount"/>
+                            <field name="signed_amount"/>
+                            <field name="user_id"/>
+                            <field name="note"/>
+                            <field name="currency_id" column_invisible="True"/>
+                        </list>
+                    </field>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="account_cash_session_action" model="ir.actions.act_window">
+        <field name="name">Cash Sessions</field>
+        <field name="res_model">account.cash.session</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_open': 1}</field>
+    </record>
+</odoo>
