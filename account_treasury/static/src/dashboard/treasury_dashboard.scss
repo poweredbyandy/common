@@ -70,15 +70,7 @@
         box-shadow: inset 0 0 0 1px $warning;
     }
 
-    .o_account_treasury_year {
-        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    }
-
     .o_account_treasury_month {
         cursor: pointer;
-
-        &:hover {
-            box-shadow: $box-shadow-sm;
-        }
     }
 }

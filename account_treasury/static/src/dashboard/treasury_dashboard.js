@@ -11,6 +11,7 @@ const { DateTime, Info } = luxon;
 const INFLOW_COLOR = "#28a745";
 const OUTFLOW_COLOR = "#dc3545";
 const BALANCE_COLOR = "#017e84";
+const REAL_BALANCE_COLOR = "#714b67";
 const GRID_COLOR = "rgba(128, 128, 128, 0.2)";
 
 export class TreasuryDashboard extends Component {
@@ -94,7 +95,7 @@ export class TreasuryDashboard extends Component {
         return (this.state.data?.buckets || []).map((bucket) => ({
             ...bucket,
             label: DateTime.fromISO(`${bucket.key}-01`).toFormat("LLLL"),
-            net: bucket.real_in - bucket.real_out + bucket.pending_in - bucket.pending_out,
+            isCurrent: bucket.key === this.state.data.today.slice(0, 7),
         }));
     }
 
@@ -241,7 +242,7 @@ export class TreasuryDashboard extends Component {
                 datasets: [
                     {
                         type: "line",
-                        label: _t("Projected net flow"),
+                        label: _t("Projected balance"),
                         data: series("balance"),
                         borderColor: BALANCE_COLOR,
                         backgroundColor: BALANCE_COLOR,
@@ -249,6 +250,18 @@ export class TreasuryDashboard extends Component {
                         pointRadius: 2,
                         tension: 0.2,
                         order: 1,
+                    },
+                    {
+                        type: "line",
+                        label: _t("Real balance"),
+                        data: series("real_balance"),
+                        borderColor: REAL_BALANCE_COLOR,
+                        backgroundColor: REAL_BALANCE_COLOR,
+                        borderDash: [6, 4],
+                        borderWidth: 2,
+                        pointRadius: 2,
+                        tension: 0.2,
+                        order: 0,
                     },
                     dataset(_t("Real inflows"), series("real_in"), INFLOW_COLOR, "in"),
                     dataset(_t("Pending inflows"), series("pending_in"), INFLOW_COLOR, "in", 0.4),

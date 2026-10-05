@@ -1,4 +1,5 @@
 from collections import defaultdict
+from datetime import timedelta
 
 from dateutil.relativedelta import relativedelta
 
@@ -30,12 +31,15 @@ class AccountTreasuryDashboard(models.AbstractModel):
     ):
         self.env["account.treasury.forecast"].check_access("read")
         self.env["account.treasury.match"].check_access("read")
+        for model in ("account.treasury.forecast", "account.treasury.match", "res.currency.rate"):
+            self.env[model].flush_model()
         date_from = fields.Date.to_date(date_from)
         date_to = fields.Date.to_date(date_to)
         currency = (
             self.env["res.currency"].browse(currency_id).exists()
             or self.env.company.currency_id
         )
+        opening = self._fetch_opening(date_from, currency, rate_mode)
         rows = self._fetch_rows(date_from, date_to, currency, rate_mode)
         buckets = self._init_buckets(date_from, date_to, group_by)
         items = defaultdict(list)
@@ -66,26 +70,54 @@ class AccountTreasuryDashboard(models.AbstractModel):
                         "residual": residual,
                     }
                 )
+        finalized = self._finalize_buckets(buckets, currency, opening)
         return {
             "currency_id": currency.id,
             "currencies": self.env["res.currency"].search_read(
                 [], ["name", "symbol"], order="name"
             ),
-            "buckets": self._finalize_buckets(buckets, currency),
+            "buckets": finalized,
             "items": items,
-            "totals": self._compute_totals(buckets, currency),
+            "totals": self._compute_totals(buckets, currency, opening, finalized),
             "today": fields.Date.to_string(fields.Date.context_today(self)),
         }
 
     @api.model
     def _fetch_rows(self, date_from, date_to, currency, rate_mode):
-        for model in ("account.treasury.forecast", "account.treasury.match", "res.currency.rate"):
-            self.env[model].flush_model()
-        company_ids = tuple(self.env.companies.ids)
+        query = SQL(
+            "%s ORDER BY movement.date, movement.kind, movement.forecast_id",
+            self._movement_query(date_from, date_to, currency, rate_mode),
+        )
+        return self.env.execute_query_dict(query)
+
+    @api.model
+    def _fetch_opening(self, date_from, currency, rate_mode):
+        query = SQL(
+            """
+            SELECT COALESCE(SUM(CASE WHEN movement.kind = 'real'
+                                     THEN movement.sign * movement.amount * movement.rate
+                                END), 0.0) AS real,
+                   COALESCE(SUM(CASE WHEN movement.kind = 'forecast'
+                                     THEN movement.sign * movement.residual * movement.rate
+                                END), 0.0) AS pending
+              FROM (%s) movement
+            """,
+            self._movement_query(
+                False, date_from - timedelta(days=1), currency, rate_mode
+            ),
+        )
+        result = self.env.execute_query_dict(query)[0]
+        return {
+            "real": currency.round(result["real"]),
+            "projected": currency.round(result["real"] + result["pending"]),
+        }
+
+    @api.model
+    def _movement_query(self, date_from, date_to, currency, rate_mode):
         conversion_date = SQL(
             "%s::date", fields.Date.context_today(self)
         ) if rate_mode == "today" else SQL("movement.date")
-        query = SQL(
+        return SQL(
             """
             WITH movement AS (
                 SELECT 'forecast' AS kind,
@@ -105,7 +137,7 @@ class AccountTreasuryDashboard(models.AbstractModel):
                   FROM account_treasury_forecast forecast
                  WHERE forecast.company_id IN %(company_ids)s
                    AND forecast.state != 'cancel'
-                   AND forecast.date BETWEEN %(date_from)s AND %(date_to)s
+                   AND %(forecast_dates)s
                  UNION ALL
                 SELECT 'real' AS kind,
                        forecast.id,
@@ -125,9 +157,10 @@ class AccountTreasuryDashboard(models.AbstractModel):
                   JOIN account_treasury_forecast forecast
                     ON forecast.id = treasury_match.forecast_id
                  WHERE forecast.company_id IN %(company_ids)s
-                   AND treasury_match.date BETWEEN %(date_from)s AND %(date_to)s
+                   AND %(match_dates)s
             )
             SELECT movement.*,
+                   CASE WHEN movement.flow_type = 'inflow' THEN 1 ELSE -1 END AS sign,
                    partner.name AS partner_name,
                    category.name AS category_name,
                    category.color AS category_color,
@@ -140,15 +173,21 @@ class AccountTreasuryDashboard(models.AbstractModel):
                 ON category.id = movement.category_id
          LEFT JOIN LATERAL (%(source_rate)s) source_rate ON TRUE
          LEFT JOIN LATERAL (%(target_rate)s) target_rate ON TRUE
-          ORDER BY movement.date, movement.kind, movement.forecast_id
             """,
-            company_ids=company_ids,
-            date_from=date_from,
-            date_to=date_to,
+            company_ids=tuple(self.env.companies.ids),
+            forecast_dates=self._date_condition(SQL("forecast.date"), date_from, date_to),
+            match_dates=self._date_condition(
+                SQL("treasury_match.date"), date_from, date_to
+            ),
             source_rate=self._rate_query(SQL("movement.currency_id"), conversion_date),
             target_rate=self._rate_query(SQL("%s", currency.id), conversion_date),
         )
-        return self.env.execute_query_dict(query)
+
+    @api.model
+    def _date_condition(self, column, date_from, date_to):
+        if date_from:
+            return SQL("%s BETWEEN %s AND %s", column, date_from, date_to)
+        return SQL("%s <= %s", column, date_to)
 
     @api.model
     def _rate_query(self, currency_sql, conversion_date):
@@ -190,27 +229,31 @@ class AccountTreasuryDashboard(models.AbstractModel):
         return buckets
 
     @api.model
-    def _finalize_buckets(self, buckets, currency):
-        balance = 0.0
+    def _finalize_buckets(self, buckets, currency, opening):
+        balance = opening["projected"]
+        real_balance = opening["real"]
         result = []
         for key, values in buckets.items():
-            balance += (
-                values["real_in"]
-                - values["real_out"]
-                + values["pending_in"]
-                - values["pending_out"]
-            )
+            real_net = values["real_in"] - values["real_out"]
+            net = real_net + values["pending_in"] - values["pending_out"]
             result.append(
                 {
                     "key": key,
                     **{name: currency.round(value) for name, value in values.items()},
-                    "balance": currency.round(balance),
+                    "opening": currency.round(balance),
+                    "real_opening": currency.round(real_balance),
+                    "net": currency.round(net),
+                    "real_net": currency.round(real_net),
+                    "balance": currency.round(balance + net),
+                    "real_balance": currency.round(real_balance + real_net),
                 }
             )
+            balance += net
+            real_balance += real_net
         return result
 
     @api.model
-    def _compute_totals(self, buckets, currency):
+    def _compute_totals(self, buckets, currency, opening, finalized):
         totals = dict.fromkeys(BUCKET_KEYS, 0.0)
         for values in buckets.values():
             for name in BUCKET_KEYS:
@@ -221,4 +264,15 @@ class AccountTreasuryDashboard(models.AbstractModel):
             + totals["pending_in"]
             - totals["pending_out"]
         )
-        return {name: currency.round(value) for name, value in totals.items()}
+        totals = {name: currency.round(value) for name, value in totals.items()}
+        totals.update(
+            {
+                "opening": opening["projected"],
+                "real_opening": opening["real"],
+                "closing": finalized[-1]["balance"] if finalized else opening["projected"],
+                "real_closing": (
+                    finalized[-1]["real_balance"] if finalized else opening["real"]
+                ),
+            }
+        )
+        return totals

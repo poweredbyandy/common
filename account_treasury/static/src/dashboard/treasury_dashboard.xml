@@ -36,6 +36,14 @@
             <div class="o_account_treasury_kpis d-flex flex-wrap gap-2 px-3 pt-3">
                 <div class="o_account_treasury_kpi card flex-fill">
                     <div class="card-body py-2">
+                        <div class="text-muted small">Opening balance</div>
+                        <div t-attf-class="fs-5 {{ totals.opening &lt; 0 ? 'text-danger' : '' }}"
+                             t-esc="format(totals.opening)"/>
+                        <div class="small">Real: <span t-esc="format(totals.real_opening)"/></div>
+                    </div>
+                </div>
+                <div class="o_account_treasury_kpi card flex-fill">
+                    <div class="card-body py-2">
                         <div class="text-muted small">Planned inflows</div>
                         <div class="fs-5 text-success" t-esc="format(totals.planned_in)"/>
                         <div class="small">Received: <span t-esc="format(totals.real_in)"/></div>
@@ -61,10 +69,15 @@
                 </div>
                 <div class="o_account_treasury_kpi card flex-fill">
                     <div class="card-body py-2">
-                        <div class="text-muted small">Projected net flow</div>
-                        <div t-attf-class="fs-5 {{ totals.net &lt; 0 ? 'text-danger' : 'text-success' }}"
-                             t-esc="format(totals.net)"/>
-                        <div class="small text-muted">Real + pending</div>
+                        <div class="text-muted small">Closing balance</div>
+                        <div t-attf-class="fs-5 {{ totals.closing &lt; 0 ? 'text-danger' : 'text-success' }}"
+                             t-esc="format(totals.closing)"/>
+                        <div class="small">
+                            Real: <span t-esc="format(totals.real_closing)"/>
+                            <span class="text-muted"> · Net: </span>
+                            <span t-attf-class="{{ totals.net &lt; 0 ? 'text-danger' : 'text-success' }}"
+                                  t-esc="format(totals.net)"/>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -127,35 +140,55 @@
                     </div>
                 </t>
                 <t t-else="">
-                    <div class="o_account_treasury_year d-grid gap-2">
-                        <t t-foreach="months" t-as="month" t-key="month.key">
-                            <div class="card o_account_treasury_month" t-on-click="() => this.onOpenMonth(month)">
-                                <div class="card-body py-2">
-                                    <h5 class="text-capitalize" t-esc="month.label"/>
-                                    <div class="d-flex justify-content-between small">
-                                        <span>Inflows</span>
-                                        <span class="text-success" t-esc="format(month.planned_in)"/>
-                                    </div>
-                                    <div class="d-flex justify-content-between small">
-                                        <span>Outflows</span>
-                                        <span class="text-danger" t-esc="format(month.planned_out)"/>
-                                    </div>
-                                    <div class="d-flex justify-content-between small">
-                                        <span>Received / paid</span>
-                                        <span>
-                                            <span class="text-success" t-esc="format(month.real_in)"/>
-                                            /
-                                            <span class="text-danger" t-esc="format(month.real_out)"/>
-                                        </span>
-                                    </div>
-                                    <div class="d-flex justify-content-between fw-bold border-top mt-1 pt-1">
-                                        <span>Net</span>
-                                        <span t-attf-class="{{ month.net &lt; 0 ? 'text-danger' : 'text-success' }}"
-                                              t-esc="format(month.net)"/>
-                                    </div>
-                                </div>
-                            </div>
-                        </t>
+                    <div class="o_account_treasury_report card">
+                        <table class="table table-sm table-hover mb-0 align-middle">
+                            <thead>
+                                <tr>
+                                    <th rowspan="2">Month</th>
+                                    <th rowspan="2" class="text-end">Opening balance</th>
+                                    <th colspan="2" class="text-center border-start">Inflows</th>
+                                    <th colspan="2" class="text-center border-start">Outflows</th>
+                                    <th rowspan="2" class="text-end border-start">Net</th>
+                                    <th rowspan="2" class="text-end">Closing balance</th>
+                                    <th rowspan="2" class="text-end border-start">Real balance</th>
+                                </tr>
+                                <tr>
+                                    <th class="text-end border-start">Planned</th>
+                                    <th class="text-end">Real</th>
+                                    <th class="text-end border-start">Planned</th>
+                                    <th class="text-end">Real</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="months" t-as="month" t-key="month.key">
+                                    <tr t-attf-class="o_account_treasury_month {{ month.isCurrent ? 'table-active fw-bold' : '' }}"
+                                        t-on-click="() => this.onOpenMonth(month)">
+                                        <td class="text-capitalize" t-esc="month.label"/>
+                                        <td t-attf-class="text-end {{ month.opening &lt; 0 ? 'text-danger' : '' }}" t-esc="format(month.opening)"/>
+                                        <td class="text-end border-start" t-esc="format(month.planned_in)"/>
+                                        <td class="text-end text-success" t-esc="format(month.real_in)"/>
+                                        <td class="text-end border-start" t-esc="format(month.planned_out)"/>
+                                        <td class="text-end text-danger" t-esc="format(month.real_out)"/>
+                                        <td t-attf-class="text-end border-start {{ month.net &lt; 0 ? 'text-danger' : 'text-success' }}" t-esc="format(month.net)"/>
+                                        <td t-attf-class="text-end fw-bold {{ month.balance &lt; 0 ? 'text-danger' : '' }}" t-esc="format(month.balance)"/>
+                                        <td t-attf-class="text-end border-start {{ month.real_balance &lt; 0 ? 'text-danger' : '' }}" t-esc="format(month.real_balance)"/>
+                                    </tr>
+                                </t>
+                            </tbody>
+                            <tfoot class="fw-bold border-top">
+                                <tr>
+                                    <td>Total</td>
+                                    <td class="text-end" t-esc="format(totals.opening)"/>
+                                    <td class="text-end border-start" t-esc="format(totals.planned_in)"/>
+                                    <td class="text-end text-success" t-esc="format(totals.real_in)"/>
+                                    <td class="text-end border-start" t-esc="format(totals.planned_out)"/>
+                                    <td class="text-end text-danger" t-esc="format(totals.real_out)"/>
+                                    <td t-attf-class="text-end border-start {{ totals.net &lt; 0 ? 'text-danger' : 'text-success' }}" t-esc="format(totals.net)"/>
+                                    <td t-attf-class="text-end {{ totals.closing &lt; 0 ? 'text-danger' : '' }}" t-esc="format(totals.closing)"/>
+                                    <td t-attf-class="text-end border-start {{ totals.real_closing &lt; 0 ? 'text-danger' : '' }}" t-esc="format(totals.real_closing)"/>
+                                </tr>
+                            </tfoot>
+                        </table>
                     </div>
                 </t>
             </div>

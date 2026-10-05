@@ -226,3 +226,28 @@ class TestAccountTreasury(AccountTestInvoicingCommon):
         self.assertEqual(len(data["buckets"]), 12)
         self.assertEqual(data["buckets"][2]["planned_out"], 100.0)
         self.assertFalse(data["items"])
+
+    def test_dashboard_carries_previous_balance(self):
+        income = self._create_forecast(amount=1000.0, flow_type="inflow", date="2025-12-20")
+        self._create_forecast_match(
+            income,
+            self._create_payment(600.0, payment_type="inbound", pay_date="2025-12-22"),
+        )
+        self._create_forecast(amount=150.0, date="2025-11-05")
+        self._create_forecast(amount=200.0, date="2026-01-10")
+        dashboard = self.env["account.treasury.dashboard"]
+        month = dashboard.get_dashboard_data("2026-01-01", "2026-01-31")
+        self.assertEqual(month["totals"]["opening"], 1000.0 - 150.0)
+        self.assertEqual(month["totals"]["real_opening"], 600.0)
+        self.assertEqual(month["buckets"][0]["opening"], 850.0)
+        self.assertEqual(month["totals"]["closing"], 650.0)
+        self.assertEqual(month["totals"]["real_closing"], 600.0)
+        year = dashboard.get_dashboard_data(
+            "2025-01-01", "2025-12-31", False, "document", "month"
+        )
+        november, december = year["buckets"][10:12]
+        self.assertEqual(november["balance"], -150.0)
+        self.assertEqual(december["opening"], -150.0)
+        self.assertEqual(december["balance"], 850.0)
+        self.assertEqual(december["real_balance"], 600.0)
+        self.assertEqual(year["totals"]["closing"], month["totals"]["opening"])

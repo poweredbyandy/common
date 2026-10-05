@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-05 15:59+0000\n"
-"PO-Revision-Date: 2026-10-05 15:59+0000\n"
+"POT-Creation-Date: 2026-10-05 16:51+0000\n"
+"PO-Revision-Date: 2026-10-05 16:51+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: es\n"
@@ -164,6 +164,12 @@ msgstr "Categorías"
 #: model_terms:ir.ui.view,arch_db:account_treasury.account_treasury_template_view_search
 msgid "Category"
 msgstr "Categoría"
+
+#. module: account_treasury
+#. odoo-javascript
+#: code:addons/account_treasury/static/src/dashboard/treasury_dashboard.xml:0
+msgid "Closing balance"
+msgstr "Saldo final"
 
 #. module: account_treasury
 #: model:ir.model.fields,field_description:account_treasury.field_account_treasury_category__color
@@ -592,6 +598,12 @@ msgstr ""
 "liquidó."
 
 #. module: account_treasury
+#. odoo-javascript
+#: code:addons/account_treasury/static/src/dashboard/treasury_dashboard.xml:0
+msgid "Opening balance"
+msgstr "Saldo inicial"
+
+#. module: account_treasury
 #: model:ir.ui.menu,name:account_treasury.account_treasury_operations_menu
 msgid "Operations"
 msgstr "Operaciones"
@@ -696,6 +708,12 @@ msgstr "Planifique sus movimientos de tesorería recurrentes"
 #. module: account_treasury
 #. odoo-javascript
 #: code:addons/account_treasury/static/src/dashboard/treasury_dashboard.xml:0
+msgid "Planned"
+msgstr "Previsto"
+
+#. module: account_treasury
+#. odoo-javascript
+#: code:addons/account_treasury/static/src/dashboard/treasury_dashboard.xml:0
 msgid "Planned inflows"
 msgstr "Ingresos previstos"
 
@@ -719,9 +737,8 @@ msgstr "Anterior"
 #. module: account_treasury
 #. odoo-javascript
 #: code:addons/account_treasury/static/src/dashboard/treasury_dashboard.js:0
-#: code:addons/account_treasury/static/src/dashboard/treasury_dashboard.xml:0
-msgid "Projected net flow"
-msgstr "Flujo neto proyectado"
+msgid "Projected balance"
+msgstr "Saldo proyectado"
 
 #. module: account_treasury
 #: model:ir.model.fields.selection,name:account_treasury.selection__account_treasury_template__rule_type__quarterly
@@ -731,8 +748,8 @@ msgstr "Trimestral"
 #. module: account_treasury
 #. odoo-javascript
 #: code:addons/account_treasury/static/src/dashboard/treasury_dashboard.xml:0
-msgid "Real + pending"
-msgstr "Real + pendiente"
+msgid "Real"
+msgstr "Real"
 
 #. module: account_treasury
 #: model:ir.model.fields,field_description:account_treasury.field_account_treasury_match__real_currency_id
@@ -744,6 +761,13 @@ msgstr "Moneda real"
 #: model_terms:ir.ui.view,arch_db:account_treasury.account_treasury_forecast_view_form
 msgid "Real Movements"
 msgstr "Movimientos reales"
+
+#. module: account_treasury
+#. odoo-javascript
+#: code:addons/account_treasury/static/src/dashboard/treasury_dashboard.js:0
+#: code:addons/account_treasury/static/src/dashboard/treasury_dashboard.xml:0
+msgid "Real balance"
+msgstr "Saldo real"
 
 #. module: account_treasury
 #. odoo-javascript
@@ -760,8 +784,8 @@ msgstr "Egresos reales"
 #. module: account_treasury
 #. odoo-javascript
 #: code:addons/account_treasury/static/src/dashboard/treasury_dashboard.xml:0
-msgid "Received / paid"
-msgstr "Cobrado / pagado"
+msgid "Real:"
+msgstr "Real:"
 
 #. module: account_treasury
 #. odoo-javascript
@@ -951,6 +975,8 @@ msgid "Today's rate"
 msgstr "Tasa de hoy"
 
 #. module: account_treasury
+#. odoo-javascript
+#: code:addons/account_treasury/static/src/dashboard/treasury_dashboard.xml:0
 #: model_terms:ir.ui.view,arch_db:account_treasury.account_treasury_forecast_view_form
 #: model_terms:ir.ui.view,arch_db:account_treasury.account_treasury_forecast_view_list
 #: model_terms:ir.ui.view,arch_db:account_treasury.account_treasury_match_view_list
@@ -1071,3 +1097,9 @@ msgstr "p. ej. Factura de electricidad"
 #: model_terms:ir.ui.view,arch_db:account_treasury.account_treasury_template_view_form
 msgid "e.g. Office rent"
 msgstr "p. ej. Alquiler de oficina"
+
+#. module: account_treasury
+#. odoo-javascript
+#: code:addons/account_treasury/static/src/dashboard/treasury_dashboard.xml:0
+msgid "· Net:"
+msgstr "· Neto:"
