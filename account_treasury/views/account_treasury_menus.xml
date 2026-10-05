@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="account_treasury_menu_root"
+              name="Treasury"
+              web_icon="account_treasury,static/description/icon.png"
+              groups="group_account_treasury_user"
+              sequence="45"/>
+
+    <menuitem id="account_treasury_dashboard_menu"
+              name="Calendar"
+              parent="account_treasury_menu_root"
+              action="account_treasury_dashboard_action"
+              sequence="10"/>
+
+    <menuitem id="account_treasury_operations_menu"
+              name="Operations"
+              parent="account_treasury_menu_root"
+              sequence="20"/>
+
+    <menuitem id="account_treasury_forecast_menu"
+              parent="account_treasury_operations_menu"
+              action="account_treasury_forecast_action"
+              sequence="10"/>
+
+    <menuitem id="account_treasury_match_menu"
+              parent="account_treasury_operations_menu"
+              action="account_treasury_match_action"
+              sequence="20"/>
+
+    <menuitem id="account_treasury_template_menu"
+              parent="account_treasury_operations_menu"
+              action="account_treasury_template_action"
+              sequence="30"/>
+
+    <menuitem id="account_treasury_configuration_menu"
+              name="Configuration"
+              parent="account_treasury_menu_root"
+              groups="group_account_treasury_manager"
+              sequence="90"/>
+
+    <menuitem id="account_treasury_category_menu"
+              parent="account_treasury_configuration_menu"
+              action="account_treasury_category_action"
+              sequence="10"/>
+</odoo>

@@ -1,0 +1,84 @@
+.o_account_treasury_dashboard {
+    .o_account_treasury_kpi {
+        min-width: 200px;
+    }
+
+    .o_account_treasury_chart .card-body {
+        height: 280px;
+    }
+
+    .o_account_treasury_calendar_head,
+    .o_account_treasury_calendar_week {
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+    }
+
+    .o_account_treasury_day {
+        min-height: 130px;
+        max-height: 190px;
+
+        .o_account_treasury_day_add {
+            visibility: hidden;
+        }
+
+        &:hover .o_account_treasury_day_add {
+            visibility: visible;
+        }
+    }
+
+    .o_account_treasury_day_out {
+        background-color: $o-gray-100;
+        opacity: 0.6;
+    }
+
+    .o_account_treasury_day_today .o_account_treasury_day_number {
+        background-color: $o-brand-primary;
+        color: $white;
+        border-radius: 50%;
+        padding: 0 0.4rem;
+    }
+
+    .o_account_treasury_item {
+        cursor: pointer;
+        border-left: 3px solid transparent;
+
+        &:hover {
+            filter: brightness(0.95);
+        }
+    }
+
+    .o_account_treasury_item_inflow {
+        background-color: rgba($success, 0.12);
+        border-left-color: $success;
+    }
+
+    .o_account_treasury_item_outflow {
+        background-color: rgba($danger, 0.12);
+        border-left-color: $danger;
+    }
+
+    .o_account_treasury_item_real {
+        font-style: italic;
+        background-color: transparent;
+    }
+
+    .o_account_treasury_item_done {
+        opacity: 0.6;
+        text-decoration: line-through;
+    }
+
+    .o_account_treasury_item_overdue {
+        box-shadow: inset 0 0 0 1px $warning;
+    }
+
+    .o_account_treasury_year {
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    }
+
+    .o_account_treasury_month {
+        cursor: pointer;
+
+        &:hover {
+            box-shadow: $box-shadow-sm;
+        }
+    }
+}

@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="account_treasury_template_view_list" model="ir.ui.view">
+        <field name="name">account.treasury.template.list</field>
+        <field name="model">account.treasury.template</field>
+        <field name="arch" type="xml">
+            <list decoration-success="flow_type == 'inflow'" decoration-danger="flow_type == 'outflow'">
+                <field name="name"/>
+                <field name="flow_type"/>
+                <field name="nature"/>
+                <field name="category_id" optional="show"/>
+                <field name="partner_id" optional="show"/>
+                <field name="rule_type"/>
+                <field name="date_start" optional="show"/>
+                <field name="date_end" optional="hide"/>
+                <field name="amount" sum="Total"/>
+                <field name="currency_id" groups="base.group_multi_currency" optional="show"/>
+                <field name="company_id" groups="base.group_multi_company" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="account_treasury_template_view_form" model="ir.ui.view">
+        <field name="name">account.treasury.template.form</field>
+        <field name="model">account.treasury.template</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_generate_forecasts" type="object" string="Generate Forecasts" class="btn-primary" invisible="not active"/>
+                    <button name="action_regenerate_forecasts" type="object" string="Regenerate Future Forecasts" invisible="not active" confirm="Pending future forecasts of this recurring movement will be deleted and created again. Continue?"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_forecasts" type="object" class="oe_stat_button" icon="fa-calendar">
+                            <field name="forecast_count" widget="statinfo" string="Forecasts"/>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="e.g. Office rent"/></h1>
+                    </div>
+                    <group>
+                        <group string="Movement">
+                            <field name="flow_type" widget="radio" options="{'horizontal': true}"/>
+                            <field name="nature" widget="radio" options="{'horizontal': true}"/>
+                            <field name="category_id" options="{'no_create': True}"/>
+                            <field name="partner_id"/>
+                            <label for="amount"/>
+                            <div class="o_row">
+                                <field name="amount"/>
+                                <field name="currency_id" groups="base.group_multi_currency" options="{'no_create': True}"/>
+                            </div>
+                            <field name="company_id" groups="base.group_multi_company" options="{'no_create': True}"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                        <group string="Recurrence">
+                            <field name="rule_type"/>
+                            <field name="interval_number" invisible="rule_type == 'biweekly'"/>
+                            <field name="date_start"/>
+                            <field name="date_end"/>
+                            <field name="horizon_months"/>
+                            <field name="last_generated_date"/>
+                        </group>
+                    </group>
+                    <field name="note" placeholder="Internal notes..."/>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="account_treasury_template_view_search" model="ir.ui.view">
+        <field name="name">account.treasury.template.search</field>
+        <field name="model">account.treasury.template</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="category_id"/>
+                <filter name="inflow" string="Inflows" domain="[('flow_type', '=', 'inflow')]"/>
+                <filter name="outflow" string="Outflows" domain="[('flow_type', '=', 'outflow')]"/>
+                <separator/>
+                <filter name="fixed" string="Fixed" domain="[('nature', '=', 'fixed')]"/>
+                <filter name="variable" string="Variable" domain="[('nature', '=', 'variable')]"/>
+                <separator/>
+                <filter name="inactive" string="Archived" domain="[('active', '=', False)]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_flow_type" string="Flow" context="{'group_by': 'flow_type'}"/>
+                    <filter name="group_category" string="Category" context="{'group_by': 'category_id'}"/>
+                    <filter name="group_rule_type" string="Recurrence" context="{'group_by': 'rule_type'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="account_treasury_template_action" model="ir.actions.act_window">
+        <field name="name">Recurring Movements</field>
+        <field name="res_model">account.treasury.template</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Plan your recurring treasury movements</p>
+            <p>Fixed expenses such as rent or payroll and recurring income are turned into forecasts on the treasury calendar.</p>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="account_treasury_forecast_view_list" model="ir.ui.view">
+        <field name="name">account.treasury.forecast.list</field>
+        <field name="model">account.treasury.forecast</field>
+        <field name="arch" type="xml">
+            <list decoration-muted="state == 'cancel'" decoration-success="state == 'done'" decoration-warning="state == 'partial'">
+                <field name="date"/>
+                <field name="name"/>
+                <field name="flow_type" widget="badge" decoration-success="flow_type == 'inflow'" decoration-danger="flow_type == 'outflow'"/>
+                <field name="nature" optional="show"/>
+                <field name="category_id" optional="show"/>
+                <field name="partner_id" optional="show"/>
+                <field name="template_id" optional="hide"/>
+                <field name="amount" sum="Total"/>
+                <field name="amount_paid" sum="Total" optional="show"/>
+                <field name="amount_residual" sum="Total"/>
+                <field name="payment_date" optional="hide"/>
+                <field name="currency_id" groups="base.group_multi_currency" optional="show"/>
+                <field name="company_id" groups="base.group_multi_company" optional="hide"/>
+                <field name="state" widget="badge" decoration-info="state == 'pending'" decoration-warning="state == 'partial'" decoration-success="state == 'done'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="account_treasury_forecast_view_form" model="ir.ui.view">
+        <field name="name">account.treasury.forecast.form</field>
+        <field name="model">account.treasury.forecast</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_cancel" type="object" string="Cancel" invisible="state != 'pending' or not id"/>
+                    <button name="action_reset_to_pending" type="object" string="Reset to Pending" invisible="state != 'cancel'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="pending,partial,done"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="e.g. Electricity bill" readonly="state == 'cancel'"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="date" readonly="state == 'cancel'"/>
+                            <field name="flow_type" widget="radio" options="{'horizontal': true}" readonly="match_ids"/>
+                            <field name="nature" widget="radio" options="{'horizontal': true}"/>
+                            <field name="category_id" options="{'no_create': True}"/>
+                            <field name="partner_id"/>
+                        </group>
+                        <group>
+                            <label for="amount"/>
+                            <div class="o_row">
+                                <field name="amount" readonly="state == 'cancel'"/>
+                                <field name="currency_id" groups="base.group_multi_currency" options="{'no_create': True}" readonly="match_ids"/>
+                            </div>
+                            <field name="amount_paid"/>
+                            <field name="amount_residual"/>
+                            <field name="payment_date"/>
+                            <field name="template_id" invisible="not template_id"/>
+                            <field name="company_id" groups="base.group_multi_company" options="{'no_create': True}" readonly="match_ids"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page name="real_movements" string="Real Movements">
+                            <field name="match_ids" readonly="state == 'cancel'">
+                                <list editable="bottom">
+                                    <field name="source_type"/>
+                                    <field name="payment_id"
+                                           domain="[('company_id', '=', parent.company_id), ('state', 'in', ('in_process', 'paid')), ('payment_type', '=', 'inbound' if parent.flow_type == 'inflow' else 'outbound')]"
+                                           required="source_type == 'payment'"
+                                           readonly="source_type != 'payment'"
+                                           options="{'no_create': True}"/>
+                                    <field name="statement_line_id"
+                                           domain="[('company_id', '=', parent.company_id), ('state', '=', 'posted'), ('amount', '&gt;' if parent.flow_type == 'inflow' else '&lt;', 0)]"
+                                           required="source_type == 'statement_line'"
+                                           readonly="source_type != 'statement_line'"
+                                           options="{'no_create': True}"/>
+                                    <field name="date"/>
+                                    <field name="journal_id" optional="show"/>
+                                    <field name="reference" optional="show"/>
+                                    <field name="movement_amount" optional="hide"/>
+                                    <field name="amount" sum="Total"/>
+                                    <field name="real_amount" optional="show"/>
+                                    <field name="real_currency_id" column_invisible="True"/>
+                                    <field name="forecast_currency_id" column_invisible="True"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page name="notes" string="Notes">
+                            <field name="note" placeholder="Internal notes..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="account_treasury_forecast_view_search" model="ir.ui.view">
+        <field name="name">account.treasury.forecast.search</field>
+        <field name="model">account.treasury.forecast</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="category_id"/>
+                <field name="template_id"/>
+                <filter name="inflow" string="Inflows" domain="[('flow_type', '=', 'inflow')]"/>
+                <filter name="outflow" string="Outflows" domain="[('flow_type', '=', 'outflow')]"/>
+                <separator/>
+                <filter name="fixed" string="Fixed" domain="[('nature', '=', 'fixed')]"/>
+                <filter name="variable" string="Variable" domain="[('nature', '=', 'variable')]"/>
+                <separator/>
+                <filter name="pending" string="Pending" domain="[('state', 'in', ('pending', 'partial'))]"/>
+                <filter name="done" string="Paid" domain="[('state', '=', 'done')]"/>
+                <filter name="overdue" string="Overdue" domain="[('state', 'in', ('pending', 'partial')), ('date', '&lt;', context_today().strftime('%Y-%m-%d'))]"/>
+                <filter name="cancel" string="Cancelled" domain="[('state', '=', 'cancel')]"/>
+                <separator/>
+                <filter name="date" string="Date" date="date"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_date" string="Date" context="{'group_by': 'date:month'}"/>
+                    <filter name="group_flow_type" string="Flow" context="{'group_by': 'flow_type'}"/>
+                    <filter name="group_category" string="Category" context="{'group_by': 'category_id'}"/>
+                    <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="account_treasury_forecast_view_pivot" model="ir.ui.view">
+        <field name="name">account.treasury.forecast.pivot</field>
+        <field name="model">account.treasury.forecast</field>
+        <field name="arch" type="xml">
+            <pivot>
+                <field name="date" interval="month" type="col"/>
+                <field name="flow_type" type="row"/>
+                <field name="category_id" type="row"/>
+                <field name="amount" type="measure"/>
+                <field name="amount_residual" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="account_treasury_forecast_view_graph" model="ir.ui.view">
+        <field name="name">account.treasury.forecast.graph</field>
+        <field name="model">account.treasury.forecast</field>
+        <field name="arch" type="xml">
+            <graph type="bar">
+                <field name="date" interval="month"/>
+                <field name="flow_type"/>
+                <field name="amount" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="account_treasury_forecast_action" model="ir.actions.act_window">
+        <field name="name">Forecasts</field>
+        <field name="res_model">account.treasury.forecast</field>
+        <field name="view_mode">list,form,pivot,graph</field>
+        <field name="context">{'search_default_pending': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Plan a treasury movement</p>
+            <p>Register expected income and expenses, then link them to the real payments when they happen.</p>
+        </field>
+    </record>
+</odoo>

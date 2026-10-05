@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="account_treasury_match_view_list" model="ir.ui.view">
+        <field name="name">account.treasury.match.list</field>
+        <field name="model">account.treasury.match</field>
+        <field name="arch" type="xml">
+            <list create="0" edit="0" decoration-success="flow_type == 'inflow'" decoration-danger="flow_type == 'outflow'">
+                <field name="date"/>
+                <field name="forecast_id"/>
+                <field name="flow_type"/>
+                <field name="partner_id" optional="show"/>
+                <field name="source_type" optional="show"/>
+                <field name="reference"/>
+                <field name="journal_id" optional="show"/>
+                <field name="amount" sum="Total"/>
+                <field name="forecast_currency_id" groups="base.group_multi_currency" optional="hide"/>
+                <field name="real_amount" optional="show"/>
+                <field name="real_currency_id" groups="base.group_multi_currency" optional="show"/>
+                <field name="company_id" groups="base.group_multi_company" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="account_treasury_match_view_search" model="ir.ui.view">
+        <field name="name">account.treasury.match.search</field>
+        <field name="model">account.treasury.match</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="forecast_id"/>
+                <field name="partner_id"/>
+                <field name="reference"/>
+                <field name="payment_id"/>
+                <field name="statement_line_id"/>
+                <filter name="inflow" string="Inflows" domain="[('flow_type', '=', 'inflow')]"/>
+                <filter name="outflow" string="Outflows" domain="[('flow_type', '=', 'outflow')]"/>
+                <separator/>
+                <filter name="date" string="Date" date="date"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_date" string="Date" context="{'group_by': 'date:month'}"/>
+                    <filter name="group_journal" string="Journal" context="{'group_by': 'journal_id'}"/>
+                    <filter name="group_source" string="Source" context="{'group_by': 'source_type'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="account_treasury_match_action" model="ir.actions.act_window">
+        <field name="name">Payments Made</field>
+        <field name="res_model">account.treasury.match</field>
+        <field name="view_mode">list</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_empty_folder">No real movement linked yet</p>
+            <p>Open a forecast and add the payment or bank statement line that settled it.</p>
+        </field>
+    </record>
+</odoo>

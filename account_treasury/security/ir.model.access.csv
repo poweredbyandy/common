@@ -1,0 +1,7 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_account_treasury_category_user,account.treasury.category user,model_account_treasury_category,group_account_treasury_user,1,0,0,0
+access_account_treasury_category_manager,account.treasury.category manager,model_account_treasury_category,group_account_treasury_manager,1,1,1,1
+access_account_treasury_template_user,account.treasury.template user,model_account_treasury_template,group_account_treasury_user,1,0,0,0
+access_account_treasury_template_manager,account.treasury.template manager,model_account_treasury_template,group_account_treasury_manager,1,1,1,1
+access_account_treasury_forecast_user,account.treasury.forecast user,model_account_treasury_forecast,group_account_treasury_user,1,1,1,1
+access_account_treasury_match_user,account.treasury.match user,model_account_treasury_match,group_account_treasury_user,1,1,1,1

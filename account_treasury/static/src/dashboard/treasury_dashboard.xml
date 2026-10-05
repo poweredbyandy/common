@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="account_treasury.TreasuryDashboard">
+        <div class="o_action o_account_treasury_dashboard d-flex flex-column h-100 overflow-auto">
+            <div class="o_account_treasury_toolbar d-flex flex-wrap align-items-center gap-2 px-3 py-2 border-bottom bg-view">
+                <div class="btn-group">
+                    <button class="btn btn-secondary" t-on-click="() => this.onNavigate(-1)" title="Previous">
+                        <i class="fa fa-chevron-left"/>
+                    </button>
+                    <button class="btn btn-secondary" t-on-click="() => this.onNavigate(0)">Today</button>
+                    <button class="btn btn-secondary" t-on-click="() => this.onNavigate(1)" title="Next">
+                        <i class="fa fa-chevron-right"/>
+                    </button>
+                </div>
+                <h4 class="m-0 text-capitalize flex-grow-1" t-esc="periodLabel"/>
+                <div class="btn-group">
+                    <button t-attf-class="btn {{ state.mode === 'month' ? 'btn-primary' : 'btn-secondary' }}"
+                            t-on-click="() => this.onChangeMode('month')">Month</button>
+                    <button t-attf-class="btn {{ state.mode === 'year' ? 'btn-primary' : 'btn-secondary' }}"
+                            t-on-click="() => this.onChangeMode('year')">Year</button>
+                </div>
+                <select class="form-select w-auto" t-on-change="onChangeCurrency" title="Currency">
+                    <t t-foreach="state.data.currencies" t-as="currency" t-key="currency.id">
+                        <option t-att-value="currency.id" t-att-selected="currency.id === state.currencyId"
+                                t-esc="currency.name"/>
+                    </t>
+                </select>
+                <select class="form-select w-auto" t-on-change="onChangeRateMode" title="Conversion rate">
+                    <t t-foreach="rateModes" t-as="rateMode" t-key="rateMode.value">
+                        <option t-att-value="rateMode.value" t-att-selected="rateMode.value === state.rateMode"
+                                t-esc="rateMode.label"/>
+                    </t>
+                </select>
+            </div>
+
+            <div class="o_account_treasury_kpis d-flex flex-wrap gap-2 px-3 pt-3">
+                <div class="o_account_treasury_kpi card flex-fill">
+                    <div class="card-body py-2">
+                        <div class="text-muted small">Planned inflows</div>
+                        <div class="fs-5 text-success" t-esc="format(totals.planned_in)"/>
+                        <div class="small">Received: <span t-esc="format(totals.real_in)"/></div>
+                    </div>
+                </div>
+                <div class="o_account_treasury_kpi card flex-fill">
+                    <div class="card-body py-2">
+                        <div class="text-muted small">Planned outflows</div>
+                        <div class="fs-5 text-danger" t-esc="format(totals.planned_out)"/>
+                        <div class="small">Paid: <span t-esc="format(totals.real_out)"/></div>
+                    </div>
+                </div>
+                <div class="o_account_treasury_kpi card flex-fill">
+                    <div class="card-body py-2">
+                        <div class="text-muted small">Pending</div>
+                        <div class="fs-6">
+                            <span class="text-success" t-esc="format(totals.pending_in)"/>
+                            /
+                            <span class="text-danger" t-esc="format(totals.pending_out)"/>
+                        </div>
+                        <div class="small text-muted">To receive / to pay</div>
+                    </div>
+                </div>
+                <div class="o_account_treasury_kpi card flex-fill">
+                    <div class="card-body py-2">
+                        <div class="text-muted small">Projected net flow</div>
+                        <div t-attf-class="fs-5 {{ totals.net &lt; 0 ? 'text-danger' : 'text-success' }}"
+                             t-esc="format(totals.net)"/>
+                        <div class="small text-muted">Real + pending</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="px-3 pt-3">
+                <div class="o_account_treasury_chart card">
+                    <div class="card-body">
+                        <canvas t-ref="chart"/>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-3">
+                <t t-if="state.mode === 'month'">
+                    <div class="o_account_treasury_calendar card">
+                        <div class="o_account_treasury_calendar_head d-grid border-bottom">
+                            <t t-foreach="weekdays" t-as="weekday" t-key="weekday_index">
+                                <div class="text-center fw-bold py-2 text-capitalize" t-esc="weekday"/>
+                            </t>
+                        </div>
+                        <t t-foreach="weeks" t-as="week" t-key="week_index">
+                            <div class="o_account_treasury_calendar_week d-grid">
+                                <t t-foreach="week" t-as="day" t-key="day.key">
+                                    <div t-attf-class="o_account_treasury_day border-end border-bottom p-1 d-flex flex-column {{ day.inMonth ? '' : 'o_account_treasury_day_out' }} {{ day.isToday ? 'o_account_treasury_day_today' : '' }}">
+                                        <div class="d-flex align-items-center">
+                                            <span class="o_account_treasury_day_number fw-bold" t-esc="day.number"/>
+                                            <button class="o_account_treasury_day_add btn btn-link btn-sm ms-auto p-0"
+                                                    t-if="day.inMonth"
+                                                    t-on-click="() => this.createForecast(day)"
+                                                    title="New forecast">
+                                                <i class="fa fa-plus"/>
+                                            </button>
+                                        </div>
+                                        <div class="o_account_treasury_day_items flex-grow-1 overflow-auto">
+                                            <t t-foreach="day.items" t-as="item" t-key="item_index">
+                                                <div t-attf-class="o_account_treasury_item o_account_treasury_item_{{ item.flow_type }} o_account_treasury_item_{{ item.kind }} {{ isOverdue(item, day) ? 'o_account_treasury_item_overdue' : '' }} {{ item.state === 'done' and item.kind === 'forecast' ? 'o_account_treasury_item_done' : '' }} d-flex align-items-center gap-1 small rounded px-1 mb-1"
+                                                     t-att-title="itemTitle(item)"
+                                                     t-on-click="() => this.openForecast(item.forecast_id)">
+                                                    <i t-attf-class="fa {{ itemIcon(item, day) }}"/>
+                                                    <span class="text-truncate flex-grow-1" t-esc="item.name"/>
+                                                    <span class="text-nowrap" t-esc="format(item.amount)"/>
+                                                </div>
+                                            </t>
+                                        </div>
+                                        <div t-if="day.bucket and (day.bucket.planned_in or day.bucket.planned_out or day.bucket.real_in or day.bucket.real_out)"
+                                             class="o_account_treasury_day_total small border-top pt-1">
+                                            <div t-if="day.bucket.planned_in or day.bucket.real_in" class="text-success text-nowrap">
+                                                <i class="fa fa-arrow-down"/>
+                                                <t t-esc="format(day.bucket.real_in + day.bucket.pending_in)"/>
+                                            </div>
+                                            <div t-if="day.bucket.planned_out or day.bucket.real_out" class="text-danger text-nowrap">
+                                                <i class="fa fa-arrow-up"/>
+                                                <t t-esc="format(day.bucket.real_out + day.bucket.pending_out)"/>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </t>
+                            </div>
+                        </t>
+                    </div>
+                </t>
+                <t t-else="">
+                    <div class="o_account_treasury_year d-grid gap-2">
+                        <t t-foreach="months" t-as="month" t-key="month.key">
+                            <div class="card o_account_treasury_month" t-on-click="() => this.onOpenMonth(month)">
+                                <div class="card-body py-2">
+                                    <h5 class="text-capitalize" t-esc="month.label"/>
+                                    <div class="d-flex justify-content-between small">
+                                        <span>Inflows</span>
+                                        <span class="text-success" t-esc="format(month.planned_in)"/>
+                                    </div>
+                                    <div class="d-flex justify-content-between small">
+                                        <span>Outflows</span>
+                                        <span class="text-danger" t-esc="format(month.planned_out)"/>
+                                    </div>
+                                    <div class="d-flex justify-content-between small">
+                                        <span>Received / paid</span>
+                                        <span>
+                                            <span class="text-success" t-esc="format(month.real_in)"/>
+                                            /
+                                            <span class="text-danger" t-esc="format(month.real_out)"/>
+                                        </span>
+                                    </div>
+                                    <div class="d-flex justify-content-between fw-bold border-top mt-1 pt-1">
+                                        <span>Net</span>
+                                        <span t-attf-class="{{ month.net &lt; 0 ? 'text-danger' : 'text-success' }}"
+                                              t-esc="format(month.net)"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </t>
+                    </div>
+                </t>
+            </div>
+        </div>
+    </t>
+</templates>

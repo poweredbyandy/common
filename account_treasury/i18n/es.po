@@ -1,0 +1,1073 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* account_treasury
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0+e\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-10-05 15:59+0000\n"
+"PO-Revision-Date: 2026-10-05 15:59+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#. module: account_treasury
+#. odoo-python
+#: code:addons/account_treasury/models/account_treasury_match.py:0
+msgid ""
+"%(movement)s is already applied to other forecasts. Only %(available)s "
+"remains available."
+msgstr ""
+"%(movement)s ya está aplicado a otras previsiones. Solo quedan disponibles "
+"%(available)s."
+
+#. module: account_treasury
+#: model:ir.model.constraint,message:account_treasury.constraint_account_treasury_match_forecast_statement_line_uniq
+msgid "A bank statement line can only be linked once to the same forecast."
+msgstr ""
+"Una línea de extracto bancario solo puede vincularse una vez a la misma "
+"previsión."
+
+#. module: account_treasury
+#: model:ir.model.constraint,message:account_treasury.constraint_account_treasury_match_forecast_payment_uniq
+msgid "A payment can only be linked once to the same forecast."
+msgstr "Un pago solo puede vincularse una vez a la misma previsión."
+
+#. module: account_treasury
+#: model:ir.model.constraint,message:account_treasury.constraint_account_treasury_forecast_template_date_uniq
+msgid "A recurring movement can only have one forecast per date."
+msgstr "Un movimiento recurrente solo puede tener una previsión por fecha."
+
+#. module: account_treasury
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_forecast__message_needaction
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_template__message_needaction
+msgid "Action Needed"
+msgstr "Acción requerida"
+
+#. module: account_treasury
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_category__active
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_template__active
+msgid "Active"
+msgstr "Activo"
+
+#. module: account_treasury
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_forecast__activity_ids
+msgid "Activities"
+msgstr "Actividades"
+
+#. module: account_treasury
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_forecast__activity_exception_decoration
+msgid "Activity Exception Decoration"
+msgstr "Decoración de excepción de actividad"
+
+#. module: account_treasury
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_forecast__activity_state
+msgid "Activity State"
+msgstr "Estado de la actividad"
+
+#. module: account_treasury
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_forecast__activity_type_icon
+msgid "Activity Type Icon"
+msgstr "Icono de tipo de actividad"
+
+#. module: account_treasury
+#: model:res.groups,name:account_treasury.group_account_treasury_manager
+msgid "Administrator"
+msgstr "Administrador"
+
+#. module: account_treasury
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_forecast__amount
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_template__amount
+msgid "Amount"
+msgstr "Importe"
+
+#. module: account_treasury
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_forecast__amount_residual
+msgid "Amount Due"
+msgstr "Importe pendiente"
+
+#. module: account_treasury
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_forecast__amount_paid
+msgid "Amount Paid"
+msgstr "Importe pagado"
+
+#. module: account_treasury
+#: model:ir.model.fields,help:account_treasury.field_account_treasury_match__real_amount
+msgid "Amount applied to the forecast, in the currency of the real movement."
+msgstr "Importe aplicado a la previsión, en la moneda del movimiento real."
+
+#. module: account_treasury
+#: model:ir.model.fields,help:account_treasury.field_account_treasury_match__amount
+msgid "Amount applied to the forecast, in the forecast currency."
+msgstr "Importe aplicado a la previsión, en la moneda de la previsión."
+
+#. module: account_treasury
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_match__amount
+msgid "Applied Amount"
+msgstr "Importe aplicado"
+
+#. module: account_treasury
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_match__real_amount
+msgid "Applied Real Amount"
+msgstr "Importe real aplicado"
+
+#. module: account_treasury
+#: model_terms:ir.ui.view,arch_db:account_treasury.account_treasury_category_view_search
+#: model_terms:ir.ui.view,arch_db:account_treasury.account_treasury_template_view_form
+#: model_terms:ir.ui.view,arch_db:account_treasury.account_treasury_template_view_search
+msgid "Archived"
+msgstr "Archivado"
+
+#. module: account_treasury
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_forecast__message_attachment_count
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_template__message_attachment_count
+msgid "Attachment Count"
+msgstr "Número de adjuntos"
+
+#. module: account_treasury
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_match__statement_line_id
+#: model:ir.model.fields.selection,name:account_treasury.selection__account_treasury_match__source_type__statement_line
+msgid "Bank Statement Line"
+msgstr "Línea de extracto bancario"
+
+#. module: account_treasury
+#: model:ir.ui.menu,name:account_treasury.account_treasury_dashboard_menu
+msgid "Calendar"
+msgstr "Calendario"
+
+#. module: account_treasury
+#: model_terms:ir.ui.view,arch_db:account_treasury.account_treasury_forecast_view_form
+msgid "Cancel"
+msgstr "Cancelar"
+
+#. module: account_treasury
+#: model:ir.model.fields.selection,name:account_treasury.selection__account_treasury_forecast__state__cancel
+#: model_terms:ir.ui.view,arch_db:account_treasury.account_treasury_forecast_view_search
+msgid "Cancelled"
+msgstr "Cancelado"
+
+#. module: account_treasury
+#: model:ir.actions.act_window,name:account_treasury.account_treasury_category_action
+#: model:ir.ui.menu,name:account_treasury.account_treasury_category_menu
+msgid "Categories"
+msgstr "Categorías"
+
+#. module: account_treasury
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_forecast__category_id
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_template__category_id
+#: model_terms:ir.ui.view,arch_db:account_treasury.account_treasury_forecast_view_search
+#: model_terms:ir.ui.view,arch_db:account_treasury.account_treasury_template_view_search
+msgid "Category"
+msgstr "Categoría"
+
+#. module: account_treasury
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_category__color
+msgid "Color"
+msgstr "Color"
+
+#. module: account_treasury
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_category__company_id
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_forecast__company_id
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_match__company_id
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_template__company_id
+msgid "Company"
+msgstr "Compañía"
+
+#. module: account_treasury
+#: model:ir.ui.menu,name:account_treasury.account_treasury_configuration_menu
+msgid "Configuration"
+msgstr "Configuración"
+
+#. module: account_treasury
+#. odoo-javascript
+#: code:addons/account_treasury/static/src/dashboard/treasury_dashboard.xml:0
+msgid "Conversion rate"
+msgstr "Tasa de conversión"
+
+#. module: account_treasury
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_category__create_uid
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_forecast__create_uid
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_match__create_uid
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_template__create_uid
+msgid "Created by"
+msgstr "Creado por"
+
+#. module: account_treasury
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_category__create_date
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_forecast__create_date
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_match__create_date
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_template__create_date
+msgid "Created on"
+msgstr "Creado el"
+
+#. module: account_treasury
+#. odoo-javascript
+#: code:addons/account_treasury/static/src/dashboard/treasury_dashboard.xml:0
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_forecast__currency_id
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_match__forecast_currency_id
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_template__currency_id
+msgid "Currency"
+msgstr "Moneda"
+
+#. module: account_treasury
+#: model:ir.model.fields.selection,name:account_treasury.selection__account_treasury_template__rule_type__daily
+msgid "Daily"
+msgstr "Diario"
+
+#. module: account_treasury
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_forecast__date
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_match__date
+#: model_terms:ir.ui.view,arch_db:account_treasury.account_treasury_forecast_view_search
+#: model_terms:ir.ui.view,arch_db:account_treasury.account_treasury_match_view_search
+msgid "Date"
+msgstr "Fecha"
+
+#. module: account_treasury
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_forecast__name
+msgid "Description"
+msgstr "Descripción"
+
+#. module: account_treasury
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_category__display_name
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_forecast__display_name
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_match__display_name
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_template__display_name
+msgid "Display Name"
+msgstr "Nombre mostrado"
+
+#. module: account_treasury
+#. odoo-javascript
+#: code:addons/account_treasury/static/src/dashboard/treasury_dashboard.js:0
+msgid "Document date rate"
+msgstr "Tasa a la fecha del documento"
+
+#. module: account_treasury
+#. odoo-javascript
+#: code:addons/account_treasury/static/src/dashboard/treasury_dashboard.js:0
+msgid "Due: %s"
+msgstr "Pendiente: %s"
+
+#. module: account_treasury
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_template__date_end
+msgid "End Date"
+msgstr "Fecha de fin"
+
+#. module: account_treasury
+#: model:ir.model.fields.selection,name:account_treasury.selection__account_treasury_forecast__nature__fixed
+#: model:ir.model.fields.selection,name:account_treasury.selection__account_treasury_template__nature__fixed
+#: model_terms:ir.ui.view,arch_db:account_treasury.account_treasury_forecast_view_search
+#: model_terms:ir.ui.view,arch_db:account_treasury.account_treasury_template_view_search
+msgid "Fixed"
+msgstr "Fijo"
+
+#. module: account_treasury
+#: model_terms:ir.actions.act_window,help:account_treasury.account_treasury_template_action
+msgid ""
+"Fixed expenses such as rent or payroll and recurring income are turned into "
+"forecasts on the treasury calendar."
+msgstr ""
+"Los gastos fijos como alquiler o nómina y los ingresos recurrentes se "
+"convierten en previsiones en el calendario de tesorería."
+
+#. module: account_treasury
+#: model_terms:ir.ui.view,arch_db:account_treasury.account_treasury_forecast_view_search
+#: model_terms:ir.ui.view,arch_db:account_treasury.account_treasury_template_view_search
+msgid "Flow"
+msgstr "Flujo"
+
+#. module: account_treasury
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_category__flow_type
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_forecast__flow_type
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_match__flow_type
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_template__flow_type
+msgid "Flow Type"
+msgstr "Tipo de flujo"
+
+#. module: account_treasury
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_forecast__message_follower_ids
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_template__message_follower_ids
+msgid "Followers"
+msgstr "Seguidores"
+
+#. module: account_treasury
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_forecast__message_partner_ids
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_template__message_partner_ids
+msgid "Followers (Partners)"
+msgstr "Seguidores (contactos)"
+
+#. module: account_treasury
+#: model:ir.model.fields,help:account_treasury.field_account_treasury_forecast__activity_type_icon
+msgid "Font awesome icon e.g. fa-tasks"
+msgstr "Icono de Font Awesome, por ejemplo fa-tasks"
+
+#. module: account_treasury
+#. odoo-javascript
+#: code:addons/account_treasury/static/src/dashboard/treasury_dashboard.js:0
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_match__forecast_id
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_template__forecast_ids
+msgid "Forecast"
+msgstr "Previsión"
+
+#. module: account_treasury
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_template__forecast_count
+msgid "Forecast Count"
+msgstr "Número de previsiones"
+
+#. module: account_treasury
+#: model:ir.actions.act_window,name:account_treasury.account_treasury_forecast_action
+#: model:ir.ui.menu,name:account_treasury.account_treasury_forecast_menu
+#: model_terms:ir.ui.view,arch_db:account_treasury.account_treasury_template_view_form
+msgid "Forecasts"
+msgstr "Previsiones"
+
+#. module: account_treasury
+#: model:ir.model.fields,help:account_treasury.field_account_treasury_template__horizon_months
+msgid "Forecasts are generated up to this number of months from today."
+msgstr ""
+"Las previsiones se generan hasta este número de meses a partir de hoy."
+
+#. module: account_treasury
+#: model_terms:ir.ui.view,arch_db:account_treasury.account_treasury_template_view_form
+msgid "Generate Forecasts"
+msgstr "Generar previsiones"
+
+#. module: account_treasury
+#: model_terms:ir.ui.view,arch_db:account_treasury.account_treasury_forecast_view_search
+#: model_terms:ir.ui.view,arch_db:account_treasury.account_treasury_match_view_search
+#: model_terms:ir.ui.view,arch_db:account_treasury.account_treasury_template_view_search
+msgid "Group By"
+msgstr "Agrupar por"
+
+#. module: account_treasury
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_forecast__has_message
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_template__has_message
+msgid "Has Message"
+msgstr "Tiene mensaje"
+
+#. module: account_treasury
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_category__id
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_forecast__id
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_match__id
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_template__id
+msgid "ID"
+msgstr "ID"
+
+#. module: account_treasury
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_forecast__activity_exception_icon
+msgid "Icon"
+msgstr "Icono"
+
+#. module: account_treasury
+#: model:ir.model.fields,help:account_treasury.field_account_treasury_forecast__activity_exception_icon
+msgid "Icon to indicate an exception activity."
+msgstr "Icono para indicar una actividad de excepción."
+
+#. module: account_treasury
+#: model:ir.model.fields,help:account_treasury.field_account_treasury_forecast__message_needaction
+#: model:ir.model.fields,help:account_treasury.field_account_treasury_template__message_needaction
+msgid "If checked, new messages require your attention."
+msgstr "Si está marcado, hay nuevos mensajes que requieren su atención."
+
+#. module: account_treasury
+#: model:ir.model.fields,help:account_treasury.field_account_treasury_forecast__message_has_error
+#: model:ir.model.fields,help:account_treasury.field_account_treasury_forecast__message_has_sms_error
+#: model:ir.model.fields,help:account_treasury.field_account_treasury_template__message_has_error
+#: model:ir.model.fields,help:account_treasury.field_account_treasury_template__message_has_sms_error
+msgid "If checked, some messages have a delivery error."
+msgstr "Si está marcado, algunos mensajes tienen un error de entrega."
+
+#. module: account_treasury
+#: model:ir.model.fields.selection,name:account_treasury.selection__account_treasury_category__flow_type__inflow
+#: model:ir.model.fields.selection,name:account_treasury.selection__account_treasury_forecast__flow_type__inflow
+#: model:ir.model.fields.selection,name:account_treasury.selection__account_treasury_template__flow_type__inflow
+msgid "Inflow"
+msgstr "Ingreso"
+
+#. module: account_treasury
+#. odoo-javascript
+#: code:addons/account_treasury/static/src/dashboard/treasury_dashboard.xml:0
+#: model_terms:ir.ui.view,arch_db:account_treasury.account_treasury_category_view_search
+#: model_terms:ir.ui.view,arch_db:account_treasury.account_treasury_forecast_view_search
+#: model_terms:ir.ui.view,arch_db:account_treasury.account_treasury_match_view_search
+#: model_terms:ir.ui.view,arch_db:account_treasury.account_treasury_template_view_search
+msgid "Inflows"
+msgstr "Ingresos"
+
+#. module: account_treasury
+#: model_terms:ir.ui.view,arch_db:account_treasury.account_treasury_forecast_view_form
+#: model_terms:ir.ui.view,arch_db:account_treasury.account_treasury_template_view_form
+msgid "Internal notes..."
+msgstr "Notas internas..."
+
+#. module: account_treasury
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_forecast__is_cancelled
+msgid "Is Cancelled"
+msgstr "Cancelado"
+
+#. module: account_treasury
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_forecast__message_is_follower
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_template__message_is_follower
+msgid "Is Follower"
+msgstr "Es seguidor"
+
+#. module: account_treasury
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_match__journal_id
+#: model_terms:ir.ui.view,arch_db:account_treasury.account_treasury_match_view_search
+msgid "Journal"
+msgstr "Diario"
+
+#. module: account_treasury
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_template__last_generated_date
+msgid "Last Generated Date"
+msgstr "Generado hasta"
+
+#. module: account_treasury
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_forecast__payment_date
+msgid "Last Payment Date"
+msgstr "Fecha del último pago"
+
+#. module: account_treasury
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_category__write_uid
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_forecast__write_uid
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_match__write_uid
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_template__write_uid
+msgid "Last Updated by"
+msgstr "Última actualización por"
+
+#. module: account_treasury
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_category__write_date
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_forecast__write_date
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_match__write_date
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_template__write_date
+msgid "Last Updated on"
+msgstr "Última actualización el"
+
+#. module: account_treasury
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_forecast__message_has_error
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_template__message_has_error
+msgid "Message Delivery error"
+msgstr "Error de entrega de mensaje"
+
+#. module: account_treasury
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_forecast__message_ids
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_template__message_ids
+msgid "Messages"
+msgstr "Mensajes"
+
+#. module: account_treasury
+#. odoo-javascript
+#: code:addons/account_treasury/static/src/dashboard/treasury_dashboard.xml:0
+msgid "Month"
+msgstr "Mes"
+
+#. module: account_treasury
+#: model:ir.model.fields.selection,name:account_treasury.selection__account_treasury_template__rule_type__monthly
+msgid "Monthly"
+msgstr "Mensual"
+
+#. module: account_treasury
+#: model_terms:ir.ui.view,arch_db:account_treasury.account_treasury_template_view_form
+msgid "Movement"
+msgstr "Movimiento"
+
+#. module: account_treasury
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_match__movement_amount
+msgid "Movement Amount"
+msgstr "Importe del movimiento"
+
+#. module: account_treasury
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_forecast__my_activity_date_deadline
+msgid "My Activity Deadline"
+msgstr "Fecha límite de mi actividad"
+
+#. module: account_treasury
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_category__name
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_template__name
+msgid "Name"
+msgstr "Nombre"
+
+#. module: account_treasury
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_forecast__nature
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_template__nature
+msgid "Nature"
+msgstr "Naturaleza"
+
+#. module: account_treasury
+#. odoo-javascript
+#: code:addons/account_treasury/static/src/dashboard/treasury_dashboard.xml:0
+msgid "Net"
+msgstr "Neto"
+
+#. module: account_treasury
+#. odoo-javascript
+#: code:addons/account_treasury/static/src/dashboard/treasury_dashboard.js:0
+msgid "New Forecast"
+msgstr "Nueva previsión"
+
+#. module: account_treasury
+#. odoo-javascript
+#: code:addons/account_treasury/static/src/dashboard/treasury_dashboard.xml:0
+msgid "New forecast"
+msgstr "Nueva previsión"
+
+#. module: account_treasury
+#. odoo-javascript
+#: code:addons/account_treasury/static/src/dashboard/treasury_dashboard.xml:0
+msgid "Next"
+msgstr "Siguiente"
+
+#. module: account_treasury
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_forecast__activity_date_deadline
+msgid "Next Activity Deadline"
+msgstr "Fecha límite de la siguiente actividad"
+
+#. module: account_treasury
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_forecast__activity_summary
+msgid "Next Activity Summary"
+msgstr "Resumen de la siguiente actividad"
+
+#. module: account_treasury
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_forecast__activity_type_id
+msgid "Next Activity Type"
+msgstr "Tipo de la siguiente actividad"
+
+#. module: account_treasury
+#: model_terms:ir.actions.act_window,help:account_treasury.account_treasury_match_action
+msgid "No real movement linked yet"
+msgstr "Aún no hay movimientos reales vinculados"
+
+#. module: account_treasury
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_forecast__note
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_template__note
+msgid "Note"
+msgstr "Nota"
+
+#. module: account_treasury
+#: model_terms:ir.ui.view,arch_db:account_treasury.account_treasury_forecast_view_form
+msgid "Notes"
+msgstr "Notas"
+
+#. module: account_treasury
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_forecast__message_needaction_counter
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_template__message_needaction_counter
+msgid "Number of Actions"
+msgstr "Número de acciones"
+
+#. module: account_treasury
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_forecast__message_has_error_counter
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_template__message_has_error_counter
+msgid "Number of errors"
+msgstr "Número de errores"
+
+#. module: account_treasury
+#: model:ir.model.fields,help:account_treasury.field_account_treasury_forecast__message_needaction_counter
+#: model:ir.model.fields,help:account_treasury.field_account_treasury_template__message_needaction_counter
+msgid "Number of messages requiring action"
+msgstr "Número de mensajes que requieren una acción"
+
+#. module: account_treasury
+#: model:ir.model.fields,help:account_treasury.field_account_treasury_forecast__message_has_error_counter
+#: model:ir.model.fields,help:account_treasury.field_account_treasury_template__message_has_error_counter
+msgid "Number of messages with delivery error"
+msgstr "Número de mensajes con error de entrega"
+
+#. module: account_treasury
+#. odoo-python
+#: code:addons/account_treasury/models/account_treasury_match.py:0
+msgid "Only posted real movements can be linked to a forecast."
+msgstr ""
+"Solo se pueden vincular a una previsión movimientos reales publicados."
+
+#. module: account_treasury
+#: model_terms:ir.actions.act_window,help:account_treasury.account_treasury_match_action
+msgid ""
+"Open a forecast and add the payment or bank statement line that settled it."
+msgstr ""
+"Abra una previsión y agregue el pago o la línea de extracto bancario que la "
+"liquidó."
+
+#. module: account_treasury
+#: model:ir.ui.menu,name:account_treasury.account_treasury_operations_menu
+msgid "Operations"
+msgstr "Operaciones"
+
+#. module: account_treasury
+#: model:ir.model.fields.selection,name:account_treasury.selection__account_treasury_category__flow_type__outflow
+#: model:ir.model.fields.selection,name:account_treasury.selection__account_treasury_forecast__flow_type__outflow
+#: model:ir.model.fields.selection,name:account_treasury.selection__account_treasury_template__flow_type__outflow
+msgid "Outflow"
+msgstr "Egreso"
+
+#. module: account_treasury
+#. odoo-javascript
+#: code:addons/account_treasury/static/src/dashboard/treasury_dashboard.xml:0
+#: model_terms:ir.ui.view,arch_db:account_treasury.account_treasury_category_view_search
+#: model_terms:ir.ui.view,arch_db:account_treasury.account_treasury_forecast_view_search
+#: model_terms:ir.ui.view,arch_db:account_treasury.account_treasury_match_view_search
+#: model_terms:ir.ui.view,arch_db:account_treasury.account_treasury_template_view_search
+msgid "Outflows"
+msgstr "Egresos"
+
+#. module: account_treasury
+#: model_terms:ir.ui.view,arch_db:account_treasury.account_treasury_forecast_view_search
+msgid "Overdue"
+msgstr "Vencido"
+
+#. module: account_treasury
+#: model:ir.model.fields.selection,name:account_treasury.selection__account_treasury_forecast__state__done
+#: model_terms:ir.ui.view,arch_db:account_treasury.account_treasury_forecast_view_search
+msgid "Paid"
+msgstr "Pagado"
+
+#. module: account_treasury
+#. odoo-javascript
+#: code:addons/account_treasury/static/src/dashboard/treasury_dashboard.xml:0
+msgid "Paid:"
+msgstr "Pagado:"
+
+#. module: account_treasury
+#: model:ir.model.fields.selection,name:account_treasury.selection__account_treasury_forecast__state__partial
+msgid "Partially Paid"
+msgstr "Pagado parcialmente"
+
+#. module: account_treasury
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_forecast__partner_id
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_match__partner_id
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_template__partner_id
+msgid "Partner"
+msgstr "Contacto"
+
+#. module: account_treasury
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_match__payment_id
+#: model:ir.model.fields.selection,name:account_treasury.selection__account_treasury_match__source_type__payment
+msgid "Payment"
+msgstr "Pago"
+
+#. module: account_treasury
+#: model:ir.actions.act_window,name:account_treasury.account_treasury_match_action
+#: model:ir.ui.menu,name:account_treasury.account_treasury_match_menu
+msgid "Payments Made"
+msgstr "Pagos realizados"
+
+#. module: account_treasury
+#. odoo-javascript
+#: code:addons/account_treasury/static/src/dashboard/treasury_dashboard.xml:0
+#: model:ir.model.fields.selection,name:account_treasury.selection__account_treasury_forecast__state__pending
+#: model_terms:ir.ui.view,arch_db:account_treasury.account_treasury_forecast_view_search
+msgid "Pending"
+msgstr "Pendiente"
+
+#. module: account_treasury
+#: model_terms:ir.ui.view,arch_db:account_treasury.account_treasury_template_view_form
+msgid ""
+"Pending future forecasts of this recurring movement will be deleted and "
+"created again. Continue?"
+msgstr ""
+"Las previsiones futuras pendientes de este movimiento recurrente se "
+"eliminarán y se crearán de nuevo. ¿Continuar?"
+
+#. module: account_treasury
+#. odoo-javascript
+#: code:addons/account_treasury/static/src/dashboard/treasury_dashboard.js:0
+msgid "Pending inflows"
+msgstr "Ingresos pendientes"
+
+#. module: account_treasury
+#. odoo-javascript
+#: code:addons/account_treasury/static/src/dashboard/treasury_dashboard.js:0
+msgid "Pending outflows"
+msgstr "Egresos pendientes"
+
+#. module: account_treasury
+#: model_terms:ir.actions.act_window,help:account_treasury.account_treasury_forecast_action
+msgid "Plan a treasury movement"
+msgstr "Planifique un movimiento de tesorería"
+
+#. module: account_treasury
+#: model_terms:ir.actions.act_window,help:account_treasury.account_treasury_template_action
+msgid "Plan your recurring treasury movements"
+msgstr "Planifique sus movimientos de tesorería recurrentes"
+
+#. module: account_treasury
+#. odoo-javascript
+#: code:addons/account_treasury/static/src/dashboard/treasury_dashboard.xml:0
+msgid "Planned inflows"
+msgstr "Ingresos previstos"
+
+#. module: account_treasury
+#. odoo-javascript
+#: code:addons/account_treasury/static/src/dashboard/treasury_dashboard.xml:0
+msgid "Planned outflows"
+msgstr "Egresos previstos"
+
+#. module: account_treasury
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_template__horizon_months
+msgid "Planning Horizon (Months)"
+msgstr "Horizonte de planificación (meses)"
+
+#. module: account_treasury
+#. odoo-javascript
+#: code:addons/account_treasury/static/src/dashboard/treasury_dashboard.xml:0
+msgid "Previous"
+msgstr "Anterior"
+
+#. module: account_treasury
+#. odoo-javascript
+#: code:addons/account_treasury/static/src/dashboard/treasury_dashboard.js:0
+#: code:addons/account_treasury/static/src/dashboard/treasury_dashboard.xml:0
+msgid "Projected net flow"
+msgstr "Flujo neto proyectado"
+
+#. module: account_treasury
+#: model:ir.model.fields.selection,name:account_treasury.selection__account_treasury_template__rule_type__quarterly
+msgid "Quarterly"
+msgstr "Trimestral"
+
+#. module: account_treasury
+#. odoo-javascript
+#: code:addons/account_treasury/static/src/dashboard/treasury_dashboard.xml:0
+msgid "Real + pending"
+msgstr "Real + pendiente"
+
+#. module: account_treasury
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_match__real_currency_id
+msgid "Real Currency"
+msgstr "Moneda real"
+
+#. module: account_treasury
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_forecast__match_ids
+#: model_terms:ir.ui.view,arch_db:account_treasury.account_treasury_forecast_view_form
+msgid "Real Movements"
+msgstr "Movimientos reales"
+
+#. module: account_treasury
+#. odoo-javascript
+#: code:addons/account_treasury/static/src/dashboard/treasury_dashboard.js:0
+msgid "Real inflows"
+msgstr "Ingresos reales"
+
+#. module: account_treasury
+#. odoo-javascript
+#: code:addons/account_treasury/static/src/dashboard/treasury_dashboard.js:0
+msgid "Real outflows"
+msgstr "Egresos reales"
+
+#. module: account_treasury
+#. odoo-javascript
+#: code:addons/account_treasury/static/src/dashboard/treasury_dashboard.xml:0
+msgid "Received / paid"
+msgstr "Cobrado / pagado"
+
+#. module: account_treasury
+#. odoo-javascript
+#: code:addons/account_treasury/static/src/dashboard/treasury_dashboard.xml:0
+msgid "Received:"
+msgstr "Cobrado:"
+
+#. module: account_treasury
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_template__rule_type
+#: model_terms:ir.ui.view,arch_db:account_treasury.account_treasury_template_view_form
+#: model_terms:ir.ui.view,arch_db:account_treasury.account_treasury_template_view_search
+msgid "Recurrence"
+msgstr "Recurrencia"
+
+#. module: account_treasury
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_forecast__template_id
+msgid "Recurring Movement"
+msgstr "Movimiento recurrente"
+
+#. module: account_treasury
+#: model:ir.actions.act_window,name:account_treasury.account_treasury_template_action
+#: model:ir.ui.menu,name:account_treasury.account_treasury_template_menu
+msgid "Recurring Movements"
+msgstr "Movimientos recurrentes"
+
+#. module: account_treasury
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_match__reference
+msgid "Reference"
+msgstr "Referencia"
+
+#. module: account_treasury
+#: model_terms:ir.ui.view,arch_db:account_treasury.account_treasury_template_view_form
+msgid "Regenerate Future Forecasts"
+msgstr "Regenerar previsiones futuras"
+
+#. module: account_treasury
+#: model_terms:ir.actions.act_window,help:account_treasury.account_treasury_forecast_action
+msgid ""
+"Register expected income and expenses, then link them to the real payments "
+"when they happen."
+msgstr ""
+"Registre los ingresos y gastos esperados y vincúlelos con los pagos reales "
+"cuando ocurran."
+
+#. module: account_treasury
+#. odoo-python
+#: code:addons/account_treasury/models/account_treasury_forecast.py:0
+msgid ""
+"Remove the real movements before changing the company, the currency or the "
+"flow type of a forecast."
+msgstr ""
+"Elimine los movimientos reales antes de cambiar la compañía, la moneda o el "
+"tipo de flujo de una previsión."
+
+#. module: account_treasury
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_template__interval_number
+msgid "Repeat Every"
+msgstr "Repetir cada"
+
+#. module: account_treasury
+#: model_terms:ir.ui.view,arch_db:account_treasury.account_treasury_forecast_view_form
+msgid "Reset to Pending"
+msgstr "Volver a pendiente"
+
+#. module: account_treasury
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_forecast__activity_user_id
+msgid "Responsible User"
+msgstr "Usuario responsable"
+
+#. module: account_treasury
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_forecast__message_has_sms_error
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_template__message_has_sms_error
+msgid "SMS Delivery error"
+msgstr "Error de entrega de SMS"
+
+#. module: account_treasury
+#. odoo-python
+#: code:addons/account_treasury/models/account_treasury_match.py:0
+msgid "Select exactly one real movement matching the source."
+msgstr "Seleccione exactamente un movimiento real que coincida con el origen."
+
+#. module: account_treasury
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_category__sequence
+msgid "Sequence"
+msgstr "Secuencia"
+
+#. module: account_treasury
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_match__source_type
+#: model_terms:ir.ui.view,arch_db:account_treasury.account_treasury_match_view_search
+msgid "Source"
+msgstr "Origen"
+
+#. module: account_treasury
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_template__date_start
+msgid "Start Date"
+msgstr "Fecha de inicio"
+
+#. module: account_treasury
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_forecast__state
+msgid "State"
+msgstr "Estado"
+
+#. module: account_treasury
+#: model_terms:ir.ui.view,arch_db:account_treasury.account_treasury_forecast_view_search
+msgid "Status"
+msgstr "Estado"
+
+#. module: account_treasury
+#: model:ir.model.fields,help:account_treasury.field_account_treasury_forecast__activity_state
+msgid ""
+"Status based on activities\n"
+"Overdue: Due date is already passed\n"
+"Today: Activity date is today\n"
+"Planned: Future activities."
+msgstr ""
+"Estado basado en actividades\n"
+"Vencida: la fecha límite ya pasó\n"
+"Hoy: la fecha de la actividad es hoy\n"
+"Planificada: actividades futuras."
+
+#. module: account_treasury
+#. odoo-python
+#: code:addons/account_treasury/models/account_treasury_forecast.py:0
+#: code:addons/account_treasury/models/account_treasury_template.py:0
+msgid "The amount must be greater than zero."
+msgstr "El importe debe ser mayor que cero."
+
+#. module: account_treasury
+#. odoo-python
+#: code:addons/account_treasury/models/account_treasury_match.py:0
+msgid "The applied amount must be greater than zero."
+msgstr "El importe aplicado debe ser mayor que cero."
+
+#. module: account_treasury
+#. odoo-python
+#: code:addons/account_treasury/models/account_treasury_match.py:0
+msgid "The direction of %(movement)s does not match the forecast flow."
+msgstr ""
+"La dirección de %(movement)s no coincide con el flujo de la previsión."
+
+#. module: account_treasury
+#. odoo-python
+#: code:addons/account_treasury/models/account_treasury_template.py:0
+msgid "The end date cannot be earlier than the start date."
+msgstr "La fecha de fin no puede ser anterior a la fecha de inicio."
+
+#. module: account_treasury
+#. odoo-python
+#: code:addons/account_treasury/models/account_treasury_template.py:0
+msgid "The planning horizon must be at least one month."
+msgstr "El horizonte de planificación debe ser de al menos un mes."
+
+#. module: account_treasury
+#. odoo-python
+#: code:addons/account_treasury/models/account_treasury_match.py:0
+msgid "The real movement must belong to the forecast company."
+msgstr "El movimiento real debe pertenecer a la compañía de la previsión."
+
+#. module: account_treasury
+#. odoo-python
+#: code:addons/account_treasury/models/account_treasury_forecast.py:0
+msgid "The real movements of %(name)s exceed the planned amount."
+msgstr "Los movimientos reales de %(name)s superan el importe previsto."
+
+#. module: account_treasury
+#. odoo-python
+#: code:addons/account_treasury/models/account_treasury_template.py:0
+msgid "The repeat interval must be at least 1."
+msgstr "El intervalo de repetición debe ser al menos 1."
+
+#. module: account_treasury
+#. odoo-javascript
+#: code:addons/account_treasury/static/src/dashboard/treasury_dashboard.xml:0
+msgid "To receive / to pay"
+msgstr "Por cobrar / por pagar"
+
+#. module: account_treasury
+#. odoo-javascript
+#: code:addons/account_treasury/static/src/dashboard/treasury_dashboard.xml:0
+msgid "Today"
+msgstr "Hoy"
+
+#. module: account_treasury
+#. odoo-javascript
+#: code:addons/account_treasury/static/src/dashboard/treasury_dashboard.js:0
+msgid "Today's rate"
+msgstr "Tasa de hoy"
+
+#. module: account_treasury
+#: model_terms:ir.ui.view,arch_db:account_treasury.account_treasury_forecast_view_form
+#: model_terms:ir.ui.view,arch_db:account_treasury.account_treasury_forecast_view_list
+#: model_terms:ir.ui.view,arch_db:account_treasury.account_treasury_match_view_list
+#: model_terms:ir.ui.view,arch_db:account_treasury.account_treasury_template_view_list
+msgid "Total"
+msgstr "Total"
+
+#. module: account_treasury
+#: model:ir.module.category,name:account_treasury.module_category_account_treasury
+#: model:ir.ui.menu,name:account_treasury.account_treasury_menu_root
+msgid "Treasury"
+msgstr "Tesorería"
+
+#. module: account_treasury
+#: model:ir.actions.client,name:account_treasury.account_treasury_dashboard_action
+msgid "Treasury Calendar"
+msgstr "Calendario de tesorería"
+
+#. module: account_treasury
+#: model:ir.model,name:account_treasury.model_account_treasury_category
+msgid "Treasury Category"
+msgstr "Categoría de tesorería"
+
+#. module: account_treasury
+#: model:ir.model,name:account_treasury.model_account_treasury_dashboard
+msgid "Treasury Dashboard"
+msgstr "Tablero de tesorería"
+
+#. module: account_treasury
+#: model:ir.model,name:account_treasury.model_account_treasury_forecast
+msgid "Treasury Forecast"
+msgstr "Previsión de tesorería"
+
+#. module: account_treasury
+#: model:ir.model,name:account_treasury.model_account_treasury_match
+msgid "Treasury Real Movement"
+msgstr "Movimiento real de tesorería"
+
+#. module: account_treasury
+#: model:ir.model,name:account_treasury.model_account_treasury_template
+msgid "Treasury Recurring Movement"
+msgstr "Movimiento recurrente de tesorería"
+
+#. module: account_treasury
+#: model:ir.actions.server,name:account_treasury.ir_cron_account_treasury_generate_forecasts_ir_actions_server
+msgid "Treasury: generate recurring forecasts"
+msgstr "Tesorería: generar previsiones recurrentes"
+
+#. module: account_treasury
+#: model:ir.model.fields.selection,name:account_treasury.selection__account_treasury_template__rule_type__biweekly
+msgid "Twice a month (15th and last day)"
+msgstr "Quincenal (día 15 y último día)"
+
+#. module: account_treasury
+#: model:ir.model.fields,help:account_treasury.field_account_treasury_forecast__activity_exception_decoration
+msgid "Type of the exception activity on record."
+msgstr "Tipo de actividad de excepción en el registro."
+
+#. module: account_treasury
+#: model:res.groups,name:account_treasury.group_account_treasury_user
+msgid "User"
+msgstr "Usuario"
+
+#. module: account_treasury
+#: model:ir.model.fields.selection,name:account_treasury.selection__account_treasury_forecast__nature__variable
+#: model:ir.model.fields.selection,name:account_treasury.selection__account_treasury_template__nature__variable
+#: model_terms:ir.ui.view,arch_db:account_treasury.account_treasury_forecast_view_search
+#: model_terms:ir.ui.view,arch_db:account_treasury.account_treasury_template_view_search
+msgid "Variable"
+msgstr "Variable"
+
+#. module: account_treasury
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_forecast__website_message_ids
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_template__website_message_ids
+msgid "Website Messages"
+msgstr "Mensajes del sitio web"
+
+#. module: account_treasury
+#: model:ir.model.fields,help:account_treasury.field_account_treasury_forecast__website_message_ids
+#: model:ir.model.fields,help:account_treasury.field_account_treasury_template__website_message_ids
+msgid "Website communication history"
+msgstr "Historial de comunicación del sitio web"
+
+#. module: account_treasury
+#: model:ir.model.fields.selection,name:account_treasury.selection__account_treasury_template__rule_type__weekly
+msgid "Weekly"
+msgstr "Semanal"
+
+#. module: account_treasury
+#. odoo-javascript
+#: code:addons/account_treasury/static/src/dashboard/treasury_dashboard.xml:0
+msgid "Year"
+msgstr "Año"
+
+#. module: account_treasury
+#: model:ir.model.fields.selection,name:account_treasury.selection__account_treasury_template__rule_type__yearly
+msgid "Yearly"
+msgstr "Anual"
+
+#. module: account_treasury
+#. odoo-python
+#: code:addons/account_treasury/models/account_treasury_forecast.py:0
+msgid "You cannot cancel a forecast linked to real movements."
+msgstr "No puede cancelar una previsión vinculada a movimientos reales."
+
+#. module: account_treasury
+#. odoo-python
+#: code:addons/account_treasury/models/account_treasury_forecast.py:0
+msgid "You cannot delete a forecast linked to real movements."
+msgstr "No puede eliminar una previsión vinculada a movimientos reales."
+
+#. module: account_treasury
+#: model_terms:ir.ui.view,arch_db:account_treasury.account_treasury_forecast_view_form
+msgid "e.g. Electricity bill"
+msgstr "p. ej. Factura de electricidad"
+
+#. module: account_treasury
+#: model_terms:ir.ui.view,arch_db:account_treasury.account_treasury_template_view_form
+msgid "e.g. Office rent"
+msgstr "p. ej. Alquiler de oficina"
