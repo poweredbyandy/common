@@ -10,4 +10,4 @@ class SaleOrder(models.Model):
         pickings = self.picking_ids.filtered(
             lambda p: p.state != "cancel" and p.picking_type_code == "outgoing"
         )
-        return sum(p._envelope_bultos_count() for p in pickings) or 1
+        return sum(p._envelope_bultos_count() for p in pickings)

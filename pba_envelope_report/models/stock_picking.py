@@ -22,4 +22,4 @@ class StockPicking(models.Model):
 
     def _envelope_bultos(self):
         self.ensure_one()
-        return self._envelope_bultos_count() or 1
+        return self._envelope_bultos_count()

@@ -16,9 +16,12 @@
                  left = (21.59 - 10) / 2 = 5.795cm ; top = 0 -->
             <div style="position:absolute; left:5.795cm; top:0;
                         width:10cm; height:23cm;">
-                <!-- Contenido horizontal (23 x 10) rotado 90° -->
+                <!-- Contenido horizontal (23 x 10) rotado 90°.
+                     padding-top: 2cm queda a la derecha física tras la rotación,
+                     para que el logo no se corte al doblar. -->
                 <div style="position:absolute; left:10cm; top:0.5cm;
-                            width:23cm; height:10cm;
+                            width:23cm; height:10cm; padding-top:1.5cm;
+                            box-sizing:content-box;
                             -webkit-transform-origin:0 0;
                             -webkit-transform:rotate(90deg);
                             font-family:Arial, Helvetica, sans-serif; color:#000;">
@@ -42,14 +45,14 @@
                         <div style="font-size:10pt; margin-top:0.1cm; font-family:'Courier New'; font-weight:bold;"
                              t-out="partner.vat"/>
                         <div style="font-size:12pt; text-transform:uppercase; margin-top:0.1cm; font-family:'Times New Roman';"
-                             t-out="partner._display_address(without_company=True)"/>
+                             t-out="partner._envelope_address()"/>
                         <div style="font-size:12pt; margin-top:0.1cm; margin-left:2.5cm; font-family:'Times New Roman'; font-weight:bold;">
                             Teléfono: <t t-out="partner._envelope_phone()"/>
                         </div>
-                        <!-- Bultos: línea siguiente al teléfono, alineado a la derecha -->
-                        <div style="text-align:right; font-family:'Times New Roman', serif;
+                        <!-- Bultos: solo si hay uno o más; alineado a la derecha -->
+                        <div t-if="bultos" style="text-align:right; font-family:'Times New Roman', serif;
                                     font-size:14pt; font-weight:bold;">
-                            <t t-out="bultos or 1"/>-Bulto<t t-if="(bultos or 1) != 1">s</t>
+                            <t t-out="bultos"/>-Bulto<t t-if="bultos != 1">s</t>
                         </div>
                     </div>
 
@@ -57,7 +60,7 @@
                     <div style="height:2.8cm; box-sizing:border-box; padding:0 0.4cm;
                                 text-align:center;">
                         <div style="font-size:11pt; margin-top:0; font-style:italic;"
-                             t-out="company.partner_id._display_address(without_company=True)"/>
+                             t-out="company.partner_id._envelope_address()"/>
                         <div style="font-size:11pt; margin-top:0.1cm; font-weight:bold; font-style:italic;">
                             Teléfono: <t t-out="company.partner_id._envelope_phone()"/>
                         </div>
