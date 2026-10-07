@@ -1,7 +1,8 @@
 1. Open **Treasury > Calendar**. The month view shows each forecast on its
    date: green for inflows, red for outflows, with an icon for its status
-   (pending, partially paid, paid or overdue). Payments made are shown in
-   italics on the date they happened.
+   (pending, partially paid or overdue). Payments made are shown in
+   italics on the date they happened. Fully paid forecasts are hidden and
+   only their payments are shown.
 2. Use the toolbar to move between months or years, to pick the currency
    of the report and to convert at the document date rate or at today's
    rate. Every period starts from the balance carried from all previous

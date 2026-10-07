@@ -82,7 +82,9 @@ export class TreasuryDashboard extends Component {
                     isToday: key === today,
                     isPast: key < today,
                     bucket: buckets[key],
-                    items: items[key] || [],
+                    items: (items[key] || []).filter(
+                        (item) => item.kind === "real" || item.state !== "done"
+                    ),
                 });
                 cursor = cursor.plus({ days: 1 });
             }

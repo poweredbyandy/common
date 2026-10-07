@@ -113,7 +113,7 @@
                                         </div>
                                         <div class="o_account_treasury_day_items flex-grow-1 overflow-auto">
                                             <t t-foreach="day.items" t-as="item" t-key="item_index">
-                                                <div t-attf-class="o_account_treasury_item o_account_treasury_item_{{ item.flow_type }} o_account_treasury_item_{{ item.kind }} {{ isOverdue(item, day) ? 'o_account_treasury_item_overdue' : '' }} {{ item.state === 'done' and item.kind === 'forecast' ? 'o_account_treasury_item_done' : '' }} d-flex align-items-center gap-1 small rounded px-1 mb-1"
+                                                <div t-attf-class="o_account_treasury_item o_account_treasury_item_{{ item.flow_type }} o_account_treasury_item_{{ item.kind }} {{ isOverdue(item, day) ? 'o_account_treasury_item_overdue' : '' }} d-flex align-items-center gap-1 small rounded px-1 mb-1"
                                                      t-att-title="itemTitle(item)"
                                                      t-on-click="() => this.openForecast(item.forecast_id)">
                                                     <i t-attf-class="fa {{ itemIcon(item, day) }}"/>
