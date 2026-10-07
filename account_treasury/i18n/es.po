@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-05 16:51+0000\n"
-"PO-Revision-Date: 2026-10-05 16:51+0000\n"
+"POT-Creation-Date: 2026-10-07 23:10+0000\n"
+"PO-Revision-Date: 2026-10-07 23:10+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: es\n"
@@ -42,6 +42,15 @@ msgstr "Un pago solo puede vincularse una vez a la misma previsión."
 #: model:ir.model.constraint,message:account_treasury.constraint_account_treasury_forecast_template_date_uniq
 msgid "A recurring movement can only have one forecast per date."
 msgstr "Un movimiento recurrente solo puede tener una previsión por fecha."
+
+#. module: account_treasury
+#: model:ir.model.fields,help:account_treasury.field_account_treasury_category__account_id
+msgid ""
+"Account used on the invoice line created from a forecast of this category. "
+"Empty uses the default account of the journal."
+msgstr ""
+"Cuenta usada en la línea de factura creada desde una previsión de esta "
+"categoría. Si está vacía se usa la cuenta por defecto del diario."
 
 #. module: account_treasury
 #: model:ir.model.fields,field_description:account_treasury.field_account_treasury_forecast__message_needaction
@@ -88,6 +97,7 @@ msgstr "Importe"
 
 #. module: account_treasury
 #: model:ir.model.fields,field_description:account_treasury.field_account_treasury_forecast__amount_residual
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_payment_assign_line__amount_residual
 msgid "Amount Due"
 msgstr "Importe pendiente"
 
@@ -107,6 +117,11 @@ msgid "Amount applied to the forecast, in the forecast currency."
 msgstr "Importe aplicado a la previsión, en la moneda de la previsión."
 
 #. module: account_treasury
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_payment_assign_line__amount
+msgid "Amount to Apply"
+msgstr "Importe a aplicar"
+
+#. module: account_treasury
 #: model:ir.model.fields,field_description:account_treasury.field_account_treasury_match__amount
 msgid "Applied Amount"
 msgstr "Importe aplicado"
@@ -124,10 +139,41 @@ msgid "Archived"
 msgstr "Archivado"
 
 #. module: account_treasury
+#: model_terms:ir.ui.view,arch_db:account_treasury.account_treasury_payment_assign_view_form
+msgid "Assign"
+msgstr "Asignar"
+
+#. module: account_treasury
+#: model:ir.model,name:account_treasury.model_account_treasury_payment_assign
+msgid "Assign Payment to Treasury Forecasts"
+msgstr "Asignar pago a previsiones de tesorería"
+
+#. module: account_treasury
+#: model:ir.model,name:account_treasury.model_account_treasury_payment_assign_line
+msgid "Assign Payment to Treasury Forecasts Line"
+msgstr "Línea de asignación de pago a previsiones de tesorería"
+
+#. module: account_treasury
+#: model_terms:ir.ui.view,arch_db:account_treasury.view_account_payment_form
+msgid "Assign to Forecast"
+msgstr "Asignar a previsión"
+
+#. module: account_treasury
+#. odoo-python
+#: code:addons/account_treasury/models/account_payment.py:0
+msgid "Assign to Forecasts"
+msgstr "Asignar a previsiones"
+
+#. module: account_treasury
 #: model:ir.model.fields,field_description:account_treasury.field_account_treasury_forecast__message_attachment_count
 #: model:ir.model.fields,field_description:account_treasury.field_account_treasury_template__message_attachment_count
 msgid "Attachment Count"
 msgstr "Número de adjuntos"
+
+#. module: account_treasury
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_payment_assign__available_amount
+msgid "Available Amount"
+msgstr "Importe disponible"
 
 #. module: account_treasury
 #: model:ir.model.fields,field_description:account_treasury.field_account_treasury_match__statement_line_id
@@ -142,6 +188,7 @@ msgstr "Calendario"
 
 #. module: account_treasury
 #: model_terms:ir.ui.view,arch_db:account_treasury.account_treasury_forecast_view_form
+#: model_terms:ir.ui.view,arch_db:account_treasury.account_treasury_payment_assign_view_form
 msgid "Cancel"
 msgstr "Cancelar"
 
@@ -159,6 +206,7 @@ msgstr "Categorías"
 
 #. module: account_treasury
 #: model:ir.model.fields,field_description:account_treasury.field_account_treasury_forecast__category_id
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_payment_assign_line__category_id
 #: model:ir.model.fields,field_description:account_treasury.field_account_treasury_template__category_id
 #: model_terms:ir.ui.view,arch_db:account_treasury.account_treasury_forecast_view_search
 #: model_terms:ir.ui.view,arch_db:account_treasury.account_treasury_template_view_search
@@ -180,6 +228,7 @@ msgstr "Color"
 #: model:ir.model.fields,field_description:account_treasury.field_account_treasury_category__company_id
 #: model:ir.model.fields,field_description:account_treasury.field_account_treasury_forecast__company_id
 #: model:ir.model.fields,field_description:account_treasury.field_account_treasury_match__company_id
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_payment_assign__company_id
 #: model:ir.model.fields,field_description:account_treasury.field_account_treasury_template__company_id
 msgid "Company"
 msgstr "Compañía"
@@ -190,15 +239,33 @@ msgid "Configuration"
 msgstr "Configuración"
 
 #. module: account_treasury
+#. odoo-python
+#: code:addons/account_treasury/models/account_payment.py:0
+msgid "Confirm the payment before assigning it to forecasts."
+msgstr "Confirme el pago antes de asignarlo a previsiones."
+
+#. module: account_treasury
 #. odoo-javascript
 #: code:addons/account_treasury/static/src/dashboard/treasury_dashboard.xml:0
 msgid "Conversion rate"
 msgstr "Tasa de conversión"
 
 #. module: account_treasury
+#: model_terms:ir.ui.view,arch_db:account_treasury.account_treasury_forecast_view_form
+msgid "Create Bill"
+msgstr "Crear factura de proveedor"
+
+#. module: account_treasury
+#: model_terms:ir.ui.view,arch_db:account_treasury.account_treasury_forecast_view_form
+msgid "Create Invoice"
+msgstr "Crear factura"
+
+#. module: account_treasury
 #: model:ir.model.fields,field_description:account_treasury.field_account_treasury_category__create_uid
 #: model:ir.model.fields,field_description:account_treasury.field_account_treasury_forecast__create_uid
 #: model:ir.model.fields,field_description:account_treasury.field_account_treasury_match__create_uid
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_payment_assign__create_uid
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_payment_assign_line__create_uid
 #: model:ir.model.fields,field_description:account_treasury.field_account_treasury_template__create_uid
 msgid "Created by"
 msgstr "Creado por"
@@ -207,6 +274,8 @@ msgstr "Creado por"
 #: model:ir.model.fields,field_description:account_treasury.field_account_treasury_category__create_date
 #: model:ir.model.fields,field_description:account_treasury.field_account_treasury_forecast__create_date
 #: model:ir.model.fields,field_description:account_treasury.field_account_treasury_match__create_date
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_payment_assign__create_date
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_payment_assign_line__create_date
 #: model:ir.model.fields,field_description:account_treasury.field_account_treasury_template__create_date
 msgid "Created on"
 msgstr "Creado el"
@@ -216,9 +285,16 @@ msgstr "Creado el"
 #: code:addons/account_treasury/static/src/dashboard/treasury_dashboard.xml:0
 #: model:ir.model.fields,field_description:account_treasury.field_account_treasury_forecast__currency_id
 #: model:ir.model.fields,field_description:account_treasury.field_account_treasury_match__forecast_currency_id
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_payment_assign__currency_id
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_payment_assign_line__currency_id
 #: model:ir.model.fields,field_description:account_treasury.field_account_treasury_template__currency_id
 msgid "Currency"
 msgstr "Moneda"
+
+#. module: account_treasury
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_payment_assign__partner_id
+msgid "Customer/Vendor"
+msgstr "Cliente/Proveedor"
 
 #. module: account_treasury
 #: model:ir.model.fields.selection,name:account_treasury.selection__account_treasury_template__rule_type__daily
@@ -228,6 +304,7 @@ msgstr "Diario"
 #. module: account_treasury
 #: model:ir.model.fields,field_description:account_treasury.field_account_treasury_forecast__date
 #: model:ir.model.fields,field_description:account_treasury.field_account_treasury_match__date
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_payment_assign_line__date
 #: model_terms:ir.ui.view,arch_db:account_treasury.account_treasury_forecast_view_search
 #: model_terms:ir.ui.view,arch_db:account_treasury.account_treasury_match_view_search
 msgid "Date"
@@ -235,6 +312,7 @@ msgstr "Fecha"
 
 #. module: account_treasury
 #: model:ir.model.fields,field_description:account_treasury.field_account_treasury_forecast__name
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_payment_assign_line__name
 msgid "Description"
 msgstr "Descripción"
 
@@ -242,6 +320,8 @@ msgstr "Descripción"
 #: model:ir.model.fields,field_description:account_treasury.field_account_treasury_category__display_name
 #: model:ir.model.fields,field_description:account_treasury.field_account_treasury_forecast__display_name
 #: model:ir.model.fields,field_description:account_treasury.field_account_treasury_match__display_name
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_payment_assign__display_name
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_payment_assign_line__display_name
 #: model:ir.model.fields,field_description:account_treasury.field_account_treasury_template__display_name
 msgid "Display Name"
 msgstr "Nombre mostrado"
@@ -290,6 +370,7 @@ msgstr "Flujo"
 #: model:ir.model.fields,field_description:account_treasury.field_account_treasury_category__flow_type
 #: model:ir.model.fields,field_description:account_treasury.field_account_treasury_forecast__flow_type
 #: model:ir.model.fields,field_description:account_treasury.field_account_treasury_match__flow_type
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_payment_assign__flow_type
 #: model:ir.model.fields,field_description:account_treasury.field_account_treasury_template__flow_type
 msgid "Flow Type"
 msgstr "Tipo de flujo"
@@ -315,6 +396,7 @@ msgstr "Icono de Font Awesome, por ejemplo fa-tasks"
 #. odoo-javascript
 #: code:addons/account_treasury/static/src/dashboard/treasury_dashboard.js:0
 #: model:ir.model.fields,field_description:account_treasury.field_account_treasury_match__forecast_id
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_payment_assign_line__forecast_id
 #: model:ir.model.fields,field_description:account_treasury.field_account_treasury_template__forecast_ids
 msgid "Forecast"
 msgstr "Previsión"
@@ -328,6 +410,7 @@ msgstr "Número de previsiones"
 #: model:ir.actions.act_window,name:account_treasury.account_treasury_forecast_action
 #: model:ir.ui.menu,name:account_treasury.account_treasury_forecast_menu
 #: model_terms:ir.ui.view,arch_db:account_treasury.account_treasury_template_view_form
+#: model_terms:ir.ui.view,arch_db:account_treasury.view_account_payment_form
 msgid "Forecasts"
 msgstr "Previsiones"
 
@@ -359,6 +442,8 @@ msgstr "Tiene mensaje"
 #: model:ir.model.fields,field_description:account_treasury.field_account_treasury_category__id
 #: model:ir.model.fields,field_description:account_treasury.field_account_treasury_forecast__id
 #: model:ir.model.fields,field_description:account_treasury.field_account_treasury_match__id
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_payment_assign__id
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_payment_assign_line__id
 #: model:ir.model.fields,field_description:account_treasury.field_account_treasury_template__id
 msgid "ID"
 msgstr "ID"
@@ -390,6 +475,7 @@ msgstr "Si está marcado, algunos mensajes tienen un error de entrega."
 #. module: account_treasury
 #: model:ir.model.fields.selection,name:account_treasury.selection__account_treasury_category__flow_type__inflow
 #: model:ir.model.fields.selection,name:account_treasury.selection__account_treasury_forecast__flow_type__inflow
+#: model:ir.model.fields.selection,name:account_treasury.selection__account_treasury_payment_assign__flow_type__inflow
 #: model:ir.model.fields.selection,name:account_treasury.selection__account_treasury_template__flow_type__inflow
 msgid "Inflow"
 msgstr "Ingreso"
@@ -411,6 +497,22 @@ msgid "Internal notes..."
 msgstr "Notas internas..."
 
 #. module: account_treasury
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_category__account_id
+msgid "Invoice Account"
+msgstr "Cuenta de factura"
+
+#. module: account_treasury
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_forecast__invoice_count
+msgid "Invoice Count"
+msgstr "Número de facturas"
+
+#. module: account_treasury
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_forecast__invoice_ids
+#: model_terms:ir.ui.view,arch_db:account_treasury.account_treasury_forecast_view_form
+msgid "Invoices"
+msgstr "Facturas"
+
+#. module: account_treasury
 #: model:ir.model.fields,field_description:account_treasury.field_account_treasury_forecast__is_cancelled
 msgid "Is Cancelled"
 msgstr "Cancelado"
@@ -428,6 +530,11 @@ msgid "Journal"
 msgstr "Diario"
 
 #. module: account_treasury
+#: model:ir.model,name:account_treasury.model_account_move
+msgid "Journal Entry"
+msgstr "Asiento contable"
+
+#. module: account_treasury
 #: model:ir.model.fields,field_description:account_treasury.field_account_treasury_template__last_generated_date
 msgid "Last Generated Date"
 msgstr "Generado hasta"
@@ -441,6 +548,8 @@ msgstr "Fecha del último pago"
 #: model:ir.model.fields,field_description:account_treasury.field_account_treasury_category__write_uid
 #: model:ir.model.fields,field_description:account_treasury.field_account_treasury_forecast__write_uid
 #: model:ir.model.fields,field_description:account_treasury.field_account_treasury_match__write_uid
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_payment_assign__write_uid
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_payment_assign_line__write_uid
 #: model:ir.model.fields,field_description:account_treasury.field_account_treasury_template__write_uid
 msgid "Last Updated by"
 msgstr "Última actualización por"
@@ -449,9 +558,16 @@ msgstr "Última actualización por"
 #: model:ir.model.fields,field_description:account_treasury.field_account_treasury_category__write_date
 #: model:ir.model.fields,field_description:account_treasury.field_account_treasury_forecast__write_date
 #: model:ir.model.fields,field_description:account_treasury.field_account_treasury_match__write_date
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_payment_assign__write_date
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_payment_assign_line__write_date
 #: model:ir.model.fields,field_description:account_treasury.field_account_treasury_template__write_date
 msgid "Last Updated on"
 msgstr "Última actualización el"
+
+#. module: account_treasury
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_payment_assign__line_ids
+msgid "Line"
+msgstr "Línea"
 
 #. module: account_treasury
 #: model:ir.model.fields,field_description:account_treasury.field_account_treasury_forecast__message_has_error
@@ -584,10 +700,22 @@ msgstr "Número de mensajes con error de entrega"
 
 #. module: account_treasury
 #. odoo-python
+#: code:addons/account_treasury/models/account_treasury_forecast.py:0
+msgid "Only pending or partially paid forecasts can be invoiced."
+msgstr ""
+"Solo se pueden facturar previsiones pendientes o pagadas parcialmente."
+
+#. module: account_treasury
+#. odoo-python
 #: code:addons/account_treasury/models/account_treasury_match.py:0
 msgid "Only posted real movements can be linked to a forecast."
 msgstr ""
 "Solo se pueden vincular a una previsión movimientos reales publicados."
+
+#. module: account_treasury
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_payment_assign__partner_only
+msgid "Only this partner"
+msgstr "Solo este contacto"
 
 #. module: account_treasury
 #: model_terms:ir.actions.act_window,help:account_treasury.account_treasury_match_action
@@ -611,6 +739,7 @@ msgstr "Operaciones"
 #. module: account_treasury
 #: model:ir.model.fields.selection,name:account_treasury.selection__account_treasury_category__flow_type__outflow
 #: model:ir.model.fields.selection,name:account_treasury.selection__account_treasury_forecast__flow_type__outflow
+#: model:ir.model.fields.selection,name:account_treasury.selection__account_treasury_payment_assign__flow_type__outflow
 #: model:ir.model.fields.selection,name:account_treasury.selection__account_treasury_template__flow_type__outflow
 msgid "Outflow"
 msgstr "Egreso"
@@ -650,15 +779,27 @@ msgstr "Pagado parcialmente"
 #. module: account_treasury
 #: model:ir.model.fields,field_description:account_treasury.field_account_treasury_forecast__partner_id
 #: model:ir.model.fields,field_description:account_treasury.field_account_treasury_match__partner_id
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_payment_assign_line__partner_id
 #: model:ir.model.fields,field_description:account_treasury.field_account_treasury_template__partner_id
 msgid "Partner"
 msgstr "Contacto"
 
 #. module: account_treasury
+#: model:ir.model,name:account_treasury.model_account_payment_register
+msgid "Pay"
+msgstr "Pagar"
+
+#. module: account_treasury
 #: model:ir.model.fields,field_description:account_treasury.field_account_treasury_match__payment_id
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_payment_assign__payment_id
 #: model:ir.model.fields.selection,name:account_treasury.selection__account_treasury_match__source_type__payment
 msgid "Payment"
 msgstr "Pago"
+
+#. module: account_treasury
+#: model:ir.model,name:account_treasury.model_account_payment
+msgid "Payments"
+msgstr "Pagos"
 
 #. module: account_treasury
 #: model:ir.actions.act_window,name:account_treasury.account_treasury_match_action
@@ -863,9 +1004,20 @@ msgstr "Error de entrega de SMS"
 
 #. module: account_treasury
 #. odoo-python
+#: code:addons/account_treasury/wizard/account_treasury_payment_assign.py:0
+msgid "Select at least one forecast."
+msgstr "Seleccione al menos una previsión."
+
+#. module: account_treasury
+#. odoo-python
 #: code:addons/account_treasury/models/account_treasury_match.py:0
 msgid "Select exactly one real movement matching the source."
 msgstr "Seleccione exactamente un movimiento real que coincida con el origen."
+
+#. module: account_treasury
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_payment_assign_line__selected
+msgid "Selected"
+msgstr "Seleccionado"
 
 #. module: account_treasury
 #: model:ir.model.fields,field_description:account_treasury.field_account_treasury_category__sequence
@@ -885,6 +1037,7 @@ msgstr "Fecha de inicio"
 
 #. module: account_treasury
 #: model:ir.model.fields,field_description:account_treasury.field_account_treasury_forecast__state
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_payment_assign_line__state
 msgid "State"
 msgstr "Estado"
 
@@ -931,6 +1084,11 @@ msgstr ""
 #: code:addons/account_treasury/models/account_treasury_template.py:0
 msgid "The end date cannot be earlier than the start date."
 msgstr "La fecha de fin no puede ser anterior a la fecha de inicio."
+
+#. module: account_treasury
+#: model:ir.model.fields,help:account_treasury.field_account_treasury_payment_assign__currency_id
+msgid "The payment's currency."
+msgstr "La moneda del pago."
 
 #. module: account_treasury
 #. odoo-python
@@ -980,6 +1138,7 @@ msgstr "Tasa de hoy"
 #: model_terms:ir.ui.view,arch_db:account_treasury.account_treasury_forecast_view_form
 #: model_terms:ir.ui.view,arch_db:account_treasury.account_treasury_forecast_view_list
 #: model_terms:ir.ui.view,arch_db:account_treasury.account_treasury_match_view_list
+#: model_terms:ir.ui.view,arch_db:account_treasury.account_treasury_payment_assign_view_form
 #: model_terms:ir.ui.view,arch_db:account_treasury.account_treasury_template_view_list
 msgid "Total"
 msgstr "Total"
@@ -987,6 +1146,7 @@ msgstr "Total"
 #. module: account_treasury
 #: model:ir.module.category,name:account_treasury.module_category_account_treasury
 #: model:ir.ui.menu,name:account_treasury.account_treasury_menu_root
+#: model_terms:ir.ui.view,arch_db:account_treasury.view_move_form
 msgid "Treasury"
 msgstr "Tesorería"
 
@@ -1007,13 +1167,25 @@ msgstr "Tablero de tesorería"
 
 #. module: account_treasury
 #: model:ir.model,name:account_treasury.model_account_treasury_forecast
+#: model:ir.model.fields,field_description:account_treasury.field_account_bank_statement_line__treasury_forecast_id
+#: model:ir.model.fields,field_description:account_treasury.field_account_move__treasury_forecast_id
 msgid "Treasury Forecast"
 msgstr "Previsión de tesorería"
+
+#. module: account_treasury
+#: model:ir.model.fields,field_description:account_treasury.field_account_payment__treasury_forecast_count
+msgid "Treasury Forecast Count"
+msgstr "Número de previsiones de tesorería"
 
 #. module: account_treasury
 #: model:ir.model,name:account_treasury.model_account_treasury_match
 msgid "Treasury Real Movement"
 msgstr "Movimiento real de tesorería"
+
+#. module: account_treasury
+#: model:ir.model.fields,field_description:account_treasury.field_account_payment__treasury_match_ids
+msgid "Treasury Real Movements"
+msgstr "Movimientos reales de tesorería"
 
 #. module: account_treasury
 #: model:ir.model,name:account_treasury.model_account_treasury_template
@@ -1064,6 +1236,11 @@ msgstr "Historial de comunicación del sitio web"
 #: model:ir.model.fields.selection,name:account_treasury.selection__account_treasury_template__rule_type__weekly
 msgid "Weekly"
 msgstr "Semanal"
+
+#. module: account_treasury
+#: model:ir.model.fields,field_description:account_treasury.field_account_treasury_payment_assign_line__wizard_id
+msgid "Wizard"
+msgstr "Asistente"
 
 #. module: account_treasury
 #. odoo-javascript

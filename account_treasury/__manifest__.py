@@ -1,6 +1,6 @@
 {
     "name": "Treasury",
-    "version": "18.0.1.0.0",
+    "version": "18.0.1.1.0",
     "category": "Accounting/Accounting",
     "summary": "Plan recurring and variable cash flows and match them with real "
     "payments on a treasury calendar",
@@ -20,6 +20,9 @@
         "views/account_treasury_forecast_views.xml",
         "views/account_treasury_match_views.xml",
         "views/account_treasury_dashboard_views.xml",
+        "views/account_move_views.xml",
+        "views/account_payment_views.xml",
+        "wizard/account_treasury_payment_assign_views.xml",
         "views/account_treasury_menus.xml",
     ],
     "assets": {

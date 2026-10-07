@@ -29,11 +29,22 @@
         <field name="arch" type="xml">
             <form>
                 <header>
+                    <button name="action_create_invoice" type="object" string="Create Invoice" class="btn-primary"
+                            invisible="flow_type != 'inflow' or state not in ('pending', 'partial') or not id"
+                            groups="account.group_account_invoice"/>
+                    <button name="action_create_invoice" type="object" string="Create Bill" class="btn-primary"
+                            invisible="flow_type != 'outflow' or state not in ('pending', 'partial') or not id"
+                            groups="account.group_account_invoice"/>
                     <button name="action_cancel" type="object" string="Cancel" invisible="state != 'pending' or not id"/>
                     <button name="action_reset_to_pending" type="object" string="Reset to Pending" invisible="state != 'cancel'"/>
                     <field name="state" widget="statusbar" statusbar_visible="pending,partial,done"/>
                 </header>
                 <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_invoices" type="object" class="oe_stat_button" icon="fa-pencil-square-o" invisible="not invoice_count">
+                            <field name="invoice_count" widget="statinfo" string="Invoices"/>
+                        </button>
+                    </div>
                     <div class="oe_title">
                         <label for="name"/>
                         <h1><field name="name" placeholder="e.g. Electricity bill" readonly="state == 'cancel'"/></h1>

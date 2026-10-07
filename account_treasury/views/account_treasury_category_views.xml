@@ -9,6 +9,7 @@
                 <field name="name"/>
                 <field name="flow_type"/>
                 <field name="color" widget="color_picker"/>
+                <field name="account_id" optional="show" options="{'no_create': True}"/>
                 <field name="company_id" groups="base.group_multi_company" optional="show"/>
                 <field name="active" column_invisible="True"/>
             </list>

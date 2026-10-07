@@ -227,6 +227,71 @@ class TestAccountTreasury(AccountTestInvoicingCommon):
         self.assertEqual(data["buckets"][2]["planned_out"], 100.0)
         self.assertFalse(data["items"])
 
+    def test_create_draft_bill_from_forecast(self):
+        account = self.company_data["default_account_expense"]
+        category = self.env["account.treasury.category"].create(
+            {"name": "Services", "flow_type": "outflow", "account_id": account.id}
+        )
+        forecast = self._create_forecast(
+            amount=250.0,
+            partner_id=self.partner_a.id,
+            category_id=category.id,
+        )
+        self._create_forecast_match(forecast, self._create_payment(50.0))
+        action = forecast.action_create_invoice()
+        bill = self.env["account.move"].browse(action["res_id"])
+        self.assertEqual(bill.move_type, "in_invoice")
+        self.assertEqual(bill.state, "draft")
+        self.assertEqual(bill.partner_id, self.partner_a)
+        self.assertEqual(bill.treasury_forecast_id, forecast)
+        self.assertEqual(bill.invoice_line_ids.account_id, account)
+        self.assertEqual(bill.invoice_line_ids.name, "Rent")
+        self.assertEqual(bill.amount_total, 200.0)
+        self.assertEqual(forecast.invoice_count, 1)
+        income = self._create_forecast(amount=80.0, flow_type="inflow")
+        invoice = self.env["account.move"].browse(income.action_create_invoice()["res_id"])
+        self.assertEqual(invoice.move_type, "out_invoice")
+        forecast.match_ids.unlink()
+        self._create_forecast_match(forecast, self._create_payment(250.0))
+        with self.assertRaises(UserError):
+            forecast.action_create_invoice()
+
+    def test_paying_forecast_invoice_links_payment(self):
+        forecast = self._create_forecast(amount=300.0, partner_id=self.partner_a.id)
+        bill = self.env["account.move"].browse(forecast.action_create_invoice()["res_id"])
+        bill.invoice_date = "2026-01-10"
+        bill.action_post()
+        self.env["account.payment.register"].with_context(
+            active_model="account.move", active_ids=bill.ids
+        ).create({"amount": 120.0, "payment_date": "2026-01-11"})._create_payments()
+        self.assertEqual(forecast.state, "partial")
+        self.assertEqual(forecast.amount_paid, 120.0)
+        self.assertEqual(forecast.match_ids.payment_id.invoice_ids, bill)
+
+    def test_assign_payment_wizard_lists_pending_forecasts(self):
+        pending = self._create_forecast(amount=100.0, partner_id=self.partner_a.id)
+        other_partner = self._create_forecast(amount=100.0, partner_id=self.partner_b.id)
+        paid = self._create_forecast(amount=50.0, partner_id=self.partner_a.id)
+        self._create_forecast_match(paid, self._create_payment(50.0))
+        self._create_forecast(amount=100.0, flow_type="inflow", partner_id=self.partner_a.id)
+        cancelled = self._create_forecast(amount=100.0, partner_id=self.partner_a.id)
+        cancelled.action_cancel()
+        payment = self._create_payment(150.0)
+        action = payment.action_open_treasury_assign()
+        wizard = self.env[action["res_model"]].with_context(action["context"]).create({})
+        self.assertEqual(wizard.line_ids.forecast_id, pending)
+        self.assertEqual(wizard.available_amount, 150.0)
+        wizard.partner_only = False
+        self.assertEqual(wizard.line_ids.forecast_id, pending | other_partner)
+        wizard.line_ids.selected = True
+        with self.assertRaises(ValidationError):
+            wizard.action_confirm()
+        wizard.line_ids.filtered(lambda line: line.forecast_id == other_partner).amount = 50.0
+        wizard.action_confirm()
+        self.assertEqual(pending.state, "done")
+        self.assertEqual(other_partner.amount_paid, 50.0)
+        self.assertEqual(payment.treasury_forecast_count, 2)
+
     def test_dashboard_carries_previous_balance(self):
         income = self._create_forecast(amount=1000.0, flow_type="inflow", date="2025-12-20")
         self._create_forecast_match(

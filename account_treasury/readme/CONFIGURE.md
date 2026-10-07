@@ -3,7 +3,8 @@
    bank statement lines so they can link real movements.
 2. Go to **Treasury > Configuration > Categories** and create inflow and
    outflow categories, for example *Rent*, *Payroll*, *Services* or
-   *Sales*.
+   *Sales*. Set an **Invoice Account** to use it on invoices created from
+   forecasts of that category.
 3. Go to **Treasury > Operations > Recurring Movements** and create the
    fixed expenses and recurring income. Choose the recurrence (daily,
    weekly, twice a month on the 15th and last day, monthly, quarterly or

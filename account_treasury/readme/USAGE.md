@@ -20,7 +20,17 @@
    a partial payment.
 6. The forecast becomes **Partially Paid** or **Paid** automatically.
    Pending forecasts that are not needed anymore can be cancelled.
-7. **Treasury > Operations > Payments Made** lists every real movement
+7. To register the document, click **Create Invoice** (inflows) or
+   **Create Bill** (outflows) on a pending forecast. A draft invoice is
+   created with the partner, currency, due date and one line with the
+   description and the amount still due of the forecast, without taxes,
+   on the account of the forecast category. When that invoice is paid
+   with **Register Payment**, the payment is linked to the forecast.
+8. From a confirmed payment, click **Assign to Forecast** to open a window
+   with the pending forecasts of the same flow. Turn on the forecasts to
+   settle, adjust the amount to apply and click **Assign**. The
+   **Forecasts** smart button shows the forecasts paid by the payment.
+9. **Treasury > Operations > Payments Made** lists every real movement
    linked to a forecast. **Forecasts** also offers pivot and graph views.
 
 Changing the amount, partner or category of a recurring movement updates

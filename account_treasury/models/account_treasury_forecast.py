@@ -1,4 +1,4 @@
-from odoo import _, api, fields, models
+from odoo import Command, _, api, fields, models
 from odoo.exceptions import UserError, ValidationError
 
 from .account_treasury_category import FLOW_TYPES, NATURES
@@ -88,6 +88,13 @@ class AccountTreasuryForecast(models.Model):
         compute="_compute_amounts",
         store=True,
     )
+    invoice_ids = fields.One2many(
+        "account.move",
+        "treasury_forecast_id",
+        string="Invoices",
+        copy=False,
+    )
+    invoice_count = fields.Integer(compute="_compute_invoice_count")
     note = fields.Text()
 
     _sql_constraints = [
@@ -120,6 +127,11 @@ class AccountTreasuryForecast(models.Model):
                 forecast.state = "partial"
             else:
                 forecast.state = "done"
+
+    @api.depends("invoice_ids")
+    def _compute_invoice_count(self):
+        for forecast in self:
+            forecast.invoice_count = len(forecast.invoice_ids)
 
     @api.constrains("amount", "amount_paid")
     def _check_amounts(self):
@@ -173,3 +185,67 @@ class AccountTreasuryForecast(models.Model):
 
     def action_reset_to_pending(self):
         self.is_cancelled = False
+
+    def action_create_invoice(self):
+        self.ensure_one()
+        if self.state not in ("pending", "partial"):
+            raise UserError(
+                _("Only pending or partially paid forecasts can be invoiced.")
+            )
+        move_type = self._get_invoice_move_type()
+        invoice = (
+            self.env["account.move"]
+            .with_company(self.company_id)
+            .with_context(default_move_type=move_type)
+            .create(self._prepare_invoice_vals(move_type))
+        )
+        return self._get_invoice_action(invoice)
+
+    def action_view_invoices(self):
+        self.ensure_one()
+        return self._get_invoice_action(self.invoice_ids)
+
+    def _get_invoice_move_type(self):
+        self.ensure_one()
+        return "out_invoice" if self.flow_type == "inflow" else "in_invoice"
+
+    def _prepare_invoice_vals(self, move_type):
+        self.ensure_one()
+        return {
+            "move_type": move_type,
+            "company_id": self.company_id.id,
+            "partner_id": self.partner_id.id,
+            "currency_id": self.currency_id.id,
+            "invoice_date_due": self.date,
+            "invoice_origin": self.name,
+            "treasury_forecast_id": self.id,
+            "invoice_line_ids": [Command.create(self._prepare_invoice_line_vals())],
+        }
+
+    def _prepare_invoice_line_vals(self):
+        self.ensure_one()
+        vals = {
+            "name": self.name,
+            "quantity": 1.0,
+            "price_unit": self.amount_residual,
+            "tax_ids": [Command.clear()],
+        }
+        account = self.category_id.with_company(self.company_id).account_id
+        if account:
+            vals["account_id"] = account.id
+        return vals
+
+    def _get_invoice_action(self, invoices):
+        move_type = self._get_invoice_move_type()
+        action = self.env["ir.actions.act_window"]._for_xml_id(
+            "account.action_move_out_invoice_type"
+            if move_type == "out_invoice"
+            else "account.action_move_in_invoice_type"
+        )
+        action["context"] = {"default_move_type": move_type}
+        if len(invoices) == 1:
+            action["views"] = [(self.env.ref("account.view_move_form").id, "form")]
+            action["res_id"] = invoices.id
+        else:
+            action["domain"] = [("id", "in", invoices.ids)]
+        return action

@@ -22,3 +22,11 @@ class AccountTreasuryCategory(models.Model):
     color = fields.Integer()
     active = fields.Boolean(default=True)
     company_id = fields.Many2one("res.company", default=lambda self: self.env.company)
+    account_id = fields.Many2one(
+        "account.account",
+        string="Invoice Account",
+        company_dependent=True,
+        domain="[('deprecated', '=', False)]",
+        help="Account used on the invoice line created from a forecast of this "
+        "category. Empty uses the default account of the journal.",
+    )
