@@ -1,6 +1,6 @@
 {
     "name": "PBA Formato de Sobre",
-    "version": "18.0.1.1.0",
+    "version": "18.0.1.4.0",
     "category": "Inventory/Inventory",
     "summary": "Envelope print (10x23 cm on Letter) from Sales Order and Delivery",
     "author": "andyengit",
