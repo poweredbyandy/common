@@ -11,48 +11,50 @@
              t-att-data-oe-lang="o and o.env.context.get('lang')">
         <div class="page" style="position:relative; width:21.59cm; height:27.9cm;
                                 overflow:hidden;">
-            <!-- Área del sobre: 10 x 23 cm, centrada en horizontal y pegada
-                 al borde superior de la hoja carta
-                 left = (21.59 - 10) / 2 = 5.795cm ; top = 0 -->
-            <div style="position:absolute; left:5.795cm; top:0;
+            <!-- Área del sobre: 10 x 23 cm, pegada arriba y desplazada 2 cm
+                 a la izquierda para dejar más margen derecho en la hoja
+                 left = (21.59 - 10) / 2 - 2 = 3.795cm ; top = 0 -->
+            <div style="position:absolute; left:4.795cm; top:0;
                         width:10cm; height:23cm;">
-                <!-- Contenido horizontal (23 x 10) rotado 90°.
-                     padding-top: 2cm queda a la derecha física tras la rotación,
-                     para que el logo no se corte al doblar. -->
-                <div style="position:absolute; left:10cm; top:0.5cm;
-                            width:23cm; height:10cm; padding-top:1.5cm;
-                            box-sizing:content-box;
+                <!-- Contenido horizontal (23 x 10) rotado -90°.
+                     El origen queda en la esquina inferior izquierda del recuadro
+                     (left:0; top:23.5cm = 23cm + 0.5cm). El logo queda abajo. -->
+                <div style="position:absolute; left:0; top:23.5cm;
+                            width:23cm; height:10cm;
                             -webkit-transform-origin:0 0;
-                            -webkit-transform:rotate(90deg);
+                            -webkit-transform:rotate(-90deg);
                             font-family:Arial, Helvetica, sans-serif; color:#000;">
 
                     <!-- ===== Parte superior: logo + datos del CLIENTE ===== -->
                     <div style="height:7.2cm; box-sizing:border-box; padding:0.3cm 0.4cm;
                                 border-bottom:1.5px solid #000;">
-                        <!-- Logo -->
-                        <div style="height:2.2cm;">
-                            <img t-if="company.logo"
-                                 t-att-src="image_data_uri(company.logo)"
-                                 style="max-width:8cm; max-height:2.2cm;"/>
-                        </div>
+                        <!-- Logo a altura fija: sin max-width, para que un logo
+                             apaisado sí crezca hasta el partner.name -->
+                        <img t-if="company.logo"
+                             t-att-src="image_data_uri(company.logo)"
+                             style="display:block; height:3cm; width:auto;"/>
                         <!-- Datos del cliente (debajo del logo) -->
-                        <!-- Nombre: alto fijo de 2 líneas (16pt x 18pt de interlineado = 36pt) -->
-                        <div style="font-size:16pt; line-height:18pt; height:36pt; overflow:hidden;
+                        <!-- Nombre: interlineado compacto, sin recortar la 2.ª línea -->
+                        <div style="font-size:16pt; line-height:16pt;
                                     font-weight:bold; text-transform:uppercase;
-                                    margin-top:0.15cm; margin-bottom:0.1cm;
+                                    margin:0;
                                     font-family:'Times New Roman';"
                              t-out="partner.name"/>
                         <div style="font-size:10pt; margin-top:0.1cm; font-family:'Courier New'; font-weight:bold;"
                              t-out="partner.vat"/>
                         <div style="font-size:12pt; text-transform:uppercase; margin-top:0.1cm; font-family:'Times New Roman';"
                              t-out="partner._envelope_address()"/>
-                        <div style="font-size:12pt; margin-top:0.1cm; margin-left:2.5cm; font-family:'Times New Roman'; font-weight:bold;">
-                            Teléfono: <t t-out="partner._envelope_phone()"/>
-                        </div>
-                        <!-- Bultos: solo si hay uno o más; alineado a la derecha -->
-                        <div t-if="bultos" style="text-align:right; font-family:'Times New Roman', serif;
-                                    font-size:14pt; font-weight:bold;">
-                            <t t-out="bultos"/>-Bulto<t t-if="bultos != 1">s</t>
+                        <!-- Teléfono a la izquierda (margen 2.5cm) y bultos a la derecha -->
+                        <div style="margin-top:0.1cm; overflow:hidden;">
+                            <div style="float:left; margin-left:2.5cm; font-size:12pt;
+                                        font-family:'Times New Roman'; font-weight:bold;">
+                                Teléfono: <t t-out="partner._envelope_phone()"/>
+                            </div>
+                            <div t-if="bultos" style="float:right; white-space:nowrap;
+                                        font-family:'Times New Roman', serif;
+                                        font-size:14pt; font-weight:bold;">
+                                <t t-out="bultos"/>-Bulto<t t-if="bultos != 1">s</t>
+                            </div>
                         </div>
                     </div>
 
