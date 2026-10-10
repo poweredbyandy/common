@@ -118,6 +118,8 @@ class PbaProductCatalogViewer(models.Model):
                 res[product.id]["price"] = prices.get(product.id, 0.0)
         for product in products:
             res[product.id]["readOnly"] = True
+        if "product.catalog.pricelist.mixin" not in self.env:
+            return res
         return self.env[
             "product.catalog.pricelist.mixin"
         ]._append_product_catalog_pricelists_data(
