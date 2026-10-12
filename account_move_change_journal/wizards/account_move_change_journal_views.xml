@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="account_move_change_journal_view_form" model="ir.ui.view">
+        <field name="name">account.move.change.journal.view.form</field>
+        <field name="model">account.move.change.journal</field>
+        <field name="arch" type="xml">
+            <form>
+                <field name="company_id" invisible="1" />
+                <field name="journal_type" invisible="1" />
+                <field name="available_journal_ids" invisible="1" />
+                <div class="alert alert-warning" role="alert">
+                    The invoices get the next number of the new journal and leave a gap in the current journal sequence.
+                </div>
+                <group>
+                    <field
+                        name="journal_id"
+                        options="{'no_create': True, 'no_open': True}"
+                    />
+                </group>
+                <field name="move_ids">
+                    <list>
+                        <field name="name" />
+                        <field name="partner_id" />
+                        <field name="invoice_date" />
+                        <field name="journal_id" />
+                        <field name="amount_total_signed" />
+                    </list>
+                </field>
+                <footer>
+                    <button
+                        name="action_change_journal"
+                        string="Change Journal"
+                        type="object"
+                        class="btn-primary"
+                        data-hotkey="q"
+                    />
+                    <button string="Cancel" special="cancel" data-hotkey="x" />
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="account_move_change_journal_action" model="ir.actions.act_window">
+        <field name="name">Change Journal</field>
+        <field name="res_model">account.move.change.journal</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="binding_model_id" ref="account.model_account_move" />
+        <field name="binding_view_types">list,form</field>
+        <field
+            name="groups_id"
+            eval="[(6, 0, [ref('account.group_account_manager')])]"
+        />
+    </record>
+</odoo>

@@ -1,0 +1,187 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* account_move_change_journal
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0+e\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-10-12 14:16+0000\n"
+"PO-Revision-Date: 2026-10-12 14:16+0000\n"
+"Last-Translator: andyengit\n"
+"Language-Team: \n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#. module: account_move_change_journal
+#. odoo-python
+#: code:addons/account_move_change_journal/wizards/account_move_change_journal.py:0
+msgid "%(move)s is already in journal %(journal)s."
+msgstr "%(move)s ya está en el diario %(journal)s."
+
+#. module: account_move_change_journal
+#. odoo-python
+#: code:addons/account_move_change_journal/wizards/account_move_change_journal.py:0
+msgid "All invoices must belong to the same company."
+msgstr "Todas las facturas deben pertenecer a la misma compañía."
+
+#. module: account_move_change_journal
+#: model:ir.model.fields,field_description:account_move_change_journal.field_account_move_change_journal__available_journal_ids
+msgid "Available Journal"
+msgstr "Diarios disponibles"
+
+#. module: account_move_change_journal
+#: model_terms:ir.ui.view,arch_db:account_move_change_journal.account_move_change_journal_view_form
+msgid "Cancel"
+msgstr "Cancelar"
+
+#. module: account_move_change_journal
+#: model:ir.actions.act_window,name:account_move_change_journal.account_move_change_journal_action
+#: model_terms:ir.ui.view,arch_db:account_move_change_journal.account_move_change_journal_view_form
+msgid "Change Journal"
+msgstr "Cambiar diario"
+
+#. module: account_move_change_journal
+#: model:ir.model,name:account_move_change_journal.model_account_move_change_journal
+msgid "Change Journal of Posted Invoices"
+msgstr "Cambiar diario de facturas publicadas"
+
+#. module: account_move_change_journal
+#: model:ir.model.fields,field_description:account_move_change_journal.field_account_move_change_journal__company_id
+msgid "Company"
+msgstr "Compañía"
+
+#. module: account_move_change_journal
+#: model:ir.model.fields,field_description:account_move_change_journal.field_account_move_change_journal__create_uid
+msgid "Created by"
+msgstr "Creado por"
+
+#. module: account_move_change_journal
+#: model:ir.model.fields,field_description:account_move_change_journal.field_account_move_change_journal__create_date
+msgid "Created on"
+msgstr "Creado el"
+
+#. module: account_move_change_journal
+#: model:ir.model.fields,field_description:account_move_change_journal.field_account_move_change_journal__display_name
+msgid "Display Name"
+msgstr "Nombre mostrado"
+
+#. module: account_move_change_journal
+#. odoo-python
+#: code:addons/account_move_change_journal/wizards/account_move_change_journal.py:0
+msgid "Do not mix customer and vendor invoices in the same change."
+msgstr "No mezcle facturas de cliente y de proveedor en el mismo cambio."
+
+#. module: account_move_change_journal
+#: model:ir.model.fields,field_description:account_move_change_journal.field_account_move_change_journal__id
+msgid "ID"
+msgstr "ID"
+
+#. module: account_move_change_journal
+#: model:ir.model.fields,field_description:account_move_change_journal.field_account_move_change_journal__move_ids
+msgid "Invoices"
+msgstr "Facturas"
+
+#. module: account_move_change_journal
+#. odoo-python
+#: code:addons/account_move_change_journal/wizards/account_move_change_journal.py:0
+msgid "Journal %(journal)s does not match the type of %(move)s."
+msgstr "El diario %(journal)s no corresponde al tipo de %(move)s."
+
+#. module: account_move_change_journal
+#. odoo-python
+#: code:addons/account_move_change_journal/wizards/account_move_change_journal.py:0
+msgid ""
+"Journal %(journal)s only accepts %(currency)s and %(move)s is in "
+"%(move_currency)s."
+msgstr ""
+"El diario %(journal)s solo acepta %(currency)s y %(move)s está en "
+"%(move_currency)s."
+
+#. module: account_move_change_journal
+#: model:ir.model.fields,field_description:account_move_change_journal.field_account_move_change_journal__journal_type
+msgid "Journal Type"
+msgstr "Tipo de diario"
+
+#. module: account_move_change_journal
+#. odoo-python
+#: code:addons/account_move_change_journal/wizards/account_move_change_journal.py:0
+msgid ""
+"Journal changed from %(old_journal)s to %(new_journal)s. Previous number: "
+"%(old_name)s."
+msgstr ""
+"Diario cambiado de %(old_journal)s a %(new_journal)s. Número anterior: "
+"%(old_name)s."
+
+#. module: account_move_change_journal
+#: model:ir.model.fields,field_description:account_move_change_journal.field_account_move_change_journal__write_uid
+msgid "Last Updated by"
+msgstr "Última actualización por"
+
+#. module: account_move_change_journal
+#: model:ir.model.fields,field_description:account_move_change_journal.field_account_move_change_journal__write_date
+msgid "Last Updated on"
+msgstr "Última actualización el"
+
+#. module: account_move_change_journal
+#: model:ir.model.fields,field_description:account_move_change_journal.field_account_move_change_journal__journal_id
+msgid "New Journal"
+msgstr "Diario nuevo"
+
+#. module: account_move_change_journal
+#. odoo-python
+#: code:addons/account_move_change_journal/wizards/account_move_change_journal.py:0
+msgid ""
+"Only customer and vendor invoices can change journal:\n"
+"%s"
+msgstr ""
+"Solo las facturas de cliente y de proveedor pueden cambiar de diario:\n"
+"%s"
+
+#. module: account_move_change_journal
+#. odoo-python
+#: code:addons/account_move_change_journal/wizards/account_move_change_journal.py:0
+msgid ""
+"Only posted invoices can change journal:\n"
+"%s"
+msgstr ""
+"Solo las facturas publicadas pueden cambiar de diario:\n"
+"%s"
+
+#. module: account_move_change_journal
+#: model:ir.model.fields.selection,name:account_move_change_journal.selection__account_move_change_journal__journal_type__purchase
+msgid "Purchase"
+msgstr "Compra"
+
+#. module: account_move_change_journal
+#: model:ir.model.fields.selection,name:account_move_change_journal.selection__account_move_change_journal__journal_type__sale
+msgid "Sales"
+msgstr "Ventas"
+
+#. module: account_move_change_journal
+#. odoo-python
+#: code:addons/account_move_change_journal/wizards/account_move_change_journal.py:0
+msgid "Select at least one invoice."
+msgstr "Seleccione al menos una factura."
+
+#. module: account_move_change_journal
+#: model_terms:ir.ui.view,arch_db:account_move_change_journal.account_move_change_journal_view_form
+msgid ""
+"The invoices get the next number of the new journal and leave a gap in the "
+"current journal sequence."
+msgstr ""
+"Las facturas toman el siguiente número del diario nuevo y dejan un hueco en "
+"la secuencia del diario actual."
+
+#. module: account_move_change_journal
+#. odoo-python
+#: code:addons/account_move_change_journal/wizards/account_move_change_journal.py:0
+msgid ""
+"These invoices are protected by a hash and cannot change journal:\n"
+"%s"
+msgstr ""
+"Estas facturas están protegidas por un hash y no pueden cambiar de diario:\n"
+"%s"
