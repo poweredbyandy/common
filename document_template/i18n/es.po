@@ -1,0 +1,501 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* document_template
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-10-17 15:00+0000\n"
+"PO-Revision-Date: 2026-10-17 15:00+0000\n"
+"Last-Translator: andyengit <anderson.armeya@gmail.com>\n"
+"Language-Team: \n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#. module: document_template
+#: model:ir.module.module,shortdesc:document_template.module_meta_information
+msgid "Document Templates"
+msgstr "Plantillas de documento"
+
+#. module: document_template
+#: model:ir.module.category,name:document_template.module_category_document_template
+#: model:ir.actions.act_window,name:document_template.document_template_action
+#: model:ir.ui.menu,name:document_template.menu_document_template_root
+msgid "Document Templates"
+msgstr "Plantillas de documento"
+
+#. module: document_template
+#: model:ir.ui.menu,name:document_template.menu_document_template
+msgid "Templates"
+msgstr "Plantillas"
+
+#. module: document_template
+#: model:ir.model,name:document_template.model_document_template
+#: model_terms:ir.ui.view,arch_db:document_template.document_template_view_form
+msgid "Document Template"
+msgstr "Plantilla de documento"
+
+#. module: document_template
+#: model:ir.model.fields,field_description:document_template.field_document_template__name
+msgid "Name"
+msgstr "Nombre"
+
+#. module: document_template
+#: model:ir.model.fields,field_description:document_template.field_document_template__model_id
+msgid "Applies to"
+msgstr "Se aplica a"
+
+#. module: document_template
+#: model:ir.model.fields,field_description:document_template.field_document_template__body_html
+#: model:ir.model.fields,field_description:document_template.field_document_template_preview__body_html
+msgid "Body"
+msgstr "Cuerpo"
+
+#. module: document_template
+#: model:ir.model.fields,field_description:document_template.field_document_template__paperformat_id
+msgid "Paper Format"
+msgstr "Formato de papel"
+
+#. module: document_template
+#: model:ir.model.fields,field_description:document_template.field_document_template__use_company_layout
+msgid "Use Company Layout"
+msgstr "Usar diseño de la compañía"
+
+#. module: document_template
+#: model:ir.model.fields,help:document_template.field_document_template__use_company_layout
+msgid ""
+"Wrap the document with the company external layout (header, footer and logo)."
+msgstr ""
+"Envuelve el documento con el diseño externo de la compañía (encabezado, pie "
+"y logo)."
+
+#. module: document_template
+#: model:ir.model.fields,field_description:document_template.field_document_template__company_id
+msgid "Company"
+msgstr "Compañía"
+
+#. module: document_template
+#: model:ir.model.fields,field_description:document_template.field_document_template__active
+msgid "Active"
+msgstr "Activo"
+
+#. module: document_template
+#: model:ir.model.fields,field_description:document_template.field_document_template__has_print_action
+msgid "Has Print Action"
+msgstr "Tiene acción de impresión"
+
+#. module: document_template
+#: model_terms:ir.ui.view,arch_db:document_template.document_template_view_form
+msgid "Preview"
+msgstr "Vista previa"
+
+#. module: document_template
+#: model_terms:ir.ui.view,arch_db:document_template.document_template_view_form
+msgid "Add to Print menu"
+msgstr "Añadir al menú Imprimir"
+
+#. module: document_template
+#: model_terms:ir.ui.view,arch_db:document_template.document_template_view_form
+msgid "Remove from Print menu"
+msgstr "Quitar del menú Imprimir"
+
+#. module: document_template
+#: model_terms:ir.ui.view,arch_db:document_template.document_template_view_form
+msgid "e.g. Welcome letter"
+msgstr "p. ej. Carta de bienvenida"
+
+#. module: document_template
+#: model_terms:ir.ui.view,arch_db:document_template.document_template_view_form
+msgid "e.g. Contact"
+msgstr "p. ej. Contacto"
+
+#. module: document_template
+#: model_terms:ir.ui.view,arch_db:document_template.document_template_view_form
+msgid ""
+"Write your document. Use / to insert a field from the selected model."
+msgstr ""
+"Escribe tu documento. Usa / para insertar un campo del modelo seleccionado."
+
+#. module: document_template
+#: model_terms:ir.ui.view,arch_db:document_template.document_template_view_form
+msgid "Write /field to insert dynamic content from the selected model."
+msgstr ""
+"Escribe /campo para insertar contenido dinámico del modelo seleccionado."
+
+#. module: document_template
+#: model_terms:ir.ui.view,arch_db:document_template.document_template_view_form
+msgid "Archived"
+msgstr "Archivado"
+
+#. module: document_template
+#: model_terms:ir.ui.view,arch_db:document_template.document_template_view_search
+msgid "Model"
+msgstr "Modelo"
+
+#. module: document_template
+#: model_terms:ir.actions.act_window,help:document_template.document_template_action
+msgid "Create a document template"
+msgstr "Crea una plantilla de documento"
+
+#. module: document_template
+#: model_terms:ir.actions.act_window,help:document_template.document_template_action
+msgid ""
+"Write a page, insert Odoo fields, and print a filled PDF from any record of "
+"the selected model."
+msgstr ""
+"Escribe una página, inserta campos de Odoo e imprime un PDF relleno desde "
+"cualquier registro del modelo seleccionado."
+
+#. module: document_template
+#: model:ir.model,name:document_template.model_document_template_preview
+#: model_terms:ir.ui.view,arch_db:document_template.document_template_preview_view_form
+msgid "Document Preview"
+msgstr "Vista previa del documento"
+
+#. module: document_template
+#: code:addons/document_template/models/document_template.py:0
+msgid "Template Preview"
+msgstr "Vista previa de la plantilla"
+
+#. module: document_template
+#: code:addons/document_template/models/document_template.py:0
+msgid "Select a model before adding the print action."
+msgstr "Selecciona un modelo antes de añadir la acción de impresión."
+
+#. module: document_template
+#: model:ir.model.fields,field_description:document_template.field_document_template_preview__resource_ref
+#: model_terms:ir.ui.view,arch_db:document_template.document_template_preview_view_form
+msgid "Test Record"
+msgstr "Registro de prueba"
+
+#. module: document_template
+#: model_terms:ir.ui.view,arch_db:document_template.document_template_preview_view_form
+msgid "No record for this model"
+msgstr "No hay registro para este modelo"
+
+#. module: document_template
+#: model_terms:ir.ui.view,arch_db:document_template.document_template_preview_view_form
+msgid "Close"
+msgstr "Cerrar"
+
+#. module: document_template
+#: model:res.groups,name:document_template.group_document_template_user
+msgid "User"
+msgstr "Usuario"
+
+#. module: document_template
+#: model:res.groups,name:document_template.group_document_template_manager
+msgid "Administrator"
+msgstr "Administrador"
+
+#. module: document_template
+msgid "File"
+msgstr "Archivo"
+
+#. module: document_template
+msgid "Edit"
+msgstr "Editar"
+
+#. module: document_template
+msgid "View"
+msgstr "Ver"
+
+#. module: document_template
+msgid "Insert"
+msgstr "Insertar"
+
+#. module: document_template
+msgid "Format"
+msgstr "Formato"
+
+#. module: document_template
+msgid "Undo"
+msgstr "Deshacer"
+
+#. module: document_template
+msgid "Redo"
+msgstr "Rehacer"
+
+#. module: document_template
+msgid "Select all"
+msgstr "Seleccionar todo"
+
+#. module: document_template
+msgid "Field"
+msgstr "Campo"
+
+#. module: document_template
+msgid "Link"
+msgstr "Enlace"
+
+#. module: document_template
+msgid "Image"
+msgstr "Imagen"
+
+#. module: document_template
+msgid "Bold"
+msgstr "Negrita"
+
+#. module: document_template
+msgid "Italic"
+msgstr "Cursiva"
+
+#. module: document_template
+msgid "Underline"
+msgstr "Subrayado"
+
+#. module: document_template
+msgid "Bulleted list"
+msgstr "Lista con viñetas"
+
+#. module: document_template
+msgid "Numbered list"
+msgstr "Lista numerada"
+
+#. module: document_template
+msgid "Untitled document"
+msgstr "Documento sin título"
+
+#. module: document_template
+msgid "Save the template first."
+msgstr "Guarda la plantilla primero."
+
+#. module: document_template
+msgid "Select a model and click inside the document first."
+msgstr "Selecciona un modelo y haz clic dentro del documento primero."
+
+#. module: document_template
+msgid "Start writing, or type / to insert a field…"
+msgstr "Empieza a escribir, o escribe / para insertar un campo…"
+
+#. module: document_template
+msgid "Rename"
+msgstr "Renombrar"
+
+#. module: document_template
+msgid "Enable company layout"
+msgstr "Activar diseño de la compañía"
+
+#. module: document_template
+msgid "Disable company layout"
+msgstr "Desactivar diseño de la compañía"
+
+#. module: document_template
+msgid "Search model…"
+msgstr "Buscar modelo…"
+
+#. module: document_template
+msgid "Loading…"
+msgstr "Cargando…"
+
+#. module: document_template
+msgid "No models found"
+msgstr "No se encontraron modelos"
+
+#. module: document_template
+msgid "Paper"
+msgstr "Papel"
+
+#. module: document_template
+msgid "Model"
+msgstr "Modelo"
+
+#. module: document_template
+msgid "Fields"
+msgstr "Campos"
+
+#. module: document_template
+msgid "Insert a field from the selected model"
+msgstr "Inserta un campo del modelo seleccionado"
+
+#. module: document_template
+msgid "Select a model first."
+msgstr "Selecciona un modelo primero."
+
+#. module: document_template
+msgid "Click inside the document first."
+msgstr "Haz clic dentro del documento primero."
+
+#. module: document_template
+msgid "Header"
+msgstr "Encabezado"
+
+#. module: document_template
+msgid "Footer"
+msgstr "Pie de página"
+
+#. module: document_template
+msgid "Body"
+msgstr "Cuerpo"
+
+#. module: document_template
+msgid "Header…"
+msgstr "Encabezado…"
+
+#. module: document_template
+msgid "Footer…"
+msgstr "Pie de página…"
+
+#. module: document_template
+msgid "Invalid document section: %s"
+msgstr "Sección de documento no válida: %s"
+
+#. module: document_template
+msgid "Margins"
+msgstr "Márgenes"
+
+#. module: document_template
+msgid "Normal"
+msgstr "Normal"
+
+#. module: document_template
+msgid "Narrow"
+msgstr "Estrecho"
+
+#. module: document_template
+msgid "Moderate"
+msgstr "Moderado"
+
+#. module: document_template
+msgid "Wide"
+msgstr "Ancho"
+
+#. module: document_template
+msgid "Custom (mm)"
+msgstr "Personalizado (mm)"
+
+#. module: document_template
+msgid "Top"
+msgstr "Superior"
+
+#. module: document_template
+msgid "Bottom"
+msgstr "Inferior"
+
+#. module: document_template
+msgid "Left"
+msgstr "Izquierdo"
+
+#. module: document_template
+msgid "Right"
+msgstr "Derecho"
+
+#. module: document_template
+msgid "Apply"
+msgstr "Aplicar"
+
+#. module: document_template
+msgid "Top Margin (mm)"
+msgstr "Margen superior (mm)"
+
+#. module: document_template
+msgid "Bottom Margin (mm)"
+msgstr "Margen inferior (mm)"
+
+#. module: document_template
+msgid "Left Margin (mm)"
+msgstr "Margen izquierdo (mm)"
+
+#. module: document_template
+msgid "Right Margin (mm)"
+msgstr "Margen derecho (mm)"
+
+#. module: document_template
+msgid "Import Markdown…"
+msgstr "Importar Markdown…"
+
+#. module: document_template
+msgid "Select a Markdown (.md) file."
+msgstr "Seleccione un archivo Markdown (.md)."
+
+#. module: document_template
+msgid "Could not read the file."
+msgstr "No se pudo leer el archivo."
+
+#. module: document_template
+msgid "Markdown converted to rich text."
+msgstr "Markdown convertido a texto enriquecido."
+
+#. module: document_template
+msgid "Markdown content must be text."
+msgstr "El contenido Markdown debe ser texto."
+
+#. module: document_template
+msgid "Import Word / Google Docs…"
+msgstr "Importar Word / Google Docs…"
+
+#. module: document_template
+msgid "Markdown converted to rich text."
+msgstr "Markdown convertido a texto enriquecido."
+
+#. module: document_template
+msgid "Could not convert the Markdown file."
+msgstr "No se pudo convertir el archivo Markdown."
+
+#. module: document_template
+msgid "Select a Word / Google Docs (.docx) file."
+msgstr "Seleccione un archivo Word / Google Docs (.docx)."
+
+#. module: document_template
+msgid "Document imported into the body."
+msgstr "Documento importado en el cuerpo."
+
+#. module: document_template
+msgid "Could not convert the DOCX file."
+msgstr "No se pudo convertir el archivo DOCX."
+
+#. module: document_template
+msgid "DOCX content must be base64 text."
+msgstr "El contenido DOCX debe ser texto en base64."
+
+#. module: document_template
+msgid "Invalid DOCX file."
+msgstr "Archivo DOCX no válido."
+
+#. module: document_template
+msgid "Install the Python package 'mammoth' to import Word / Google Docs (.docx) files."
+msgstr "Instale el paquete de Python 'mammoth' para importar archivos Word / Google Docs (.docx)."
+
+#. module: document_template
+msgid "Could not convert the DOCX file: %s"
+msgstr "No se pudo convertir el archivo DOCX: %s"
+
+#. module: document_template
+msgid "Font"
+msgstr "Fuente"
+
+#. module: document_template
+msgid "Align left"
+msgstr "Alinear a la izquierda"
+
+#. module: document_template
+msgid "Align center"
+msgstr "Alinear al centro"
+
+#. module: document_template
+msgid "Align right"
+msgstr "Alinear a la derecha"
+
+#. module: document_template
+msgid "Justify"
+msgstr "Justificar"
+
+#. module: document_template
+msgid "Download PDF"
+msgstr "Descargar PDF"
+
+#. module: document_template
+msgid "Create at least one %s record before downloading the PDF."
+msgstr "Cree al menos un registro de %s antes de descargar el PDF."
+
+#. module: document_template
+msgid "Select a document template first."
+msgstr "Seleccione primero una plantilla de documento."
+
+#. module: document_template
+msgid "Select a test record before downloading the PDF."
+msgstr "Seleccione un registro de prueba antes de descargar el PDF."

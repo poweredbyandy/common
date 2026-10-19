@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="account_payment_view_form" model="ir.ui.view">
+        <field name="name">account.payment.form.internal.transfer</field>
+        <field name="model">account.payment</field>
+        <field name="inherit_id" ref="account.view_account_payment_form"/>
+        <field name="arch" type="xml">
+            <field name="partner_type" position="after">
+                <field name="internal_transfer_id" invisible="1"/>
+            </field>
+            <div name="button_box" position="inside">
+                <button name="action_open_internal_transfer" type="object" class="oe_stat_button" icon="fa-exchange" invisible="not internal_transfer_id">
+                    <div class="o_stat_info">
+                        <span class="o_stat_text">Internal Transfer</span>
+                    </div>
+                </button>
+            </div>
+        </field>
+    </record>
+</odoo>

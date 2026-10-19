@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_document_template_user,document.template user,model_document_template,group_document_template_user,1,0,0,0
+access_document_template_manager,document.template manager,model_document_template,group_document_template_manager,1,1,1,1
+access_document_template_preview_user,document.template.preview user,model_document_template_preview,group_document_template_user,1,1,1,1

@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="report_document">
+        <t t-call="web.html_container">
+            <t t-set="template" t-value="env['document.template'].browse(document_template_id)"/>
+            <t t-foreach="docs" t-as="doc">
+                <t t-set="o" t-value="doc"/>
+                <t t-set="header_content" t-value="template._render_record_html(doc, 'header_html')"/>
+                <t t-set="body_content" t-value="template._render_record_html(doc, 'body_html')"/>
+                <t t-set="footer_content" t-value="template._render_record_html(doc, 'footer_html')"/>
+                <style>
+                    .o_document_template_page table,
+                    .o_document_template_page .o_document_form_table {
+                        border-collapse: collapse !important;
+                        width: 100% !important;
+                        margin: 8px 0 !important;
+                        border: 1px solid #000 !important;
+                        table-layout: fixed;
+                    }
+                    .o_document_template_page td,
+                    .o_document_template_page th {
+                        border: 1px solid #000 !important;
+                        padding: 4px 6px !important;
+                        vertical-align: top !important;
+                        font-size: 10pt;
+                    }
+                    .o_document_template_page th {
+                        background-color: #1b2a4a;
+                        color: #fff;
+                        font-weight: 700;
+                    }
+                    .o_document_template_report_header,
+                    .o_document_template_report_footer {
+                        font-family: Arial, Helvetica, sans-serif;
+                        font-size: 10pt;
+                        color: #202124;
+                    }
+                    .o_document_template_page_number {
+                        font-size: 9pt;
+                        color: #5f6368;
+                        margin-top: 4px;
+                    }
+                </style>
+
+                <t t-if="template._has_header()">
+                    <div class="header o_document_template_report_header"
+                         t-att-style="'min-height:%smm;' % (template.header_height or 0)">
+                        <t t-out="header_content"/>
+                    </div>
+                </t>
+
+                <t t-if="template.use_company_layout">
+                    <t t-call="web.external_layout">
+                        <div class="page o_document_template_page">
+                            <t t-out="body_content"/>
+                        </div>
+                    </t>
+                </t>
+                <t t-else="">
+                    <div class="article"
+                         t-att-data-oe-model="doc._name"
+                         t-att-data-oe-id="doc.id"
+                         t-att-data-oe-lang="doc.env.context.get('lang')">
+                        <div class="page o_document_template_page">
+                            <t t-out="body_content"/>
+                        </div>
+                    </div>
+                </t>
+
+                <t t-if="template._has_footer()">
+                    <div class="footer o_document_template_report_footer"
+                         t-att-style="'min-height:%smm;' % (template.footer_height or 0)">
+                        <t t-out="footer_content"/>
+                        <t t-if="template.show_page_numbers">
+                            <div class="o_document_template_page_number"
+                                 t-att-style="'text-align:%s;' % (template.page_number_align or 'center')">
+                                <t t-out="template._page_number_markup()"/>
+                            </div>
+                        </t>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

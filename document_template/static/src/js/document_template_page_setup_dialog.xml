@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="document_template.PageSetupDialog">
+        <Dialog size="'lg'" title="title" contentClass="'o_document_template_page_setup_dialog'">
+            <div class="o_document_template_page_setup">
+                <div class="o_document_template_page_setup_section">
+                    <label class="o_document_template_page_setup_label">
+                        <t t-esc="modelLabel"/>
+                    </label>
+                    <div class="o_document_template_page_setup_current text-muted mb-2"
+                         t-if="state.modelName">
+                        <t t-esc="state.modelName"/>
+                        <span t-if="state.modelTechnical"
+                              class="ms-1">(<t t-esc="state.modelTechnical"/>)</span>
+                    </div>
+                    <input type="text"
+                           class="form-control form-control-sm mb-2"
+                           t-att-placeholder="modelSearchPlaceholder"
+                           t-att-value="state.modelSearch"
+                           t-on-input="onModelSearchInput"/>
+                    <div class="o_document_template_page_setup_list">
+                        <div t-if="state.loadingModels"
+                             class="text-muted p-2"
+                             t-esc="loadingLabel"/>
+                        <t t-else="" t-foreach="state.modelOptions" t-as="model" t-key="model.id">
+                            <button type="button"
+                                    class="o_document_template_page_setup_item"
+                                    t-att-class="{ active: model.id === state.modelId }"
+                                    t-on-click="() => this.selectModel(model)">
+                                <span class="fw-medium" t-esc="model.name"/>
+                                <span class="text-muted small" t-esc="model.model"/>
+                            </button>
+                        </t>
+                        <div t-if="!state.loadingModels and !state.modelOptions.length"
+                             class="text-muted p-2"
+                             t-esc="noModelsLabel"/>
+                    </div>
+                </div>
+
+                <div class="o_document_template_page_setup_section">
+                    <label class="o_document_template_page_setup_label">
+                        <t t-esc="paperLabel"/>
+                    </label>
+                    <div class="o_document_template_page_setup_list o_document_template_page_setup_list_sm">
+                        <div t-if="state.loadingPapers"
+                             class="text-muted p-2"
+                             t-esc="loadingLabel"/>
+                        <t t-else="" t-foreach="state.paperOptions" t-as="paper" t-key="paper.id">
+                            <button type="button"
+                                    class="o_document_template_page_setup_item"
+                                    t-att-class="{ active: paper.id === state.paperId }"
+                                    t-on-click="() => this.selectPaper(paper)">
+                                <span t-esc="paper.name"/>
+                            </button>
+                        </t>
+                    </div>
+                </div>
+
+                <div class="o_document_template_page_setup_section">
+                    <label class="o_document_template_page_setup_label">
+                        <t t-esc="marginsLabel"/>
+                    </label>
+                    <div class="o_document_template_page_setup_presets mb-2">
+                        <t t-foreach="marginPresets" t-as="preset" t-key="preset.id">
+                            <button type="button"
+                                    class="btn btn-sm"
+                                    t-att-class="state.marginPreset === preset.id ? 'btn-primary' : 'btn-outline-secondary'"
+                                    t-on-click="() => this.selectMarginPreset(preset.id)">
+                                <t t-esc="preset.label"/>
+                            </button>
+                        </t>
+                    </div>
+                    <div class="o_document_template_margins_grid">
+                        <label>Top
+                            <input type="number"
+                                   class="form-control form-control-sm"
+                                   step="0.1"
+                                   min="0"
+                                   t-att-value="state.margins.top"
+                                   t-on-input="(ev) => this.onMarginInput('top', ev)"/>
+                        </label>
+                        <label>Bottom
+                            <input type="number"
+                                   class="form-control form-control-sm"
+                                   step="0.1"
+                                   min="0"
+                                   t-att-value="state.margins.bottom"
+                                   t-on-input="(ev) => this.onMarginInput('bottom', ev)"/>
+                        </label>
+                        <label>Left
+                            <input type="number"
+                                   class="form-control form-control-sm"
+                                   step="0.1"
+                                   min="0"
+                                   t-att-value="state.margins.left"
+                                   t-on-input="(ev) => this.onMarginInput('left', ev)"/>
+                        </label>
+                        <label>Right
+                            <input type="number"
+                                   class="form-control form-control-sm"
+                                   step="0.1"
+                                   min="0"
+                                   t-att-value="state.margins.right"
+                                   t-on-input="(ev) => this.onMarginInput('right', ev)"/>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="o_document_template_page_setup_section">
+                    <label class="o_document_template_page_setup_label">
+                        <t t-esc="headerFooterLabel"/>
+                    </label>
+                    <div class="o_document_template_margins_grid">
+                        <label>
+                            <t t-esc="headerHeightLabel"/>
+                            <input type="number"
+                                   class="form-control form-control-sm"
+                                   step="0.1"
+                                   min="0"
+                                   t-att-value="state.headerHeight"
+                                   t-on-input="(ev) => this.onNumberInput('headerHeight', ev)"/>
+                        </label>
+                        <label>
+                            <t t-esc="footerHeightLabel"/>
+                            <input type="number"
+                                   class="form-control form-control-sm"
+                                   step="0.1"
+                                   min="0"
+                                   t-att-value="state.footerHeight"
+                                   t-on-input="(ev) => this.onNumberInput('footerHeight', ev)"/>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="o_document_template_page_setup_section">
+                    <label class="o_document_template_page_setup_label">
+                        <t t-esc="pageNumbersLabel"/>
+                    </label>
+                    <label class="o_document_template_page_setup_check">
+                        <input type="checkbox"
+                               t-att-checked="state.showPageNumbers"
+                               t-on-change="onTogglePageNumbers"/>
+                        <span t-esc="showPageNumbersLabel"/>
+                    </label>
+                    <div t-if="state.showPageNumbers" class="mt-2">
+                        <div class="mb-2">
+                            <div class="text-muted small mb-1" t-esc="formatLabel"/>
+                            <div class="o_document_template_page_setup_presets">
+                                <t t-foreach="pageNumberFormats" t-as="fmt" t-key="fmt.id">
+                                    <button type="button"
+                                            class="btn btn-sm"
+                                            t-att-class="state.pageNumberFormat === fmt.id ? 'btn-primary' : 'btn-outline-secondary'"
+                                            t-on-click="() => this.selectPageNumberFormat(fmt.id)">
+                                        <t t-esc="fmt.label"/>
+                                    </button>
+                                </t>
+                            </div>
+                        </div>
+                        <div class="mb-2">
+                            <div class="text-muted small mb-1" t-esc="alignLabel"/>
+                            <div class="o_document_template_page_setup_presets">
+                                <t t-foreach="alignOptions" t-as="align" t-key="align.id">
+                                    <button type="button"
+                                            class="btn btn-sm"
+                                            t-att-class="state.pageNumberAlign === align.id ? 'btn-primary' : 'btn-outline-secondary'"
+                                            t-on-click="() => this.selectPageNumberAlign(align.id)">
+                                        <t t-esc="align.label"/>
+                                    </button>
+                                </t>
+                            </div>
+                        </div>
+                        <div class="o_document_template_page_number_preview text-muted"
+                             t-att-style="'text-align:' + state.pageNumberAlign">
+                            <t t-esc="pageNumberPreview"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <t t-set-slot="footer">
+                <button type="button"
+                        class="btn btn-primary"
+                        t-att-disabled="state.saving"
+                        t-on-click="apply">
+                    <t t-esc="applyLabel"/>
+                </button>
+                <button type="button"
+                        class="btn btn-secondary"
+                        t-att-disabled="state.saving"
+                        t-on-click="cancel">
+                    <t t-esc="cancelLabel"/>
+                </button>
+            </t>
+        </Dialog>
+    </t>
+</templates>

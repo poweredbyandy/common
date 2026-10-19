@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="document_template_view_list" model="ir.ui.view">
+        <field name="name">document.template.list</field>
+        <field name="model">document.template</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="model_id"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="has_print_action"/>
+                <field name="active" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="document_template_view_form" model="ir.ui.view">
+        <field name="name">document.template.form</field>
+        <field name="model">document.template</field>
+        <field name="arch" type="xml">
+            <form string="Document Template" class="o_document_template_form">
+                <sheet>
+                    <field name="has_print_action" invisible="1"/>
+                    <field name="report_id" invisible="1"/>
+                    <field name="model" invisible="1"/>
+                    <field name="name" invisible="1"/>
+                    <field name="model_id" invisible="1"/>
+                    <field name="paperformat_id" invisible="1"/>
+                    <field name="report_paperformat_id" invisible="1"/>
+                    <field name="margin_top" invisible="1"/>
+                    <field name="margin_bottom" invisible="1"/>
+                    <field name="margin_left" invisible="1"/>
+                    <field name="margin_right" invisible="1"/>
+                    <field name="header_height" invisible="1"/>
+                    <field name="footer_height" invisible="1"/>
+                    <field name="show_page_numbers" invisible="1"/>
+                    <field name="page_number_format" invisible="1"/>
+                    <field name="page_number_align" invisible="1"/>
+                    <field name="use_company_layout" invisible="1"/>
+                    <field name="company_id" invisible="1"/>
+                    <field name="active" invisible="1"/>
+                    <widget
+                        name="web_ribbon"
+                        title="Archived"
+                        bg_color="text-bg-danger"
+                        invisible="active"
+                    />
+                    <div class="o_document_template_chrome">
+                        <widget name="document_template_menubar"/>
+                        <div class="o_document_template_format_toolbar_host"/>
+                    </div>
+                    <div class="o_document_template_editor_wrap">
+                        <div class="o_document_template_page_sheet">
+                            <div class="o_document_template_section o_document_template_header_section">
+                                <div class="o_document_template_section_label">Header</div>
+                                <field
+                                    name="header_html"
+                                    widget="document_html"
+                                    class="o_document_template_editor o_document_template_header_editor"
+                                    nolabel="1"
+                                    options="{'dynamic_placeholder': true, 'dynamic_placeholder_model_reference_field': 'model', 'codeview': true}"
+                                    placeholder="Header…"
+                                />
+                            </div>
+                            <div class="o_document_template_section o_document_template_body_section">
+                                <div class="o_document_template_section_label">Body</div>
+                                <field
+                                    name="body_html"
+                                    widget="document_html"
+                                    class="o_document_template_editor o_document_template_body_editor"
+                                    nolabel="1"
+                                    options="{'dynamic_placeholder': true, 'dynamic_placeholder_model_reference_field': 'model', 'codeview': true}"
+                                    placeholder="Start writing, or type / to insert a field…"
+                                />
+                            </div>
+                            <div class="o_document_template_section o_document_template_footer_section">
+                                <div class="o_document_template_section_label">Footer</div>
+                                <field
+                                    name="footer_html"
+                                    widget="document_html"
+                                    class="o_document_template_editor o_document_template_footer_editor"
+                                    nolabel="1"
+                                    options="{'dynamic_placeholder': true, 'dynamic_placeholder_model_reference_field': 'model', 'codeview': true}"
+                                    placeholder="Footer…"
+                                />
+                            </div>
+                        </div>
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="document_template_view_search" model="ir.ui.view">
+        <field name="name">document.template.search</field>
+        <field name="model">document.template</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="model_id"/>
+                <filter
+                    string="Archived"
+                    name="inactive"
+                    domain="[('active', '=', False)]"
+                />
+                <group>
+                    <filter
+                        string="Model"
+                        name="group_model"
+                        context="{'group_by': 'model_id'}"
+                    />
+                    <filter
+                        string="Company"
+                        name="group_company"
+                        context="{'group_by': 'company_id'}"
+                        groups="base.group_multi_company"
+                    />
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="document_template_action" model="ir.actions.act_window">
+        <field name="name">Document Templates</field>
+        <field name="res_model">document.template</field>
+        <field name="view_mode">list,form</field>
+        <field name="context" eval="{'default_name': 'Untitled document'}"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create a document template
+            </p>
+            <p>
+                Write a page, insert Odoo fields, and print a filled PDF from
+                any record of the selected model.
+            </p>
+        </field>
+    </record>
+</odoo>

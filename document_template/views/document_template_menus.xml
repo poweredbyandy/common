@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem
+        id="menu_document_template_root"
+        name="Document Templates"
+        sequence="45"
+        groups="document_template.group_document_template_user"
+    />
+
+    <menuitem
+        id="menu_document_template"
+        name="Templates"
+        parent="menu_document_template_root"
+        action="document_template_action"
+        sequence="10"
+        groups="document_template.group_document_template_user"
+    />
+</odoo>

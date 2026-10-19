@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="document_template.HtmlField" t-inherit="html_editor.HtmlField" t-inherit-mode="primary">
+        <xpath expr="//Wysiwyg" position="attributes">
+            <attribute name="toolbar">usePermanentToolbar</attribute>
+        </xpath>
+    </t>
+</templates>

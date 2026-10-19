@@ -1,0 +1,48 @@
+{
+    "name": "Document Templates",
+    "version": "18.0.1.1.0",
+    "category": "Productivity",
+    "summary": "Editable document templates that print as PDF filled with Odoo data",
+    "author": "andyengit",
+    "maintainer": "andyengit",
+    "maintainers": ["andyengit"],
+    "website": "https://github.com/andyengit",
+    "license": "LGPL-3",
+    "depends": [
+        "mail",
+        "html_editor",
+    ],
+    "external_dependencies": {
+        "python": ["markdown", "mammoth"],
+    },
+    "data": [
+        "security/document_template_groups.xml",
+        "security/ir.model.access.csv",
+        "security/document_template_security.xml",
+        "report/document_template_report.xml",
+        "views/document_template_views.xml",
+        "views/document_template_menus.xml",
+        "wizard/document_template_preview_views.xml",
+    ],
+    "assets": {
+        "web.assets_backend": [
+            "document_template/static/src/scss/document_template_editor.scss",
+            "document_template/static/src/js/document_template_field_plugin.js",
+            "document_template/static/src/js/document_template_format_plugin.js",
+            "document_template/static/src/js/document_template_table_plugin.js",
+            "document_template/static/src/js/document_template_color_plugin.js",
+            "document_template/static/src/js/document_template_html_field.js",
+            "document_template/static/src/js/document_template_html_field.xml",
+            "document_template/static/src/js/document_template_page_setup_dialog.js",
+            "document_template/static/src/js/document_template_page_setup_dialog.xml",
+            "document_template/static/src/js/document_template_menubar.js",
+            "document_template/static/src/js/document_template_menubar.xml",
+        ],
+        "web.report_assets_common": [
+            "document_template/static/src/scss/document_template_report.scss",
+        ],
+    },
+    "post_init_hook": "post_init_hook",
+    "installable": True,
+    "application": True,
+}

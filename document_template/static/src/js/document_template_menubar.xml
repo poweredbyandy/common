@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="document_template.Menubar">
+        <div class="o_document_template_menubar" t-ref="root">
+            <input type="file"
+                   class="d-none"
+                   accept=".md,.markdown,.txt,text/markdown,text/x-markdown,text/plain"
+                   t-ref="mdFileInput"
+                   t-on-change="onMarkdownFileChange"/>
+            <input type="file"
+                   class="d-none"
+                   accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                   t-ref="docxFileInput"
+                   t-on-change="onDocxFileChange"/>
+            <div class="o_document_template_menu o_document_template_name_menu"
+                 t-att-class="{ o_open: state.editingName }">
+                <input t-if="state.editingName"
+                       type="text"
+                       class="o_document_template_name_input"
+                       t-ref="nameInput"
+                       t-att-value="documentName"
+                       t-att-placeholder="untitledPlaceholder"
+                       t-on-change="onNameChange"
+                       t-on-keydown="onNameKeydown"
+                       t-on-blur="onNameChange"
+                       t-on-click.stop=""/>
+                <button t-else=""
+                        type="button"
+                        class="o_document_template_menu_btn o_document_template_name_btn"
+                        t-on-click.stop="onNameClick"
+                        t-esc="documentNameLabel"/>
+            </div>
+
+            <t t-foreach="menus" t-as="menu" t-key="menu.id">
+                <div class="o_document_template_menu"
+                     t-att-class="{ o_open: state.openMenu === menu.id }">
+                    <button type="button"
+                            class="o_document_template_menu_btn"
+                            t-on-click.stop="() => this.toggleMenu(menu.id)"
+                            t-esc="menu.label"/>
+                    <div t-if="state.openMenu === menu.id"
+                         class="o_document_template_menu_dropdown"
+                         t-on-click.stop="">
+                        <t t-foreach="menu.items" t-as="item" t-key="item_index">
+                            <div t-if="item.type === 'separator'"
+                                 class="o_document_template_menu_sep"/>
+                            <button t-elif="!item.hidden"
+                                    type="button"
+                                    class="o_document_template_menu_item"
+                                    t-att-disabled="item.disabled"
+                                    t-on-click="() => this.onItemClick(item)">
+                                <span class="o_document_template_menu_item_label"
+                                      t-esc="item.label"/>
+                                <span t-if="item.shortcut"
+                                      class="o_document_template_menu_item_shortcut"
+                                      t-esc="item.shortcut"/>
+                            </button>
+                        </t>
+                    </div>
+                </div>
+            </t>
+        </div>
+    </t>
+</templates>

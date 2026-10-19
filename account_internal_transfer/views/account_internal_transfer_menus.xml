@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="account_internal_transfer_menu"
+        name="Internal Transfers"
+        parent="account.menu_finance_entries"
+        action="account_internal_transfer_action"
+        groups="account.group_account_user"
+        sequence="15"/>
+</odoo>

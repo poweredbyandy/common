@@ -1,0 +1,22 @@
+{
+    "name": "Internal Transfers",
+    "version": "18.0.1.0.0",
+    "category": "Accounting/Accounting",
+    "summary": "Post both payments of an internal transfer or a currency exchange",
+    "author": "andyengit",
+    "maintainer": "andyengit",
+    "maintainers": ["andyengit"],
+    "website": "https://github.com/andyengit",
+    "license": "LGPL-3",
+    "depends": ["account"],
+    "data": [
+        "security/ir.model.access.csv",
+        "security/account_internal_transfer_security.xml",
+        "data/account_internal_transfer_data.xml",
+        "views/account_internal_transfer_views.xml",
+        "views/account_payment_views.xml",
+        "views/account_internal_transfer_menus.xml",
+    ],
+    "installable": True,
+    "application": False,
+}

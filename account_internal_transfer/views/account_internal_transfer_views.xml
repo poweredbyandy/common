@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="account_internal_transfer_view_form" model="ir.ui.view">
+        <field name="name">account.internal.transfer.form</field>
+        <field name="model">account.internal.transfer</field>
+        <field name="arch" type="xml">
+            <form string="Internal Transfer">
+                <header>
+                    <button name="action_post" string="Confirm" type="object" class="oe_highlight" invisible="state != 'draft'" data-hotkey="q"/>
+                    <button name="action_cancel" string="Cancel" type="object" invisible="state != 'posted'" data-hotkey="x"/>
+                    <button name="action_draft" string="Reset to Draft" type="object" invisible="state != 'cancel'" data-hotkey="r"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,posted"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_outbound_payment" type="object" class="oe_stat_button" icon="fa-arrow-up" invisible="not outbound_payment_id">
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">Outgoing Payment</span>
+                            </div>
+                        </button>
+                        <button name="action_open_inbound_payment" type="object" class="oe_stat_button" icon="fa-arrow-down" invisible="not inbound_payment_id">
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">Incoming Payment</span>
+                            </div>
+                        </button>
+                        <button name="action_open_exchange_move" type="object" class="oe_stat_button" icon="fa-exchange" invisible="not exchange_move_id">
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">Exchange Entry</span>
+                            </div>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <div class="alert alert-info" role="alert" invisible="operation != 'exchange'">
+                        The amount that leaves is valued at the company rate on this date.
+                        The amount that arrives follows the custom rate.
+                        The difference is posted to the exchange gain or loss account.
+                    </div>
+                    <group>
+                        <group>
+                            <field name="operation" widget="radio" readonly="state != 'draft'"/>
+                            <field name="date" readonly="state != 'draft'"/>
+                            <field name="memo" readonly="state != 'draft'"/>
+                            <field name="company_id" groups="base.group_multi_company" readonly="state != 'draft'"/>
+                        </group>
+                        <group>
+                            <field name="available_payment_method_line_ids" invisible="1"/>
+                            <field name="available_destination_payment_method_line_ids" invisible="1"/>
+                            <field name="journal_id" readonly="state != 'draft'"/>
+                            <field name="payment_method_line_id" context="{'hide_payment_journal_id': 1}" options="{'no_create': True, 'no_open': True}" readonly="state != 'draft'" required="journal_id"/>
+                            <field name="outbound_memo" readonly="state != 'draft'"/>
+                            <field name="destination_journal_id" readonly="state != 'draft'"/>
+                            <field name="destination_payment_method_line_id" context="{'hide_payment_journal_id': 1}" options="{'no_create': True, 'no_open': True}" readonly="state != 'draft'" required="destination_journal_id"/>
+                            <field name="inbound_memo" readonly="state != 'draft'"/>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="destination_currency_id" invisible="1"/>
+                            <field name="company_currency_id" invisible="1"/>
+                            <field name="exchange_rate" invisible="1"/>
+                            <field name="rate_inverted" invisible="1"/>
+                            <label for="amount"/>
+                            <div class="o_row">
+                                <field name="amount" options="{'no_symbol': True}" readonly="state != 'draft'"/>
+                                <span invisible="not currency_name"><field name="currency_name" nolabel="1" readonly="1"/></span>
+                            </div>
+                            <label for="rate_display" invisible="operation != 'exchange'"/>
+                            <div class="o_row" invisible="operation != 'exchange'">
+                                <span>1</span>
+                                <field name="rate_base_currency_name" nolabel="1" readonly="1"/>
+                                <span>=</span>
+                                <field name="rate_display" nolabel="1" readonly="state != 'draft'"/>
+                                <field name="rate_quote_currency_name" nolabel="1" readonly="1"/>
+                            </div>
+                            <label for="destination_amount" invisible="operation != 'exchange'"/>
+                            <div class="o_row" invisible="operation != 'exchange'">
+                                <field name="destination_amount" options="{'no_symbol': True}" readonly="state != 'draft'"/>
+                                <span invisible="not destination_currency_name"><field name="destination_currency_name" nolabel="1" readonly="1"/></span>
+                            </div>
+                        </group>
+                    </group>
+                    <group string="Company Currency Valuation" invisible="operation != 'exchange'">
+                        <field name="source_amount_company" invisible="currency_id == company_currency_id"/>
+                        <field name="destination_amount_company" invisible="destination_currency_id == company_currency_id"/>
+                        <field name="exchange_difference"/>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="account_internal_transfer_view_list" model="ir.ui.view">
+        <field name="name">account.internal.transfer.list</field>
+        <field name="model">account.internal.transfer</field>
+        <field name="arch" type="xml">
+            <list string="Internal Transfers" decoration-muted="state == 'cancel'" decoration-info="state == 'draft'">
+                <field name="currency_id" column_invisible="1"/>
+                <field name="destination_currency_id" column_invisible="1"/>
+                <field name="company_currency_id" column_invisible="1"/>
+                <field name="name"/>
+                <field name="date"/>
+                <field name="operation"/>
+                <field name="journal_id"/>
+                <field name="destination_journal_id"/>
+                <field name="amount"/>
+                <field name="destination_amount" optional="show"/>
+                <field name="exchange_difference" optional="hide"/>
+                <field name="company_id" groups="base.group_multi_company" optional="hide"/>
+                <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-success="state == 'posted'" decoration-muted="state == 'cancel'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="account_internal_transfer_view_search" model="ir.ui.view">
+        <field name="name">account.internal.transfer.search</field>
+        <field name="model">account.internal.transfer</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="memo"/>
+                <field name="outbound_memo"/>
+                <field name="inbound_memo"/>
+                <field name="journal_id"/>
+                <field name="destination_journal_id"/>
+                <filter name="filter_draft" string="Draft" domain="[('state', '=', 'draft')]"/>
+                <filter name="filter_posted" string="Posted" domain="[('state', '=', 'posted')]"/>
+                <filter name="filter_transfer" string="Internal Transfers" domain="[('operation', '=', 'transfer')]"/>
+                <filter name="filter_exchange" string="Currency Exchanges" domain="[('operation', '=', 'exchange')]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_operation" string="Operation" context="{'group_by': 'operation'}"/>
+                    <filter name="group_journal" string="Source Journal" context="{'group_by': 'journal_id'}"/>
+                    <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="account_internal_transfer_action" model="ir.actions.act_window">
+        <field name="name">Internal Transfers</field>
+        <field name="res_model">account.internal.transfer</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create an internal transfer or a currency exchange
+            </p>
+            <p>
+                Confirming the document creates the outgoing payment and the incoming payment.
+                A currency exchange also posts the difference between the company rate and your rate.
+            </p>
+        </field>
+    </record>
+</odoo>
