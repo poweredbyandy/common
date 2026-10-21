@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 
 from odoo import Command, fields, models
 
@@ -7,8 +7,13 @@ class AccountPaymentRegister(models.TransientModel):
     _inherit = "account.payment.register"
 
     def _get_invoice_date_sort_key(self, move):
-        invoice_date = move.invoice_date or move.date or date.min
-        return (invoice_date, move.id)
+        invoice_day = move.invoice_date or move.date or date.min
+        invoice_dt = False
+        if "l10n_ve_invoice_date" in move._fields:
+            invoice_dt = move.l10n_ve_invoice_date
+        if not invoice_dt:
+            invoice_dt = move.create_date or datetime.min
+        return (invoice_day, invoice_dt, move.id)
 
     def _should_reconcile_by_invoice_date(self, lines):
         self.ensure_one()

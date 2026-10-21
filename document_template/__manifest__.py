@@ -27,6 +27,8 @@
     "assets": {
         "web.assets_backend": [
             "document_template/static/src/scss/document_template_editor.scss",
+            "document_template/static/src/js/document_template_field_info_popover.js",
+            "document_template/static/src/js/document_template_field_info_popover.xml",
             "document_template/static/src/js/document_template_field_plugin.js",
             "document_template/static/src/js/document_template_format_plugin.js",
             "document_template/static/src/js/document_template_table_plugin.js",

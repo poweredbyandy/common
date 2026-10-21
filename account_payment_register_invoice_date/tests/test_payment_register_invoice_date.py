@@ -1,4 +1,6 @@
-from odoo import Command
+from freezegun import freeze_time
+
+from odoo import Command, fields
 from odoo.tests import tagged
 
 from odoo.addons.account.tests.common import AccountTestInvoicingCommon
@@ -69,3 +71,28 @@ class TestPaymentRegisterInvoiceDate(AccountTestInvoicingCommon):
 
         self.assertEqual(inv_old.payment_state, "paid")
         self.assertEqual(inv_new.payment_state, "paid")
+
+    def _set_document_time(self, move, document_dt):
+        document_dt = fields.Datetime.to_datetime(document_dt)
+        if "l10n_ve_invoice_date" in move._fields:
+            move.l10n_ve_invoice_date = document_dt
+        self.env.cr.execute(
+            "UPDATE account_move SET create_date = %s WHERE id = %s",
+            [document_dt, move.id],
+        )
+        move.invalidate_recordset(["create_date"])
+
+    def test_same_day_partial_payment_uses_document_time(self):
+        invoice_date = "2024-03-15"
+        with freeze_time("2024-03-15 14:05:00"):
+            inv_new = self._create_customer_invoice(1000.0, invoice_date)
+        with freeze_time("2024-03-15 10:00:00"):
+            inv_old = self._create_customer_invoice(1000.0, invoice_date)
+        self._set_document_time(inv_new, "2024-03-15 14:05:00")
+        self._set_document_time(inv_old, "2024-03-15 10:00:00")
+
+        self._register_grouped_payment(inv_old | inv_new, 1000.0)
+
+        self.assertEqual(inv_old.payment_state, "paid")
+        self.assertEqual(inv_new.payment_state, "not_paid")
+        self.assertAlmostEqual(inv_new.amount_residual, 1000.0, places=2)

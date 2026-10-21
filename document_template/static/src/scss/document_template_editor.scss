@@ -342,6 +342,32 @@
                 min-height: 1.5em;
             }
 
+            // Dynamic fields: short chip + ellipsis so tables keep their columns
+            t[t-out],
+            t[t-esc],
+            t[t-raw],
+            t[t-field],
+            [t-out],
+            [t-esc],
+            [t-raw],
+            [t-field] {
+                display: inline-block !important;
+                max-width: 100%;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                vertical-align: bottom;
+                box-sizing: border-box;
+                cursor: pointer;
+            }
+
+            [t-out][data-oe-field-label]:empty::before,
+            [t-esc][data-oe-field-label]:empty::before,
+            [t-raw][data-oe-field-label]:empty::before,
+            [t-field][data-oe-field-label]:empty::before {
+                content: attr(data-oe-field-label) !important;
+            }
+
             table,
             .o_document_form_table {
                 border-collapse: collapse !important;
@@ -363,6 +389,7 @@
                     min-width: 1ch;
                     cursor: text;
                     background-clip: padding-box;
+                    overflow: hidden;
 
                     > p,
                     > div {
@@ -370,6 +397,7 @@
                         min-height: 1.35em;
                         // Keep cell background visible; don't paint white blocks
                         background: transparent;
+                        overflow: hidden;
                     }
 
                     &:empty::after {
@@ -537,6 +565,71 @@
             top: 0;
             border-radius: 8px;
         }
+    }
+}
+
+.o_document_template_field_info_overlay {
+    z-index: 1060 !important;
+    visibility: visible !important;
+    pointer-events: auto;
+}
+
+.o_document_template_field_info_popover {
+    max-width: 360px;
+    min-width: 240px;
+    box-shadow:
+        0 2px 6px 2px rgba(60, 64, 67, 0.15),
+        0 1px 2px rgba(60, 64, 67, 0.3);
+
+    .popover-header {
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .popover-body {
+        font-size: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .o_document_template_field_info_row {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .o_document_template_field_info_key {
+        font-size: 11px;
+        font-weight: 600;
+        color: #5f6368;
+        text-transform: uppercase;
+        letter-spacing: 0.02em;
+    }
+
+    .o_document_template_field_info_val,
+    .o_document_template_field_info_expression {
+        display: block;
+        margin: 0;
+        padding: 6px 8px;
+        border-radius: 4px;
+        background: #f1f3f4;
+        color: #202124;
+        white-space: pre-wrap;
+        word-break: break-word;
+        font-size: 12px;
+    }
+
+    .o_document_template_field_info_expression {
+        max-height: 120px;
+        overflow: auto;
+        font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New",
+            monospace;
+    }
+
+    .o_document_template_field_info_hint {
+        font-size: 11px;
+        line-height: 1.35;
     }
 }
 

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="document_template.FieldInfoPopover">
+        <div class="o_document_template_field_info_popover popover bs-popover-auto"
+             role="tooltip">
+            <div class="popover-arrow"/>
+            <h3 class="popover-header d-flex align-items-center justify-content-between gap-2">
+                <span class="text-truncate" t-esc="props.label"/>
+                <button t-if="props.close"
+                        type="button"
+                        class="btn-close"
+                        aria-label="Close"
+                        t-on-click="() => props.close()"/>
+            </h3>
+            <div class="popover-body">
+                <div class="o_document_template_field_info_row">
+                    <div class="o_document_template_field_info_key" t-esc="directiveLabel"/>
+                    <code class="o_document_template_field_info_val" t-esc="props.directive"/>
+                </div>
+                <div t-if="props.path" class="o_document_template_field_info_row">
+                    <div class="o_document_template_field_info_key" t-esc="pathLabel"/>
+                    <code class="o_document_template_field_info_val" t-esc="props.path"/>
+                </div>
+                <div t-if="props.method" class="o_document_template_field_info_row">
+                    <div class="o_document_template_field_info_key" t-esc="methodLabel"/>
+                    <code class="o_document_template_field_info_val" t-esc="props.method"/>
+                </div>
+                <div class="o_document_template_field_info_row">
+                    <div class="o_document_template_field_info_key" t-esc="expressionLabel"/>
+                    <code class="o_document_template_field_info_expression"
+                          t-esc="props.expression"/>
+                </div>
+                <div t-if="props.defaultValue" class="o_document_template_field_info_row">
+                    <div class="o_document_template_field_info_key" t-esc="defaultLabel"/>
+                    <div class="o_document_template_field_info_val" t-esc="props.defaultValue"/>
+                </div>
+                <div class="o_document_template_field_info_hint text-muted" t-esc="hint"/>
+            </div>
+        </div>
+    </t>
+</templates>
