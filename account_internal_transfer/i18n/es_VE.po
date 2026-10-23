@@ -9,480 +9,594 @@ msgstr ""
 "POT-Creation-Date: 2026-10-16 18:07+0000\n"
 "PO-Revision-Date: 2026-10-16 18:07+0000\n"
 "Last-Translator: \n"
-"Language: es_VE\n"
 "Language-Team: \n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Language: es_VE\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=utf-8\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.10.3\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #. module: account_internal_transfer
 #. odoo-python
-#, python-format
+#: code:addons/account_internal_transfer/models/account_internal_transfer.py:0
 msgid "%(number)s: %(memo)s"
 msgstr "%(number)s: %(memo)s"
 
 #. module: account_internal_transfer
 #. odoo-python
-#, python-format
+#: code:addons/account_internal_transfer/models/account_internal_transfer.py:0
 msgid "%(number)s: exchange difference"
 msgstr "%(number)s: diferencial cambiario"
 
 #. module: account_internal_transfer
 #. odoo-python
-#, python-format
+#: code:addons/account_internal_transfer/models/account_internal_transfer.py:0
 msgid "1 %(from_currency)s = %(rate)s %(to_currency)s"
 msgstr "1 %(from_currency)s = %(rate)s %(to_currency)s"
 
 #. module: account_internal_transfer
+#: model_terms:ir.ui.view,arch_db:account_internal_transfer.account_internal_transfer_view_form
 msgid "<span class=\"o_stat_text\">Exchange Entry</span>"
 msgstr "<span class=\"o_stat_text\">Asiento de diferencial</span>"
 
 #. module: account_internal_transfer
+#: model_terms:ir.ui.view,arch_db:account_internal_transfer.account_internal_transfer_view_form
 msgid "<span class=\"o_stat_text\">Incoming Payment</span>"
 msgstr "<span class=\"o_stat_text\">Pago de entrada</span>"
 
 #. module: account_internal_transfer
+#: model_terms:ir.ui.view,arch_db:account_internal_transfer.account_payment_view_form
 msgid "<span class=\"o_stat_text\">Internal Transfer</span>"
 msgstr "<span class=\"o_stat_text\">Transferencia interna</span>"
 
 #. module: account_internal_transfer
+#: model_terms:ir.ui.view,arch_db:account_internal_transfer.account_internal_transfer_view_form
 msgid "<span class=\"o_stat_text\">Outgoing Payment</span>"
 msgstr "<span class=\"o_stat_text\">Pago de salida</span>"
 
 #. module: account_internal_transfer
 #. odoo-python
+#: code:addons/account_internal_transfer/models/account_internal_transfer.py:0
 msgid ""
-"A currency exchange needs journals in different currencies. Use an internal transfer "
-"when both journals share the currency."
+"A currency exchange needs journals in different currencies. Use an internal "
+"transfer when both journals share the currency."
 msgstr ""
-"Un cambio de divisa necesita diarios en monedas distintas. Use una transferencia "
-"interna cuando ambos diarios comparten la moneda."
+"Un cambio de divisa necesita diarios en monedas distintas. Use una "
+"transferencia interna cuando ambos diarios comparten la moneda."
 
 #. module: account_internal_transfer
+#: model:ir.model.fields,field_description:account_internal_transfer.field_account_internal_transfer__message_needaction
 msgid "Action Needed"
 msgstr "Acción necesaria"
 
 #. module: account_internal_transfer
+#: model:ir.model.fields,field_description:account_internal_transfer.field_account_internal_transfer__activity_ids
 msgid "Activities"
 msgstr "Actividades"
 
 #. module: account_internal_transfer
+#: model:ir.model.fields,field_description:account_internal_transfer.field_account_internal_transfer__activity_exception_decoration
 msgid "Activity Exception Decoration"
 msgstr "Decoración de excepción de actividad"
 
 #. module: account_internal_transfer
+#: model:ir.model.fields,field_description:account_internal_transfer.field_account_internal_transfer__activity_state
 msgid "Activity State"
 msgstr "Estado de la actividad"
 
 #. module: account_internal_transfer
+#: model:ir.model.fields,field_description:account_internal_transfer.field_account_internal_transfer__activity_type_icon
 msgid "Activity Type Icon"
 msgstr "Icono del tipo de actividad"
 
 #. module: account_internal_transfer
+#: model:ir.model.fields,field_description:account_internal_transfer.field_account_internal_transfer__amount
 msgid "Amount"
 msgstr "Importe"
 
 #. module: account_internal_transfer
+#: model:ir.model.fields,field_description:account_internal_transfer.field_account_internal_transfer__message_attachment_count
 msgid "Attachment Count"
 msgstr "Número de adjuntos"
 
 #. module: account_internal_transfer
+#: model_terms:ir.ui.view,arch_db:account_internal_transfer.account_internal_transfer_view_form
 msgid "Cancel"
 msgstr "Cancelar"
 
 #. module: account_internal_transfer
+#: model:ir.model.fields.selection,name:account_internal_transfer.selection__account_internal_transfer__state__cancel
 msgid "Canceled"
 msgstr "Cancelado"
 
 #. module: account_internal_transfer
+#: model:ir.model.fields,field_description:account_internal_transfer.field_account_internal_transfer__company_id
 msgid "Company"
 msgstr "Compañía"
 
 #. module: account_internal_transfer
+#: model_terms:ir.ui.view,arch_db:account_internal_transfer.account_internal_transfer_view_form
 msgid "Company Currency Valuation"
 msgstr "Valoración en moneda de la compañía"
 
 #. module: account_internal_transfer
+#: model_terms:ir.ui.view,arch_db:account_internal_transfer.account_internal_transfer_view_form
 msgid "Confirm"
 msgstr "Confirmar"
 
 #. module: account_internal_transfer
+#: model_terms:ir.actions.act_window,help:account_internal_transfer.account_internal_transfer_action
 msgid ""
 "Confirming the document creates the outgoing payment and the incoming payment.\n"
-"                A currency exchange also posts the difference between the company "
-"rate and your rate."
+"                A currency exchange also posts the difference between the company rate and your rate."
 msgstr ""
 "Al confirmar se crean el pago de salida y el pago de entrada.\n"
-"                Un cambio de divisa también publica el diferencial entre la tasa de "
-"la compañía y su tasa."
+"                Un cambio de divisa también publica el diferencial entre la tasa de la compañía y su tasa."
 
 #. module: account_internal_transfer
+#: model_terms:ir.actions.act_window,help:account_internal_transfer.account_internal_transfer_action
 msgid "Create an internal transfer or a currency exchange"
 msgstr "Cree una transferencia interna o un cambio de divisa"
 
 #. module: account_internal_transfer
+#: model:ir.model.fields,field_description:account_internal_transfer.field_account_internal_transfer__create_uid
 msgid "Created by"
 msgstr "Creado por"
 
 #. module: account_internal_transfer
+#: model:ir.model.fields,field_description:account_internal_transfer.field_account_internal_transfer__create_date
 msgid "Created on"
 msgstr "Creado el"
 
 #. module: account_internal_transfer
+#: model:ir.model.fields,field_description:account_internal_transfer.field_account_internal_transfer__company_currency_id
 msgid "Currency"
 msgstr "Moneda"
 
 #. module: account_internal_transfer
+#: model:ir.model.fields.selection,name:account_internal_transfer.selection__account_internal_transfer__operation__exchange
 msgid "Currency Exchange"
 msgstr "Cambio de divisa"
 
 #. module: account_internal_transfer
+#: model_terms:ir.ui.view,arch_db:account_internal_transfer.account_internal_transfer_view_search
 msgid "Currency Exchanges"
 msgstr "Cambios de divisa"
 
 #. module: account_internal_transfer
+#: model:ir.model.fields,field_description:account_internal_transfer.field_account_internal_transfer__exchange_rate
+#: model:ir.model.fields,field_description:account_internal_transfer.field_account_internal_transfer__rate_display
 msgid "Custom Rate"
 msgstr "Tasa personalizada"
 
 #. module: account_internal_transfer
+#: model:ir.model.fields,field_description:account_internal_transfer.field_account_internal_transfer__date
 msgid "Date"
 msgstr "Fecha"
 
 #. module: account_internal_transfer
+#: model:ir.model.fields,field_description:account_internal_transfer.field_account_internal_transfer__destination_amount
 msgid "Destination Amount"
 msgstr "Importe destino"
 
 #. module: account_internal_transfer
+#: model:ir.model.fields,field_description:account_internal_transfer.field_account_internal_transfer__destination_currency_id
 msgid "Destination Currency"
 msgstr "Moneda destino"
 
 #. module: account_internal_transfer
+#: model:ir.model.fields,field_description:account_internal_transfer.field_account_internal_transfer__destination_journal_id
 msgid "Destination Journal"
 msgstr "Diario destino"
 
 #. module: account_internal_transfer
+#: model:ir.model.fields,field_description:account_internal_transfer.field_account_internal_transfer__destination_amount_company
 msgid "Destination in Company Currency"
 msgstr "Destino en moneda de la compañía"
 
 #. module: account_internal_transfer
+#: model:ir.model.fields,help:account_internal_transfer.field_account_internal_transfer__exchange_difference
 msgid ""
-"Destination value minus source value, both in company currency. A positive amount is "
-"a gain."
+"Destination value minus source value, both in company currency. A positive "
+"amount is a gain."
 msgstr ""
-"Valor de destino menos valor de origen, ambos en moneda de la compañía. Un importe "
-"positivo es una ganancia."
+"Valor de destino menos valor de origen, ambos en moneda de la compañía. Un "
+"importe positivo es una ganancia."
 
 #. module: account_internal_transfer
+#: model:ir.model.fields,field_description:account_internal_transfer.field_account_internal_transfer__display_name
 msgid "Display Name"
 msgstr "Nombre mostrado"
 
 #. module: account_internal_transfer
+#: model:ir.model.fields.selection,name:account_internal_transfer.selection__account_internal_transfer__state__draft
+#: model_terms:ir.ui.view,arch_db:account_internal_transfer.account_internal_transfer_view_search
 msgid "Draft"
 msgstr "Borrador"
 
 #. module: account_internal_transfer
+#: model:ir.model.fields,field_description:account_internal_transfer.field_account_internal_transfer__exchange_difference
 msgid "Exchange Difference"
 msgstr "Diferencial cambiario"
 
 #. module: account_internal_transfer
+#: model:ir.model.fields,field_description:account_internal_transfer.field_account_internal_transfer__exchange_move_id
 msgid "Exchange Entry"
 msgstr "Asiento de diferencial"
 
 #. module: account_internal_transfer
 #. odoo-python
+#: code:addons/account_internal_transfer/models/account_internal_transfer.py:0
 msgid "Exchange Gain or Loss Journal"
 msgstr "Diario de ganancias o pérdidas cambiarias"
 
 #. module: account_internal_transfer
+#: model:ir.model.fields,field_description:account_internal_transfer.field_account_internal_transfer__message_follower_ids
 msgid "Followers"
 msgstr "Seguidores"
 
 #. module: account_internal_transfer
+#: model:ir.model.fields,field_description:account_internal_transfer.field_account_internal_transfer__message_partner_ids
 msgid "Followers (Partners)"
 msgstr "Seguidores (contactos)"
 
 #. module: account_internal_transfer
+#: model:ir.model.fields,help:account_internal_transfer.field_account_internal_transfer__activity_type_icon
 msgid "Font awesome icon e.g. fa-tasks"
 msgstr "Icono de Font Awesome, por ejemplo fa-tasks"
 
 #. module: account_internal_transfer
 #. odoo-python
+#: code:addons/account_internal_transfer/models/account_internal_transfer.py:0
 msgid "Gain Exchange Rate Account"
 msgstr "Cuenta de ganancia por diferencia de cambio"
 
 #. module: account_internal_transfer
+#: model_terms:ir.ui.view,arch_db:account_internal_transfer.account_internal_transfer_view_search
 msgid "Group By"
 msgstr "Agrupar por"
 
 #. module: account_internal_transfer
+#: model:ir.model.fields,field_description:account_internal_transfer.field_account_internal_transfer__has_message
 msgid "Has Message"
 msgstr "Tiene un mensaje"
 
 #. module: account_internal_transfer
+#: model:ir.model.fields,help:account_internal_transfer.field_account_internal_transfer__exchange_rate
 msgid ""
-"How many units of the destination currency you receive for 1 unit of the source "
-"currency."
-msgstr "Cuántas unidades de la moneda destino recibe por 1 unidad de la moneda origen."
+"How many units of the destination currency you receive for 1 unit of the "
+"source currency."
+msgstr ""
+"Cuántas unidades de la moneda destino recibe por 1 unidad de la moneda "
+"origen."
 
 #. module: account_internal_transfer
+#: model:ir.model.fields,field_description:account_internal_transfer.field_account_internal_transfer__id
 msgid "ID"
 msgstr "ID"
 
 #. module: account_internal_transfer
+#: model:ir.model.fields,field_description:account_internal_transfer.field_account_internal_transfer__activity_exception_icon
 msgid "Icon"
 msgstr "Icono"
 
 #. module: account_internal_transfer
+#: model:ir.model.fields,help:account_internal_transfer.field_account_internal_transfer__activity_exception_icon
 msgid "Icon to indicate an exception activity."
 msgstr "Icono para indicar una actividad de excepción."
 
 #. module: account_internal_transfer
+#: model:ir.model.fields,help:account_internal_transfer.field_account_internal_transfer__message_needaction
 msgid "If checked, new messages require your attention."
 msgstr "Si está marcado, los mensajes nuevos requieren su atención."
 
 #. module: account_internal_transfer
+#: model:ir.model.fields,help:account_internal_transfer.field_account_internal_transfer__message_has_error
+#: model:ir.model.fields,help:account_internal_transfer.field_account_internal_transfer__message_has_sms_error
 msgid "If checked, some messages have a delivery error."
 msgstr "Si está marcado, algunos mensajes tienen un error de entrega."
 
 #. module: account_internal_transfer
+#: model:ir.model.fields,field_description:account_internal_transfer.field_account_internal_transfer__inbound_payment_id
 msgid "Incoming Payment"
 msgstr "Pago de entrada"
 
 #. module: account_internal_transfer
+#: model:ir.model.fields,field_description:account_internal_transfer.field_account_internal_transfer__destination_payment_method_line_id
 msgid "Incoming Payment Method"
 msgstr "Método de pago de entrada"
 
 #. module: account_internal_transfer
+#: model:ir.model,name:account_internal_transfer.model_account_internal_transfer
+#: model:ir.model.fields,field_description:account_internal_transfer.field_account_payment__internal_transfer_id
+#: model:ir.model.fields.selection,name:account_internal_transfer.selection__account_internal_transfer__operation__transfer
+#: model_terms:ir.ui.view,arch_db:account_internal_transfer.account_internal_transfer_view_form
 msgid "Internal Transfer"
 msgstr "Transferencia interna"
 
 #. module: account_internal_transfer
+#: model:ir.actions.act_window,name:account_internal_transfer.account_internal_transfer_action
+#: model:ir.ui.menu,name:account_internal_transfer.account_internal_transfer_menu
+#: model_terms:ir.ui.view,arch_db:account_internal_transfer.account_internal_transfer_view_list
+#: model_terms:ir.ui.view,arch_db:account_internal_transfer.account_internal_transfer_view_search
 msgid "Internal Transfers"
 msgstr "Transferencias internas"
 
 #. module: account_internal_transfer
 #. odoo-python
+#: code:addons/account_internal_transfer/models/account_internal_transfer.py:0
 msgid "Internal transfer"
 msgstr "Transferencia interna"
 
 #. module: account_internal_transfer
 #. odoo-python
+#: code:addons/account_internal_transfer/models/account_internal_transfer.py:0
 msgid ""
-"Internal transfers keep the same currency. Use a currency exchange when the journals "
-"use different currencies."
+"Internal transfers keep the same currency. Use a currency exchange when the "
+"journals use different currencies."
 msgstr ""
-"Las transferencias internas mantienen la misma moneda. Use un cambio de divisa cuando"
-" los diarios usan monedas distintas."
+"Las transferencias internas mantienen la misma moneda. Use un cambio de "
+"divisa cuando los diarios usan monedas distintas."
 
 #. module: account_internal_transfer
+#: model:ir.model.fields,field_description:account_internal_transfer.field_account_internal_transfer__message_is_follower
 msgid "Is Follower"
 msgstr "Es un seguidor"
 
 #. module: account_internal_transfer
 #. odoo-python
-#, python-format
+#: code:addons/account_internal_transfer/models/account_internal_transfer.py:0
 msgid ""
-"Journal %(journal)s needs a bank account or an outstanding account on its payment "
-"method."
+"Journal %(journal)s needs a bank account or an outstanding account on its "
+"payment method."
 msgstr ""
-"El diario %(journal)s necesita una cuenta de banco o una cuenta transitoria en su "
-"método de pago."
+"El diario %(journal)s necesita una cuenta de banco o una cuenta transitoria "
+"en su método de pago."
 
 #. module: account_internal_transfer
 #. odoo-python
-#, python-format
-msgid "Journal %(journal)s uses %(journal_currency)s, which does not match %(currency)s."
-msgstr "El diario %(journal)s usa %(journal_currency)s, que no coincide con %(currency)s."
+#: code:addons/account_internal_transfer/models/account_internal_transfer.py:0
+msgid ""
+"Journal %(journal)s uses %(journal_currency)s, which does not match "
+"%(currency)s."
+msgstr ""
+"El diario %(journal)s usa %(journal_currency)s, que no coincide con "
+"%(currency)s."
 
 #. module: account_internal_transfer
 #. odoo-python
-#, python-format
+#: code:addons/account_internal_transfer/models/account_internal_transfer.py:0
 msgid "Journal %s has no payment method."
 msgstr "El diario %s no tiene método de pago."
 
 #. module: account_internal_transfer
 #. odoo-python
-#, python-format
+#: code:addons/account_internal_transfer/models/account_internal_transfer.py:0
 msgid "Journal %s must be a bank or cash journal."
 msgstr "El diario %s debe ser de banco o de caja."
 
 #. module: account_internal_transfer
+#: model:ir.model.fields,field_description:account_internal_transfer.field_account_internal_transfer__write_uid
 msgid "Last Updated by"
 msgstr "Última actualización por"
 
 #. module: account_internal_transfer
+#: model:ir.model.fields,field_description:account_internal_transfer.field_account_internal_transfer__write_date
 msgid "Last Updated on"
 msgstr "Última actualización el"
 
 #. module: account_internal_transfer
 #. odoo-python
+#: code:addons/account_internal_transfer/models/account_internal_transfer.py:0
 msgid "Loss Exchange Rate Account"
 msgstr "Cuenta de pérdida por diferencia de cambio"
 
 #. module: account_internal_transfer
+#: model:ir.model.fields,field_description:account_internal_transfer.field_account_internal_transfer__memo
 msgid "Memo"
 msgstr "Concepto"
 
 #. module: account_internal_transfer
+#: model:ir.model.fields,field_description:account_internal_transfer.field_account_internal_transfer__inbound_memo
 msgid "Incoming Memo"
 msgstr "Concepto de entrada"
 
 #. module: account_internal_transfer
+#: model:ir.model.fields,field_description:account_internal_transfer.field_account_internal_transfer__outbound_memo
 msgid "Outgoing Memo"
 msgstr "Concepto de salida"
 
 #. module: account_internal_transfer
+#: model:ir.model.fields,field_description:account_internal_transfer.field_account_internal_transfer__message_has_error
 msgid "Message Delivery error"
 msgstr "Error de entrega del mensaje"
 
 #. module: account_internal_transfer
+#: model:ir.model.fields,field_description:account_internal_transfer.field_account_internal_transfer__message_ids
 msgid "Messages"
 msgstr "Mensajes"
 
 #. module: account_internal_transfer
+#: model:ir.model.fields,field_description:account_internal_transfer.field_account_internal_transfer__my_activity_date_deadline
 msgid "My Activity Deadline"
 msgstr "Fecha límite de mi actividad"
 
 #. module: account_internal_transfer
+#: model:ir.model.fields,field_description:account_internal_transfer.field_account_internal_transfer__activity_date_deadline
 msgid "Next Activity Deadline"
 msgstr "Fecha límite de la siguiente actividad"
 
 #. module: account_internal_transfer
+#: model:ir.model.fields,field_description:account_internal_transfer.field_account_internal_transfer__activity_summary
 msgid "Next Activity Summary"
 msgstr "Resumen de la siguiente actividad"
 
 #. module: account_internal_transfer
+#: model:ir.model.fields,field_description:account_internal_transfer.field_account_internal_transfer__activity_type_id
 msgid "Next Activity Type"
 msgstr "Tipo de la siguiente actividad"
 
 #. module: account_internal_transfer
+#: model:ir.model.fields,field_description:account_internal_transfer.field_account_internal_transfer__name
 msgid "Number"
 msgstr "Número"
 
 #. module: account_internal_transfer
+#: model:ir.model.fields,field_description:account_internal_transfer.field_account_internal_transfer__message_needaction_counter
 msgid "Number of Actions"
 msgstr "Número de acciones"
 
 #. module: account_internal_transfer
+#: model:ir.model.fields,field_description:account_internal_transfer.field_account_internal_transfer__message_has_error_counter
 msgid "Number of errors"
 msgstr "Número de errores"
 
 #. module: account_internal_transfer
+#: model:ir.model.fields,help:account_internal_transfer.field_account_internal_transfer__message_needaction_counter
 msgid "Number of messages requiring action"
 msgstr "Número de mensajes que requieren una acción"
 
 #. module: account_internal_transfer
+#: model:ir.model.fields,help:account_internal_transfer.field_account_internal_transfer__message_has_error_counter
 msgid "Number of messages with delivery error"
 msgstr "Número de mensajes con error de entrega"
 
 #. module: account_internal_transfer
 #. odoo-python
+#: code:addons/account_internal_transfer/models/account_internal_transfer.py:0
 msgid "Only a canceled transfer can be reset to draft."
 msgstr "Solo una transferencia cancelada puede volver a borrador."
 
 #. module: account_internal_transfer
 #. odoo-python
+#: code:addons/account_internal_transfer/models/account_internal_transfer.py:0
 msgid "Only a draft transfer can be confirmed."
 msgstr "Solo una transferencia en borrador puede confirmarse."
 
 #. module: account_internal_transfer
+#: model:ir.model.fields,field_description:account_internal_transfer.field_account_internal_transfer__operation
+#: model_terms:ir.ui.view,arch_db:account_internal_transfer.account_internal_transfer_view_search
 msgid "Operation"
 msgstr "Operación"
 
 #. module: account_internal_transfer
+#: model:ir.model.fields,field_description:account_internal_transfer.field_account_internal_transfer__outbound_payment_id
 msgid "Outgoing Payment"
 msgstr "Pago de salida"
 
 #. module: account_internal_transfer
+#: model:ir.model.fields,field_description:account_internal_transfer.field_account_internal_transfer__payment_method_line_id
 msgid "Outgoing Payment Method"
 msgstr "Método de pago de salida"
 
 #. module: account_internal_transfer
 #. odoo-python
-#, python-format
-msgid "Outgoing payment %(outgoing)s and incoming payment %(incoming)s were created."
-msgstr "Se crearon el pago de salida %(outgoing)s y el pago de entrada %(incoming)s."
+#: code:addons/account_internal_transfer/models/account_internal_transfer.py:0
+msgid ""
+"Outgoing payment %(outgoing)s and incoming payment %(incoming)s were "
+"created."
+msgstr ""
+"Se crearon el pago de salida %(outgoing)s y el pago de entrada %(incoming)s."
 
 #. module: account_internal_transfer
+#: model:ir.model,name:account_internal_transfer.model_account_payment
+#: model:ir.model.fields,field_description:account_internal_transfer.field_account_internal_transfer__payment_ids
 msgid "Payments"
 msgstr "Pagos"
 
 #. module: account_internal_transfer
+#: model:ir.model.fields.selection,name:account_internal_transfer.selection__account_internal_transfer__state__posted
+#: model_terms:ir.ui.view,arch_db:account_internal_transfer.account_internal_transfer_view_search
 msgid "Posted"
 msgstr "Publicado"
 
 #. module: account_internal_transfer
+#: model:ir.model.fields,field_description:account_internal_transfer.field_account_internal_transfer__rate_hint
 msgid "Rate Hint"
 msgstr "Tasa"
 
 #. module: account_internal_transfer
+#: model_terms:ir.ui.view,arch_db:account_internal_transfer.account_internal_transfer_view_form
 msgid "Reset to Draft"
 msgstr "Restablecer a borrador"
 
 #. module: account_internal_transfer
+#: model:ir.model.fields,field_description:account_internal_transfer.field_account_internal_transfer__activity_user_id
 msgid "Responsible User"
 msgstr "Usuario responsable"
 
 #. module: account_internal_transfer
+#: model:ir.model.fields,field_description:account_internal_transfer.field_account_internal_transfer__message_has_sms_error
 msgid "SMS Delivery error"
 msgstr "Error de entrega del SMS"
 
 #. module: account_internal_transfer
 #. odoo-python
-#, python-format
-msgid "Set %(accounts)s in Accounting settings before posting this exchange difference."
-msgstr ""
-"Configure %(accounts)s en los ajustes de Contabilidad antes de publicar este "
-"diferencial."
-
-#. module: account_internal_transfer
-#. odoo-python
+#: code:addons/account_internal_transfer/models/account_internal_transfer.py:0
 msgid ""
-"Set the internal transfer account in Accounting settings before confirming this "
-"transfer."
+"Set %(accounts)s in Accounting settings before posting this exchange "
+"difference."
 msgstr ""
-"Configure la cuenta de transferencia interna en los ajustes de Contabilidad antes de "
-"confirmar."
+"Configure %(accounts)s en los ajustes de Contabilidad antes de publicar este"
+" diferencial."
 
 #. module: account_internal_transfer
 #. odoo-python
+#: code:addons/account_internal_transfer/models/account_internal_transfer.py:0
+msgid ""
+"Set the internal transfer account in Accounting settings before confirming "
+"this transfer."
+msgstr ""
+"Configure la cuenta de transferencia interna en los ajustes de Contabilidad "
+"antes de confirmar."
+
+#. module: account_internal_transfer
+#. odoo-python
+#: code:addons/account_internal_transfer/models/account_internal_transfer.py:0
 msgid "Select the incoming payment method."
 msgstr "Seleccione el método de pago de entrada."
 
 #. module: account_internal_transfer
 #. odoo-python
+#: code:addons/account_internal_transfer/models/account_internal_transfer.py:0
 msgid "Select the outgoing payment method."
 msgstr "Seleccione el método de pago de salida."
 
 #. module: account_internal_transfer
+#: model:ir.model.fields,field_description:account_internal_transfer.field_account_internal_transfer__currency_id
 msgid "Source Currency"
 msgstr "Moneda origen"
 
 #. module: account_internal_transfer
 #. odoo-python
-#, python-format
+#: code:addons/account_internal_transfer/models/account_internal_transfer.py:0
 msgid "The payment method %(method)s is not available on journal %(journal)s."
-msgstr "El método de pago %(method)s no está disponible en el diario %(journal)s."
+msgstr ""
+"El método de pago %(method)s no está disponible en el diario %(journal)s."
 
 #. module: account_internal_transfer
+#: model:ir.model.fields,field_description:account_internal_transfer.field_account_internal_transfer__journal_id
+#: model_terms:ir.ui.view,arch_db:account_internal_transfer.account_internal_transfer_view_search
 msgid "Source Journal"
 msgstr "Diario origen"
 
 #. module: account_internal_transfer
+#: model:ir.model.fields,field_description:account_internal_transfer.field_account_internal_transfer__source_amount_company
 msgid "Source in Company Currency"
 msgstr "Origen en moneda de la compañía"
 
 #. module: account_internal_transfer
+#: model:ir.model.fields,field_description:account_internal_transfer.field_account_internal_transfer__state
 msgid "State"
 msgstr "Estado"
 
 #. module: account_internal_transfer
+#: model_terms:ir.ui.view,arch_db:account_internal_transfer.account_internal_transfer_view_search
 msgid "Status"
 msgstr "Estado"
 
 #. module: account_internal_transfer
+#: model:ir.model.fields,help:account_internal_transfer.field_account_internal_transfer__activity_state
 msgid ""
 "Status based on activities\n"
 "Overdue: Due date is already passed\n"
@@ -496,10 +610,12 @@ msgstr ""
 
 #. module: account_internal_transfer
 #. odoo-python
+#: code:addons/account_internal_transfer/models/account_internal_transfer.py:0
 msgid "The amount must be positive."
 msgstr "El importe debe ser positivo."
 
 #. module: account_internal_transfer
+#: model_terms:ir.ui.view,arch_db:account_internal_transfer.account_internal_transfer_view_form
 msgid ""
 "The amount that leaves is valued at the company rate on this date.\n"
 "                        The amount that arrives follows the custom rate.\n"
@@ -507,58 +623,68 @@ msgid ""
 msgstr ""
 "El importe que sale se valora a la tasa de la compañía en esta fecha.\n"
 "                        El importe que llega sigue la tasa personalizada.\n"
-"                        El diferencial se publica en la cuenta de ganancia o pérdida "
-"cambiaria."
+"                        El diferencial se publica en la cuenta de ganancia o pérdida cambiaria."
 
 #. module: account_internal_transfer
 #. odoo-python
+#: code:addons/account_internal_transfer/models/account_internal_transfer.py:0
 msgid "The custom rate must be positive."
 msgstr "La tasa personalizada debe ser positiva."
 
 #. module: account_internal_transfer
 #. odoo-python
+#: code:addons/account_internal_transfer/models/account_internal_transfer.py:0
 msgid "The destination amount must be positive."
 msgstr "El importe destino debe ser positivo."
 
 #. module: account_internal_transfer
 #. odoo-python
-#, python-format
+#: code:addons/account_internal_transfer/models/account_internal_transfer.py:0
 msgid "The internal transfer account %(account)s must allow reconciliation."
-msgstr "La cuenta de transferencia interna %(account)s debe permitir conciliación."
-
-#. module: account_internal_transfer
-#. odoo-python
-msgid ""
-"The internal transfer account cannot use a foreign currency, because each payment "
-"keeps the currency of its journal."
 msgstr ""
-"La cuenta de transferencia interna no puede tener una moneda extranjera, porque cada "
-"pago conserva la moneda de su diario."
+"La cuenta de transferencia interna %(account)s debe permitir conciliación."
 
 #. module: account_internal_transfer
 #. odoo-python
+#: code:addons/account_internal_transfer/models/account_internal_transfer.py:0
+msgid ""
+"The internal transfer account cannot use a foreign currency, because each "
+"payment keeps the currency of its journal."
+msgstr ""
+"La cuenta de transferencia interna no puede tener una moneda extranjera, "
+"porque cada pago conserva la moneda de su diario."
+
+#. module: account_internal_transfer
+#. odoo-python
+#: code:addons/account_internal_transfer/models/account_internal_transfer.py:0
 msgid "The source and destination journals must be different."
 msgstr "El diario origen y el diario destino deben ser distintos."
 
 #. module: account_internal_transfer
 #. odoo-python
+#: code:addons/account_internal_transfer/models/account_internal_transfer.py:0
 msgid "The transfer account lines do not balance and cannot be reconciled."
-msgstr "Las líneas de la cuenta de transferencia no cuadran y no se pueden conciliar."
+msgstr ""
+"Las líneas de la cuenta de transferencia no cuadran y no se pueden "
+"conciliar."
 
 #. module: account_internal_transfer
+#: model:ir.model.fields,help:account_internal_transfer.field_account_internal_transfer__activity_exception_decoration
 msgid "Type of the exception activity on record."
 msgstr "Tipo de actividad de excepción en el registro."
 
 #. module: account_internal_transfer
+#: model:ir.model.fields,field_description:account_internal_transfer.field_account_internal_transfer__website_message_ids
 msgid "Website Messages"
 msgstr "Mensajes del sitio web"
 
 #. module: account_internal_transfer
+#: model:ir.model.fields,help:account_internal_transfer.field_account_internal_transfer__website_message_ids
 msgid "Website communication history"
 msgstr "Historial de comunicación del sitio web"
 
 #. module: account_internal_transfer
 #. odoo-python
+#: code:addons/account_internal_transfer/models/account_internal_transfer.py:0
 msgid "You can only delete a draft transfer."
 msgstr "Solo puede eliminar una transferencia en borrador."
-
