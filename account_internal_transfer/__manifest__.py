@@ -1,6 +1,6 @@
 {
     "name": "Internal Transfers",
-    "version": "18.0.1.0.0",
+    "version": "18.0.1.0.1",
     "category": "Accounting/Accounting",
     "summary": "Post both payments of an internal transfer or a currency exchange",
     "author": "andyengit",
