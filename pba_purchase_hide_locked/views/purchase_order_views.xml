@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="purchase.purchase_form_action" model="ir.actions.act_window">
+        <field name="domain">[('state', '=', 'purchase')]</field>
+    </record>
+
+    <record id="view_purchase_order_filter_hide_locked" model="ir.ui.view">
+        <field name="name">purchase.order.search.hide.locked</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.view_purchase_order_filter"/>
+        <field name="arch" type="xml">
+            <filter name="approved" position="attributes">
+                <attribute name="domain">[('state', '=', 'purchase')]</attribute>
+            </filter>
+            <filter name="approved" position="after">
+                <filter name="locked" string="Locked" domain="[('state', '=', 'done')]"/>
+            </filter>
+        </field>
+    </record>
+</odoo>
