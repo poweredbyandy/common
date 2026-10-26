@@ -1,0 +1,20 @@
+/* Copyright 2026 andyengit
+ * License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl). */
+
+$app-menu-text-color: #e5e7eb !default;
+$app-menu-background-color: #1b1d26 !default;
+$app-menu-item-highlight: #262a36 !default;
+$app-menu-hover-background: rgba(255, 255, 255, 0.08) !default;
+$app-menu-text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.55) !default;
+$app-menu-box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+    0 2px 2px rgba(0, 0, 0, 0.12),
+    0 4px 4px rgba(0, 0, 0, 0.12),
+    0 8px 8px rgba(0, 0, 0, 0.12),
+    0 16px 16px rgba(0, 0, 0, 0.12) !default;
+$app-menu-box-shadow-highlight:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.14),
+    0 2px 2px rgba(0, 0, 0, 0.16),
+    0 4px 4px rgba(0, 0, 0, 0.16),
+    0 8px 8px rgba(0, 0, 0, 0.16),
+    0 16px 16px rgba(0, 0, 0, 0.16) !default;

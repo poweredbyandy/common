@@ -1,0 +1,182 @@
+/* Copyright 2018 Tecnativa - Jairo Llopis
+ * Copyright 2021 ITerra - Sergey Shebanin
+ * Copyright 2023 Taras Shabaranskyi
+ * License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl). */
+
+:root {
+    .o_grid_apps_menu[data-theme="milk"] {
+        --app-menu-background: url("../../img/home-menu-bg-overlay.svg"),
+            linear-gradient(
+                to bottom,
+                #{$app-menu-background-color},
+                #{desaturate(lighten($app-menu-background-color, 20%), 15)}
+            );
+    }
+
+    .o_grid_apps_menu[data-theme="community"] {
+        --app-menu-background: url("../../img/home-menu-bg-overlay.svg"),
+            linear-gradient(
+                to bottom,
+                #{$o-brand-primary},
+                #{desaturate(lighten($o-brand-primary, 20%), 15)}
+            );
+    }
+}
+
+@mixin full-screen-dropdown {
+    border: none;
+    box-shadow: none;
+    height: 100%;
+    max-height: calc(var(--vh100, 100vh) - #{$o-navbar-height});
+    max-height: calc(100dvh - #{$o-navbar-height});
+    position: fixed;
+    margin: 0;
+    width: 100vw;
+    z-index: 1000;
+    left: 0 !important;
+}
+
+.o_apps_menu_opened .o_main_navbar {
+    .o_menu_brand,
+    .o_menu_sections {
+        display: none !important;
+    }
+}
+
+// hide and save odoo default QUnit tests
+.o_navbar_apps_menu.hide .dropdown-toggle {
+    position: absolute !important;
+    z-index: -100 !important;
+}
+
+@keyframes o-stade-menu-fade-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes o-stade-menu-rise-in {
+    from {
+        opacity: 0;
+        transform: translateY(12px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes o-stade-app-pop-in {
+    from {
+        opacity: 0;
+        transform: translateY(10px) scale(0.92);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+// Iconized full screen apps menu
+.o_grid_apps_menu {
+    &__button {
+        background: unset;
+        border: unset;
+        outline: unset;
+        margin-right: 0.25rem;
+        min-height: $o-navbar-height;
+        height: $o-navbar-height;
+        width: $o-navbar-height;
+        color: $o-navbar-brand-color;
+        transition:
+            background 0.15s ease,
+            transform 0.15s ease;
+
+        &:hover,
+        &:focus {
+            background: $o-navbar-entry-bg--hover;
+        }
+
+        &:active {
+            transform: scale(0.92);
+        }
+    }
+
+    .o-app-menu-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+        width: 100%;
+        gap: 0.25rem;
+        animation: o-stade-menu-rise-in 0.28s ease-out both;
+
+        @include media-breakpoint-up(sm) {
+            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+        }
+
+        .o-app-menu-item {
+            animation: o-stade-app-pop-in 0.32s ease-out both;
+
+            @for $i from 1 through 24 {
+                &:nth-child(#{$i}) {
+                    animation-delay: #{0.04s + ($i * 0.02s)};
+                }
+            }
+        }
+    }
+}
+
+.app-menu-container {
+    @include full-screen-dropdown();
+    overflow: auto;
+    background-clip: border-box;
+    padding: 1rem 0.5rem;
+    gap: 1rem;
+    background: var(--app-menu-background);
+    background-size: cover;
+    border-radius: 0;
+    align-content: flex-start;
+    display: flex !important;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    animation: o-stade-menu-fade-in 0.22s ease-out both;
+
+    .search-container {
+        animation: o-stade-menu-rise-in 0.26s ease-out both;
+    }
+
+    .o_stade_home_dashboard {
+        animation: o-stade-menu-rise-in 0.34s 0.12s ease-out both;
+    }
+
+    .has-results ~ .o-app-menu-list,
+    .has-results ~ .o_stade_home_dashboard {
+        display: none;
+    }
+
+    @include media-breakpoint-up(lg) {
+        padding: {
+            left: calc((100vw - 850px) / 2);
+            right: calc((100vw - 850px) / 2);
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        animation: none;
+
+        .search-container,
+        .o-app-menu-list,
+        .o_stade_home_dashboard,
+        .o-app-menu-item {
+            animation: none;
+        }
+    }
+}
+
+// Sidebar positioning
+.o_app_menu_sidebar {
+    transform: translateX(-100%);
+}

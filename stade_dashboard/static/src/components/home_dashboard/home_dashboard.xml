@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!-- Copyright 2026 andyengit
+     License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl). -->
+<templates>
+    <t t-name="stade_dashboard.HomeDashboard">
+        <div class="o_stade_home_dashboard">
+            <section class="o_stade_home_panel o_stade_home_panel--activities">
+                <header class="o_stade_home_panel__header">
+                    <h3 class="o_stade_home_panel__title">
+                        <i class="fa fa-clock-o me-2" />Actividades próximas
+                    </h3>
+                    <button
+                        type="button"
+                        class="btn btn-link btn-sm o_stade_home_panel__action"
+                        t-on-click="openAllActivities"
+                    >
+                        Ver todas
+                    </button>
+                </header>
+                <div t-if="state.loadingActivities" class="o_stade_home_panel__empty">
+                    Cargando...
+                </div>
+                <div t-elif="!state.activities.length" class="o_stade_home_panel__empty">
+                    No tienes actividades pendientes. ¡Buen trabajo!
+                </div>
+                <ul t-else="" class="o_stade_home_activities list-unstyled mb-0">
+                    <li
+                        t-foreach="state.activities"
+                        t-as="activity"
+                        t-key="activity.id"
+                        class="o_stade_home_activity"
+                        t-on-click="() => this.openActivity(activity)"
+                    >
+                        <i
+                            t-attf-class="fa {{ activity.icon || 'fa-clock-o' }} {{ stateClass(activity.state) }} me-2"
+                        />
+                        <div class="o_stade_home_activity__body">
+                            <div
+                                class="o_stade_home_activity__title"
+                                t-esc="activityLabel(activity)"
+                            />
+                            <div class="o_stade_home_activity__meta">
+                                <span t-esc="activity.res_name" />
+                                <span
+                                    t-if="activity.date_deadline"
+                                    t-att-class="stateClass(activity.state)"
+                                >
+                                    · <t t-esc="activity.date_deadline" />
+                                </span>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+            </section>
+        </div>
+    </t>
+</templates>

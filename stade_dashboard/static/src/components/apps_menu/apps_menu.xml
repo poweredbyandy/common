@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!-- Copyright 2018 Tecnativa - Jairo Llopis
+     Copyright 2021 ITerra - Sergey Shebanin
+     Copyright 2023 Onestein - Anjeel Haria
+     Copyright 2023 Taras Shabaranskyi
+     Copyright 2026 andyengit
+     License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl). -->
+<templates>
+    <t t-inherit="web.NavBar.AppsMenu" t-inherit-mode="extension">
+        <xpath expr="//t[@t-if='this.ui.isSmall']" position="attributes">
+            <attribute name="t-if">false</attribute>
+        </xpath>
+        <xpath expr="//Dropdown" position="replace">
+            <t t-if="this.ui.isSmall">
+                <t t-call="web.NavBar.AppsMenu.Sidebar" />
+            </t>
+            <t t-else="" />
+            <AppsMenu>
+                <t t-set-slot="search_bar">
+                    <AppsMenuSearchBar />
+                </t>
+                <t t-set-slot="dashboard">
+                    <HomeDashboard />
+                </t>
+                <AppMenuItem
+                    t-foreach="apps"
+                    t-as="app"
+                    t-key="app.id"
+                    app="app"
+                    currentApp="currentApp"
+                    href="getMenuItemHref(app)"
+                    onClick="onNavBarDropdownItemSelection.bind(this)"
+                />
+            </AppsMenu>
+        </xpath>
+    </t>
+
+    <t t-name="stade_dashboard.AppsMenu">
+        <div class="o_grid_apps_menu" t-att-data-theme="theme">
+            <button
+                class="o_grid_apps_menu__button"
+                title="Home Menu"
+                data-hotkey="h"
+                t-on-click.stop="onMenuClick"
+            >
+                <i class="oi oi-apps fs-4" />
+            </button>
+            <div t-if="state.open" class="app-menu-container">
+                <t t-slot="search_bar" />
+                <div class="o-app-menu-list">
+                    <t t-slot="default" />
+                </div>
+                <t t-slot="dashboard" />
+            </div>
+        </div>
+    </t>
+
+    <t t-inherit="web.NavBar.AppsMenu.Sidebar" t-inherit-mode="extension">
+        <xpath expr="//i[hasclass('fa fa-bars')]" position="replace">
+        </xpath>
+
+        <xpath expr="//div[hasclass('o_app_menu_sidebar')]" position="attributes">
+            <attribute
+                name="class"
+            >o_app_menu_sidebar position-fixed top-0 bottom-0 start-100 d-flex flex-column flex-nowrap</attribute>
+        </xpath>
+    </t>
+
+    <t t-inherit="web.SectionMenu" t-inherit-mode="extension">
+        <xpath expr="//li[@t-on-click]" position="attributes">
+            <attribute name="class">cursor-pointer</attribute>
+        </xpath>
+    </t>
+
+    <t t-inherit="web.BurgerMenu" t-inherit-mode="extension">
+        <xpath expr="//button[hasclass('o_mobile_menu_toggle')]" position="after">
+            <button
+                class="o_mobile_menu_toggle o_nav_entry o-no-caret d-md-none border-0 pe-3"
+                t-on-click.prevent="_openAppMenuSidebarMobile"
+            >
+                <i class="oi oi-panel-right" />
+            </button>
+        </xpath>
+    </t>
+</templates>
