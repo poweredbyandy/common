@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="sale_order_view_form_description_expand" model="ir.ui.view">
+        <field name="name">sale.order.form.description.expand</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form" />
+        <field name="arch" type="xml">
+            <xpath
+                expr="//field[@name='order_line']/form//field[@name='name']"
+                position="attributes"
+            >
+                <attribute name="widget">pba_product_description</attribute>
+                <attribute name="rows">10</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>
