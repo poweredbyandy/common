@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="account_move_view_form_description_expand" model="ir.ui.view">
+        <field name="name">account.move.form.description.expand</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='invoice_line_ids']/form//field[@name='name'][@widget='text']" position="attributes">
+                <attribute name="class" add="o_pba_expanded_description" separator=" "/>
+                <attribute name="rows">10</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>

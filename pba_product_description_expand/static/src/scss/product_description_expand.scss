@@ -1,0 +1,34 @@
+.o_pba_product_description_expand,
+.o_pba_expanded_description {
+    &.o_field_html,
+    .o_field_html {
+        min-height: 250px;
+
+        .o-wysiwyg,
+        .note-editable,
+        .odoo-editor-editable,
+        [contenteditable="true"] {
+            min-height: 250px;
+        }
+    }
+}
+
+.o_pba_expanded_description {
+    min-height: 12rem !important;
+
+    textarea {
+        min-height: 12rem !important;
+    }
+}
+
+.o_field_widget[name="description_sale"],
+.o_field_widget[name="description_purchase"],
+.o_field_widget[name="description_picking"],
+.o_field_widget[name="description_pickingin"],
+.o_field_widget[name="description_pickingout"] {
+    min-height: 12rem !important;
+
+    textarea {
+        min-height: 12rem !important;
+    }
+}
