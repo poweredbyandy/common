@@ -144,3 +144,109 @@ class TestAutoReconcileBatch(AccountTestInvoicingCommon):
                 default_journal_id=False,
                 search_default_journal_id=False,
             ).action_queue_ref_auto_reconcile()
+
+    def test_commission_label_ignores_accents(self):
+        line = self._create_lines(1)
+        line.payment_ref = "COMISIÓN POR TRANSFERENCIA DE FONDOS"
+        self.assertTrue(line._is_bank_commission_line())
+        line.payment_ref = "comision"
+        self.assertTrue(line._is_bank_commission_line())
+        line.payment_ref = "Pago factura 1234"
+        self.assertFalse(line._is_bank_commission_line())
+
+    def test_batch_sends_commission_lines_to_the_expense_rule(self):
+        lines = self._create_lines(1)
+        lines.payment_ref = "COMISION POR TRANSFERENCIA"
+        lines.action_queue_ref_auto_reconcile()
+        statement_line = type(lines)
+        with (
+            patch.object(
+                statement_line, "_reconcile_bank_commission", return_value=True
+            ) as commission,
+            patch.object(
+                statement_line, "_reconcile_by_bank_reference"
+            ) as reference,
+            patch.object(statement_line, "_reconcile_pos_income") as pos_income,
+        ):
+            result = self.queue._process_company_batch(self.company)
+        commission.assert_called_once()
+        reference.assert_not_called()
+        pos_income.assert_not_called()
+        self.assertEqual(result["reconciled"], 1)
+
+    def test_batch_tries_pos_when_the_reference_does_not_match(self):
+        lines = self._create_lines(1)
+        lines.action_queue_ref_auto_reconcile()
+        statement_line = type(lines)
+        with (
+            patch.object(
+                statement_line, "_reconcile_by_bank_reference", return_value=False
+            ) as reference,
+            patch.object(
+                statement_line, "_reconcile_pos_income", return_value=True
+            ) as pos_income,
+        ):
+            result = self.queue._process_company_batch(self.company)
+        reference.assert_called_once()
+        pos_income.assert_called_once()
+        self.assertEqual(result["reconciled"], 1)
+
+    def test_button_warns_when_the_commission_account_is_missing(self):
+        lines = self._create_lines(1)
+        lines.payment_ref = "COMISION POR TRANSFERENCIA"
+        action = lines.action_queue_ref_auto_reconcile()
+        self.assertEqual(action["params"]["type"], "warning")
+        self.assertIn("COMISION", action["params"]["message"])
+
+    def test_commission_rule_uses_the_configured_expense_account(self):
+        expense = self.company_data["default_account_expense"]
+        self.env["l10n_ve.default.account"].create(
+            {
+                "company_id": self.company.id,
+                "commission_account_id": expense.id,
+            }
+        )
+        line = self._create_lines(1)
+        line.payment_ref = "COMISION"
+        rule = line._commission_writeoff_model()
+        self.assertEqual(rule.line_ids.account_id, expense)
+        self.assertEqual(rule.line_ids.amount_type, "percentage_st_line")
+        self.assertEqual(rule.line_ids.amount_string, "100")
+        self.assertFalse(rule.auto_reconcile)
+
+    def test_commission_rule_is_empty_without_a_configured_account(self):
+        line = self._create_lines(1)
+        line.payment_ref = "COMISION"
+        self.assertFalse(line._commission_writeoff_model())
+
+    def _closing(self, journal):
+        return self.env["account.payment.closing"].create(
+            {
+                "journal_id": journal.id,
+                "date": "2026-09-01",
+                "deposit_date": "2026-09-01",
+            }
+        )
+
+    def test_pos_match_uses_one_closing_and_the_statement_journal(self):
+        line = self._create_lines(1)
+        same_journal = self._closing(self.bank_journal)
+        other_journal = self.bank_journal.copy({"name": "POS bank", "code": "BNK3"})
+        other = self._closing(other_journal)
+        statement_line = type(line)
+        with patch.object(
+            statement_line,
+            "_pos_income_closings",
+            return_value=same_journal | other,
+        ):
+            self.assertEqual(line._unique_pos_income_closing(), same_journal)
+        with patch.object(
+            statement_line,
+            "_pos_income_closings",
+            return_value=same_journal | self._closing(self.bank_journal),
+        ):
+            self.assertFalse(line._unique_pos_income_closing())
+        with patch.object(
+            statement_line, "_pos_income_closings", return_value=other
+        ):
+            self.assertEqual(line._unique_pos_income_closing(), other)

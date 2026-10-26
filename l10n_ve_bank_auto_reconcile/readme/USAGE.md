@@ -8,6 +8,10 @@
    líneas.
 5. Si la cola ya tiene esas líneas, un nuevo clic ejecuta una tanda del
    cron y encola solo líneas nuevas que aún no estén en cola.
+6. Una línea con COMISION se contabiliza en la cuenta de comisiones.
+   El cierre de punto de venta tiene que existir y estar publicado: el
+   botón no lo crea. Si hay más de un cierre con la misma fecha y monto,
+   la línea queda para conciliación manual.
 
 El cron **Conciliación bancaria: procesar cola** toma la tanda siguiente.
 También puede ejecutarlo a mano desde las acciones planificadas.

@@ -94,7 +94,7 @@ class L10nVeBankReconcileQueue(models.Model):
                 if line and not line.is_reconciled and line.state != "cancel":
                     try:
                         with self.env.cr.savepoint():
-                            if line._reconcile_by_bank_reference():
+                            if line._reconcile_queued_line():
                                 reconciled_count += 1
                     except UserError as error:
                         _logger.info(
