@@ -18,6 +18,25 @@ patch(Message.prototype, {
         return super.editable;
     },
 
+    get isWhatsappOutgoing() {
+        const thread = this.thread;
+        if (thread?.channel_type !== "whatsapp" || !this.author) {
+            return false;
+        }
+        return this.author.notEq(thread.whatsapp_partner_id);
+    },
+
+    get bubbleColor() {
+        if (
+            this.thread?.channel_type === "whatsapp" &&
+            !this.is_note &&
+            !this.isHighlightedFromMention
+        ) {
+            return this.isWhatsappOutgoing ? "green" : "blue";
+        }
+        return super.bubbleColor;
+    },
+
     get hasWhatsappButtons() {
         return Boolean(this.whatsappButtons?.length);
     },

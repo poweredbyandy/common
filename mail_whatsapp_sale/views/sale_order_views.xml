@@ -12,7 +12,7 @@
                     string="WhatsApp Cotización"
                     class="btn-secondary"
                     icon="fa-whatsapp"
-                    groups="mail_whatsapp.group_mail_whatsapp_user"
+                    groups="mail_whatsapp.group_mail_whatsapp_own"
                     invisible="state not in ('draft', 'sent')"
                 />
                 <button
@@ -21,7 +21,7 @@
                     string="WhatsApp Orden"
                     class="btn-secondary"
                     icon="fa-whatsapp"
-                    groups="mail_whatsapp.group_mail_whatsapp_user"
+                    groups="mail_whatsapp.group_mail_whatsapp_own"
                     invisible="state not in ('sale', 'done')"
                 />
             </xpath>

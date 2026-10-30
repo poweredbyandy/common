@@ -1,6 +1,7 @@
 /* @odoo-module */
 
 import { threadActionsRegistry } from "@mail/core/common/thread_actions";
+import { WhatsappResponsiblePanel } from "@mail_whatsapp/discuss/core/common/whatsapp_responsible_panel";
 import { WhatsappTagPanel } from "@mail_whatsapp/discuss/core/common/whatsapp_tag_panel";
 
 import { useComponent } from "@odoo/owl";
@@ -48,6 +49,44 @@ threadActionsRegistry.add("whatsapp-contact", {
     },
 });
 
+threadActionsRegistry.add("whatsapp-company", {
+    condition(component) {
+        return (
+            component.thread?.channel_type === "whatsapp" &&
+            component.thread.whatsappCompanyId &&
+            (!component.props.chatWindow || component.props.chatWindow.isOpen)
+        );
+    },
+    icon: "fa fa-fw fa-building",
+    iconLarge: "fa fa-fw fa-lg fa-building",
+    name: _t("Company"),
+    open(component) {
+        const companyId = component.thread.whatsappCompanyId;
+        if (!companyId) {
+            return;
+        }
+        component.dialogService.add(FormViewDialog, {
+            resModel: "res.partner",
+            resId: companyId,
+            title: component.thread.whatsappCompanyName || _t("Company"),
+            onRecordSaved: async () => {
+                await component.orm.call(
+                    "discuss.channel",
+                    "whatsapp_refresh_partner_info",
+                    [[component.thread.id]]
+                );
+            },
+        });
+    },
+    sequence: 14.5,
+    sequenceGroup: 20,
+    setup() {
+        const component = useComponent();
+        component.dialogService = useService("dialog");
+        component.orm = useService("orm");
+    },
+});
+
 threadActionsRegistry.add("whatsapp-tags", {
     close(component, action) {
         action.popover?.close();
@@ -82,6 +121,48 @@ threadActionsRegistry.add("whatsapp-tags", {
         const component = useComponent();
         if (!component.props.chatWindow) {
             action.popover = usePopover(WhatsappTagPanel, {
+                onClose: () => action.close(),
+                popoverClass: action.panelOuterClass,
+            });
+        }
+    },
+    toggle: true,
+});
+
+threadActionsRegistry.add("whatsapp-responsible", {
+    close(component, action) {
+        action.popover?.close();
+    },
+    component: WhatsappResponsiblePanel,
+    componentProps(action) {
+        return { close: () => action.close() };
+    },
+    condition(component) {
+        return (
+            component.thread?.channel_type === "whatsapp" &&
+            (!component.props.chatWindow || component.props.chatWindow.isOpen)
+        );
+    },
+    icon: "fa fa-fw fa-user-plus",
+    iconLarge: "fa fa-fw fa-lg fa-user-plus",
+    name: _t("Responsible"),
+    open(component, action) {
+        action.popover?.open(component.root.el.querySelector(`[name="${action.id}"]`), {
+            hasSizeConstraints: true,
+            thread: component.thread,
+        });
+    },
+    panelOuterClass(component) {
+        return `o-mail-whatsapp-TagPanel ${
+            component.props.chatWindow ? "bg-inherit" : ""
+        } bg-100 border border-secondary`;
+    },
+    sequence: 13,
+    sequenceGroup: 20,
+    setup(action) {
+        const component = useComponent();
+        if (!component.props.chatWindow) {
+            action.popover = usePopover(WhatsappResponsiblePanel, {
                 onClose: () => action.close(),
                 popoverClass: action.panelOuterClass,
             });

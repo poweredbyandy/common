@@ -1,3 +1,5 @@
+import base64
+
 from markupsafe import escape
 
 from odoo import _, http
@@ -173,6 +175,7 @@ class MailWhatsappDemoReceiveController(http.Controller):
       border: 1px solid #abefc6;
     }
     .alert a { color: inherit; font-weight: 700; }
+    .hint { color: var(--muted); font-size: 0.8rem; margin: 0.35rem 0 0; }
   </style>
 </head>
 <body>
@@ -184,7 +187,8 @@ class MailWhatsappDemoReceiveController(http.Controller):
     </p>
     %(error)s
     %(success)s
-    <form method="post" action="/mail_whatsapp/demo/simulate_receive">
+    <form method="post" action="/mail_whatsapp/demo/simulate_receive"
+          enctype="multipart/form-data">
       <input type="hidden" name="csrf_token" value="%(csrf)s"/>
       <label for="wa_account_id">WhatsApp Account</label>
       <select id="wa_account_id" name="wa_account_id" required>
@@ -196,7 +200,15 @@ class MailWhatsappDemoReceiveController(http.Controller):
       <label for="sender_name">Sender Name</label>
       <input id="sender_name" name="sender_name" value="%(name)s"/>
       <label for="body">Incoming Message</label>
-      <textarea id="body" name="body" required>%(body)s</textarea>
+      <textarea id="body" name="body">%(body)s</textarea>
+      <label for="attachment">File (optional)</label>
+      <input id="attachment" name="attachment" type="file"
+             accept=".pdf,.jpg,.jpeg,.png,.webp,.xml,.doc,.docx,.xls,.xlsx,.txt,.mp4,.mp3,.ogg,.m4a"/>
+      <p class="hint">
+        Sent like WhatsApp does: JPG/PNG as image, MP4 as video, audio as voice
+        note and anything else (PDF, XML, Office) as a document. The message
+        becomes the caption.
+      </p>
       <div class="actions">
         <button class="primary" type="submit">Simulate Incoming Message</button>
         <button class="ghost" type="button" onclick="window.close()">Close</button>
@@ -247,6 +259,13 @@ class MailWhatsappDemoReceiveController(http.Controller):
                 error=_("Create or select a WhatsApp account first."),
                 **values,
             )
+        upload = request.httprequest.files.get("attachment")
+        file_vals = {}
+        if upload and upload.filename:
+            file_vals = {
+                "attachment_file": base64.b64encode(upload.read()),
+                "attachment_name": upload.filename,
+            }
         try:
             wizard = request.env["mail.whatsapp.test.receive"].sudo().create(
                 {
@@ -254,6 +273,7 @@ class MailWhatsappDemoReceiveController(http.Controller):
                     "sender_phone": values["sender_phone"],
                     "sender_name": values["sender_name"],
                     "body": values["body"],
+                    **file_vals,
                 }
             )
             action = wizard.action_simulate_receive()

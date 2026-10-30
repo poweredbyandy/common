@@ -445,7 +445,7 @@ class MailWhatsappTemplate(models.Model):
     def _can_use_whatsapp(self, model_name):
         """Show chatter WhatsApp button for users with WhatsApp access."""
         del model_name
-        return self.env.user.has_group("mail_whatsapp.group_mail_whatsapp_user")
+        return self.env.user.has_group("mail_whatsapp.group_mail_whatsapp_own")
 
     @api.model
     def _domain_for_res_model(self, model_name):

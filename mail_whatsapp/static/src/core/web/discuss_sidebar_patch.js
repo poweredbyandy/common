@@ -10,9 +10,3 @@ patch(DiscussSidebar, {
         WhatsappFocusSidebar,
     },
 });
-
-patch(DiscussSidebar.prototype, {
-    toggleWhatsappFocus() {
-        this.store.discuss.whatsappFocus = !this.store.discuss.whatsappFocus;
-    },
-});

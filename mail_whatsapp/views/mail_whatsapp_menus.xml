@@ -1,91 +1,129 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <odoo>
-    <!-- App root opens the accounts list (not Facebook login). -->
+    <record id="mail_whatsapp_chats_action" model="ir.actions.client">
+        <field name="name">WhatsApp Chats</field>
+        <field name="tag">mail_whatsapp.action_chats</field>
+    </record>
+
     <menuitem
         id="mail_whatsapp_menu_root"
         name="WhatsApp"
         web_icon="mail_whatsapp,static/description/icon.png"
-        action="mail_whatsapp_dashboard_action"
+        action="mail_whatsapp_chats_action"
         sequence="45"
-        groups="mail_whatsapp.group_mail_whatsapp_user"
+        groups="mail_whatsapp.group_mail_whatsapp_own"
+    />
+
+    <menuitem
+        id="mail_whatsapp_menu_chats"
+        name="Chats"
+        parent="mail_whatsapp_menu_root"
+        action="mail_whatsapp_chats_action"
+        sequence="1"
+        groups="mail_whatsapp.group_mail_whatsapp_own"
+    />
+    <menuitem
+        id="mail_whatsapp_menu_assign"
+        name="Assign Chats"
+        parent="mail_whatsapp_menu_root"
+        action="discuss_channel_action_whatsapp_assign"
+        sequence="5"
+        groups="-mail_whatsapp.group_mail_whatsapp_own,mail_whatsapp.group_mail_whatsapp_account_manager"
+    />
+
+    <menuitem
+        id="mail_whatsapp_menu_reporting"
+        name="Reporting"
+        parent="mail_whatsapp_menu_root"
+        sequence="50"
+        groups="mail_whatsapp.group_mail_whatsapp_own"
     />
     <menuitem
         id="mail_whatsapp_menu_dashboard"
         name="Dashboard"
-        parent="mail_whatsapp_menu_root"
+        parent="mail_whatsapp_menu_reporting"
         action="mail_whatsapp_dashboard_action"
-        sequence="1"
-        groups="mail_whatsapp.group_mail_whatsapp_user"
-    />
-    <menuitem
-        id="mail_whatsapp_menu_accounts"
-        name="Accounts"
-        parent="mail_whatsapp_menu_root"
-        action="mail_whatsapp_account_action"
         sequence="10"
-        groups="mail_whatsapp.group_mail_whatsapp_user"
+        groups="mail_whatsapp.group_mail_whatsapp_own"
     />
     <menuitem
         id="mail_whatsapp_menu_messages"
         name="Messages"
-        parent="mail_whatsapp_menu_root"
+        parent="mail_whatsapp_menu_reporting"
         action="mail_whatsapp_message_action"
-        sequence="15"
-        groups="mail_whatsapp.group_mail_whatsapp_user"
-    />
-    <menuitem
-        id="mail_whatsapp_menu_templates"
-        name="Templates"
-        parent="mail_whatsapp_menu_root"
-        action="mail_whatsapp_template_action"
         sequence="20"
-        groups="mail_whatsapp.group_mail_whatsapp_user"
+        groups="mail_whatsapp.group_mail_whatsapp_own"
     />
-    <menuitem
-        id="mail_whatsapp_menu_tags"
-        name="Tags"
-        parent="mail_whatsapp_menu_root"
-        action="mail_whatsapp_tag_action"
-        sequence="30"
-        groups="mail_whatsapp.group_mail_whatsapp_user"
-    />
+
     <menuitem
         id="mail_whatsapp_menu_configuration"
         name="Configuration"
         parent="mail_whatsapp_menu_root"
-        sequence="70"
-        groups="mail_whatsapp.group_mail_whatsapp_admin"
-    />
-    <menuitem
-        id="mail_whatsapp_menu_connect"
-        name="Connect Meta Account"
-        parent="mail_whatsapp_menu_configuration"
-        action="action_mail_whatsapp_embedded_signup"
-        sequence="10"
-        groups="mail_whatsapp.group_mail_whatsapp_admin"
-    />
-    <menuitem
-        id="mail_whatsapp_menu_simulate_receive"
-        name="Simulate Incoming Message"
-        parent="mail_whatsapp_menu_configuration"
-        action="mail_whatsapp_open_simulate_receive_action"
-        sequence="20"
-        groups="mail_whatsapp.group_mail_whatsapp_admin"
-    />
-    <menuitem
-        id="mail_whatsapp_menu_data_deletion"
-        name="Data Deletion Requests"
-        parent="mail_whatsapp_menu_configuration"
-        action="mail_whatsapp_data_deletion_action"
-        sequence="80"
-        groups="mail_whatsapp.group_mail_whatsapp_admin"
+        sequence="90"
+        groups="mail_whatsapp.group_mail_whatsapp_own"
     />
     <menuitem
         id="mail_whatsapp_menu_settings"
         name="Settings"
         parent="mail_whatsapp_menu_configuration"
         action="mail_whatsapp_action_settings"
+        sequence="1"
+        groups="mail_whatsapp.group_mail_whatsapp_admin"
+    />
+    <menuitem
+        id="mail_whatsapp_menu_accounts"
+        name="Accounts"
+        parent="mail_whatsapp_menu_configuration"
+        action="mail_whatsapp_account_action"
+        sequence="10"
+        groups="mail_whatsapp.group_mail_whatsapp_own"
+    />
+    <menuitem
+        id="mail_whatsapp_menu_connect"
+        name="Connect Meta Account"
+        parent="mail_whatsapp_menu_configuration"
+        action="action_mail_whatsapp_embedded_signup"
+        sequence="15"
+        groups="mail_whatsapp.group_mail_whatsapp_admin"
+    />
+    <menuitem
+        id="mail_whatsapp_menu_templates"
+        name="Templates"
+        parent="mail_whatsapp_menu_configuration"
+        action="mail_whatsapp_template_action"
+        sequence="20"
+        groups="mail_whatsapp.group_mail_whatsapp_own"
+    />
+    <menuitem
+        id="mail_whatsapp_menu_tags"
+        name="Tags"
+        parent="mail_whatsapp_menu_configuration"
+        action="mail_whatsapp_tag_action"
+        sequence="25"
+        groups="mail_whatsapp.group_mail_whatsapp_own"
+    />
+
+    <menuitem
+        id="mail_whatsapp_menu_technical"
+        name="Technical"
+        parent="mail_whatsapp_menu_configuration"
         sequence="90"
+        groups="mail_whatsapp.group_mail_whatsapp_admin"
+    />
+    <menuitem
+        id="mail_whatsapp_menu_simulate_receive"
+        name="Simulate Incoming Message"
+        parent="mail_whatsapp_menu_technical"
+        action="mail_whatsapp_open_simulate_receive_action"
+        sequence="10"
+        groups="mail_whatsapp.group_mail_whatsapp_admin"
+    />
+    <menuitem
+        id="mail_whatsapp_menu_data_deletion"
+        name="Data Deletion Requests"
+        parent="mail_whatsapp_menu_technical"
+        action="mail_whatsapp_data_deletion_action"
+        sequence="20"
         groups="mail_whatsapp.group_mail_whatsapp_admin"
     />
 </odoo>

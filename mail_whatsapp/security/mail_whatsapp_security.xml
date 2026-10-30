@@ -5,10 +5,31 @@
         <field name="sequence">40</field>
     </record>
 
-    <record id="group_mail_whatsapp_user" model="res.groups">
-        <field name="name">User</field>
+    <record id="group_mail_whatsapp_own" model="res.groups">
+        <field name="name">User: Own Chats Only</field>
         <field name="category_id" ref="module_category_mail_whatsapp" />
         <field name="implied_ids" eval="[(4, ref('base.group_user'))]" />
+        <field name="comment">Sees the chats assigned to them and the unassigned chats of their accounts.</field>
+    </record>
+
+    <record id="group_mail_whatsapp_user" model="res.groups">
+        <field name="name">User: All Chats</field>
+        <field name="category_id" ref="module_category_mail_whatsapp" />
+        <field
+            name="implied_ids"
+            eval="[(4, ref('base.group_user')), (4, ref('group_mail_whatsapp_own'))]"
+        />
+        <field name="comment">Sees every chat of their accounts.</field>
+    </record>
+
+    <record id="group_mail_whatsapp_account_manager" model="res.groups">
+        <field name="name">Account Administrator</field>
+        <field name="category_id" ref="module_category_mail_whatsapp" />
+        <field
+            name="implied_ids"
+            eval="[(4, ref('group_mail_whatsapp_user'))]"
+        />
+        <field name="comment">Manages the accounts where they are Account Administrator: account, agents, templates, tags and chat assignment.</field>
     </record>
 
     <record id="group_mail_whatsapp_admin" model="res.groups">
@@ -16,7 +37,7 @@
         <field name="category_id" ref="module_category_mail_whatsapp" />
         <field
             name="implied_ids"
-            eval="[(4, ref('group_mail_whatsapp_user'))]"
+            eval="[(4, ref('group_mail_whatsapp_user')), (4, ref('group_mail_whatsapp_account_manager'))]"
         />
         <field
             name="users"
@@ -30,5 +51,107 @@
         <field name="domain_force">
             ['|', ('allowed_company_ids', '=', False), ('allowed_company_ids', 'in', company_ids)]
         </field>
+    </record>
+
+    <record id="mail_whatsapp_account_rule_member" model="ir.rule">
+        <field name="name">WhatsApp Account: agents and account administrators</field>
+        <field name="model_id" ref="model_mail_whatsapp_account" />
+        <field name="groups" eval="[(4, ref('group_mail_whatsapp_own'))]" />
+        <field name="domain_force">
+            ['|', ('agent_user_ids', 'in', user.id), ('manager_user_ids', 'in', user.id)]
+        </field>
+        <field name="perm_read" eval="True" />
+        <field name="perm_write" eval="False" />
+        <field name="perm_create" eval="False" />
+        <field name="perm_unlink" eval="False" />
+    </record>
+
+    <record id="mail_whatsapp_account_rule_manager" model="ir.rule">
+        <field name="name">WhatsApp Account: account administrators edit their accounts</field>
+        <field name="model_id" ref="model_mail_whatsapp_account" />
+        <field name="groups" eval="[(4, ref('group_mail_whatsapp_account_manager'))]" />
+        <field name="domain_force">[('manager_user_ids', 'in', user.id)]</field>
+        <field name="perm_read" eval="False" />
+        <field name="perm_write" eval="True" />
+        <field name="perm_create" eval="False" />
+        <field name="perm_unlink" eval="False" />
+    </record>
+
+    <record id="mail_whatsapp_account_rule_admin" model="ir.rule">
+        <field name="name">WhatsApp Account: administrators</field>
+        <field name="model_id" ref="model_mail_whatsapp_account" />
+        <field name="groups" eval="[(4, ref('group_mail_whatsapp_admin'))]" />
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+
+    <record id="discuss_channel_rule_whatsapp" model="ir.rule">
+        <field name="name">WhatsApp chats: account agents by access level</field>
+        <field name="model_id" ref="mail.model_discuss_channel" />
+        <field name="domain_force">
+            ['|', ('channel_type', '!=', 'whatsapp'), ('whatsapp_access_ok', '=', True)]
+        </field>
+    </record>
+
+    <record id="discuss_channel_rule_whatsapp_agent" model="ir.rule">
+        <field name="name">WhatsApp chats: agents without membership</field>
+        <field name="model_id" ref="mail.model_discuss_channel" />
+        <field name="groups" eval="[(4, ref('group_mail_whatsapp_own'))]" />
+        <field name="domain_force">
+            [('channel_type', '=', 'whatsapp'), ('whatsapp_access_ok', '=', True)]
+        </field>
+    </record>
+
+    <record id="discuss_channel_member_rule_whatsapp_agent" model="ir.rule">
+        <field name="name">WhatsApp chats: agents read the members of visible chats</field>
+        <field name="model_id" ref="mail.model_discuss_channel_member" />
+        <field name="groups" eval="[(4, ref('group_mail_whatsapp_own'))]" />
+        <field name="domain_force">
+            [('channel_id.channel_type', '=', 'whatsapp'), ('channel_id.whatsapp_access_ok', '=', True)]
+        </field>
+        <field name="perm_read" eval="True" />
+        <field name="perm_write" eval="False" />
+        <field name="perm_create" eval="False" />
+        <field name="perm_unlink" eval="False" />
+    </record>
+
+    <record id="mail_whatsapp_message_rule_agent" model="ir.rule">
+        <field name="name">WhatsApp Message: visible chats</field>
+        <field name="model_id" ref="model_mail_whatsapp_message" />
+        <field name="groups" eval="[(4, ref('group_mail_whatsapp_own'))]" />
+        <field name="domain_force">[('whatsapp_access_ok', '=', True)]</field>
+    </record>
+
+    <record id="mail_whatsapp_message_rule_admin" model="ir.rule">
+        <field name="name">WhatsApp Message: administrators</field>
+        <field name="model_id" ref="model_mail_whatsapp_message" />
+        <field name="groups" eval="[(4, ref('group_mail_whatsapp_admin'))]" />
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+
+    <record id="mail_whatsapp_template_rule_agent" model="ir.rule">
+        <field name="name">WhatsApp Template: own accounts</field>
+        <field name="model_id" ref="model_mail_whatsapp_template" />
+        <field name="groups" eval="[(4, ref('group_mail_whatsapp_own'))]" />
+        <field name="domain_force">
+            ['|', ('wa_account_id.agent_user_ids', 'in', user.id), ('wa_account_id.manager_user_ids', 'in', user.id)]
+        </field>
+        <field name="perm_read" eval="True" />
+        <field name="perm_write" eval="False" />
+        <field name="perm_create" eval="False" />
+        <field name="perm_unlink" eval="False" />
+    </record>
+
+    <record id="mail_whatsapp_template_rule_manager" model="ir.rule">
+        <field name="name">WhatsApp Template: account administrators</field>
+        <field name="model_id" ref="model_mail_whatsapp_template" />
+        <field name="groups" eval="[(4, ref('group_mail_whatsapp_account_manager'))]" />
+        <field name="domain_force">[('wa_account_id.manager_user_ids', 'in', user.id)]</field>
+    </record>
+
+    <record id="mail_whatsapp_template_rule_admin" model="ir.rule">
+        <field name="name">WhatsApp Template: administrators</field>
+        <field name="model_id" ref="model_mail_whatsapp_template" />
+        <field name="groups" eval="[(4, ref('group_mail_whatsapp_admin'))]" />
+        <field name="domain_force">[(1, '=', 1)]</field>
     </record>
 </odoo>

@@ -4,8 +4,9 @@ from datetime import timedelta
 from markupsafe import Markup
 
 from odoo import Command, _, api, fields, models, tools
-from odoo.exceptions import ValidationError
+from odoo.exceptions import AccessError, ValidationError
 from odoo.osv import expression
+from odoo.tools import SQL
 
 from odoo.addons.mail.tools.discuss import Store
 from odoo.addons.mail_whatsapp.tools import phone_validation as wa_phone_validation
@@ -35,6 +36,14 @@ class DiscussChannel(models.Model):
         string="WhatsApp Partner",
         index="btree_not_null",
     )
+    whatsapp_company_id = fields.Many2one(
+        "res.partner",
+        string="Company",
+        compute="_compute_whatsapp_company_id",
+        store=True,
+        index="btree_not_null",
+        help="Company of the WhatsApp contact when that person belongs to one.",
+    )
     whatsapp_last_replier_partner_id = fields.Many2one(
         "res.partner",
         string="Last Replier",
@@ -55,6 +64,17 @@ class DiscussChannel(models.Model):
     whatsapp_channel_active = fields.Boolean(
         string="Is WhatsApp Channel Active",
         compute="_compute_whatsapp_channel_active",
+    )
+    whatsapp_user_id = fields.Many2one(
+        "res.users",
+        string="WhatsApp Responsible",
+        index="btree_not_null",
+        help="Agent in charge of this WhatsApp chat. Users with the Own Chats "
+        "level see their chats and the unassigned ones.",
+    )
+    whatsapp_access_ok = fields.Boolean(
+        compute="_compute_whatsapp_access_ok",
+        search="_search_whatsapp_access_ok",
     )
 
     _sql_constraints = [
@@ -107,6 +127,394 @@ class DiscussChannel(models.Model):
                 channel.whatsapp_channel_valid_until
                 and channel.whatsapp_channel_valid_until > fields.Datetime.now()
             )
+
+    @api.model
+    def _whatsapp_sees_everything(self, user):
+        return (
+            user._is_superuser()
+            or user.has_group("mail_whatsapp.group_mail_whatsapp_admin")
+            or user.has_group("base.group_system")
+        )
+
+    @api.model
+    def _whatsapp_user_accounts(self, user):
+        if not user.has_group("mail_whatsapp.group_mail_whatsapp_own"):
+            return self.env["mail.whatsapp.account"]
+        return (
+            self.env["mail.whatsapp.account"]
+            .sudo()
+            .with_context(active_test=False)
+            .search(
+                [
+                    "|",
+                    ("agent_user_ids", "in", user.id),
+                    ("manager_user_ids", "in", user.id),
+                ]
+            )
+        )
+
+    @api.model
+    def _whatsapp_access_domain(self, user=None, prefix=""):
+        """Domain of the WhatsApp chats ``user`` may see by access level."""
+        user = user or self.env.user
+        if self._whatsapp_sees_everything(user):
+            return expression.TRUE_DOMAIN
+        accounts = self._whatsapp_user_accounts(user)
+        if not accounts:
+            return expression.FALSE_DOMAIN
+        domain = [(f"{prefix}wa_account_id", "in", accounts.ids)]
+        if not user.has_group("mail_whatsapp.group_mail_whatsapp_user"):
+            domain.append((f"{prefix}whatsapp_user_id", "in", [user.id, False]))
+        return domain
+
+    def _whatsapp_accessible_by(self, user):
+        domain = self._whatsapp_access_domain(user)
+        if domain == expression.TRUE_DOMAIN:
+            return self
+        if domain == expression.FALSE_DOMAIN:
+            return self.browse()
+        return (
+            self.sudo()
+            .with_context(active_test=False)
+            .search(expression.AND([[("id", "in", self.ids)], domain]))
+            .with_env(self.env)
+        )
+
+    def _compute_whatsapp_access_ok(self):
+        accessible = self.filtered("id")._whatsapp_accessible_by(self.env.user)
+        for channel in self:
+            channel.whatsapp_access_ok = channel in accessible
+
+    def _search_whatsapp_access_ok(self, operator, value):
+        if operator not in ("=", "!=") or not isinstance(value, bool):
+            raise ValidationError(_("Unsupported search on WhatsApp access."))
+        domain = self._whatsapp_access_domain()
+        if (operator == "=") == value:
+            return domain
+        return ["!"] + expression.normalize_domain(domain)
+
+    def _whatsapp_can_manage(self, user=None):
+        """True when ``user`` may assign this chat to anyone of its team."""
+        self.ensure_one()
+        user = user or self.env.user
+        if user._is_superuser() or user.has_group(
+            "mail_whatsapp.group_mail_whatsapp_admin"
+        ):
+            return True
+        return user.has_group(
+            "mail_whatsapp.group_mail_whatsapp_account_manager"
+        ) and user in self.wa_account_id.sudo().manager_user_ids
+
+    def _whatsapp_assignable_users(self):
+        self.ensure_one()
+        return (
+            self.wa_account_id.sudo()
+            ._whatsapp_team_users()
+            .filtered(
+                lambda user: user.active
+                and user.has_group("mail_whatsapp.group_mail_whatsapp_own")
+            )
+            .sorted("name")
+        )
+
+    def whatsapp_get_assignable_users(self):
+        """Return the users this chat can be assigned to by the current user."""
+        self.ensure_one()
+        self.check_access("read")
+        users = self._whatsapp_assignable_users()
+        if not self._whatsapp_can_manage():
+            free = self.whatsapp_user_id in (self.env.user, self.env["res.users"])
+            users = users & self.env.user if free else self.env["res.users"]
+        return [{"id": user.id, "name": user.name} for user in users]
+
+    def whatsapp_set_responsible(self, user_id=False):
+        """Assign the chat to ``user_id`` or release it with ``False``."""
+        self.ensure_one()
+        if self.channel_type != "whatsapp":
+            raise ValidationError(
+                _("Only WhatsApp conversations have a responsible.")
+            )
+        self.check_access("read")
+        user = self.env["res.users"].browse(user_id).exists() if user_id else False
+        current = self.whatsapp_user_id
+        me = self.env.user
+        if not self._whatsapp_can_manage():
+            takes_free_chat = user == me and current in (me, self.env["res.users"])
+            releases_own_chat = not user and current == me
+            if not (takes_free_chat or releases_own_chat):
+                raise AccessError(
+                    _(
+                        "You can only take unassigned chats or release your "
+                        "own. Ask an Account Administrator to reassign it."
+                    )
+                )
+        if user and user not in self._whatsapp_assignable_users():
+            raise ValidationError(
+                _(
+                    "%(user)s is not an agent of the WhatsApp account %(account)s.",
+                    user=user.name,
+                    account=self.wa_account_id.sudo().name,
+                )
+            )
+        self._whatsapp_assign(user)
+        return Store(self).get_result()
+
+    def action_whatsapp_open_chat(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.client",
+            "tag": "mail_whatsapp.action_chats",
+            "context": {"active_id": f"discuss.channel_{self.id}"},
+        }
+
+    def action_whatsapp_assign(self):
+        chats = self.filtered(lambda channel: channel.channel_type == "whatsapp")
+        if not chats:
+            raise ValidationError(_("Select at least one WhatsApp chat."))
+        wizard = self.env["mail.whatsapp.assign"].create(
+            {"channel_ids": [Command.set(chats.ids)]}
+        )
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Assign Chats"),
+            "res_model": "mail.whatsapp.assign",
+            "res_id": wizard.id,
+            "view_mode": "form",
+            "target": "new",
+        }
+
+    def _whatsapp_assign(self, user):
+        self.ensure_one()
+        self.sudo().whatsapp_user_id = user or False
+        self._whatsapp_sync_team_members()
+        self._bus_send_store(self, self._whatsapp_responsible_store_data())
+
+    def _whatsapp_sync_team_members(self):
+        """Keep agents as members only while they can see the chat."""
+        for channel in self.sudo():
+            responsible = channel.whatsapp_user_id
+            if (
+                responsible
+                and responsible.partner_id not in channel.channel_member_ids.partner_id
+            ):
+                channel.add_members(
+                    partner_ids=responsible.partner_id.ids,
+                    post_joined_message=False,
+                )
+            to_remove = channel.env["discuss.channel.member"]
+            for member in channel.channel_member_ids:
+                users = member.partner_id.user_ids.filtered(lambda u: not u.share)
+                if not users or member.partner_id == channel.whatsapp_partner_id:
+                    continue
+                if not any(channel._whatsapp_accessible_by(u) for u in users):
+                    to_remove |= member
+            to_remove.unlink()
+
+    def _whatsapp_responsible_store_data(self):
+        self.ensure_one()
+        user = self.whatsapp_user_id
+        return {
+            "whatsappResponsibleId": user.id if user else False,
+            "whatsappResponsibleName": user.name if user else False,
+        }
+
+    @api.depends(
+        "whatsapp_partner_id",
+        "whatsapp_partner_id.parent_id",
+        "whatsapp_partner_id.commercial_partner_id",
+        "whatsapp_partner_id.is_company",
+    )
+    def _compute_whatsapp_company_id(self):
+        for channel in self:
+            channel.whatsapp_company_id = channel._whatsapp_partner_company()
+
+    def _whatsapp_partner_company(self):
+        """Return the company of the WhatsApp person, if they belong to one."""
+        self.ensure_one()
+        partner = self.whatsapp_partner_id
+        if not partner or partner.is_company:
+            return partner.browse()
+        if partner.parent_id:
+            return partner.parent_id
+        commercial = partner.commercial_partner_id
+        if commercial and commercial != partner:
+            return commercial
+        return partner.browse()
+
+    def _whatsapp_company_store_data(self):
+        self.ensure_one()
+        company = self.whatsapp_company_id
+        return {
+            "whatsappCompanyId": company.id if company else False,
+            "whatsappCompanyName": company.display_name if company else False,
+        }
+
+    def _whatsapp_auto_assign(self, author):
+        """Give an unassigned chat to the first agent who answers it."""
+        self.ensure_one()
+        if self.whatsapp_user_id or not author:
+            return
+        user = author.sudo().user_ids.filtered(lambda u: not u.share)[:1]
+        if (
+            user
+            and not user._is_superuser()
+            and user in self._whatsapp_assignable_users()
+        ):
+            self._whatsapp_assign(user)
+
+    def _whatsapp_next_advisor(self):
+        """Return the next agent of the account in turn and remember it."""
+        self.ensure_one()
+        account = self.wa_account_id.sudo()
+        candidates = (
+            self._whatsapp_assignable_users()
+            .filtered(lambda user: not user._is_superuser())
+            .sorted("id")
+        )
+        if not account or not candidates:
+            return self.env["res.users"]
+        self.env.cr.execute(
+            SQL(
+                "SELECT id FROM mail_whatsapp_account WHERE id = %s FOR NO KEY UPDATE",
+                account.id,
+            )
+        )
+        account.invalidate_recordset(["advisor_last_user_id"])
+        last = account.advisor_last_user_id
+        following = candidates.filtered(lambda user: user.id > last.id) if last else candidates
+        advisor = (following or candidates)[:1]
+        account.advisor_last_user_id = advisor
+        return advisor
+
+    def _whatsapp_request_advisor(self, reason=False):
+        """Hand this chat to an advisor and alert them on WhatsApp.
+
+        A chat that already has a responsible stays with them; otherwise the
+        next agent in turn becomes responsible. Return the advisor.
+        """
+        self.ensure_one()
+        if self.channel_type != "whatsapp":
+            return self.env["res.users"]
+        advisor = self.whatsapp_user_id or self._whatsapp_next_advisor()
+        if not advisor:
+            self._whatsapp_post_internal_note(
+                _("This chat needs an advisor, but its WhatsApp account has no agents.")
+            )
+            return advisor
+        if advisor != self.whatsapp_user_id:
+            self._whatsapp_assign(advisor)
+        failure = self._whatsapp_notify_advisor(advisor, reason=reason)
+        if failure:
+            note = _(
+                "Chat handed to %(advisor)s. The WhatsApp alert was not sent: "
+                "%(failure)s",
+                advisor=advisor.name,
+                failure=failure,
+            )
+        else:
+            note = _(
+                "Chat handed to %(advisor)s, who was alerted on WhatsApp.",
+                advisor=advisor.name,
+            )
+        if reason:
+            note = "%s\n%s" % (note, _("Reason: %(reason)s", reason=reason))
+        self._whatsapp_post_internal_note(note)
+        return advisor
+
+    def _whatsapp_post_internal_note(self, text):
+        self.ensure_one()
+        return self.sudo().message_post(
+            body=tools.plaintext2html(text),
+            message_type="notification",
+            author_id=self.env.ref("base.partner_root").id,
+        )
+
+    def _whatsapp_advisor_alert_text(self, reason=False):
+        self.ensure_one()
+        lines = [
+            _(
+                "A WhatsApp customer needs you: %(name)s (+%(number)s).",
+                name=self.whatsapp_partner_id.name or self.name,
+                number=(self.whatsapp_number or "").lstrip("+"),
+            )
+        ]
+        if reason:
+            lines.append(_("Reason: %(reason)s", reason=reason))
+        lines.append(
+            "%s/odoo/discuss?active_id=discuss.channel_%s"
+            % (self.get_base_url(), self.id)
+        )
+        return "\n".join(lines)
+
+    def _whatsapp_notify_advisor(self, advisor, reason=False):
+        """Send a WhatsApp alert about this chat to ``advisor``.
+
+        Return False when sent, or the reason it could not be sent.
+        """
+        self.ensure_one()
+        account = self.wa_account_id.sudo()
+        partner = advisor.sudo().partner_id
+        number = partner.mobile or partner.phone
+        formatted = number and wa_phone_validation.wa_phone_format(
+            self.env.company,
+            number=number,
+            force_format="WHATSAPP",
+            raise_exception=False,
+        )
+        if not formatted:
+            return _("%(name)s has no valid mobile number.", name=advisor.name)
+        advisor_chat = account._find_active_channel(
+            formatted, sender_name=advisor.name, create_if_not_found=True
+        )
+        if not advisor_chat.whatsapp_user_id and advisor in (
+            advisor_chat._whatsapp_assignable_users()
+        ):
+            advisor_chat._whatsapp_assign(advisor)
+        author = self.env.ref("base.partner_root")
+        Message = self.env["mail.whatsapp.message"].sudo()
+        if advisor_chat.whatsapp_channel_active:
+            message = advisor_chat.message_post(
+                body=tools.plaintext2html(self._whatsapp_advisor_alert_text(reason)),
+                message_type="whatsapp_message",
+                subtype_xmlid="mail.mt_comment",
+                author_id=author.id,
+            )
+            wa_message = Message.search(
+                [("mail_message_id", "=", message.id)], limit=1
+            )
+        elif account.advisor_template_id:
+            template = account.advisor_template_id
+            message = advisor_chat.with_context(whatsapp_skip_send=True).message_post(
+                body=template._get_preview_html(self, include_buttons=False),
+                message_type="whatsapp_message",
+                subtype_xmlid="mail.mt_comment",
+                author_id=author.id,
+            )
+            wa_message = Message.create(
+                {
+                    "mail_message_id": message.id,
+                    "message_type": "outbound",
+                    "mobile_number": "+%s" % formatted.lstrip("+"),
+                    "wa_account_id": account.id,
+                    "wa_template_id": template.id,
+                    "state": "outgoing",
+                    "origin_res_model": self._name,
+                    "origin_res_id": self.id,
+                    "buttons_data": template._get_resolved_buttons_data(self) or False,
+                }
+            )
+            wa_message._send_message()
+        else:
+            return _(
+                "the 24-hour window with %(name)s is closed and the account has "
+                "no Advisor Alert Template.",
+                name=advisor.name,
+            )
+        if not wa_message or wa_message.state == "error":
+            return (wa_message.failure_reason if wa_message else False) or _(
+                "WhatsApp could not deliver it."
+            )
+        return False
 
     def _compute_group_public_id(self):
         wa_channels = self.filtered(lambda channel: channel.channel_type == "whatsapp")
@@ -199,6 +607,7 @@ class DiscussChannel(models.Model):
                     "whatsappLastReplierPartnerId": last_message.author_id.id,
                 },
             )
+            self._whatsapp_auto_assign(last_message.author_id)
 
         should_send = (
             not kwargs.get("whatsapp_inbound_msg_uid")
@@ -424,6 +833,7 @@ class DiscussChannel(models.Model):
                 "whatsapp_partner_id": Store.one(partner, only_id=True)
                 if partner
                 else False,
+                **self._whatsapp_company_store_data(),
             },
         )
         return True
@@ -437,6 +847,7 @@ class DiscussChannel(models.Model):
         tag_ids=None,
         replied_by_me=False,
         include_messages=True,
+        responsible=False,
     ):
         """Return a page of WhatsApp chats (and optional message hits).
 
@@ -446,10 +857,11 @@ class DiscussChannel(models.Model):
         limit = min(max(int(limit or 30), 1), 100)
         offset = max(int(offset or 0), 0)
         partner = self.env.user.partner_id
-        base_domain = [
-            ("channel_type", "=", "whatsapp"),
-            ("channel_member_ids.partner_id", "=", partner.id),
-        ]
+        base_domain = [("channel_type", "=", "whatsapp")]
+        if responsible == "me":
+            base_domain.append(("whatsapp_user_id", "=", self.env.user.id))
+        elif responsible == "none":
+            base_domain.append(("whatsapp_user_id", "=", False))
         if replied_by_me:
             base_domain.append(
                 ("whatsapp_last_replier_partner_id", "=", partner.id)
@@ -472,6 +884,7 @@ class DiscussChannel(models.Model):
                 [("whatsapp_partner_id.name", "ilike", term)],
                 [("whatsapp_partner_id.mobile", "ilike", term)],
                 [("whatsapp_partner_id.phone", "ilike", term)],
+                [("whatsapp_company_id.name", "ilike", term)],
                 [("whatsapp_tag_ids.name", "ilike", term)],
                 [("whatsapp_last_replier_partner_id.name", "ilike", term)],
             ]
@@ -556,28 +969,27 @@ class DiscussChannel(models.Model):
 
     @api.model
     def _whatsapp_focus_search_messages(self, term, partner, limit=30):
-        """Search message bodies in WhatsApp channels the user belongs to."""
+        """Search message bodies in the WhatsApp chats the user may see."""
+        del partner
         limit = min(max(int(limit or 30), 1), 100)
         term = (term or "").strip()
         if not term:
+            return self.env["mail.message"]
+        channel_ids = self.search([("channel_type", "=", "whatsapp")]).ids
+        if not channel_ids:
             return self.env["mail.message"]
         self.env.cr.execute(
             """
             SELECT message.id
               FROM mail_message AS message
-              JOIN discuss_channel AS channel
-                ON channel.id = message.res_id
-              JOIN discuss_channel_member AS member
-                ON member.channel_id = channel.id
              WHERE message.model = 'discuss.channel'
                AND message.message_type != 'notification'
-               AND channel.channel_type = 'whatsapp'
-               AND member.partner_id = %s
+               AND message.res_id = ANY(%s)
                AND message.body ILIKE %s
              ORDER BY message.id DESC
              LIMIT %s
             """,
-            (partner.id, f"%{term}%", limit),
+            (channel_ids, f"%{term}%", limit),
         )
         ids = [row[0] for row in self.env.cr.fetchall()]
         return self.env["mail.message"].browse(ids).exists()
@@ -603,6 +1015,8 @@ class DiscussChannel(models.Model):
                         else False
                     ),
                     "whatsappTags": channel._whatsapp_tags_store_data(),
+                    **channel._whatsapp_responsible_store_data(),
+                    **channel._whatsapp_company_store_data(),
                     "whatsappNumber": (
                         "+%s" % channel.whatsapp_number.lstrip("+")
                         if channel.whatsapp_number

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="mail_whatsapp_assign_view_form" model="ir.ui.view">
+        <field name="name">mail.whatsapp.assign.view.form</field>
+        <field name="model">mail.whatsapp.assign</field>
+        <field name="arch" type="xml">
+            <form>
+                <group>
+                    <field name="channel_ids" widget="many2many_tags" readonly="1"/>
+                    <field name="allowed_user_ids" invisible="1"/>
+                    <field
+                        name="user_id"
+                        widget="many2one_avatar_user"
+                        placeholder="Unassigned"
+                        options="{'no_create': True}"
+                    />
+                </group>
+                <div class="text-muted">
+                    Only agents of the chat's WhatsApp account can be selected.
+                    Leave the responsible empty to release the chats.
+                </div>
+                <footer>
+                    <button
+                        name="action_assign"
+                        type="object"
+                        string="Assign"
+                        class="btn-primary"
+                        data-hotkey="q"
+                    />
+                    <button string="Cancel" special="cancel" data-hotkey="x"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

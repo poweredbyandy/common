@@ -20,6 +20,12 @@
                     t-esc="thread.whatsappNumber"
                 />
                 <div
+                    t-if="thread.channel_type === 'whatsapp' and thread.whatsappCompanyName"
+                    class="o-mail-whatsapp-sidebarCompany text-truncate smaller lh-1 mt-1 text-start fw-medium"
+                    t-att-title="thread.whatsappCompanyName"
+                    t-esc="thread.whatsappCompanyName"
+                />
+                <div
                     t-if="thread.channel_type === 'whatsapp' and thread.whatsappSidebarTags.length"
                     class="o-mail-whatsapp-sidebarTags d-flex flex-wrap gap-1 mt-1 justify-content-start"
                 >

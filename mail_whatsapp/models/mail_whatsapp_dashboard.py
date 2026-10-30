@@ -4,6 +4,9 @@ from datetime import timedelta
 from odoo import _, api, fields, models
 from odoo.tools.misc import format_duration
 
+_DASHBOARD_MESSAGE_TYPES = ("inbound", "outbound", "echo")
+_REPLY_MESSAGE_TYPES = ("outbound", "echo")
+
 
 class MailWhatsappDashboard(models.TransientModel):
     _name = "mail.whatsapp.dashboard"
@@ -35,6 +38,18 @@ class MailWhatsappDashboard(models.TransientModel):
     )
     messages_sent = fields.Integer(
         string="Messages Sent",
+        compute="_compute_kpis",
+    )
+    messages_sent_app = fields.Integer(
+        string="Sent from the App",
+        compute="_compute_kpis",
+    )
+    messages_sent_phone = fields.Integer(
+        string="Sent from the Phone",
+        compute="_compute_kpis",
+    )
+    messages_sent_breakdown = fields.Char(
+        string="Sent Breakdown",
         compute="_compute_kpis",
     )
     messages_total = fields.Integer(
@@ -91,7 +106,7 @@ class MailWhatsappDashboard(models.TransientModel):
         domain = [
             ("message_date", ">=", date_from),
             ("message_date", "<=", date_to),
-            ("message_type", "in", ("inbound", "outbound")),
+            ("message_type", "in", _DASHBOARD_MESSAGE_TYPES),
         ]
         if self.wa_account_id:
             domain.append(("wa_account_id", "=", self.wa_account_id.id))
@@ -105,12 +120,24 @@ class MailWhatsappDashboard(models.TransientModel):
             received = Message.search_count(
                 domain + [("message_type", "=", "inbound")]
             )
-            sent = Message.search_count(
+            sent_app = Message.search_count(
                 domain + [("message_type", "=", "outbound")]
             )
+            sent_phone = Message.search_count(
+                domain + [("message_type", "=", "echo")]
+            )
+            sent = sent_app + sent_phone
             avg_seconds, responded = dashboard._compute_avg_response_seconds()
             dashboard.messages_received = received
             dashboard.messages_sent = sent
+            dashboard.messages_sent_app = sent_app
+            dashboard.messages_sent_phone = sent_phone
+            dashboard.messages_sent_breakdown = _(
+                "%(app)s from the app · %(phone)s from the phone"
+            ) % {
+                "app": sent_app,
+                "phone": sent_phone,
+            }
             dashboard.messages_total = received + sent
             dashboard.avg_response_seconds = avg_seconds
             dashboard.responded_conversations = responded
@@ -130,9 +157,15 @@ class MailWhatsappDashboard(models.TransientModel):
         return res
 
     def _compute_avg_response_seconds(self):
-        """Average time from an inbound message to the next outbound reply."""
+        """Average time from an inbound message to the next human reply.
+
+        A reply is the next message sent from Odoo or from the WhatsApp
+        Business app on the phone. Automatic replies from OdooBot are
+        ignored, so the time keeps running until a person answers.
+        """
         self.ensure_one()
         Message = self.env["mail.whatsapp.message"]
+        bot_partners = self._bot_partners()
         messages = Message.search(
             self._message_domain(),
             order="channel_id, message_date, id",
@@ -156,7 +189,11 @@ class MailWhatsappDashboard(models.TransientModel):
                     if pending_inbound is None:
                         pending_inbound = message
                     continue
-                if message.message_type == "outbound" and pending_inbound:
+                if (
+                    message.message_type in _REPLY_MESSAGE_TYPES
+                    and pending_inbound
+                    and message.author_id not in bot_partners
+                ):
                     inbound_dt = (
                         pending_inbound.message_date or pending_inbound.create_date
                     )
@@ -167,6 +204,11 @@ class MailWhatsappDashboard(models.TransientModel):
         if not deltas:
             return 0.0, 0
         return sum(deltas) / len(deltas), len(deltas)
+
+    def _bot_partners(self):
+        return self.env.ref("base.partner_root", raise_if_not_found=False) or self.env[
+            "res.partner"
+        ]
 
     def _refresh_rankings(self):
         self.ensure_one()
@@ -180,6 +222,7 @@ class MailWhatsappDashboard(models.TransientModel):
             + [
                 ("message_type", "=", "outbound"),
                 ("author_id", "!=", False),
+                ("author_id", "not in", self._bot_partners().ids),
             ],
             groupby=["author_id"],
             aggregates=["__count"],
@@ -258,7 +301,7 @@ class MailWhatsappDashboard(models.TransientModel):
     def action_open_sent(self):
         return self._action_open_messages(
             _("Messages Sent"),
-            [("message_type", "=", "outbound")],
+            [("message_type", "in", _REPLY_MESSAGE_TYPES)],
         )
 
     def _action_open_messages(self, name, extra_domain):

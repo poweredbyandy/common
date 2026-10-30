@@ -5,6 +5,34 @@ import { _t } from "@web/core/l10n/translation";
 import { patch } from "@web/core/utils/patch";
 
 patch(Message.prototype, {
+    get isWhatsappChat() {
+        const thread = this.props.thread || this.message.thread;
+        return Boolean(
+            thread?.channel_type === "whatsapp" && !this.message.isNotification
+        );
+    },
+
+    get isWhatsappOutgoing() {
+        return this.isWhatsappChat && Boolean(this.message.isWhatsappOutgoing);
+    },
+
+    get isAlignedRight() {
+        const thread = this.props.thread || this.message.thread;
+        if (thread?.channel_type === "whatsapp") {
+            return this.isWhatsappOutgoing;
+        }
+        return super.isAlignedRight;
+    },
+
+    get attClass() {
+        return {
+            ...super.attClass,
+            "o-whatsappChat": this.isWhatsappChat,
+            "o-whatsappOutgoing": this.isWhatsappOutgoing,
+            "o-whatsappIncoming": this.isWhatsappChat && !this.isWhatsappOutgoing,
+        };
+    },
+
     get showSeenIndicator() {
         return super.showSeenIndicator && this.message.whatsappStatus !== "error";
     },

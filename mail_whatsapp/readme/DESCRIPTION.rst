@@ -19,6 +19,8 @@ Features
   Business app), chat ``history`` sync and ``smb_app_state_sync``
 * Discuss and message list distinguish messages sent from Odoo / API
   versus WhatsApp Business (including edits and deletes from the app)
+* Dashboard counts replies sent from Odoo and from the WhatsApp Business
+  app on the phone, including them in sent volume and response time
 * Discuss channels (``channel_type = whatsapp``) mirroring 1:1 conversations
 * Automatic contact and history synchronization after coexistence onboarding
 * Meta **Data Deletion Request Callback** (``signed_request``) with public
@@ -32,3 +34,6 @@ Features
   environment switch
 * Reusable **WhatsApp follow-up** automation (``mail.whatsapp.followup``) for
   any model with activities; other modules can adapt interest/topic and message
+* WhatsApp chats in their own app (*WhatsApp → Chats*), out of Discuss, with
+  four access levels (own chats, all chats, account administrator,
+  administrator), per-account agents and a responsible per chat.

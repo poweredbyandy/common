@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="mail_whatsapp.WhatsappResponsiblePanel">
+        <ActionPanel title.translate="Responsible" resizable="false" icon="'fa fa-user'">
+            <div
+                class="d-flex flex-column flex-grow-1 bg-inherit"
+                t-att-class="{ 'o-mail-Discuss-threadActionPopover w-100': props.hasSizeConstraints }"
+            >
+                <div class="small text-muted mb-2">
+                    <t t-if="props.thread.whatsappResponsibleName">
+                        In charge: <strong t-esc="props.thread.whatsappResponsibleName"/>
+                    </t>
+                    <t t-else="">Nobody is in charge of this chat.</t>
+                </div>
+                <div t-if="state.loading" class="text-muted small py-2">
+                    <i class="fa fa-circle-o-notch fa-spin me-1"/>Loading…
+                </div>
+                <ul t-else="" class="list-group list-group-flush border-0 overflow-auto flex-grow-1 mb-0">
+                    <t t-foreach="state.users" t-as="user" t-key="user.id">
+                        <button
+                            type="button"
+                            class="list-group-item list-group-item-action border-0 px-2 py-1 d-flex align-items-center gap-2"
+                            t-att-disabled="state.saving or user.id === currentId"
+                            t-on-click="() => this.assign(user.id)"
+                        >
+                            <img
+                                class="rounded-circle o_avatar"
+                                width="20"
+                                height="20"
+                                t-attf-src="/web/image/res.users/{{ user.id }}/avatar_128"
+                                alt=""
+                            />
+                            <span class="flex-grow-1 text-truncate" t-esc="user.name"/>
+                            <i t-if="user.id === currentId" class="fa fa-check text-success"/>
+                        </button>
+                    </t>
+                    <button
+                        t-if="canRelease"
+                        type="button"
+                        class="list-group-item list-group-item-action border-0 px-2 py-1 text-start text-muted"
+                        t-att-disabled="state.saving"
+                        t-on-click="() => this.assign(false)"
+                    >
+                        <i class="fa fa-times me-1"/>Unassign
+                    </button>
+                    <div
+                        t-if="!state.users.length"
+                        class="small text-muted fst-italic px-1 py-2"
+                    >
+                        This chat already has a responsible. Ask an Account Administrator to reassign it.
+                    </div>
+                </ul>
+            </div>
+        </ActionPanel>
+    </t>
+</templates>

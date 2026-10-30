@@ -17,6 +17,8 @@
                     />
                     <field name="sender_name" />
                     <field name="body" />
+                    <field name="attachment_name" invisible="1" />
+                    <field name="attachment_file" filename="attachment_name" />
                 </group>
                 <footer>
                     <button

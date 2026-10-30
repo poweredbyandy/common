@@ -129,6 +129,12 @@
                             t-esc="thread.whatsappNumber"
                         />
                         <div
+                            t-if="thread.whatsappCompanyName"
+                            class="smaller text-truncate fw-medium"
+                            t-att-title="thread.whatsappCompanyName"
+                            t-esc="thread.whatsappCompanyName"
+                        />
+                        <div
                             t-if="thread.whatsappSidebarTags.length"
                             class="d-flex flex-wrap gap-1 mt-1"
                         >

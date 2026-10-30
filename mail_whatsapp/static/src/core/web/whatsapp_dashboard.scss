@@ -98,6 +98,12 @@
         margin-top: auto;
         color: var(--body-color-muted, #6c757d);
         font-size: 0.8rem;
+
+        .o_field_widget {
+            display: inline;
+            font-size: inherit;
+            font-weight: inherit;
+        }
     }
 
     .o_mail_whatsapp_kpi_received {

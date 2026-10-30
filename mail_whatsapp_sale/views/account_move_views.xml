@@ -12,7 +12,7 @@
                     string="WhatsApp Factura"
                     class="btn-secondary"
                     icon="fa-whatsapp"
-                    groups="mail_whatsapp.group_mail_whatsapp_user"
+                    groups="mail_whatsapp.group_mail_whatsapp_own"
                     invisible="move_type not in ('out_invoice', 'out_refund') or state != 'posted' or sale_order_count == 0"
                 />
             </xpath>

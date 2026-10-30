@@ -15,6 +15,14 @@ patch(Thread.prototype, {
         this.whatsappLastReplierPartnerId = false;
         /** @type {string|false} */
         this.whatsappNumber = false;
+        /** @type {number|false} */
+        this.whatsappCompanyId = false;
+        /** @type {string|false} */
+        this.whatsappCompanyName = false;
+        /** @type {number|false} */
+        this.whatsappResponsibleId = false;
+        /** @type {string|false} */
+        this.whatsappResponsibleName = false;
         /** @type {{id: number, name: string, color: number}[]} */
         this.whatsappTags = [];
         this.whatsappMember = Record.one("ChannelMember", {
@@ -54,6 +62,18 @@ patch(Thread.prototype, {
             return [];
         }
         const tags = [];
+        if (this.whatsappResponsibleName) {
+            tags.push({
+                id: "responsible",
+                label: _t("Responsible: %(name)s", {
+                    name: this.whatsappResponsibleName,
+                }),
+                title: _t("%(name)s is in charge of this conversation", {
+                    name: this.whatsappResponsibleName,
+                }),
+                color: false,
+            });
+        }
         if (this.whatsappLastReplierName) {
             tags.push({
                 id: "replier",

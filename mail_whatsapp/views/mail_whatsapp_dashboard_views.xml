@@ -104,7 +104,9 @@
                                 <div class="o_mail_whatsapp_kpi_value">
                                     <field name="messages_sent" nolabel="1"/>
                                 </div>
-                                <div class="o_mail_whatsapp_kpi_hint">Outbound WhatsApp</div>
+                                <div class="o_mail_whatsapp_kpi_hint">
+                                    <field name="messages_sent_breakdown" nolabel="1"/>
+                                </div>
                             </button>
                         </div>
                         <div class="col-12 col-sm-6 col-xl-3">
@@ -119,7 +121,7 @@
                                 <div class="o_mail_whatsapp_kpi_hint">
                                     Based on
                                     <field name="responded_conversations" nolabel="1"/>
-                                    replies
+                                    replies from the app or the phone
                                 </div>
                             </div>
                         </div>
@@ -153,6 +155,13 @@
                                             <field name="line_type" column_invisible="1"/>
                                         </list>
                                     </field>
+                                    <div
+                                        class="px-3 pb-3 text-muted small"
+                                        invisible="not messages_sent_phone"
+                                    >
+                                        <field name="messages_sent_phone" nolabel="1" class="oe_inline"/>
+                                        replies from the phone are included in sent messages and response time. They are not assigned to an agent.
+                                    </div>
                                 </div>
                             </div>
                         </div>

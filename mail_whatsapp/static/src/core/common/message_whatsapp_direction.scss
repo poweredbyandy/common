@@ -1,0 +1,46 @@
+$o-mail-whatsapp-bubble-max-width: unquote("min(70%, 38rem)");
+
+.o-mail-Message.o-whatsappChat {
+    .o-mail-Message-contentContainer {
+        width: 100%;
+    }
+
+    .o-mail-Message-content {
+        max-width: $o-mail-whatsapp-bubble-max-width;
+    }
+
+    .o-mail-Message-bubble {
+        box-shadow: 0 1px 1px rgba($black, .06);
+    }
+}
+
+.o-mail-Message.o-whatsappOutgoing {
+    .o-mail-Message-core {
+        flex-direction: row-reverse;
+    }
+
+    .o-mail-Message-header {
+        flex-direction: row-reverse;
+    }
+
+    .o-mail-Message-author strong {
+        margin-right: 0 !important;
+        margin-left: map-get($spacers, 1);
+    }
+
+    .o-mail-Message-contentContainer {
+        justify-content: flex-start;
+    }
+
+    .o-mail-Message-textContent {
+        flex-direction: row-reverse;
+    }
+
+    .o-mail-Message-body {
+        text-align: left;
+    }
+
+    .o-mail-MessageReactions {
+        justify-content: flex-end;
+    }
+}

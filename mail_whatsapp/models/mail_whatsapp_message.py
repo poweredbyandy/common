@@ -1,13 +1,15 @@
 import logging
 import uuid
 
-from odoo import api, fields, models
+from odoo import _, api, fields, models
+from odoo.exceptions import ValidationError
+from odoo.osv import expression
 from odoo.tools import html2plaintext
-
-_logger = logging.getLogger(__name__)
 
 from odoo.addons.mail_whatsapp.tools import phone_validation as wa_phone_validation
 from odoo.addons.mail_whatsapp.tools.meta_credentials import is_demo_environment
+
+_logger = logging.getLogger(__name__)
 
 
 class MailWhatsappMessage(models.Model):
@@ -134,6 +136,10 @@ class MailWhatsappMessage(models.Model):
         store=True,
         index=True,
     )
+    whatsapp_access_ok = fields.Boolean(
+        compute="_compute_whatsapp_access_ok",
+        search="_search_whatsapp_access_ok",
+    )
 
     _sql_constraints = [
         (
@@ -142,6 +148,40 @@ class MailWhatsappMessage(models.Model):
             "Each WhatsApp message must have a unique message ID.",
         ),
     ]
+
+    @api.model
+    def _whatsapp_access_domain(self):
+        Channel = self.env["discuss.channel"]
+        user = self.env.user
+        channel_domain = Channel._whatsapp_access_domain(user, prefix="channel_id.")
+        if channel_domain in (expression.TRUE_DOMAIN, expression.FALSE_DOMAIN):
+            return channel_domain
+        accounts = Channel._whatsapp_user_accounts(user)
+        return expression.OR(
+            [
+                expression.AND([[("channel_id", "!=", False)], channel_domain]),
+                [("channel_id", "=", False), ("wa_account_id", "in", accounts.ids)],
+            ]
+        )
+
+    def _compute_whatsapp_access_ok(self):
+        domain = self._whatsapp_access_domain()
+        records = self.filtered("id")
+        allowed = (
+            records.sudo().search(expression.AND([[("id", "in", records.ids)], domain]))
+            if records
+            else records
+        )
+        for message in self:
+            message.whatsapp_access_ok = message.id in allowed.ids
+
+    def _search_whatsapp_access_ok(self, operator, value):
+        if operator not in ("=", "!=") or not isinstance(value, bool):
+            raise ValidationError(_("Unsupported search on WhatsApp access."))
+        domain = self._whatsapp_access_domain()
+        if (operator == "=") == value:
+            return domain
+        return ["!"] + expression.normalize_domain(domain)
 
     @api.depends("message_type")
     def _compute_send_source(self):

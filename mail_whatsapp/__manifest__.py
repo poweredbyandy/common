@@ -1,6 +1,6 @@
 {
     "name": "Mail WhatsApp",
-    "version": "18.0.1.40.0",
+    "version": "18.0.1.47.0",
     "images": ["static/description/icon.png"],
     "category": "Discuss",
     "summary": "WhatsApp Cloud API, Embedded Signup and Dualhook",
@@ -23,6 +23,8 @@
         "wizards/mail_whatsapp_test_receive_views.xml",
         "wizards/mail_whatsapp_composer_views.xml",
         "wizards/mail_whatsapp_followup_views.xml",
+        "wizards/mail_whatsapp_assign_views.xml",
+        "views/discuss_channel_views.xml",
         "views/mail_whatsapp_account_views.xml",
         "views/mail_whatsapp_message_views.xml",
         "views/mail_whatsapp_template_views.xml",

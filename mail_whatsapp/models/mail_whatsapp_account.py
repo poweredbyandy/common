@@ -5,8 +5,8 @@ import string
 
 from markupsafe import Markup
 
-from odoo import _, api, fields, models
-from odoo.exceptions import UserError, ValidationError
+from odoo import Command, _, api, fields, models
+from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tools import plaintext2html
 
 from odoo.addons.mail_whatsapp.tools.meta_credentials import (
@@ -26,7 +26,7 @@ class MailWhatsappAccount(models.Model):
     _inherit = ["mail.thread"]
     _description = "WhatsApp Business Account"
 
-    name = fields.Char(tracking=1)
+    name = fields.Char(required=True, tracking=1)
     active = fields.Boolean(default=True, tracking=6)
     setup_mode = fields.Selection(
         [
@@ -82,9 +82,46 @@ class MailWhatsappAccount(models.Model):
         "res.users",
         default=lambda self: self.env.user,
         domain=[("share", "=", False)],
-        required=True,
         tracking=7,
         help="Users notified when a message is received on a new conversation.",
+    )
+    agent_user_ids = fields.Many2many(
+        "res.users",
+        "mail_whatsapp_account_agent_rel",
+        "account_id",
+        "user_id",
+        string="Agents",
+        domain=[("share", "=", False)],
+        help="Users who answer the chats of this account. Their WhatsApp "
+        "access level decides if they see only their own chats or all of them.",
+    )
+    manager_user_ids = fields.Many2many(
+        "res.users",
+        "mail_whatsapp_account_manager_rel",
+        "account_id",
+        "user_id",
+        string="Account Administrators",
+        domain=[("share", "=", False)],
+        help="Users with the Account Administrator level who manage this "
+        "account: settings, agents, templates and chat assignment.",
+    )
+    can_edit_managers = fields.Boolean(compute="_compute_can_edit_managers")
+    advisor_template_id = fields.Many2one(
+        "mail.whatsapp.template",
+        string="Advisor Alert Template",
+        domain="[('wa_account_id', '=', id), ('status', '=', 'APPROVED')]",
+        help="Sent to the advisor's mobile when a chat needs a person and the "
+        "advisor has not written to this number in the last 24 hours. Its "
+        "variables are read from the customer chat, e.g. 'name' or "
+        "'whatsapp_number'.",
+    )
+    advisor_last_user_id = fields.Many2one(
+        "res.users",
+        string="Last Advisor",
+        readonly=True,
+        copy=False,
+        help="Agent who received the last chat handed to an advisor. The next "
+        "one goes to the following agent.",
     )
     is_on_biz_app = fields.Boolean(
         string="On WhatsApp Business App",
@@ -151,6 +188,19 @@ class MailWhatsappAccount(models.Model):
         ICP = self.env["ir.config_parameter"].sudo()
         default_verify = ICP.get_param("mail_whatsapp.webhook_verify_token")
         for vals in vals_list:
+            if not vals.get("notify_user_ids"):
+                user = self.env.user
+                if (
+                    user
+                    and not user.share
+                    and user.login != "__system__"
+                    and user != self.env.ref("base.user_root")
+                ):
+                    vals["notify_user_ids"] = [Command.set(user.ids)]
+                else:
+                    vals["notify_user_ids"] = [
+                        Command.set(self.env.ref("base.user_admin").ids)
+                    ]
             if not vals.get("webhook_verify_token"):
                 vals["webhook_verify_token"] = default_verify or "".join(
                     secrets.choice(string.ascii_letters + string.digits)
@@ -162,7 +212,43 @@ class MailWhatsappAccount(models.Model):
                     vals["app_uid"] = creds["app_id"]
                 if not vals.get("app_secret"):
                     vals["app_secret"] = creds["app_secret"]
-        return super().create(vals_list)
+        accounts = super().create(vals_list)
+        accounts._add_notify_users_as_agents()
+        return accounts
+
+    def write(self, vals):
+        if (
+            "manager_user_ids" in vals
+            and not self.env.su
+            and not self.env.user.has_group(
+                "mail_whatsapp.group_mail_whatsapp_admin"
+            )
+        ):
+            raise AccessError(
+                _("Only WhatsApp Administrators can change Account Administrators.")
+            )
+        res = super().write(vals)
+        if "notify_user_ids" in vals:
+            self._add_notify_users_as_agents()
+        return res
+
+    def _add_notify_users_as_agents(self):
+        for account in self:
+            missing = (
+                account.notify_user_ids
+                - account.agent_user_ids
+                - account.manager_user_ids
+            )
+            if missing:
+                account.agent_user_ids = [Command.link(user.id) for user in missing]
+
+    def _whatsapp_team_users(self):
+        return self.agent_user_ids | self.manager_user_ids
+
+    def _compute_can_edit_managers(self):
+        is_admin = self.env.user.has_group("mail_whatsapp.group_mail_whatsapp_admin")
+        for account in self:
+            account.can_edit_managers = is_admin
 
     @api.constrains("notify_user_ids")
     def _check_notify_user_ids(self):
@@ -170,15 +256,29 @@ class MailWhatsappAccount(models.Model):
             if not account.notify_user_ids:
                 raise ValidationError(_("Users to notify is required."))
 
-    @api.constrains("setup_mode", "token", "phone_uid")
-    def _check_dualhook_runtime_key(self):
+    @api.constrains("setup_mode", "token", "phone_uid", "account_uid")
+    def _check_credentials_when_started(self):
+        """Credentials are optional on create; once any is set, require the set."""
         for account in self:
-            if account.setup_mode != "dualhook":
+            if account.setup_mode not in ("manual", "dualhook"):
                 continue
             if account.phone_uid == "demo_phone_number_id":
                 continue
             token = (account.sudo().token or "").strip()
-            if token and not token.startswith("dh_live_"):
+            phone = (account.phone_uid or "").strip()
+            waba = (account.account_uid or "").strip()
+            started = bool(token or phone or waba)
+            if started and not (token and phone and waba):
+                raise ValidationError(
+                    _(
+                        "Paste WhatsApp Business Account ID, Phone Number ID "
+                        "and Access Token together, or leave all three empty "
+                        "until you are ready to connect."
+                    )
+                )
+            if account.setup_mode == "dualhook" and token and not token.startswith(
+                "dh_live_"
+            ):
                 raise ValidationError(
                     _(
                         "Dualhook requires the outbound API key that starts "
@@ -869,6 +969,13 @@ class MailWhatsappAccount(models.Model):
                 **kwargs,
             )
 
+    def _whatsapp_download_media(self, wa_api, media_id):
+        """Return the media bytes; the simulator provides them in context."""
+        simulated = self.env.context.get("whatsapp_simulated_media") or {}
+        if media_id in simulated:
+            return simulated[media_id]
+        return wa_api._get_whatsapp_document(media_id)
+
     def _prepare_message_post_kwargs(
         self, wa_api, messages, message_type, channel, parent_msg
     ):
@@ -889,7 +996,7 @@ class MailWhatsappAccount(models.Model):
             filename = media.get("filename")
             mime_type = media.get("mime_type")
             caption = media.get("caption")
-            datas = wa_api._get_whatsapp_document(media["id"])
+            datas = self._whatsapp_download_media(wa_api, media["id"])
             if not filename:
                 extension = mimetypes.guess_extension(mime_type or "") or ""
                 filename = message_type + extension

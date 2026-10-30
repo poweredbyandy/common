@@ -12,7 +12,9 @@ import { useDebounced } from "@web/core/utils/timing";
 import { htmlToTextContentInline } from "@mail/utils/common/format";
 import { useVisible } from "@mail/utils/common/hooks";
 
-const REPLIER_FILTER_ID = "replier-self";
+const MINE_FILTER_ID = "responsible-me";
+const UNASSIGNED_FILTER_ID = "responsible-none";
+const RESPONSIBLE_FILTER_IDS = [MINE_FILTER_ID, UNASSIGNED_FILTER_ID];
 const PAGE_SIZE = 30;
 
 /** Session cache to avoid refetching tags / list on sidebar remounts. */
@@ -80,7 +82,7 @@ export class WhatsappFocusSidebar extends Component {
         return JSON.stringify({
             search: this.state.search.trim(),
             tags: this.selectedTagIds,
-            replied: this.repliedByMe,
+            responsible: this.responsibleFilter,
         });
     }
 
@@ -92,17 +94,18 @@ export class WhatsappFocusSidebar extends Component {
         return _t("Messages");
     }
 
-    get selfReplierLabel() {
-        const name = this.store.self?.name || _t("Me");
-        return _t("Replied: %(name)s", { name });
-    }
-
     get allFilterTags() {
         const tags = [
             {
-                id: REPLIER_FILTER_ID,
-                type: "replier",
-                label: this.selfReplierLabel,
+                id: MINE_FILTER_ID,
+                type: "responsible",
+                label: _t("My chats"),
+                color: false,
+            },
+            {
+                id: UNASSIGNED_FILTER_ID,
+                type: "responsible",
+                label: _t("Unassigned"),
                 color: false,
             },
         ];
@@ -119,11 +122,11 @@ export class WhatsappFocusSidebar extends Component {
     }
 
     get visibleFilterTags() {
-        return this.allFilterTags.filter((tag) => tag.id === REPLIER_FILTER_ID);
+        return this.allFilterTags.filter((tag) => tag.type !== "tag");
     }
 
     get overflowFilterTags() {
-        return this.allFilterTags.filter((tag) => tag.id !== REPLIER_FILTER_ID);
+        return this.allFilterTags.filter((tag) => tag.type === "tag");
     }
 
     get moreTagsCount() {
@@ -144,8 +147,14 @@ export class WhatsappFocusSidebar extends Component {
             .map((filter) => filter.tagId);
     }
 
-    get repliedByMe() {
-        return this.isFilterSelected(REPLIER_FILTER_ID);
+    get responsibleFilter() {
+        if (this.isFilterSelected(MINE_FILTER_ID)) {
+            return "me";
+        }
+        if (this.isFilterSelected(UNASSIGNED_FILTER_ID)) {
+            return "none";
+        }
+        return false;
     }
 
     invalidateListCache() {
@@ -222,7 +231,7 @@ export class WhatsappFocusSidebar extends Component {
             limit: PAGE_SIZE,
             offset,
             tag_ids: this.selectedTagIds,
-            replied_by_me: this.repliedByMe,
+            responsible: this.responsibleFilter,
             include_messages: offset === 0,
         };
     }
@@ -337,6 +346,11 @@ export class WhatsappFocusSidebar extends Component {
         if (this.state.selectedFilterIds[filterId]) {
             delete this.state.selectedFilterIds[filterId];
         } else {
+            if (RESPONSIBLE_FILTER_IDS.includes(filterId)) {
+                for (const otherId of RESPONSIBLE_FILTER_IDS) {
+                    delete this.state.selectedFilterIds[otherId];
+                }
+            }
             this.state.selectedFilterIds[filterId] = true;
         }
         this.invalidateListCache();

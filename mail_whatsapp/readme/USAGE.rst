@@ -1,7 +1,7 @@
 Usage
 =====
 
-1. Configure Meta App credentials in *WhatsApp → Settings*:
+1. Configure Meta App credentials in *WhatsApp → Configuration → Settings*:
 
    * Choose **Active Meta App**: Test App or Production App
    * Fill credentials for each environment (different App IDs):
@@ -35,7 +35,7 @@ Usage
    * ``smb_message_echoes`` (messages sent from WhatsApp Business)
    * ``account_update``
 
-3. Open *WhatsApp → Connect with Embedded Signup* and follow progressive
+3. Open *WhatsApp → Configuration → Connect Meta Account* and follow progressive
    Facebook Login permissions:
 
    * Step 1: grant classic scopes ``public_profile`` and ``email`` (Login
@@ -62,36 +62,59 @@ Usage
    See https://dualhook.com/docs/waba-integration
 
 5. Incoming messages and messages sent from the Business App appear in
-   **Discuss → WhatsApp** (dedicated sidebar category). Each outgoing
+   **WhatsApp → Chats**, not in Discuss. Notifications still arrive in the
+   messaging menu and open the chat in the WhatsApp app. Each outgoing
    message shows whether it was sent from **API** (Odoo / Cloud API) or
    from **WhatsApp Business**. The same split is available in
-   *WhatsApp → Messages* filters. Notify users configured
-   on the WhatsApp account become channel members. Each chat can show tags next
-   to its name (sidebar and header). The first automatic tag is the Odoo user
-   who last replied (``Replied: Name``). Use **Edit Contact** in the chat
+   *WhatsApp → Reporting → Messages* filters. Notify users configured on the WhatsApp
+   account become members of new chats. Filter the list with **My chats**,
+   **Unassigned** or tags. Each chat shows its ``Responsible: Name`` and the
+   Odoo user who last replied (``Replied: Name``).
+
+   **Responsible**: the first agent who answers an unassigned chat becomes its
+   responsible. Use **Responsible** in the chat header to take an unassigned
+   chat or release yours. Account Administrators assign any chat to an agent
+   of the account; agents that can no longer see the chat stop being members.
+
+   **Assign Chats**: Account Administrators open *WhatsApp → Assign Chats*,
+   which lists the conversations,
+   unassigned first. Select one or more chats and click **Assign** to give
+   them to an agent of their WhatsApp account, or leave the responsible empty
+   to release them. Click a row to open the chat. This is how new agents with
+   the *Own Chats Only* level receive their first conversations.
+
+   **Advisor handoff**: when a chat needs a person (for example when the AI
+   customer service asks for one), it goes to the next agent of the account
+   in turn, who becomes responsible and gets a WhatsApp alert on the mobile
+   of their contact with a link to the chat. A free-text alert is sent while
+   that agent wrote to the business number in the last 24 hours; otherwise
+   the **Advisor Alert Template** of the account (*Team* tab) is used. A note
+   in the chat tells whether the alert was sent. Use **Edit Contact** in the chat
    header to rename the WhatsApp contact in a modal (the chat title updates
    accordingly), and **Add Tags** to assign custom tags (also under
-   *WhatsApp → Tags*). Replies from Discuss are sent through Cloud API when
+   *WhatsApp → Configuration → Tags*). Replies from the chat are sent through Cloud API when
    the 24-hour customer service window is active. In Demo mode, use
-   *Simulate Incoming Message* and then open Discuss to see the conversation
-   under WhatsApp.
+   *Simulate Incoming Message* and then open *WhatsApp → Chats*. The simulator
+   also accepts a file and sends it with the same payload as WhatsApp: JPG and
+   PNG as image, MP4 as video, audio files as audio and anything else (PDF,
+   XML, Office) as a document; the message becomes the caption.
 
 6. **24-hour customer service window**: when the customer sends a message, a
    24-hour window opens. During that window you can reply with free text from
-   Discuss or from the document chatter (WhatsApp button → message field).
-   When the window is closed, Discuss blocks free-text replies and the chatter
+   *WhatsApp → Chats* or from the document chatter (WhatsApp button → message field).
+   When the window is closed, the chat blocks free-text replies and the chatter
    composer requires an approved template. Create and approve templates under
-   *WhatsApp → Templates* (Demo auto-approves on submit).
+   *WhatsApp → Configuration → Templates* (Demo auto-approves on submit).
 
 7. From any document chatter (Contacts, Sales, etc.), use the **WhatsApp**
    button (green icon) next to Log note. This opens the WhatsApp composer
    inline in the chatter (no popup). If the 24-hour window is open, write a
    free-text message; otherwise select an approved template, then send. The
-   message is logged on the chatter and mirrored in Discuss with a link to
+   message is logged on the chatter and mirrored in *WhatsApp → Chats* with a link to
    the document.
 
 8. In Meta App Dashboard configure Facebook Login callbacks shown in
-   *WhatsApp → Settings*:
+   *WhatsApp → Configuration → Settings*:
 
    * **Data deletion request URL** (*Settings → Basic*):
      ``/mail_whatsapp/facebook/data_deletion`` — returns JSON
@@ -104,6 +127,21 @@ Usage
    Embedded Signup ``code`` for a token, re-verifies it with Graph
    ``debug_token`` (app_id / user_id), and upgrades to a long-lived token
    when Meta allows it. Document data deletion in your Privacy Policy.
+
+WhatsApp Dashboard
+------------------
+
+Open *WhatsApp → Reporting → Dashboard* to review a date range:
+
+* **Messages Received** are inbound customer messages.
+* **Messages Sent** adds messages sent from Odoo and replies sent from the
+  WhatsApp Business app on the phone (``smb_message_echoes``). The card
+  shows the split. The coexistence history import is not included.
+* **Avg. Response Time** is the delay from an inbound message to the next
+  reply, whether that reply was sent from Odoo or from the phone.
+* **Top Writers** lists agents who sent from Odoo. A phone reply is not
+  tied to an Odoo user, so it is counted in the sent and response metrics
+  and shown under the ranking, without assigning it to an agent.
 
 WhatsApp follow-up automation
 -----------------------------

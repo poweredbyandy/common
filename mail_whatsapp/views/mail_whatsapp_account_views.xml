@@ -150,22 +150,28 @@
                                     />
                                     <field
                                         name="account_uid"
-                                        required="setup_mode in ('manual', 'dualhook')"
                                         placeholder="WABA ID"
                                     />
                                     <field
                                         name="phone_uid"
-                                        required="setup_mode in ('manual', 'dualhook')"
                                         placeholder="Phone Number ID"
                                     />
                                     <field name="display_phone_number" />
                                     <field
                                         name="token"
                                         password="True"
-                                        required="setup_mode in ('manual', 'dualhook')"
                                         groups="mail_whatsapp.group_mail_whatsapp_admin"
                                         placeholder="dh_live_... when Dualhook"
                                     />
+                                    <div
+                                        colspan="2"
+                                        class="text-muted"
+                                        invisible="setup_mode == 'embedded_signup'"
+                                    >
+                                        You can save the account with only a name first.
+                                        Paste WABA ID, Phone Number ID and Access Token
+                                        together when you are ready to connect.
+                                    </div>
                                 </group>
                                 <group
                                     string="Meta App (from Settings)"
@@ -228,6 +234,51 @@
                                         widget="many2many_tags"
                                         groups="base.group_multi_company"
                                     />
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Team" name="team">
+                            <group>
+                                <group string="Who sees the chats">
+                                    <field
+                                        name="agent_user_ids"
+                                        widget="many2many_tags_avatar"
+                                    />
+                                    <field
+                                        name="manager_user_ids"
+                                        widget="many2many_tags_avatar"
+                                        readonly="not can_edit_managers"
+                                    />
+                                    <field name="can_edit_managers" invisible="1"/>
+                                </group>
+                                <group string="Advisor handoff">
+                                    <field
+                                        name="advisor_template_id"
+                                        options="{'no_create': True}"
+                                    />
+                                    <field name="advisor_last_user_id"/>
+                                    <div colspan="2" class="text-muted">
+                                        When a chat needs a person, it goes to the next agent in turn,
+                                        who gets a WhatsApp on the mobile of their contact. A free-text
+                                        alert is sent while the agent's 24-hour window with this number
+                                        is open; otherwise this template is used.
+                                    </div>
+                                </group>
+                                <group string="Access levels">
+                                    <div colspan="2" class="text-muted">
+                                        <p>
+                                            <strong>User: Own Chats Only</strong>: chats assigned to them and unassigned chats.
+                                        </p>
+                                        <p>
+                                            <strong>User: All Chats</strong>: every chat of the account.
+                                        </p>
+                                        <p>
+                                            <strong>Account Administrator</strong>: edits this account, its agents and templates, and assigns chats.
+                                        </p>
+                                        <p class="mb-0">
+                                            <strong>Administrator</strong>: every account, Meta connection and settings.
+                                        </p>
+                                    </div>
                                 </group>
                             </group>
                         </page>
