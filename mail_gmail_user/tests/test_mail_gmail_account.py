@@ -32,10 +32,11 @@ class TestMailGmailAccount(MailGmailUserCommon):
             .with_user(self.user_seller)
             ._get_or_create_for_user(self.user_seller)
         )
+        server = account._ensure_mail_server()
         with patch.object(
-            type(account),
-            "_fetch_oauth_tokens",
-            return_value=("refresh", "access", 9999999999),
+            type(server),
+            "_fetch_gmail_refresh_token",
+            return_value=("refresh", "access", 1999999999),
         ), patch.object(
             type(account),
             "_fetch_gmail_profile_email",

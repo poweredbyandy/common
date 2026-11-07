@@ -30,7 +30,7 @@ Configuration
 =============
 
 * Create a Google OAuth web client with redirect
-  ``{web.base.url}/mail_gmail_user/confirm``.
+  ``{web.base.url}/google_gmail/confirm`` (same as native Gmail).
 * Set Client ID / Secret in Odoo Settings.
 * Configure the company email and general outgoing mail server.
 

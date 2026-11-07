@@ -8,22 +8,34 @@ from odoo.tools import email_normalize
 class ResUsers(models.Model):
     _inherit = "res.users"
 
+    mail_gmail_account_ids = fields.One2many(
+        "mail.gmail.account",
+        "user_id",
+        string="Gmail Accounts",
+    )
     mail_gmail_account_id = fields.Many2one(
         "mail.gmail.account",
         compute="_compute_mail_gmail_account_id",
     )
     mail_gmail_state = fields.Selection(
-        related="mail_gmail_account_id.state",
+        [
+            ("disconnected", "Disconnected"),
+            ("connected", "Connected"),
+        ],
         string="Gmail Status",
+        compute="_compute_mail_gmail_state",
     )
 
+    @api.depends("mail_gmail_account_ids")
     def _compute_mail_gmail_account_id(self):
-        accounts = self.env["mail.gmail.account"].sudo().search(
-            [("user_id", "in", self.ids)]
-        )
-        account_by_user = {account.user_id.id: account for account in accounts}
         for user in self:
-            user.mail_gmail_account_id = account_by_user.get(user.id, False)
+            user.mail_gmail_account_id = user.mail_gmail_account_ids[:1]
+
+    @api.depends("mail_gmail_account_ids.state")
+    def _compute_mail_gmail_state(self):
+        for user in self:
+            account = user.mail_gmail_account_ids[:1]
+            user.mail_gmail_state = account.state if account else "disconnected"
 
     def write(self, vals):
         email_before = {user.id: email_normalize(user.email) for user in self}
@@ -33,9 +45,7 @@ class ResUsers(models.Model):
                 new_email = email_normalize(user.email)
                 if email_before.get(user.id) == new_email:
                     continue
-                account = self.env["mail.gmail.account"].sudo().search(
-                    [("user_id", "=", user.id)], limit=1
-                )
+                account = user.sudo().mail_gmail_account_ids[:1]
                 if account and account.state == "connected":
                     account._disconnect()
         return result

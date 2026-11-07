@@ -14,11 +14,9 @@ from odoo import SUPERUSER_ID, _, api, fields, models, tools
 from odoo.exceptions import AccessError, UserError
 from odoo.tools import email_normalize
 from odoo.tools.mail import unfold_references
-from odoo.tools.misc import hmac as hmac_tool
 
 _logger = logging.getLogger(__name__)
 
-GMAIL_TOKEN_REQUEST_TIMEOUT = 5
 GMAIL_PROFILE_TIMEOUT = 10
 IMAP_FETCH_LIMIT = 20
 GMAIL_SCOPE = "https://mail.google.com/"
@@ -59,9 +57,9 @@ class MailGmailAccount(models.Model):
     last_token_check = fields.Datetime(readonly=True)
     last_fetch = fields.Datetime(readonly=True)
     last_error = fields.Text(readonly=True)
-    last_imap_uid = fields.Integer(
-        string="Last IMAP UID",
-        default=0,
+    last_imap_uids = fields.Json(
+        string="Last IMAP UIDs by folder",
+        default=dict,
         copy=False,
         groups="base.group_system",
     )
@@ -103,16 +101,8 @@ class MailGmailAccount(models.Model):
         self.ensure_one()
         return self.user_id == self.env.user or self.env.user.has_group("base.group_system")
 
-    def _get_csrf_token(self):
-        self.ensure_one()
-        return hmac_tool(
-            env=self.env(su=True),
-            scope="mail_gmail_user_oauth",
-            message=(self._name, self.id),
-        )
-
     def _get_oauth_redirect_uri(self):
-        return url_join(self.get_base_url(), "/mail_gmail_user/confirm")
+        return url_join(self.get_base_url(), "/google_gmail/confirm")
 
     def _get_oauth_uri(self):
         self.ensure_one()
@@ -121,6 +111,7 @@ class MailGmailAccount(models.Model):
         client_secret = Config.get_param("google_gmail_client_secret")
         if not client_id or not client_secret:
             raise UserError(_("Please configure the Gmail Client ID and Secret in Settings."))
+        server = self._ensure_mail_server()
         return "https://accounts.google.com/o/oauth2/v2/auth?%s" % url_encode(
             {
                 "client_id": client_id,
@@ -132,8 +123,9 @@ class MailGmailAccount(models.Model):
                 "login_hint": self.user_id.email or "",
                 "state": json.dumps(
                     {
-                        "account_id": self.id,
-                        "csrf_token": self._get_csrf_token(),
+                        "model": server._name,
+                        "id": server.id,
+                        "csrf_token": server._get_gmail_csrf_token(),
                     }
                 ),
             }
@@ -145,6 +137,7 @@ class MailGmailAccount(models.Model):
             raise AccessError(_("Only the account owner can start the Gmail login."))
         if not email_normalize(self.user_id.email):
             raise UserError(_("Set your email address on your user before connecting Gmail."))
+        self._ensure_mail_server()
         return {
             "type": "ir.actions.act_url",
             "url": self._get_oauth_uri(),
@@ -171,7 +164,7 @@ class MailGmailAccount(models.Model):
         vals = {
             "state": "disconnected",
             "last_error": False,
-            "last_imap_uid": 0,
+            "last_imap_uids": {},
         }
         if server:
             server.write(
@@ -211,28 +204,6 @@ class MailGmailAccount(models.Model):
         self.sudo().mail_server_id = server
         return server
 
-    def _fetch_oauth_tokens(self, authorization_code):
-        Config = self.env["ir.config_parameter"].sudo()
-        response = requests.post(
-            "https://oauth2.googleapis.com/token",
-            data={
-                "client_id": Config.get_param("google_gmail_client_id"),
-                "client_secret": Config.get_param("google_gmail_client_secret"),
-                "grant_type": "authorization_code",
-                "code": authorization_code,
-                "redirect_uri": self._get_oauth_redirect_uri(),
-            },
-            timeout=GMAIL_TOKEN_REQUEST_TIMEOUT,
-        )
-        if not response.ok:
-            raise UserError(_("An error occurred when fetching the access token."))
-        data = response.json()
-        return (
-            data.get("refresh_token"),
-            data["access_token"],
-            int(time.time()) + data["expires_in"],
-        )
-
     def _fetch_gmail_profile_email(self, access_token):
         response = requests.get(
             "https://gmail.googleapis.com/gmail/v1/users/me/profile",
@@ -245,7 +216,10 @@ class MailGmailAccount(models.Model):
 
     def _complete_oauth(self, authorization_code):
         self.ensure_one()
-        refresh_token, access_token, expiration = self._fetch_oauth_tokens(authorization_code)
+        server = self._ensure_mail_server()
+        refresh_token, access_token, expiration = server._fetch_gmail_refresh_token(
+            authorization_code
+        )
         if not refresh_token:
             raise UserError(
                 _(
@@ -263,7 +237,6 @@ class MailGmailAccount(models.Model):
                     odoo=user_email or _("unknown"),
                 )
             )
-        server = self._ensure_mail_server()
         server.write(
             {
                 "active": True,
@@ -275,14 +248,14 @@ class MailGmailAccount(models.Model):
                 "google_gmail_access_token_expiration": expiration,
             }
         )
-        last_uid = self._imap_get_current_uid(server)
+        baselines = self._imap_baseline_uids()
         self.sudo().write(
             {
                 "state": "connected",
                 "mail_server_id": server.id,
                 "last_token_check": fields.Datetime.now(),
                 "last_error": False,
-                "last_imap_uid": last_uid,
+                "last_imap_uids": baselines,
             }
         )
         return True
@@ -525,30 +498,6 @@ class MailGmailAccount(models.Model):
         connection.authenticate("XOAUTH2", lambda _x: auth_string)
         return connection
 
-    def _imap_get_current_uid(self, server=None):
-        self.ensure_one()
-        try:
-            connection = self._imap_login()
-            try:
-                connection.select("INBOX", readonly=True)
-                result, data = connection.uid("search", None, "ALL")
-                if result != "OK" or not data or not data[0]:
-                    return 0
-                uids = [int(uid) for uid in data[0].split() if uid]
-                return max(uids) if uids else 0
-            finally:
-                try:
-                    connection.close()
-                except Exception:
-                    pass
-                try:
-                    connection.logout()
-                except Exception:
-                    pass
-        except Exception as err:
-            _logger.info("mail_gmail_user: could not read IMAP UID for %s: %s", self.email, err)
-            return self.last_imap_uid or 0
-
     def _message_is_odoo_related(self, message_bytes):
         message = email.message_from_bytes(message_bytes, policy=email.policy.SMTP)
         references = []
@@ -581,12 +530,166 @@ class MailGmailAccount(models.Model):
                 return True
         return False
 
+    def _imap_decode_folder_name(self, raw_name):
+        if isinstance(raw_name, bytes):
+            try:
+                return raw_name.decode("utf-8")
+            except UnicodeDecodeError:
+                return raw_name.decode("latin-1", errors="replace")
+        return raw_name
+
+    def _imap_list_fetch_folders(self, connection):
+        folders = ["INBOX"]
+        try:
+            result, data = connection.list()
+        except Exception as err:
+            _logger.info("mail_gmail_user: IMAP LIST failed: %s", err)
+            return folders
+        if result != "OK" or not data:
+            return folders
+        spam_folder = False
+        for entry in data:
+            if not entry:
+                continue
+            line = self._imap_decode_folder_name(entry)
+            flags = line.split(' "/" ', 1)[0] if ' "/" ' in line else line
+            name = line.rsplit(" ", 1)[-1].strip().strip('"')
+            if "\\Junk" in flags or "\\Spam" in flags:
+                spam_folder = name
+                break
+            if name in ("[Gmail]/Spam", "[Google Mail]/Spam"):
+                spam_folder = name
+        if spam_folder and spam_folder not in folders:
+            folders.append(spam_folder)
+        return folders
+
+    def _get_last_imap_uid(self, folder):
+        self.ensure_one()
+        uids = self.last_imap_uids or {}
+        return int(uids.get(folder) or 0)
+
+    def _set_last_imap_uids(self, updates):
+        self.ensure_one()
+        current = dict(self.last_imap_uids or {})
+        current.update(updates)
+        self.sudo().write({"last_imap_uids": current})
+
+    def _imap_baseline_uids(self):
+        self.ensure_one()
+        baselines = {}
+        try:
+            connection = self._imap_login()
+        except Exception as err:
+            _logger.info(
+                "mail_gmail_user: could not read IMAP baseline for %s: %s",
+                self.email,
+                err,
+            )
+            return baselines
+        try:
+            for folder in self._imap_list_fetch_folders(connection):
+                try:
+                    result, _data = connection.select(folder, readonly=True)
+                    if result != "OK":
+                        continue
+                    result, data = connection.uid("search", None, "ALL")
+                    if result != "OK" or not data or not data[0]:
+                        baselines[folder] = 0
+                        continue
+                    uids = [int(uid) for uid in data[0].split() if uid]
+                    baselines[folder] = max(uids) if uids else 0
+                except Exception as err:
+                    _logger.info(
+                        "mail_gmail_user: baseline failed for %s/%s: %s",
+                        self.email,
+                        folder,
+                        err,
+                    )
+        finally:
+            try:
+                connection.close()
+            except Exception:
+                pass
+            try:
+                connection.logout()
+            except Exception:
+                pass
+        return baselines
+
+    def _imap_folder_max_uid(self, connection, folder):
+        result, _data = connection.select(folder, readonly=True)
+        if result != "OK":
+            return False
+        result, data = connection.uid("search", None, "ALL")
+        if result != "OK" or not data or not data[0]:
+            return 0
+        uids = [int(uid) for uid in data[0].split() if uid]
+        return max(uids) if uids else 0
+
+    def _imap_fetch_folder(self, connection, folder, mail_thread, baseline_only=False):
+        self.ensure_one()
+        last_uid = self._get_last_imap_uid(folder)
+        if baseline_only or folder not in (self.last_imap_uids or {}):
+            max_uid = self._imap_folder_max_uid(connection, folder)
+            if max_uid is False:
+                _logger.info(
+                    "mail_gmail_user: cannot select folder %s for %s",
+                    folder,
+                    self.email,
+                )
+                return 0, last_uid
+            return 0, max_uid
+        result, _data = connection.select(folder, readonly=True)
+        if result != "OK":
+            _logger.info(
+                "mail_gmail_user: cannot select folder %s for %s", folder, self.email
+            )
+            return 0, last_uid
+        criteria = "UID %s:*" % (last_uid + 1)
+        result, data = connection.uid("search", None, criteria)
+        if result != "OK":
+            return 0, last_uid
+        uids = [int(uid) for uid in (data[0] or b"").split() if uid]
+        uids = [uid for uid in uids if uid > last_uid]
+        uids = sorted(uids)[:IMAP_FETCH_LIMIT]
+        max_uid = last_uid
+        processed = 0
+        for uid in uids:
+            max_uid = max(max_uid, uid)
+            result, msg_data = connection.uid("fetch", str(uid), "(BODY.PEEK[])")
+            if result != "OK" or not msg_data or not msg_data[0]:
+                continue
+            message_bytes = msg_data[0][1]
+            if not isinstance(message_bytes, (bytes, bytearray)):
+                continue
+            if not self._message_is_odoo_related(message_bytes):
+                continue
+            try:
+                mail_thread.with_context(
+                    mail_gmail_skip_guard=True,
+                    fetchmail_cron_running=True,
+                ).message_process(
+                    False,
+                    message_bytes,
+                    save_original=False,
+                    strip_attachments=False,
+                )
+                processed += 1
+            except Exception:
+                _logger.info(
+                    "mail_gmail_user: failed to process message uid %s in %s for %s",
+                    uid,
+                    folder,
+                    self.email,
+                    exc_info=True,
+                )
+        return processed, max_uid
+
     def _fetch_incoming_mail(self):
         MailThread = self.env["mail.thread"]
         for account in self:
             if not account._is_connected():
                 continue
-            processed = 0
             try:
                 connection = account._imap_login()
             except Exception as err:
@@ -595,59 +698,31 @@ class MailGmailAccount(models.Model):
                     "mail_gmail_user: IMAP login failed for %s: %s", account.email, err
                 )
                 continue
+            processed = 0
+            uid_updates = {}
             try:
-                connection.select("INBOX", readonly=True)
-                last_uid = account.last_imap_uid or 0
-                criteria = "UID %s:*" % (last_uid + 1)
-                result, data = connection.uid("search", None, criteria)
-                if result != "OK":
-                    continue
-                uids = [int(uid) for uid in (data[0] or b"").split() if uid]
-                uids = [uid for uid in uids if uid > last_uid]
-                uids = sorted(uids)[:IMAP_FETCH_LIMIT]
-                max_uid = last_uid
-                for uid in uids:
-                    max_uid = max(max_uid, uid)
-                    result, msg_data = connection.uid(
-                        "fetch", str(uid), "(BODY.PEEK[])"
+                folders = account._imap_list_fetch_folders(connection)
+                for folder in folders:
+                    folder_processed, max_uid = account._imap_fetch_folder(
+                        connection, folder, MailThread
                     )
-                    if result != "OK" or not msg_data or not msg_data[0]:
-                        continue
-                    message_bytes = msg_data[0][1]
-                    if not isinstance(message_bytes, (bytes, bytearray)):
-                        continue
-                    if not account._message_is_odoo_related(message_bytes):
-                        continue
-                    try:
-                        MailThread.with_context(
-                            mail_gmail_skip_guard=True,
-                            fetchmail_cron_running=True,
-                        ).message_process(
-                            False,
-                            message_bytes,
-                            save_original=False,
-                            strip_attachments=False,
-                        )
-                        processed += 1
-                    except Exception:
-                        _logger.info(
-                            "mail_gmail_user: failed to process message uid %s for %s",
-                            uid,
-                            account.email,
-                            exc_info=True,
-                        )
-                account.sudo().write(
-                    {
-                        "last_imap_uid": max_uid,
-                        "last_fetch": fields.Datetime.now(),
-                        "last_error": False,
-                    }
-                )
+                    processed += folder_processed
+                    uid_updates[folder] = max_uid
+                values = {
+                    "last_fetch": fields.Datetime.now(),
+                    "last_error": False,
+                }
+                if uid_updates:
+                    current = dict(account.last_imap_uids or {})
+                    current.update(uid_updates)
+                    values["last_imap_uids"] = current
+                account.sudo().write(values)
                 if processed:
                     _logger.info(
-                        "mail_gmail_user: processed %s message(s) for %s",
+                        "mail_gmail_user: processed %s message(s) for %s in %s",
                         processed,
                         account.email,
+                        ", ".join(folders),
                     )
             except Exception as err:
                 account.sudo().write({"last_error": tools.ustr(err)})
