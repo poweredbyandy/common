@@ -22,6 +22,24 @@ import {useHotkey} from "@web/core/hotkeys/hotkey_hook";
 import {user} from "@web/core/user";
 import {BurgerMenu} from "@web/webclient/burger_menu/burger_menu";
 
+function hasRouterAction(route) {
+    if (!route) {
+        return false;
+    }
+    if (Number(route.menu_id || 0)) {
+        return true;
+    }
+    if (route.model) {
+        return true;
+    }
+    if (route.action && route.action !== "menu") {
+        return true;
+    }
+    return (route.actionStack || []).some(
+        (entry) => entry.model || (entry.action && entry.action !== "menu")
+    );
+}
+
 patch(WebClient.prototype, {
     setup() {
         super.setup();
@@ -53,17 +71,24 @@ patch(WebClient.prototype, {
 export class AppsMenu extends Component {
     setup() {
         super.setup();
-        this.state = useState({open: false});
+        this.router = router;
         this.theme = session.apps_menu.theme || "milk";
         this.menuService = useService("menu");
         browser.localStorage.setItem("redirect_menuId", "");
-        if (user.context.is_redirect_to_home) {
-            this.router = router;
-            const menuId = Number(this.router.current.menu_id || 0);
-            this.state = useState({open: menuId === 0});
+        const openHome =
+            Boolean(user.context.is_redirect_to_home) &&
+            !hasRouterAction(this.router.current);
+        this.state = useState({open: openHome});
+        useBus(this.env.bus, "APPS_MENU:STATE_CHANGED", ({detail: openState}) => {
+            this.state.open = Boolean(openState);
+        });
+        if (openHome) {
+            this.env.bus.trigger("APPS_MENU:STATE_CHANGED", true);
         }
         useBus(this.env.bus, "ACTION_MANAGER:UI-UPDATED", () => {
-            this.setOpenState(false);
+            if (hasRouterAction(this.router.current)) {
+                this.setOpenState(false);
+            }
         });
         this._setupKeyNavigation();
     }

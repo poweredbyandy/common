@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="oauth_result" name="Gmail OAuth Result">
+        <t t-call="web.login_layout">
+            <div class="oe_login_form container py-5">
+                <div class="alert" t-att-class="success and 'alert-success' or 'alert-danger'" role="alert">
+                    <t t-esc="message"/>
+                </div>
+                <a href="/odoo" class="btn btn-primary">Back to Odoo</a>
+            </div>
+        </t>
+    </template>
+
+    <menuitem id="menu_mail_gmail_account"
+        name="Gmail Accounts"
+        parent="base.menu_users"
+        action="mail_gmail_account_action"
+        sequence="7"
+        groups="base.group_system"/>
+</odoo>

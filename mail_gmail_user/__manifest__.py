@@ -1,0 +1,31 @@
+{
+    "name": "Mail Gmail User",
+    "summary": "Per-user Gmail OAuth for outgoing mail and thread replies",
+    "version": "18.0.1.0.0",
+    "category": "Discuss",
+    "website": "https://github.com/andyengit",
+    "author": "andyengit",
+    "maintainer": "andyengit",
+    "maintainers": ["andyengit"],
+    "license": "LGPL-3",
+    "images": ["static/description/icon.png"],
+    "depends": ["mail", "google_gmail"],
+    "data": [
+        "security/mail_gmail_account_security.xml",
+        "security/ir.model.access.csv",
+        "data/ir_cron_data.xml",
+        "views/mail_gmail_account_views.xml",
+        "views/mail_gmail_send_confirm_views.xml",
+        "views/res_users_views.xml",
+        "views/res_config_settings_views.xml",
+        "views/mail_gmail_user_menus.xml",
+    ],
+    "assets": {
+        "web.assets_backend": [
+            "mail_gmail_user/static/src/components/gmail_systray/*",
+            "mail_gmail_user/static/src/scss/mail_gmail_user.scss",
+        ],
+    },
+    "installable": True,
+    "application": False,
+}

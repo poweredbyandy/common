@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_users_form_mail_gmail_user" model="ir.ui.view">
+        <field name="name">res.users.form.mail.gmail.user</field>
+        <field name="model">res.users</field>
+        <field name="inherit_id" ref="base.view_users_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='preferences']" position="inside">
+                <group string="Gmail" name="mail_gmail_user">
+                    <field name="mail_gmail_state" readonly="1"
+                        decoration-success="mail_gmail_state == 'connected'"
+                        decoration-danger="mail_gmail_state == 'disconnected'"
+                        widget="badge"/>
+                    <field name="mail_gmail_account_id" readonly="1"
+                        groups="base.group_system"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>

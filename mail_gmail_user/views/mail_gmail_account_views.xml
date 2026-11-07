@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="mail_gmail_account_view_list" model="ir.ui.view">
+        <field name="name">mail.gmail.account.list</field>
+        <field name="model">mail.gmail.account</field>
+        <field name="arch" type="xml">
+            <list string="Gmail Accounts">
+                <field name="user_id"/>
+                <field name="email"/>
+                <field name="state"
+                    decoration-success="state == 'connected'"
+                    decoration-danger="state == 'disconnected'"
+                    widget="badge"/>
+                <field name="last_token_check"/>
+                <field name="last_fetch"/>
+                <field name="last_error"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="mail_gmail_account_view_form" model="ir.ui.view">
+        <field name="name">mail.gmail.account.form</field>
+        <field name="model">mail.gmail.account</field>
+        <field name="arch" type="xml">
+            <form string="Gmail Account">
+                <header>
+                    <button name="action_disconnect" type="object" string="Disconnect"
+                        invisible="state != 'connected'"
+                        confirm="Disconnect this Gmail account?"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="user_id" readonly="1"/>
+                            <field name="email" readonly="1"/>
+                            <field name="state" readonly="1"/>
+                            <field name="company_email" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="last_token_check" readonly="1"/>
+                            <field name="last_fetch" readonly="1"/>
+                            <field name="mail_server_id" readonly="1" groups="base.group_system"/>
+                        </group>
+                    </group>
+                    <group string="Last error" invisible="not last_error">
+                        <field name="last_error" nolabel="1" readonly="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="mail_gmail_account_view_search" model="ir.ui.view">
+        <field name="name">mail.gmail.account.search</field>
+        <field name="model">mail.gmail.account</field>
+        <field name="arch" type="xml">
+            <search string="Gmail Accounts">
+                <field name="user_id"/>
+                <field name="email"/>
+                <filter string="Connected" name="connected" domain="[('state', '=', 'connected')]"/>
+                <filter string="Disconnected" name="disconnected" domain="[('state', '=', 'disconnected')]"/>
+                <group>
+                    <filter string="Status" name="group_state" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="mail_gmail_account_action" model="ir.actions.act_window">
+        <field name="name">Gmail Accounts</field>
+        <field name="res_model">mail.gmail.account</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="mail_gmail_account_view_search"/>
+        <field name="context">{'search_default_disconnected': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No Gmail accounts yet.
+            </p>
+            <p>
+                Users connect their Gmail account from the systray envelope icon.
+            </p>
+        </field>
+    </record>
+</odoo>

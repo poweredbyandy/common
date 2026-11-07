@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.mail.gmail.user</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="google_gmail.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@id='gmail_client_secret']" position="after">
+                <div class="row mt16" id="mail_gmail_user_company_check">
+                    <label string="Company mail server" for="mail_gmail_company_server_ok" class="col-lg-3 o_light_label"/>
+                    <div class="col-lg-8">
+                        <field name="mail_gmail_company_server_ok" invisible="1"/>
+                        <field name="mail_gmail_company_email" invisible="1"/>
+                        <div class="text-success" invisible="not mail_gmail_company_server_ok">
+                            Company email <field name="mail_gmail_company_email" class="oe_inline" readonly="1"/> is covered by an outgoing mail server.
+                        </div>
+                        <div class="text-danger" invisible="mail_gmail_company_server_ok">
+                            Configure the company email and an outgoing mail server before users fall back to the company account.
+                        </div>
+                    </div>
+                </div>
+            </xpath>
+        </field>
+    </record>
+</odoo>

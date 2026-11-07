@@ -36,10 +36,16 @@
     left: 0 !important;
 }
 
-.o_apps_menu_opened .o_main_navbar {
-    .o_menu_brand,
-    .o_menu_sections {
-        display: none !important;
+.o_apps_menu_opened {
+    .o_main_navbar {
+        .o_menu_brand,
+        .o_menu_sections {
+            display: none !important;
+        }
+    }
+
+    .o_action_manager {
+        visibility: hidden;
     }
 }
 

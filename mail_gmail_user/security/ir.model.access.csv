@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_mail_gmail_account_user,mail.gmail.account user,model_mail_gmail_account,base.group_user,1,1,1,0
+access_mail_gmail_account_system,mail.gmail.account system,model_mail_gmail_account,base.group_system,1,1,1,1
+access_mail_gmail_send_confirm_user,mail.gmail.send.confirm user,model_mail_gmail_send_confirm,base.group_user,1,1,1,1

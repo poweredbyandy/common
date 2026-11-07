@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+    <t t-name="mail_gmail_user.GmailSystray">
+        <div t-if="state.visible and !state.loading" class="o_mail_gmail_user_systray">
+            <Dropdown>
+                <button class="o_nav_entry o_mail_gmail_user_button btn" t-att-title="title" t-att-aria-label="title">
+                    <i t-att-class="iconClass"/>
+                </button>
+                <t t-set-slot="content">
+                    <div class="px-3 py-2 o_mail_gmail_user_dropdown">
+                        <div class="fw-bold" t-esc="title"/>
+                        <div t-if="state.email" class="text-muted small" t-esc="state.email"/>
+                        <div t-if="state.last_error" class="text-danger small mt-1" t-esc="state.last_error"/>
+                    </div>
+                    <DropdownItem t-if="!state.connected" onSelected="() => this.onConnect()">
+                        Connect Gmail
+                    </DropdownItem>
+                    <DropdownItem t-if="state.connected" onSelected="() => this.onDisconnect()">
+                        Disconnect
+                    </DropdownItem>
+                </t>
+            </Dropdown>
+        </div>
+    </t>
+</templates>

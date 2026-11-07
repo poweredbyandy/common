@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="mail_gmail_send_confirm_view_form" model="ir.ui.view">
+        <field name="name">mail.gmail.send.confirm.form</field>
+        <field name="model">mail.gmail.send.confirm</field>
+        <field name="arch" type="xml">
+            <form string="Gmail not connected">
+                <group>
+                    <field name="composer_id" invisible="1"/>
+                    <field name="message" nolabel="1" readonly="1"/>
+                    <field name="company_email" string="Company email" readonly="1"/>
+                </group>
+                <footer>
+                    <button name="action_send_as_company" type="object"
+                        string="Send as company" class="btn-primary"
+                        data-hotkey="q"/>
+                    <button name="action_connect_gmail" type="object"
+                        string="Connect Gmail" class="btn-secondary"/>
+                    <button string="Cancel" special="cancel" data-hotkey="x"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

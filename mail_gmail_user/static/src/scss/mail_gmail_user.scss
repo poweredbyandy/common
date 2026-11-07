@@ -1,0 +1,22 @@
+.o_mail_gmail_user_systray {
+    .o_mail_gmail_user_button {
+        display: flex;
+        align-items: center;
+    }
+
+    .o_mail_gmail_user_icon {
+        font-size: 1.15rem;
+    }
+
+    .o_mail_gmail_user_connected {
+        color: #28a745;
+    }
+
+    .o_mail_gmail_user_disconnected {
+        color: #dc3545;
+    }
+}
+
+.o_mail_gmail_user_dropdown {
+    min-width: 220px;
+}
