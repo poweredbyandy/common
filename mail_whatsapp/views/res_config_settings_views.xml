@@ -177,6 +177,15 @@
                         </setting>
                     </block>
 
+                    <block title="Contacts" name="mail_whatsapp_contacts">
+                        <setting
+                            string="Create contacts automatically"
+                            help="Unknown numbers create a contact and link it to the chat. Disable this to keep the chat without a contact. An existing contact with the same phone or mobile is still used. CRM leads created from those chats store the name and mobile without a linked contact."
+                        >
+                            <field name="mail_whatsapp_auto_create_partner" />
+                        </setting>
+                    </block>
+
                     <block title="Shared / Callbacks" name="mail_whatsapp_shared">
                         <setting
                             string="Graph API Version"

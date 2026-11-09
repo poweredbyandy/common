@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.crm.expected.currency</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="crm.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//app[@name='crm']" position="inside">
+                <block title="Ingreso esperado" name="crm_expected_currency_block">
+                    <setting
+                        id="crm_expected_currency_setting"
+                        string="Moneda por defecto"
+                        company_dependent="1"
+                        help="Moneda en la que se carga el ingreso esperado de las oportunidades nuevas. Si queda vacía, se usa la moneda de la compañía."
+                    >
+                        <field name="crm_expected_currency_id" options="{'no_create': True}"/>
+                    </setting>
+                </block>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

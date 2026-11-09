@@ -2,6 +2,84 @@
     min-height: 0;
 }
 
+.o-mail-whatsapp-MobileChats {
+    flex: 1 1 auto;
+    font-size: 1rem;
+
+    .o-mail-whatsapp-FocusSidebar {
+        padding: 0.75rem 0.85rem 0.5rem;
+    }
+
+    .o-mail-whatsapp-FocusSearch .form-control {
+        min-height: 3rem;
+        font-size: 1rem;
+        padding-top: 0.55rem;
+        padding-bottom: 0.55rem;
+        padding-left: 2.6rem;
+    }
+
+    .o-mail-whatsapp-FocusTags {
+        max-height: none;
+        gap: 0.4rem;
+    }
+
+    .o-mail-whatsapp-FocusTagChip,
+    .o-mail-whatsapp-FocusTagMore {
+        font-size: 0.875rem;
+        padding: 0.4rem 0.75rem;
+    }
+
+    .o-mail-whatsapp-FocusAvatars {
+        width: 3.5rem;
+    }
+
+    .o-mail-whatsapp-FocusAvatar {
+        width: 3.5rem;
+        height: 3.5rem;
+    }
+
+    .o-mail-whatsapp-FocusResponsible {
+        width: 2rem;
+        height: 2rem;
+    }
+
+    .o-mail-whatsapp-FocusItem {
+        gap: 0.85rem !important;
+        padding: 0.7rem 0.45rem !important;
+
+        .text-truncate.flex-grow-1 {
+            font-size: 1.125rem;
+            line-height: 1.3;
+        }
+    }
+
+    .smaller,
+    .small {
+        font-size: 0.9375rem;
+        line-height: 1.35;
+    }
+
+    .o-discuss-badge {
+        font-size: 0.8125rem;
+        min-width: 1.35rem;
+        padding: 0.2rem 0.45rem;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .o-mail-ChatWindow.o-whatsapp.o-mobile {
+        .o-mail-Message-body,
+        .o-mail-Composer-input {
+            font-size: 1rem;
+        }
+
+        .o-mail-Message-author,
+        .o-mail-Message-date {
+            font-size: 0.875rem;
+        }
+    }
+}
+
 .o-mail-whatsapp-FocusTags {
     max-height: 4.5rem;
     overflow: hidden;
@@ -37,9 +115,30 @@
     }
 }
 
+.o-mail-whatsapp-FocusAvatars {
+    width: 42px;
+}
+
 .o-mail-whatsapp-FocusAvatar {
     width: 42px;
     height: 42px;
+}
+
+.o-mail-whatsapp-FocusResponsible {
+    width: 26px;
+    height: 26px;
+    margin-top: 0.3rem;
+}
+
+.o-mail-whatsapp-FocusPreview {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    min-width: 0;
 }
 
 .o-mail-whatsapp-FocusItem {

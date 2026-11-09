@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+
+    <record id="payment_provider_pagomovil" model="payment.provider">
+        <field name="name">Pago Móvil</field>
+        <field name="code">pagomovil</field>
+        <field name="image_128" type="base64" file="payment_pagomovil/static/description/icon.png"/>
+        <field name="module_id" ref="base.module_payment_pagomovil"/>
+        <field name="inline_form_view_id" ref="inline_form"/>
+        <field name="payment_method_ids" eval="[(6, 0, [ref('payment_method_pagomovil')])]"/>
+        <field name="pending_msg"><![CDATA[
+<p>Recibimos los datos del pago móvil. El pago queda pendiente hasta que se confirme.</p>
+]]></field>
+    </record>
+
+</odoo>

@@ -1,6 +1,6 @@
 {
     "name": "Mail WhatsApp",
-    "version": "18.0.1.47.0",
+    "version": "18.0.1.49.1",
     "images": ["static/description/icon.png"],
     "category": "Discuss",
     "summary": "WhatsApp Cloud API, Embedded Signup and Dualhook",

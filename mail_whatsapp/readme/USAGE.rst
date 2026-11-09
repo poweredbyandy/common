@@ -68,8 +68,9 @@ Usage
    from **WhatsApp Business**. The same split is available in
    *WhatsApp → Reporting → Messages* filters. Notify users configured on the WhatsApp
    account become members of new chats. Filter the list with **My chats**,
-   **Unassigned** or tags. Each chat shows its ``Responsible: Name`` and the
-   Odoo user who last replied (``Replied: Name``).
+   **Unassigned** or tags. Each chat shows the responsible user's picture
+   under the contact photo.
+   Messages sent from the WhatsApp Business App are shown as OdooBot.
 
    **Responsible**: the first agent who answers an unassigned chat becomes its
    responsible. Use **Responsible** in the chat header to take an unassigned

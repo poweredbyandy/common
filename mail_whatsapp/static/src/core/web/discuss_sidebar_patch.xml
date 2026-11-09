@@ -17,4 +17,47 @@
             </t>
         </xpath>
     </t>
+    <t t-name="mail_whatsapp.Discuss.mobileChats" t-inherit="mail.Discuss" t-inherit-mode="extension">
+        <xpath expr="//div[@t-ref='mobileTopbar']" position="attributes">
+            <attribute name="t-if">ui.isSmall and store.discuss.activeTab === 'main' and !store.discuss.whatsappFocus and (!thread or thread.model === 'mail.box')</attribute>
+        </xpath>
+        <xpath expr="//div[@t-ref='header']/t" position="before">
+            <button
+                t-if="ui.isSmall and thread and thread.model !== 'mail.box'"
+                class="btn btn-link px-2 text-reset"
+                title="Back"
+                t-on-click="backFromMobileThread"
+            >
+                <i class="oi oi-arrow-left"/>
+            </button>
+        </xpath>
+        <xpath expr="//div[@t-ref='content']" position="attributes">
+            <attribute name="t-if">!ui.isSmall or (store.discuss.activeTab === 'main' and !(store.discuss.whatsappFocus and !store.discuss.thread))</attribute>
+        </xpath>
+        <xpath expr="//MessagingMenu" position="attributes">
+            <attribute name="t-if">ui.isSmall and !(store.discuss.whatsappFocus and !store.discuss.thread) and (store.discuss.activeTab !== 'main' or !thread or thread.model === 'mail.box')</attribute>
+        </xpath>
+        <xpath expr="//MessagingMenu" position="after">
+            <div
+                t-if="ui.isSmall and store.discuss.whatsappFocus and !store.discuss.thread"
+                class="o-mail-whatsapp-MobileChats d-flex flex-column flex-grow-1 align-self-stretch min-h-0 mh-100 w-100 overflow-hidden bg-view"
+            >
+                <WhatsappFocusSidebar t-key="'whatsapp_mobile_chats'"/>
+            </div>
+        </xpath>
+    </t>
+    <t t-name="mail_whatsapp.ChatHub" t-inherit="mail.ChatHub" t-inherit-mode="extension">
+        <xpath expr="//div[hasclass('o-mail-ChatHub')]" position="attributes">
+            <attribute name="t-if">false</attribute>
+        </xpath>
+    </t>
+    <t t-name="mail_whatsapp.ChatWindow" t-inherit="mail.ChatWindow" t-inherit-mode="extension">
+        <xpath expr="//div[hasclass('o-mail-ChatWindow')]" position="attributes">
+            <attribute name="t-att-class">{
+                'w-100 h-100 o-mobile': ui.isSmall,
+                'rounded-4 border border-dark mb-2': !ui.isSmall,
+                'o-whatsapp': thread?.channel_type === 'whatsapp',
+            }</attribute>
+        </xpath>
+    </t>
 </templates>

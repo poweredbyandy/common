@@ -27,13 +27,21 @@ patch(Thread.prototype, {
         }
         return super._computeDiscussAppCategory();
     },
+    get inChathubOnNewMessage() {
+        return false;
+    },
     setAsDiscussThread(pushState) {
-        super.setAsDiscussThread(pushState);
+        this.openingInDiscussPanel = true;
+        try {
+            super.setAsDiscussThread(pushState);
+        } finally {
+            this.openingInDiscussPanel = false;
+        }
         if (
             this.store.env.services.ui.isSmall &&
-            this.channel_type === "whatsapp"
+            this.model === "discuss.channel"
         ) {
-            this.store.discuss.activeTab = "whatsapp";
+            this.store.discuss.activeTab = "main";
         }
     },
 });

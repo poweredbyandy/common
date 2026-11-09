@@ -552,6 +552,14 @@ class DiscussChannel(models.Model):
                 ).state = "replied"
         return super()._notify_thread(message, msg_vals=msg_vals, **kwargs)
 
+    def _create_attachments_for_post(self, values_list, extra_list):
+        """Apply WhatsApp media mimetypes passed in the attachment info dict."""
+        for values, (_cid, _name, _token, info) in zip(values_list, extra_list):
+            mime = ((info or {}).get("mimetype") or "").split(";")[0].strip().lower()
+            if mime:
+                values["mimetype"] = mime
+        return super()._create_attachments_for_post(values_list, extra_list)
+
     def message_post(
         self,
         *args,
@@ -599,15 +607,10 @@ class DiscussChannel(models.Model):
                 },
             )
         elif last_message.author_id:
-            self.whatsapp_last_replier_partner_id = last_message.author_id
-            self._bus_send_store(
-                self,
-                {
-                    "whatsappLastReplierName": last_message.author_id.name,
-                    "whatsappLastReplierPartnerId": last_message.author_id.id,
-                },
-            )
             self._whatsapp_auto_assign(last_message.author_id)
+            bot = self.env.ref("base.partner_root", raise_if_not_found=False)
+            if not bot or last_message.author_id != bot:
+                self.whatsapp_last_replier_partner_id = last_message.author_id
 
         should_send = (
             not kwargs.get("whatsapp_inbound_msg_uid")
@@ -668,27 +671,26 @@ class DiscussChannel(models.Model):
             )
         )
         if channel:
-            partner = self.env["res.partner"]._find_from_number(wa_formatted)
+            partner = self._whatsapp_partner_for_number(
+                wa_formatted, sender_name
+            )
             if partner:
                 channel._sync_whatsapp_partner(partner, wa_formatted)
-            elif not channel.whatsapp_partner_id:
-                partner = self.env["res.partner"]._find_or_create_from_number(
-                    wa_formatted, sender_name
-                )
-                channel._sync_whatsapp_partner(partner, wa_formatted)
+            else:
+                channel._whatsapp_apply_sender_name(sender_name, wa_formatted)
             return channel
         if not create_if_not_found:
             return channel
 
-        partner = self.env["res.partner"]._find_or_create_from_number(
-            wa_formatted, sender_name
-        )
+        partner = self._whatsapp_partner_for_number(wa_formatted, sender_name)
         channel = (
             self.sudo()
             .with_context(tools.clean_context(self.env.context))
             .create(
                 {
-                    "name": (partner.name if partner else False) or wa_formatted,
+                    "name": (partner.name if partner else False)
+                    or sender_name
+                    or wa_formatted,
                     "channel_type": "whatsapp",
                     "whatsapp_number": wa_formatted,
                     "whatsapp_partner_id": partner.id,
@@ -705,6 +707,34 @@ class DiscussChannel(models.Model):
         ]
         channel._broadcast(partners_to_notify.ids)
         return channel
+
+    @api.model
+    def _whatsapp_auto_create_partner_enabled(self):
+        value = (
+            self.env["ir.config_parameter"]
+            .sudo()
+            .get_param("mail_whatsapp.auto_create_partner", "True")
+        )
+        return str(value).lower() not in ("false", "0", "")
+
+    def _whatsapp_partner_for_number(self, number, sender_name=False):
+        """Reuse a contact with this number. Create one only when configured."""
+        partner = self.env["res.partner"]._find_from_number(number)
+        if partner or not self._whatsapp_auto_create_partner_enabled():
+            return partner
+        return self.env["res.partner"]._find_or_create_from_number(
+            number, sender_name
+        )
+
+    def _whatsapp_apply_sender_name(self, sender_name, wa_formatted):
+        """Keep the WhatsApp profile name on a chat that has no contact."""
+        self.ensure_one()
+        if not sender_name or self.whatsapp_partner_id:
+            return
+        bare_number = (wa_formatted or "").lstrip("+")
+        if self.name not in {wa_formatted, "+%s" % bare_number, bare_number, False}:
+            return
+        self.sudo().write({"name": sender_name})
 
     def _sync_whatsapp_partner(self, partner, wa_formatted):
         """Bind channel to an existing contact matched by phone/mobile."""
@@ -886,7 +916,6 @@ class DiscussChannel(models.Model):
                 [("whatsapp_partner_id.phone", "ilike", term)],
                 [("whatsapp_company_id.name", "ilike", term)],
                 [("whatsapp_tag_ids.name", "ilike", term)],
-                [("whatsapp_last_replier_partner_id.name", "ilike", term)],
             ]
             digits = "".join(c for c in term if c.isdigit())
             if len(digits) >= 3:
@@ -950,7 +979,7 @@ class DiscussChannel(models.Model):
                     "channel_id": message.res_id,
                     "channel_name": channel.display_name,
                     "body": body,
-                    "author_name": message.author_id.name if message.author_id else "",
+                    "author_name": message._whatsapp_display_author().name or "",
                     "date": fields.Datetime.to_string(message.date)
                     if message.date
                     else False,
@@ -1003,16 +1032,6 @@ class DiscussChannel(models.Model):
                     "whatsapp_channel_valid_until": channel.whatsapp_channel_valid_until,
                     "whatsapp_partner_id": Store.one(
                         channel.whatsapp_partner_id, only_id=True
-                    ),
-                    "whatsappLastReplierName": (
-                        channel.whatsapp_last_replier_partner_id.name
-                        if channel.whatsapp_last_replier_partner_id
-                        else False
-                    ),
-                    "whatsappLastReplierPartnerId": (
-                        channel.whatsapp_last_replier_partner_id.id
-                        if channel.whatsapp_last_replier_partner_id
-                        else False
                     ),
                     "whatsappTags": channel._whatsapp_tags_store_data(),
                     **channel._whatsapp_responsible_store_data(),

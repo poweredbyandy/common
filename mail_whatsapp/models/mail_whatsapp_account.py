@@ -976,6 +976,41 @@ class MailWhatsappAccount(models.Model):
             return simulated[media_id]
         return wa_api._get_whatsapp_document(media_id)
 
+    @api.model
+    def _whatsapp_media_filename(self, message_type, filename, mime_type):
+        """Return ``(filename, base_mime)`` with a usable extension for STT.
+
+        Meta voice notes often arrive as ``audio/ogg; codecs=opus`` without a
+        filename. ``mimetypes.guess_extension`` ignores that full string, so
+        the file would be stored as ``audio`` and guessed as octet-stream.
+        """
+        base_mime = (mime_type or "").split(";")[0].strip().lower()
+        if base_mime == "audio/opus":
+            base_mime = "audio/ogg"
+        preferred = {
+            "audio/ogg": ".ogg",
+            "audio/mpeg": ".mp3",
+            "audio/mp4": ".m4a",
+            "audio/aac": ".aac",
+            "audio/amr": ".amr",
+            "audio/wav": ".wav",
+            "audio/x-wav": ".wav",
+            "image/jpeg": ".jpg",
+            "image/png": ".png",
+            "image/webp": ".webp",
+            "video/mp4": ".mp4",
+            "application/pdf": ".pdf",
+        }
+        extension = preferred.get(base_mime) or mimetypes.guess_extension(base_mime) or ""
+        name = (filename or "").strip()
+        if name and "." in name.rsplit("/", 1)[-1]:
+            return name, base_mime
+        if not name:
+            name = message_type + (extension or "")
+        elif extension and not name.lower().endswith(extension):
+            name = name + extension
+        return name, base_mime
+
     def _prepare_message_post_kwargs(
         self, wa_api, messages, message_type, channel, parent_msg
     ):
@@ -993,16 +1028,15 @@ class MailWhatsappAccount(models.Model):
             kwargs["body"] = plaintext2html(messages["button"]["text"])
         elif message_type in ("document", "image", "audio", "video", "sticker"):
             media = messages[message_type]
-            filename = media.get("filename")
-            mime_type = media.get("mime_type")
             caption = media.get("caption")
             datas = self._whatsapp_download_media(wa_api, media["id"])
-            if not filename:
-                extension = mimetypes.guess_extension(mime_type or "") or ""
-                filename = message_type + extension
-            kwargs["attachments"] = [
-                (filename, datas, {"voice": media.get("voice")})
-            ]
+            filename, base_mime = self._whatsapp_media_filename(
+                message_type, media.get("filename"), media.get("mime_type")
+            )
+            info = {"voice": media.get("voice")}
+            if base_mime:
+                info["mimetype"] = base_mime
+            kwargs["attachments"] = [(filename, datas, info)]
             if caption:
                 kwargs["body"] = plaintext2html(caption)
         elif message_type == "location":
@@ -1151,10 +1185,13 @@ class MailWhatsappAccount(models.Model):
             )
             if kwargs is None:
                 continue
-            author = (
-                self.notify_user_ids[:1].partner_id
-                or self.env.ref("base.partner_root")
-            )
+            if wa_message_type == "echo":
+                author = self.env.ref("base.partner_root")
+            else:
+                author = (
+                    self.notify_user_ids[:1].partner_id
+                    or self.env.ref("base.partner_root")
+                )
             mail_message = channel.with_context(
                 whatsapp_skip_send=True
             ).message_post(
@@ -1228,10 +1265,7 @@ class MailWhatsappAccount(models.Model):
                     if kwargs is None:
                         continue
                     if is_outbound:
-                        author = (
-                            self.notify_user_ids[:1].partner_id
-                            or self.env.ref("base.partner_root")
-                        )
+                        author = self.env.ref("base.partner_root")
                         mail_message = channel.with_context(
                             whatsapp_skip_send=True
                         ).message_post(
@@ -1269,6 +1303,9 @@ class MailWhatsappAccount(models.Model):
 
     def _process_app_state_sync(self, value):
         Partner = self.env["res.partner"].sudo()
+        auto_create = self.env[
+            "discuss.channel"
+        ]._whatsapp_auto_create_partner_enabled()
         for item in value.get("state_sync", []):
             if item.get("type") != "contact":
                 continue
@@ -1283,9 +1320,14 @@ class MailWhatsappAccount(models.Model):
                 or phone
             )
             if action in ("add", "update"):
-                Partner._find_or_create_from_number(phone, name)
+                if auto_create:
+                    Partner._find_or_create_from_number(phone, name)
             elif action == "remove":
-                partner = Partner._find_or_create_from_number(phone, name)
+                partner = (
+                    Partner._find_or_create_from_number(phone, name)
+                    if auto_create
+                    else Partner._find_from_number(phone)
+                )
                 if partner and partner.name == phone:
                     partner.active = False
 

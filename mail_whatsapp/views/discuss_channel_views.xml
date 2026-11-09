@@ -26,11 +26,6 @@
                 <field name="wa_account_id" optional="show"/>
                 <field name="whatsapp_user_id" string="Responsible" widget="many2one_avatar_user"/>
                 <field
-                    name="whatsapp_last_replier_partner_id"
-                    string="Last Reply By"
-                    optional="hide"
-                />
-                <field
                     name="whatsapp_tag_ids"
                     string="Tags"
                     widget="many2many_tags"

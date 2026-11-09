@@ -11,6 +11,7 @@ import { escape, escapeRegExp } from "@web/core/utils/strings";
 import { useDebounced } from "@web/core/utils/timing";
 import { htmlToTextContentInline } from "@mail/utils/common/format";
 import { useVisible } from "@mail/utils/common/hooks";
+import { FormViewDialog } from "@web/views/view_dialogs/form_view_dialog";
 
 const MINE_FILTER_ID = "responsible-me";
 const UNASSIGNED_FILTER_ID = "responsible-none";
@@ -36,6 +37,7 @@ export class WhatsappFocusSidebar extends Component {
         super.setup();
         this.store = useState(useService("mail.store"));
         this.orm = useService("orm");
+        this.dialog = useService("dialog");
         this.moreTagsDropdown = useDropdownState();
         this.state = useState({
             search: "",
@@ -510,6 +512,18 @@ export class WhatsappFocusSidebar extends Component {
         } finally {
             this.state.searching = false;
         }
+    }
+
+    openResponsible(thread) {
+        const userId = thread.whatsappResponsibleId;
+        if (!userId) {
+            return;
+        }
+        this.dialog.add(FormViewDialog, {
+            resModel: "res.users",
+            resId: userId,
+            title: thread.whatsappResponsibleName || _t("Responsible"),
+        });
     }
 
     async openThread(thread) {

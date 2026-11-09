@@ -4,6 +4,9 @@ Create a CRM lead from WhatsApp
 #. Open **Discuss** and select a WhatsApp conversation (WhatsApp Focus).
 #. Click the **Create CRM** button (next to Edit Contact).
 #. The lead is created with contact data, medium **WhatsApp** and tag **WhatsApp**.
+   If the chat already has a contact, the lead uses that contact. If automatic
+   contacts are disabled and the number is unknown, the lead stores the
+   WhatsApp name and mobile and leaves the contact empty.
 #. Complete **Intereses** with what the person asked about, then save.
 
 Schedule an interest follow-up

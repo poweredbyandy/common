@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="payment_transaction_form" model="ir.ui.view">
+        <field name="name">payment.transaction.form.pagomovil</field>
+        <field name="model">payment.transaction</field>
+        <field name="inherit_id" ref="payment.payment_transaction_form"/>
+        <field name="arch" type="xml">
+            <header position="inside">
+                <button string="Confirmar pago"
+                        type="object"
+                        name="action_pagomovil_set_done"
+                        class="oe_highlight"
+                        invisible="provider_code != 'pagomovil' or state != 'pending'"/>
+                <button string="Rechazar"
+                        type="object"
+                        name="action_pagomovil_set_canceled"
+                        invisible="provider_code != 'pagomovil' or state != 'pending'"/>
+            </header>
+            <field name="provider_reference" position="after">
+                <field name="pagomovil_vat" invisible="provider_code != 'pagomovil'"/>
+                <field name="pagomovil_phone" invisible="provider_code != 'pagomovil'"/>
+                <field name="pagomovil_bank" invisible="provider_code != 'pagomovil'"/>
+                <field name="pagomovil_reference" invisible="provider_code != 'pagomovil'"/>
+                <field name="pagomovil_receipt_filename" invisible="1"/>
+                <field name="pagomovil_receipt"
+                       widget="binary"
+                       filename="pagomovil_receipt_filename"
+                       invisible="provider_code != 'pagomovil'"/>
+                <field name="pagomovil_destination_holder"
+                       invisible="provider_code != 'pagomovil'"/>
+                <field name="pagomovil_destination_vat"
+                       invisible="provider_code != 'pagomovil'"/>
+                <field name="pagomovil_destination_phone"
+                       invisible="provider_code != 'pagomovil'"/>
+                <field name="pagomovil_destination_bank"
+                       invisible="provider_code != 'pagomovil'"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="payment_transaction_list" model="ir.ui.view">
+        <field name="name">payment.transaction.list.pagomovil</field>
+        <field name="model">payment.transaction</field>
+        <field name="inherit_id" ref="payment.payment_transaction_list"/>
+        <field name="arch" type="xml">
+            <field name="state" position="before">
+                <field name="pagomovil_vat" optional="hide"/>
+                <field name="pagomovil_phone" optional="hide"/>
+                <field name="pagomovil_bank" optional="hide"/>
+                <field name="pagomovil_reference" optional="hide"/>
+            </field>
+        </field>
+    </record>
+
+</odoo>

@@ -24,6 +24,16 @@ Meta Cloud API / Embedded Signup
 Set Test and Production App ID, App Secret and Embedded Signup Configuration
 ID in *WhatsApp → Configuration → Settings*. Choose the active Meta App environment.
 
+Contacts
+--------
+
+*WhatsApp → Configuration → Settings → Create contacts automatically* is
+enabled by default. An unknown number creates a contact and links it to the
+chat. Disable it to create the chat without a contact. A phone or mobile that
+already belongs to a contact is still linked, and that chat keeps the current
+behavior. CRM leads created from a chat without a contact store the WhatsApp
+name and mobile and leave the contact empty.
+
 Dualhook
 --------
 

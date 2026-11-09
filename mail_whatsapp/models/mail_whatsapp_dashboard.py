@@ -192,7 +192,10 @@ class MailWhatsappDashboard(models.TransientModel):
                 if (
                     message.message_type in _REPLY_MESSAGE_TYPES
                     and pending_inbound
-                    and message.author_id not in bot_partners
+                    and (
+                        message.message_type == "echo"
+                        or message.author_id not in bot_partners
+                    )
                 ):
                     inbound_dt = (
                         pending_inbound.message_date or pending_inbound.create_date

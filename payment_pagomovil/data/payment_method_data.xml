@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+
+    <record id="payment_method_pagomovil" model="payment.method">
+        <field name="name">Pago Móvil</field>
+        <field name="code">pagomovil</field>
+        <field name="sequence">40</field>
+        <field name="active" eval="False"/>
+        <field name="image" type="base64" file="payment_pagomovil/static/img/pagomovil.png"/>
+        <field name="support_tokenization">False</field>
+        <field name="support_express_checkout">False</field>
+        <field name="support_refund">none</field>
+        <field name="supported_country_ids" eval="[(6, 0, [ref('base.ve')])]"/>
+    </record>
+
+</odoo>

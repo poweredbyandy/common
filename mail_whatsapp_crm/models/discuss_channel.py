@@ -58,14 +58,34 @@ class DiscussChannel(models.Model):
             domain.append(("medium_id", "=", medium.id))
         return Lead.search(domain, limit=1, order="id desc")
 
-    def _whatsapp_get_or_create_crm_lead(self):
+    def _whatsapp_crm_contact_vals(self):
+        """Lead contact fields. A linked partner keeps the current mapping."""
         self.ensure_one()
         partner = self.whatsapp_partner_id
-        if not partner:
-            raise UserError(
-                _("This WhatsApp chat has no linked contact to create a CRM lead.")
-            )
+        number = (self.whatsapp_number or "").lstrip("+")
+        chat_phone = "+%s" % number if number else False
+        if partner:
+            phone = partner.mobile or partner.phone or chat_phone
+            return {
+                "name": partner.name or self.name or phone or _("WhatsApp Lead"),
+                "partner_id": partner.id,
+                "contact_name": partner.name,
+                "mobile": partner.mobile or phone,
+                "phone": partner.phone or False,
+                "email_from": partner.email or False,
+            }
+        contact_name = self.name if self.name and self.name not in {
+            chat_phone,
+            number,
+        } else False
+        return {
+            "name": contact_name or chat_phone or self.name or _("WhatsApp Lead"),
+            "contact_name": contact_name or chat_phone or self.name,
+            "mobile": chat_phone,
+        }
 
+    def _whatsapp_get_or_create_crm_lead(self):
+        self.ensure_one()
         Lead = self.env["crm.lead"]
         existing = self._whatsapp_find_crm_lead()
         if existing:
@@ -75,17 +95,8 @@ class DiscussChannel(models.Model):
 
         medium = Lead._whatsapp_crm_medium()
         tag = Lead._whatsapp_crm_tag()
-        phone = partner.mobile or partner.phone
-        if not phone and self.whatsapp_number:
-            phone = "+%s" % self.whatsapp_number.lstrip("+")
-
         vals = {
-            "name": partner.name or self.name or phone or _("WhatsApp Lead"),
-            "partner_id": partner.id,
-            "contact_name": partner.name,
-            "mobile": partner.mobile or phone,
-            "phone": partner.phone or False,
-            "email_from": partner.email or False,
+            **self._whatsapp_crm_contact_vals(),
             "user_id": self.env.user.id,
             "whatsapp_channel_id": self.id,
             "description": _(

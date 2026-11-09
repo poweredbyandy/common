@@ -1,6 +1,6 @@
 {
     "name": "Mail WhatsApp CRM",
-    "version": "18.0.1.3.2",
+    "version": "18.0.1.4.0",
 
     "category": "Sales/CRM",
     "summary": "Create CRM leads from WhatsApp Discuss and schedule interest follow-ups",

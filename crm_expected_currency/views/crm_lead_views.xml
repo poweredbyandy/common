@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="crm_lead_view_form" model="ir.ui.view">
+        <field name="name">crm.lead.form.expected.currency</field>
+        <field name="model">crm.lead</field>
+        <field name="inherit_id" ref="crm.crm_lead_view_form"/>
+        <field name="arch" type="xml">
+            <label for="expected_revenue" position="attributes">
+                <attribute name="for">expected_revenue_currency</attribute>
+            </label>
+            <field name="expected_revenue" position="replace">
+                <field name="expected_revenue_currency" class="o_input_13ch" widget="monetary" options="{'currency_field': 'expected_currency_id'}"/>
+                <field name="expected_currency_id" options="{'no_create': True, 'no_open': True}" class="oe_inline o_input_8ch"/>
+                <field name="expected_revenue" invisible="1"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="quick_create_opportunity_form" model="ir.ui.view">
+        <field name="name">crm.lead.form.quick.expected.currency</field>
+        <field name="model">crm.lead</field>
+        <field name="inherit_id" ref="crm.quick_create_opportunity_form"/>
+        <field name="arch" type="xml">
+            <label for="expected_revenue" position="attributes">
+                <attribute name="for">expected_revenue_currency</attribute>
+            </label>
+            <field name="expected_revenue" position="replace">
+                <field name="expected_revenue_currency" class="oe_inline me-2 o_field_highlight" widget="monetary" options="{'currency_field': 'expected_currency_id'}"/>
+                <field name="expected_currency_id" options="{'no_create': True, 'no_open': True}" class="oe_inline"/>
+                <field name="expected_revenue" invisible="1"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="crm_case_kanban_view_leads" model="ir.ui.view">
+        <field name="name">crm.lead.kanban.expected.currency</field>
+        <field name="model">crm.lead</field>
+        <field name="inherit_id" ref="crm.crm_case_kanban_view_leads"/>
+        <field name="arch" type="xml">
+            <field name="company_currency" position="after">
+                <field name="expected_revenue"/>
+                <field name="expected_currency_id"/>
+                <field name="expected_revenue_currency"/>
+            </field>
+            <xpath expr="//t[@t-if='record.expected_revenue.raw_value']" position="attributes">
+                <attribute name="t-if">record.expected_revenue_currency.raw_value</attribute>
+            </xpath>
+            <xpath expr="//t[@t-name='card']//field[@name='expected_revenue']" position="replace">
+                <field name="expected_revenue_currency" widget="monetary" options="{'currency_field': 'expected_currency_id'}"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="crm_case_tree_view_oppor" model="ir.ui.view">
+        <field name="name">crm.lead.list.expected.currency</field>
+        <field name="model">crm.lead</field>
+        <field name="inherit_id" ref="crm.crm_case_tree_view_oppor"/>
+        <field name="arch" type="xml">
+            <field name="expected_revenue" position="after">
+                <field name="expected_currency_id" optional="show"/>
+                <field name="expected_revenue_currency" optional="show" widget="monetary" options="{'currency_field': 'expected_currency_id'}"/>
+            </field>
+        </field>
+    </record>
+
+</odoo>

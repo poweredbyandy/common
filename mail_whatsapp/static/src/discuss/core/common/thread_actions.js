@@ -11,6 +11,10 @@ import { usePopover } from "@web/core/popover/popover_hook";
 import { useService } from "@web/core/utils/hooks";
 import { FormViewDialog } from "@web/views/view_dialogs/form_view_dialog";
 
+const invitePeople = threadActionsRegistry.get("invite-people");
+invitePeople.icon = "fa fa-fw fa-users";
+invitePeople.iconLarge = "fa fa-fw fa-lg fa-users";
+
 threadActionsRegistry.add("whatsapp-contact", {
     condition(component) {
         return (
@@ -143,8 +147,8 @@ threadActionsRegistry.add("whatsapp-responsible", {
             (!component.props.chatWindow || component.props.chatWindow.isOpen)
         );
     },
-    icon: "fa fa-fw fa-user-plus",
-    iconLarge: "fa fa-fw fa-lg fa-user-plus",
+    icon: "fa fa-fw fa-id-badge",
+    iconLarge: "fa fa-fw fa-lg fa-id-badge",
     name: _t("Responsible"),
     open(component, action) {
         action.popover?.open(component.root.el.querySelector(`[name="${action.id}"]`), {

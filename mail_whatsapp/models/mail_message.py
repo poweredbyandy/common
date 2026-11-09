@@ -16,6 +16,44 @@ class MailMessage(models.Model):
         string="WhatsApp Messages",
     )
 
+    def _whatsapp_display_author(self):
+        """Author shown in WhatsApp chats.
+
+        Replies typed in the WhatsApp Business App are attributed to OdooBot.
+        Messages from the contact keep that contact as author.
+        """
+        self.ensure_one()
+        author = self.author_id
+        wa_message = self.sudo().wa_message_ids[:1]
+        if not wa_message or wa_message.message_type not in ("echo", "history"):
+            return author
+        if wa_message.message_type == "history":
+            channel = wa_message._get_related_channel()
+            if channel and author == channel.whatsapp_partner_id:
+                return author
+        bot = self.env.ref("base.partner_root", raise_if_not_found=False)
+        return bot or author
+
+    def _author_to_store(self, store: Store):
+        super()._author_to_store(store)
+        bot = self.env.ref("base.partner_root", raise_if_not_found=False)
+        if not bot:
+            return
+        self.sudo().mapped("wa_message_ids")
+        for message in self:
+            author = message._whatsapp_display_author()
+            if not author or author == message.author_id:
+                continue
+            store.add(
+                message,
+                {
+                    "author": Store.one(
+                        author,
+                        fields=["avatar_128", "is_company", "name", "user"],
+                    ),
+                },
+            )
+
     def _to_store(self, store: Store, **kwargs):
         super()._to_store(store, **kwargs)
         whatsapp_mail_messages = self.filtered(

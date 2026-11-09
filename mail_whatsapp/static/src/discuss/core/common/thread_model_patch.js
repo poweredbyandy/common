@@ -2,17 +2,13 @@
 
 import { Record } from "@mail/core/common/record";
 import { Thread } from "@mail/core/common/thread_model";
-import { _t } from "@web/core/l10n/translation";
+import { imageUrl } from "@web/core/utils/urls";
 import { patch } from "@web/core/utils/patch";
 
 patch(Thread.prototype, {
     setup() {
         super.setup(...arguments);
         this.whatsapp_partner_id = Record.one("Persona");
-        /** @type {string|false} */
-        this.whatsappLastReplierName = false;
-        /** @type {number|false} */
-        this.whatsappLastReplierPartnerId = false;
         /** @type {string|false} */
         this.whatsappNumber = false;
         /** @type {number|false} */
@@ -57,35 +53,17 @@ patch(Thread.prototype, {
     get hasMemberList() {
         return this.channel_type === "whatsapp" || super.hasMemberList;
     },
+    get whatsappResponsibleAvatarUrl() {
+        if (!this.whatsappResponsibleId) {
+            return "";
+        }
+        return imageUrl("res.users", this.whatsappResponsibleId, "avatar_128");
+    },
     get whatsappSidebarTags() {
         if (this.channel_type !== "whatsapp") {
             return [];
         }
         const tags = [];
-        if (this.whatsappResponsibleName) {
-            tags.push({
-                id: "responsible",
-                label: _t("Responsible: %(name)s", {
-                    name: this.whatsappResponsibleName,
-                }),
-                title: _t("%(name)s is in charge of this conversation", {
-                    name: this.whatsappResponsibleName,
-                }),
-                color: false,
-            });
-        }
-        if (this.whatsappLastReplierName) {
-            tags.push({
-                id: "replier",
-                label: _t("Replied: %(name)s", {
-                    name: this.whatsappLastReplierName,
-                }),
-                title: _t("%(name)s replied to this conversation", {
-                    name: this.whatsappLastReplierName,
-                }),
-                color: false,
-            });
-        }
         for (const tag of this.whatsappTags || []) {
             tags.push({
                 id: `tag-${tag.id}`,

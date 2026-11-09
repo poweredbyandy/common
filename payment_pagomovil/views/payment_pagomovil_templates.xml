@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <template id="inline_form">
+        <div class="o_payment_pagomovil_form">
+            <div class="alert alert-info mb-3" role="status">
+                <p class="mb-2 fw-bold">Envíe el pago móvil a</p>
+                <ul class="mb-2">
+                    <li t-if="provider_sudo.pagomovil_holder">
+                        Titular: <span t-out="provider_sudo.pagomovil_holder"/>
+                    </li>
+                    <li>RIF: <span t-out="provider_sudo.pagomovil_vat"/></li>
+                    <li>Teléfono: <span t-out="provider_sudo.pagomovil_phone"/></li>
+                    <li>Banco: <span t-out="provider_sudo.pagomovil_bank"/></li>
+                </ul>
+                <p class="mb-0">Después registre desde dónde lo envió y adjunte el comprobante.</p>
+            </div>
+            <div class="mb-2">
+                <label class="form-label" t-attf-for="o_pagomovil_vat_{{provider_id}}">
+                    RIF o cédula de quien envía
+                </label>
+                <input type="text"
+                       name="pagomovil_vat"
+                       t-attf-id="o_pagomovil_vat_{{provider_id}}"
+                       class="form-control"
+                       required="required"
+                       autocomplete="off"
+                       placeholder="V12345678"/>
+            </div>
+            <div class="mb-2">
+                <label class="form-label" t-attf-for="o_pagomovil_phone_{{provider_id}}">
+                    Teléfono de quien envía
+                </label>
+                <input type="tel"
+                       name="pagomovil_phone"
+                       t-attf-id="o_pagomovil_phone_{{provider_id}}"
+                       class="form-control"
+                       required="required"
+                       autocomplete="tel"
+                       placeholder="04141234567"/>
+            </div>
+            <div class="mb-2">
+                <label class="form-label" t-attf-for="o_pagomovil_bank_{{provider_id}}">
+                    Banco de quien envía
+                </label>
+                <select name="pagomovil_bank"
+                        t-attf-id="o_pagomovil_bank_{{provider_id}}"
+                        class="form-select"
+                        required="required">
+                    <option value="" selected="selected">Seleccione el banco</option>
+                    <t t-foreach="provider_sudo._pagomovil_bank_options()" t-as="bank">
+                        <option t-att-value="bank[0]" t-out="bank[1]"/>
+                    </t>
+                </select>
+            </div>
+            <div class="mb-2">
+                <label class="form-label" t-attf-for="o_pagomovil_reference_{{provider_id}}">
+                    Referencia del pago
+                </label>
+                <input type="text"
+                       name="pagomovil_reference"
+                       t-attf-id="o_pagomovil_reference_{{provider_id}}"
+                       class="form-control"
+                       required="required"
+                       autocomplete="off"
+                       placeholder="123456"/>
+            </div>
+            <div class="mb-0">
+                <label class="form-label" t-attf-for="o_pagomovil_receipt_{{provider_id}}">
+                    Comprobante
+                </label>
+                <input type="file"
+                       name="pagomovil_receipt"
+                       t-attf-id="o_pagomovil_receipt_{{provider_id}}"
+                       class="form-control"
+                       required="required"
+                       accept="image/jpeg,image/png,image/webp,application/pdf"/>
+                <div class="form-text">JPG, PNG, WEBP o PDF, hasta 5 MB.</div>
+            </div>
+        </div>
+    </template>
+
+    <template id="payment_method_form" inherit_id="payment.method_form">
+        <xpath expr="//t[@t-set='hide_secured_by']" position="attributes">
+            <attribute name="t-value" separator=" " add="or provider_sudo.code == 'pagomovil'"/>
+        </xpath>
+    </template>
+
+    <template id="token_form" inherit_id="payment.token_form">
+        <xpath expr="//t[@t-set='hide_secured_by']" position="attributes">
+            <attribute name="t-value" separator=" " add="or provider_sudo.code == 'pagomovil'"/>
+        </xpath>
+    </template>
+
+</odoo>

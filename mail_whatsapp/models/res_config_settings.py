@@ -90,6 +90,14 @@ class ResConfigSettings(models.TransientModel):
         string="User Data Deletion Instructions URL",
         readonly=True,
     )
+    mail_whatsapp_auto_create_partner = fields.Boolean(
+        string="Create a contact for each new chat",
+        config_parameter="mail_whatsapp.auto_create_partner",
+        default=True,
+        help="Unknown WhatsApp numbers create a contact linked to the chat. "
+        "Disable this to keep the chat without a contact. A phone or mobile "
+        "that already belongs to a contact is still used.",
+    )
 
     @api.depends("mail_whatsapp_meta_environment")
     def _compute_mail_whatsapp_is_demo(self):
