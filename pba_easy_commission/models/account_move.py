@@ -551,14 +551,6 @@ class AccountMove(models.Model):
             return None
         return target_currency, target_currency.round(amount)
 
-    def _pba_commission_base_from_credit_note_partial(self, partial, credit_note_move):
-        self.ensure_one()
-        return self._pba_commission_base_from_move_partial(
-            partial,
-            credit_note_move,
-            credit_note_move.currency_id,
-        )
-
     def _pba_is_commission_reversal_counterpart(self, payment_move):
         if payment_move.move_type in ('out_refund', 'in_refund'):
             return True
@@ -568,60 +560,6 @@ class AccountMove(models.Model):
         if not payment:
             return False
         return payment.payment_type != 'inbound' or payment.partner_type != 'customer'
-
-    def _pba_commission_credit_note_offsets_by_currency(self):
-        self.ensure_one()
-        offsets = {}
-        receivable_lines = self.line_ids.filtered(
-            lambda line: line.account_id.account_type == 'asset_receivable'
-        )
-        partials = receivable_lines.matched_debit_ids + receivable_lines.matched_credit_ids
-        for partial in partials:
-            if partial.debit_move_id.move_id == self:
-                counterpart_line = partial.credit_move_id
-            else:
-                counterpart_line = partial.debit_move_id
-            payment_move = counterpart_line.move_id
-            if payment_move.move_type != 'out_refund':
-                continue
-            base = self._pba_commission_base_from_credit_note_partial(partial, payment_move)
-            if not base:
-                continue
-            currency, amount = base
-            offsets[currency.id] = currency.round(offsets.get(currency.id, 0.0) + amount)
-        return offsets
-
-    def _pba_apply_commission_credit_note_offsets(self, payment_lines_data, offsets_by_currency_id):
-        self.ensure_one()
-        if not offsets_by_currency_id:
-            return payment_lines_data
-        Currency = self.env['res.currency']
-        remaining_offsets = dict(offsets_by_currency_id)
-        commission_percent = self.commission_percent or self.invoice_user_id.partner_id.commission_percent
-        result = []
-        for line_data in payment_lines_data:
-            currency = Currency.browse(line_data['currency_id'])
-            offset = remaining_offsets.get(currency.id, 0.0)
-            payment_amount = line_data['payment_amount']
-            if not currency.is_zero(offset):
-                reduction = min(payment_amount, offset)
-                payment_amount = currency.round(payment_amount - reduction)
-                remaining_offsets[currency.id] = currency.round(offset - reduction)
-            if currency.is_zero(payment_amount):
-                continue
-            result.append({
-                **line_data,
-                'payment_amount': payment_amount,
-                'commission_amount': currency.round(payment_amount * commission_percent / 100.0),
-                'description': _(
-                    'Comision de %(percent)s%% sobre pago %(base)s %(currency)s de factura %(invoice)s',
-                    percent=commission_percent,
-                    base=payment_amount,
-                    currency=currency.name,
-                    invoice=self.name or self.ref or self.id,
-                ),
-            })
-        return result
 
     def _prepare_commission_payment_lines_data(self):
         self.ensure_one()
@@ -679,8 +617,7 @@ class AccountMove(models.Model):
                     invoice=self.name or self.ref or self.id,
                 ),
             })
-        credit_note_offsets = self._pba_commission_credit_note_offsets_by_currency()
-        return self._pba_apply_commission_credit_note_offsets(payment_lines_data, credit_note_offsets)
+        return payment_lines_data
 
     def _pba_get_commission_product(self):
         self.ensure_one()
