@@ -1211,6 +1211,8 @@ class MailWhatsappAccount(models.Model):
                     "wa_account_id": self.id,
                 }
             )
+            if wa_message_type == "echo":
+                channel._whatsapp_mark_read(mail_message)
 
     def _process_history(self, value):
         if value.get("history", [{}])[0].get("errors"):

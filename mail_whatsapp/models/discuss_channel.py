@@ -776,6 +776,15 @@ class DiscussChannel(models.Model):
             if current_member and current != partner:
                 current_member.sudo().unlink()
 
+    def _whatsapp_mark_read(self, message):
+        """Mark the channel as read up to a message sent from the WhatsApp app."""
+        self.ensure_one()
+        if not message:
+            return
+        for member in self.channel_member_ids.sudo():
+            member._set_last_seen_message(message)
+            member._set_new_message_separator(message.id + 1, sync=True)
+
     def whatsapp_channel_join_and_pin(self):
         """Add the current partner as a member and pin the WhatsApp channel."""
         self.ensure_one()
