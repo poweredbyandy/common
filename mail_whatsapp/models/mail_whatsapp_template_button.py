@@ -91,7 +91,7 @@ class MailWhatsappTemplateButton(ExtendExistingModel):
                 base = "%s/" % base.rstrip("/")
             data["url"] = "%s{{1}}" % base
             example = (self.demo_value or "preview").lstrip("/")
-            data["example"] = "%s%s" % (base, example)
+            data["example"] = ["%s%s" % (base, example)]
         return data
 
     def _resolve_dynamic_suffix(self, record):
