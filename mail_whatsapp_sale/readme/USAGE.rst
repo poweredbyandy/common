@@ -32,6 +32,8 @@ active account:
 
 * ``sale_quotation`` – Send Quotation (model ``sale.order``)
 * ``sale_order`` – Sale Order (model ``sale.order``)
+* ``sale_quotation_qty`` – Quotation by quantity (model ``sale.order``)
+* ``sale_order_qty`` – Sale order by quantity (model ``sale.order``)
 * ``sale_invoice`` – Invoice (model ``account.move``, button URL → sale order)
 
 In Demo they are auto-approved. In Test/Production, submit them to Meta from

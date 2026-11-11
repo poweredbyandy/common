@@ -1,6 +1,6 @@
 {
     "name": "Mail WhatsApp Sale",
-    "version": "18.0.1.2.1",
+    "version": "18.0.1.3.0",
     "category": "Sales/Sales",
     "summary": "WhatsApp templates to send quotations, sale orders and invoices with portal link button",
     "author": "andyengit",

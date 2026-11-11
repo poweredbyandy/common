@@ -2,6 +2,8 @@ from odoo import _, api, models
 
 QUOTATION_TEMPLATE_NAME = "sale_quotation"
 ORDER_TEMPLATE_NAME = "sale_order"
+QUOTATION_QTY_TEMPLATE_NAME = "sale_quotation_qty"
+ORDER_QTY_TEMPLATE_NAME = "sale_order_qty"
 INVOICE_TEMPLATE_NAME = "sale_invoice"
 
 
@@ -60,6 +62,43 @@ class MailWhatsappTemplate(models.Model):
         )
         templates |= self._ensure_sale_template(
             account,
+            sale_model,
+            base_url,
+            template_name=QUOTATION_QTY_TEMPLATE_NAME,
+            name=_("Quotation by Quantity"),
+            body=_(
+                "Hola {{1}}, te compartimos la cotización {{2}} "
+                "por {{3}} cantidades. Puedes revisarla y confirmar "
+                "desde el siguiente enlace:"
+            ),
+            button_name=_("Ver cotización"),
+            document_label=_("Order"),
+            document_demo="S00001",
+            demo_path="my/orders/1?access_token=demo",
+            value_label=_("Quantity"),
+            value_field="whatsapp_product_qty",
+            value_demo="123",
+        )
+        templates |= self._ensure_sale_template(
+            account,
+            sale_model,
+            base_url,
+            template_name=ORDER_QTY_TEMPLATE_NAME,
+            name=_("Sale Order by Quantity"),
+            body=_(
+                "Hola {{1}}, tu pedido de venta {{2}} está listo "
+                "por {{3}} cantidades. Ábrelo aquí para ver el detalle:"
+            ),
+            button_name=_("Ver pedido"),
+            document_label=_("Order"),
+            document_demo="S00001",
+            demo_path="my/orders/1?access_token=demo",
+            value_label=_("Quantity"),
+            value_field="whatsapp_product_qty",
+            value_demo="123",
+        )
+        templates |= self._ensure_sale_template(
+            account,
             invoice_model,
             base_url,
             template_name=INVOICE_TEMPLATE_NAME,
@@ -89,6 +128,9 @@ class MailWhatsappTemplate(models.Model):
         document_label,
         document_demo,
         demo_path,
+        value_label=None,
+        value_field="amount_total",
+        value_demo="100.00 USD",
     ):
         Template = self.sudo()
         template = Template.search(
@@ -140,12 +182,12 @@ class MailWhatsappTemplate(models.Model):
                     0,
                     0,
                     {
-                        "name": _("Amount"),
+                        "name": value_label or _("Amount"),
                         "line_type": "body",
                         "sequence": 3,
                         "field_type": "field",
-                        "field_name": "amount_total",
-                        "demo_value": "100.00 USD",
+                        "field_name": value_field,
+                        "demo_value": value_demo,
                     },
                 ),
             ],

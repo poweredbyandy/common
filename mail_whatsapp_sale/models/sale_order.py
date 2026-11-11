@@ -1,9 +1,21 @@
-from odoo import _, models
+from odoo import _, api, fields, models
 from odoo.exceptions import UserError
 
 
 class SaleOrder(models.Model):
     _inherit = "sale.order"
+
+    whatsapp_product_qty = fields.Char(
+        string="WhatsApp Product Quantity",
+        compute="_compute_whatsapp_product_qty",
+    )
+
+    @api.depends("order_line.product_uom_qty")
+    def _compute_whatsapp_product_qty(self):
+        for order in self:
+            qty = sum(order.order_line.mapped("product_uom_qty"))
+            text = ("%.4f" % qty).rstrip("0").rstrip(".")
+            order.whatsapp_product_qty = text or "0"
 
     def _whatsapp_template_button_url(self, button):
         """Full portal URL used by dynamic WhatsApp URL buttons."""
