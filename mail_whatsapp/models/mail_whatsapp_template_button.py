@@ -3,8 +3,11 @@ from urllib.parse import urlparse
 from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError
 
+from .model_extend import ExtendExistingModel
 
-class MailWhatsappTemplateButton(models.Model):
+
+class MailWhatsappTemplateButton(ExtendExistingModel):
+    _register = True
     _name = "mail.whatsapp.template.button"
     _description = "WhatsApp Template Button"
     _order = "sequence, id"

@@ -12,10 +12,13 @@ from odoo.addons.mail_whatsapp.tools.meta_credentials import is_demo_environment
 from odoo.addons.mail_whatsapp.tools.whatsapp_api import WhatsAppApi
 from odoo.addons.mail_whatsapp.tools.whatsapp_exception import WhatsAppError
 
+from .model_extend import ExtendExistingModel
+
 FOLLOWUP_TEMPLATE_NAME = "interest_followup"
 
 
-class MailWhatsappTemplate(models.Model):
+class MailWhatsappTemplate(ExtendExistingModel):
+    _register = True
     _name = "mail.whatsapp.template"
     _description = "WhatsApp Message Template"
     _order = "name, id"

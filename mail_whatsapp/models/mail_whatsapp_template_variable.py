@@ -1,8 +1,11 @@
 from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError
 
+from .model_extend import ExtendExistingModel
 
-class MailWhatsappTemplateVariable(models.Model):
+
+class MailWhatsappTemplateVariable(ExtendExistingModel):
+    _register = True
     _name = "mail.whatsapp.template.variable"
     _description = "WhatsApp Template Dynamic Variable"
     _order = "line_type, sequence, id"
