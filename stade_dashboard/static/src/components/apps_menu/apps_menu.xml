@@ -11,10 +11,7 @@
             <attribute name="t-if">false</attribute>
         </xpath>
         <xpath expr="//Dropdown" position="replace">
-            <t t-if="this.ui.isSmall">
-                <t t-call="web.NavBar.AppsMenu.Sidebar" />
-            </t>
-            <t t-else="" />
+            <t t-call="web.NavBar.AppsMenu.Sidebar" />
             <AppsMenu>
                 <t t-set-slot="search_bar">
                     <AppsMenuSearchBar />
@@ -62,7 +59,7 @@
         <xpath expr="//div[hasclass('o_app_menu_sidebar')]" position="attributes">
             <attribute
                 name="class"
-            >o_app_menu_sidebar position-fixed top-0 bottom-0 start-100 d-flex flex-column flex-nowrap</attribute>
+            >o_app_menu_sidebar position-fixed top-0 bottom-0 end-100 d-flex flex-column flex-nowrap</attribute>
         </xpath>
     </t>
 

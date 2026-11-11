@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="message_activity_assigned" inherit_id="mail.message_activity_assigned">
+        <xpath expr="//div" position="replace">
+            <div style="margin: 0px; padding: 0px; font-size: 13px;">
+                <p>
+                    Se te asignó:
+                    <t t-out="activity.summary or activity.activity_type_id.display_name"/>
+                    en <t t-out="activity.res_name"/>.
+                </p>
+                <p>
+                    <a role="button"
+                       class="btn btn-primary"
+                       t-attf-href="/web#id={{ activity.res_id }}&amp;model={{ activity.res_model }}&amp;view_type=form">Abrir</a>
+                </p>
+            </div>
+        </xpath>
+    </template>
+</odoo>

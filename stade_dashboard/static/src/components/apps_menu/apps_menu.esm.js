@@ -159,29 +159,14 @@ export class AppsMenu extends Component {
     }
 
     onMenuClick() {
-        if (!user.context.is_redirect_to_home) {
-            this.setOpenState(!this.state.open);
-        } else {
-            const redirect_menuId =
-                browser.localStorage.getItem("redirect_menuId") || "";
-            if (!redirect_menuId) {
-                this.setOpenState(true);
-            } else {
-                this.setOpenState(!this.state.open);
-            }
-            const {href, hash} = location;
-            const menuId = this.router.current.menu_id;
-            if (menuId && menuId !== redirect_menuId) {
-                browser.localStorage.setItem(
-                    "redirect_menuId",
-                    this.router.current.menu_id
-                );
-            }
-
-            if (href.includes(hash)) {
-                window.history.replaceState(null, "", href.replace(hash, ""));
-            }
+        const onPortal = this.state.open && !hasRouterAction(this.router.current);
+        if (onPortal) {
+            this.setOpenState(false);
+            this.env.bus.trigger("APP_MENU:OPEN_APP_SECTIONS");
+            return;
         }
+        this.env.bus.trigger("APP_MENU:CLOSE_APP_SECTIONS");
+        this.setOpenState(!this.state.open);
     }
 }
 
@@ -192,6 +177,36 @@ patch(NavBar.prototype, {
         useBus(this.env.bus, "APP_MENU:TOGGLE_SIDEBAR", () => {
             this._openAppMenuSidebar();
         });
+        useBus(this.env.bus, "APP_MENU:OPEN_APP_SECTIONS", () => {
+            this._openAppSections();
+        });
+        useBus(this.env.bus, "APP_MENU:CLOSE_APP_SECTIONS", () => {
+            this._closeAppMenuSidebar();
+        });
+    },
+
+    _openAppSections() {
+        if (this.state.isAppMenuSidebarOpened && !this.state.isAllAppsMenuOpened) {
+            this._closeAppMenuSidebar();
+            return;
+        }
+        if (!this.menuService.getCurrentApp()) {
+            const stored =
+                browser.sessionStorage.getItem("menu_id") ||
+                browser.localStorage.getItem("redirect_menuId");
+            const menuId = Number(stored);
+            const menu = menuId && this.menuService.getMenu(menuId);
+            if (menu) {
+                this.menuService.setCurrentMenu(menu);
+            } else {
+                const [firstApp] = this.menuService.getApps();
+                if (firstApp) {
+                    this.menuService.setCurrentMenu(firstApp);
+                }
+            }
+        }
+        this.state.isAllAppsMenuOpened = false;
+        this.state.isAppMenuSidebarOpened = true;
     },
 
     openAppMenu() {
