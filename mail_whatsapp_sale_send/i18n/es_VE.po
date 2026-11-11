@@ -17,6 +17,40 @@ msgid "Email"
 msgstr "Correo electrónico"
 
 #. module: mail_whatsapp_sale_send
+#: model:ir.model.fields,field_description:mail_whatsapp_sale_send.field_sale_order_send__email
+msgid "Email Address"
+msgstr "Correo"
+
+#. module: mail_whatsapp_sale_send
+#: model:ir.model.fields,field_description:mail_whatsapp_sale_send.field_sale_order_send__phone
+msgid "Phone"
+msgstr "Número"
+
+#. module: mail_whatsapp_sale_send
+#. odoo-python
+#: code:addons/mail_whatsapp_sale_send/wizards/sale_order_send.py:0
+msgid "Select an email address."
+msgstr "Indica el correo."
+
+#. module: mail_whatsapp_sale_send
+#. odoo-python
+#: code:addons/mail_whatsapp_sale_send/wizards/sale_order_send.py:0
+msgid "Select a phone number."
+msgstr "Indica el número."
+
+#. module: mail_whatsapp_sale_send
+#. odoo-python
+#: code:addons/mail_whatsapp_sale_send/wizards/sale_order_send.py:0
+msgid "Configure the quotation or order email template in Sales settings."
+msgstr "Configura la plantilla de correo del presupuesto o del pedido en los ajustes de Ventas."
+
+#. module: mail_whatsapp_sale_send
+#. odoo-python
+#: code:addons/mail_whatsapp_sale_send/wizards/sale_order_send.py:0
+msgid "Configure the quotation or order WhatsApp template in Sales settings."
+msgstr "Configura la plantilla de WhatsApp del presupuesto o del pedido en los ajustes de Ventas."
+
+#. module: mail_whatsapp_sale_send
 #: model:ir.model.fields,field_description:mail_whatsapp_sale_send.field_res_config_settings__quotation_mail_template_id
 msgid "Quotation Email Template"
 msgstr "Plantilla de correo del presupuesto"

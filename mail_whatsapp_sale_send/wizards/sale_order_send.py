@@ -8,22 +8,9 @@ class SaleOrderSend(models.TransientModel):
 
     order_id = fields.Many2one("sale.order", string="Sale Order", required=True)
     send_email = fields.Boolean(string="Email", default=True)
+    email = fields.Char(string="Email Address")
     send_whatsapp = fields.Boolean(string="WhatsApp", default=True)
-    mail_template_id = fields.Many2one(
-        "mail.template",
-        string="Email Template",
-        domain="[('model', '=', 'sale.order')]",
-    )
-    wa_account_id = fields.Many2one(
-        "mail.whatsapp.account",
-        string="WhatsApp Number",
-        domain=[("active", "=", True)],
-    )
-    wa_template_id = fields.Many2one(
-        "mail.whatsapp.template",
-        string="WhatsApp Template",
-        domain="[('active', '=', True), ('wa_account_id', '=', wa_account_id), '|', ('model', '=', False), ('model', '=', 'sale.order')]",
-    )
+    phone = fields.Char(string="Phone")
 
     @api.model
     def default_get(self, fields_list):
@@ -33,47 +20,14 @@ class SaleOrderSend(models.TransientModel):
         )
         if not order:
             return values
-        if "mail_template_id" in fields_list and not values.get("mail_template_id"):
-            mail_template = self._configured_template(order, "mail") or order._find_mail_template()
-            values["mail_template_id"] = mail_template.id if mail_template else False
-        if "wa_account_id" in fields_list and not values.get("wa_account_id"):
-            account = self._configured_account(order)
-            values["wa_account_id"] = account.id if account else False
-        if "wa_template_id" in fields_list and not values.get("wa_template_id"):
-            wa_template = self._configured_template(order, "whatsapp")
-            if wa_template and values.get("wa_account_id"):
-                wa_template = wa_template.filtered(
-                    lambda template: template.wa_account_id.id == values["wa_account_id"]
-                )
-            if not wa_template:
-                template_name = order._whatsapp_template_name_for_state()
-                wa_template = (
-                    order._whatsapp_search_sale_template(template_name)
-                    if template_name
-                    else self.env["mail.whatsapp.template"]
-                )
-                if values.get("wa_account_id"):
-                    wa_template = wa_template.filtered(
-                        lambda template: template.wa_account_id.id
-                        == values["wa_account_id"]
-                    )
-            values["wa_template_id"] = wa_template.id if wa_template else False
-            if wa_template and not values.get("wa_account_id"):
-                values["wa_account_id"] = wa_template.wa_account_id.id
+        if "email" in fields_list and not values.get("email"):
+            values["email"] = order.partner_id.email or False
+        if "phone" in fields_list and not values.get("phone"):
+            Composer = self.env["mail.whatsapp.composer"]
+            values["phone"] = (
+                Composer._guess_phone("sale.order", order.id) or False
+            )
         return values
-
-    @api.model
-    def _configured_account(self, order):
-        confirmed = order.state in ("sale", "done")
-        key = (
-            "mail_whatsapp_sale_send.sale_wa_account_id"
-            if confirmed
-            else "mail_whatsapp_sale_send.quotation_wa_account_id"
-        )
-        value = self.env["ir.config_parameter"].sudo().get_param(key)
-        if not value:
-            return self.env["mail.whatsapp.account"]
-        return self.env["mail.whatsapp.account"].browse(int(value)).exists()
 
     @api.model
     def _configured_template(self, order, channel):
@@ -103,21 +57,35 @@ class SaleOrderSend(models.TransientModel):
         if not self.send_email and not self.send_whatsapp:
             raise UserError(_("Select email, WhatsApp, or both."))
         if self.send_email:
-            if not self.mail_template_id:
-                raise UserError(_("Select an email template."))
-            order._send_quotation_mail(self.mail_template_id)
-        if self.send_whatsapp:
-            if not self.wa_account_id:
-                raise UserError(_("Select the WhatsApp number to send from."))
-            if not self.wa_template_id:
-                raise UserError(_("Select a WhatsApp template."))
-            if self.wa_template_id.wa_account_id != self.wa_account_id:
+            if not self.email:
+                raise UserError(_("Select an email address."))
+            mail_template = self._configured_template(order, "mail") or order._find_mail_template()
+            if not mail_template:
                 raise UserError(
-                    _("The WhatsApp template does not belong to the selected number.")
+                    _("Configure the quotation or order email template in Sales settings.")
                 )
-            self.wa_template_id._check_allowed_for_model(order._name)
+            order.with_context(sale_send_email_to=self.email)._send_quotation_mail(
+                mail_template
+            )
+        if self.send_whatsapp:
+            if not self.phone:
+                raise UserError(_("Select a phone number."))
+            wa_template = self._configured_template(order, "whatsapp")
+            if not wa_template:
+                template_name = order._whatsapp_template_name_for_state()
+                wa_template = (
+                    order._whatsapp_search_sale_template(template_name)
+                    if template_name
+                    else self.env["mail.whatsapp.template"]
+                )
+            if not wa_template:
+                raise UserError(
+                    _("Configure the quotation or order WhatsApp template in Sales settings.")
+                )
+            wa_template._check_allowed_for_model(order._name)
             order._whatsapp_send_sale_template(
-                self.wa_template_id.template_name,
-                template=self.wa_template_id,
+                wa_template.template_name,
+                template=wa_template,
+                phone=self.phone,
             )
         return {"type": "ir.actions.act_window_close"}

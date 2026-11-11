@@ -8,22 +8,9 @@
                 <group>
                     <field name="order_id" invisible="1"/>
                     <field name="send_email"/>
-                    <field
-                        name="mail_template_id"
-                        invisible="not send_email"
-                        required="send_email"
-                    />
+                    <field name="email" invisible="not send_email" required="send_email"/>
                     <field name="send_whatsapp"/>
-                    <field
-                        name="wa_account_id"
-                        invisible="not send_whatsapp"
-                        required="send_whatsapp"
-                    />
-                    <field
-                        name="wa_template_id"
-                        invisible="not send_whatsapp"
-                        required="send_whatsapp"
-                    />
+                    <field name="phone" invisible="not send_whatsapp" required="send_whatsapp"/>
                 </group>
                 <footer>
                     <button

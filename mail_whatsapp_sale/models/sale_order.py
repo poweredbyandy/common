@@ -57,13 +57,14 @@ class SaleOrder(models.Model):
             )
         return template
 
-    def _whatsapp_send_sale_template(self, template_name, template=None):
+    def _whatsapp_send_sale_template(self, template_name, template=None, phone=None):
         self.ensure_one()
         if not self.partner_id:
             raise UserError(_("Please set a customer on the sale order first."))
         template = template or self._whatsapp_get_sale_template(template_name)
         Composer = self.env["mail.whatsapp.composer"]
-        phone = Composer._guess_phone("sale.order", self.id)
+        if not phone:
+            phone = Composer._guess_phone("sale.order", self.id)
         if not phone:
             phone = Composer._guess_phone("res.partner", self.partner_id.id)
         if not phone:

@@ -41,5 +41,15 @@ class SaleOrder(models.Model):
         composer = (
             self.env["mail.compose.message"].with_context(**context).create({})
         )
+        email_to = self.env.context.get("sale_send_email_to")
+        partner = self.partner_id
+        if email_to and partner and email_to != partner.email:
+            previous_email = partner.email
+            partner.sudo().write({"email": email_to})
+            try:
+                composer.action_send_mail()
+            finally:
+                partner.sudo().write({"email": previous_email})
+            return True
         composer.action_send_mail()
         return True
