@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="sale_order_send_view_form" model="ir.ui.view">
+        <field name="name">sale.order.send.form</field>
+        <field name="model">sale.order.send</field>
+        <field name="arch" type="xml">
+            <form string="Send">
+                <group>
+                    <field name="order_id" invisible="1"/>
+                    <field name="send_email"/>
+                    <field
+                        name="mail_template_id"
+                        invisible="not send_email"
+                        required="send_email"
+                    />
+                    <field name="send_whatsapp"/>
+                    <field
+                        name="wa_account_id"
+                        invisible="not send_whatsapp"
+                        required="send_whatsapp"
+                    />
+                    <field
+                        name="wa_template_id"
+                        invisible="not send_whatsapp"
+                        required="send_whatsapp"
+                    />
+                </group>
+                <footer>
+                    <button
+                        name="action_send"
+                        type="object"
+                        string="Send"
+                        class="btn-primary"
+                    />
+                    <button string="Cancel" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

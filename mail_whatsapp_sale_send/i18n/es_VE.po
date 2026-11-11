@@ -1,0 +1,152 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* mail_whatsapp_sale_send
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Language: es_VE\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#. module: mail_whatsapp_sale_send
+#: model:ir.model.fields,field_description:mail_whatsapp_sale_send.field_sale_order_send__send_email
+msgid "Email"
+msgstr "Correo electrónico"
+
+#. module: mail_whatsapp_sale_send
+#: model:ir.model.fields,field_description:mail_whatsapp_sale_send.field_res_config_settings__quotation_mail_template_id
+msgid "Quotation Email Template"
+msgstr "Plantilla de correo del presupuesto"
+
+#. module: mail_whatsapp_sale_send
+#: model:ir.model.fields,field_description:mail_whatsapp_sale_send.field_res_config_settings__sale_mail_template_id
+msgid "Confirmed Order Email Template"
+msgstr "Plantilla de correo del pedido confirmado"
+
+#. module: mail_whatsapp_sale_send
+#: model:ir.model.fields,field_description:mail_whatsapp_sale_send.field_res_config_settings__quotation_wa_account_id
+msgid "Quotation WhatsApp Number"
+msgstr "Número de WhatsApp del presupuesto"
+
+#. module: mail_whatsapp_sale_send
+#: model:ir.model.fields,field_description:mail_whatsapp_sale_send.field_res_config_settings__quotation_wa_template_id
+#: model:ir.model.fields,field_description:mail_whatsapp_sale_send.field_sale_order_send__wa_template_id
+msgid "Quotation WhatsApp Template"
+msgstr "Plantilla de WhatsApp del presupuesto"
+
+#. module: mail_whatsapp_sale_send
+#: model:ir.model.fields,field_description:mail_whatsapp_sale_send.field_res_config_settings__sale_wa_account_id
+msgid "Confirmed Order WhatsApp Number"
+msgstr "Número de WhatsApp del pedido confirmado"
+
+#. module: mail_whatsapp_sale_send
+#: model:ir.model.fields,field_description:mail_whatsapp_sale_send.field_sale_order_send__wa_account_id
+msgid "WhatsApp Number"
+msgstr "Número de WhatsApp"
+
+#. module: mail_whatsapp_sale_send
+#. odoo-python
+#: code:addons/mail_whatsapp_sale_send/wizards/sale_order_send.py:0
+msgid "Select the WhatsApp number to send from."
+msgstr "Selecciona el número de WhatsApp desde el que se envía."
+
+#. module: mail_whatsapp_sale_send
+#. odoo-python
+#: code:addons/mail_whatsapp_sale_send/wizards/sale_order_send.py:0
+msgid "The WhatsApp template does not belong to the selected number."
+msgstr "La plantilla de WhatsApp no pertenece al número seleccionado."
+
+#. module: mail_whatsapp_sale_send
+#: model:ir.model.fields,field_description:mail_whatsapp_sale_send.field_res_config_settings__sale_wa_template_id
+msgid "Confirmed Order WhatsApp Template"
+msgstr "Plantilla de WhatsApp del pedido confirmado"
+
+#. module: mail_whatsapp_sale_send
+#: model_terms:ir.ui.view,arch_db:mail_whatsapp_sale_send.res_config_settings_view_form_send
+msgid "Quotation"
+msgstr "Presupuesto"
+
+#. module: mail_whatsapp_sale_send
+#: model_terms:ir.ui.view,arch_db:mail_whatsapp_sale_send.res_config_settings_view_form_send
+msgid "Templates proposed when sending a quotation by email and WhatsApp."
+msgstr "Plantillas que se proponen al enviar un presupuesto por correo y WhatsApp."
+
+#. module: mail_whatsapp_sale_send
+#: model_terms:ir.ui.view,arch_db:mail_whatsapp_sale_send.res_config_settings_view_form_send
+msgid "Confirmed Order"
+msgstr "Pedido confirmado"
+
+#. module: mail_whatsapp_sale_send
+#: model_terms:ir.ui.view,arch_db:mail_whatsapp_sale_send.res_config_settings_view_form_send
+msgid "Templates proposed when sending a confirmed order by email and WhatsApp."
+msgstr "Plantillas que se proponen al enviar un pedido confirmado por correo y WhatsApp."
+
+#. module: mail_whatsapp_sale_send
+#: model:ir.model.fields,field_description:mail_whatsapp_sale_send.field_sale_order_send__mail_template_id
+msgid "Email Template"
+msgstr "Plantilla de correo"
+
+#. module: mail_whatsapp_sale_send
+#: model:ir.model.fields,field_description:mail_whatsapp_sale_send.field_sale_order_send__wa_template_id
+msgid "WhatsApp Template"
+msgstr "Plantilla de WhatsApp"
+
+#. module: mail_whatsapp_sale_send
+#: model:ir.model,name:mail_whatsapp_sale_send.model_sale_order_send
+msgid "Send Sale Order"
+msgstr "Enviar pedido de venta"
+
+#. module: mail_whatsapp_sale_send
+#: model:ir.model.fields,field_description:mail_whatsapp_sale_send.field_sale_order_send__order_id
+msgid "Sale Order"
+msgstr "Pedido de venta"
+
+#. module: mail_whatsapp_sale_send
+#. odoo-python
+#: code:addons/mail_whatsapp_sale_send/wizards/sale_order_send.py:0
+msgid "Select email, WhatsApp, or both."
+msgstr "Selecciona correo electrónico, WhatsApp o ambos."
+
+#. module: mail_whatsapp_sale_send
+#. odoo-python
+#: code:addons/mail_whatsapp_sale_send/wizards/sale_order_send.py:0
+msgid "Select an email template."
+msgstr "Selecciona una plantilla de correo."
+
+#. module: mail_whatsapp_sale_send
+#. odoo-python
+#: code:addons/mail_whatsapp_sale_send/wizards/sale_order_send.py:0
+msgid "Select a WhatsApp template."
+msgstr "Selecciona una plantilla de WhatsApp."
+
+#. module: mail_whatsapp_sale_send
+#: model_terms:ir.ui.view,arch_db:mail_whatsapp_sale_send.sale_order_send_view_form
+#: model_terms:ir.ui.view,arch_db:mail_whatsapp_sale_send.sale_order_view_form_send_channels
+#: code:addons/mail_whatsapp_sale_send/models/sale_order.py:0
+msgid "Send"
+msgstr "Enviar"
+
+#. module: mail_whatsapp_sale_send
+#: model_terms:ir.ui.view,arch_db:mail_whatsapp_sale_send.sale_order_send_view_form
+msgid "Cancel"
+msgstr "Cancelar"
+
+#. module: mail_whatsapp_sale_send
+#. odoo-python
+#: code:addons/mail_whatsapp_sale_send/models/sale_order.py:0
+msgid "The sale email wizard could not be prepared for this order."
+msgstr "No se pudo preparar el correo de este pedido."
+
+#. module: mail_whatsapp_sale_send
+#: model:ir.model.fields,field_description:mail_whatsapp_sale_send.field_sale_order_send__send_whatsapp
+msgid "WhatsApp"
+msgstr "WhatsApp"
+
+#. module: mail_whatsapp_sale_send
+#. odoo-python
+#: code:addons/mail_whatsapp_sale_send/wizards/sale_order_send.py:0
+msgid "WhatsApp cannot be sent for an order in this state."
+msgstr "No se puede enviar WhatsApp para un pedido en este estado."

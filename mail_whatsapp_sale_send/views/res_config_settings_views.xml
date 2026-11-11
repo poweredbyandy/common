@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="res_config_settings_view_form_send" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.mail.whatsapp.sale.send</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="sale.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <block name="quotation_order_setting_container" position="inside">
+                <setting
+                    id="sale_send_quotation_templates"
+                    string="Quotation"
+                    help="Templates proposed when sending a quotation by email and WhatsApp."
+                    class="col-12 col-lg-6"
+                >
+                    <div class="content-group">
+                        <div class="row mt8">
+                            <label for="quotation_mail_template_id" class="col-lg-5 o_light_label"/>
+                            <field name="quotation_mail_template_id" class="col-lg-7" options="{'no_create': True}"/>
+                        </div>
+                        <div class="row mt8">
+                            <label for="quotation_wa_account_id" class="col-lg-5 o_light_label"/>
+                            <field name="quotation_wa_account_id" class="col-lg-7" options="{'no_create': True}"/>
+                        </div>
+                        <div class="row mt8">
+                            <label for="quotation_wa_template_id" class="col-lg-5 o_light_label"/>
+                            <field name="quotation_wa_template_id" class="col-lg-7" options="{'no_create': True}"/>
+                        </div>
+                    </div>
+                </setting>
+                <setting
+                    id="sale_send_confirmed_templates"
+                    string="Confirmed Order"
+                    help="Templates proposed when sending a confirmed order by email and WhatsApp."
+                    class="col-12 col-lg-6"
+                >
+                    <div class="content-group">
+                        <div class="row mt8">
+                            <label for="sale_mail_template_id" class="col-lg-5 o_light_label"/>
+                            <field name="sale_mail_template_id" class="col-lg-7" options="{'no_create': True}"/>
+                        </div>
+                        <div class="row mt8">
+                            <label for="sale_wa_account_id" class="col-lg-5 o_light_label"/>
+                            <field name="sale_wa_account_id" class="col-lg-7" options="{'no_create': True}"/>
+                        </div>
+                        <div class="row mt8">
+                            <label for="sale_wa_template_id" class="col-lg-5 o_light_label"/>
+                            <field name="sale_wa_template_id" class="col-lg-7" options="{'no_create': True}"/>
+                        </div>
+                    </div>
+                </setting>
+            </block>
+        </field>
+    </record>
+</odoo>

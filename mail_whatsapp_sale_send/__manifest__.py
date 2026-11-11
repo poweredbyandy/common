@@ -1,0 +1,20 @@
+{
+    "name": "Mail WhatsApp Sale Send",
+    "version": "18.0.1.2.0",
+    "images": ["static/description/icon.png"],
+    "category": "Sales/Sales",
+    "summary": "Send a sale order by email, WhatsApp, or both",
+    "author": "andyengit",
+    "maintainer": "andyengit",
+    "website": "https://github.com/andyengit",
+    "license": "LGPL-3",
+    "depends": ["mail_whatsapp_sale"],
+    "data": [
+        "security/ir.model.access.csv",
+        "wizards/sale_order_send_views.xml",
+        "views/sale_order_views.xml",
+        "views/res_config_settings_views.xml",
+    ],
+    "installable": True,
+    "application": False,
+}

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="sale_order_view_form_send_channels" model="ir.ui.view">
+        <field name="name">sale.order.form.send.channels</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+            <button id="send_by_email_primary" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </button>
+            <button id="send_by_email" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </button>
+            <button id="send_by_email_primary" position="after">
+                <button
+                    name="action_send_channels"
+                    type="object"
+                    string="Send"
+                    id="send_channels_primary"
+                    class="btn-primary"
+                    data-hotkey="g"
+                    invisible="state != 'draft'"
+                />
+            </button>
+            <button id="send_by_email" position="after">
+                <button
+                    name="action_send_channels"
+                    type="object"
+                    string="Send"
+                    id="send_channels"
+                    data-hotkey="g"
+                    invisible="state not in ('sent', 'sale')"
+                />
+            </button>
+        </field>
+    </record>
+</odoo>
