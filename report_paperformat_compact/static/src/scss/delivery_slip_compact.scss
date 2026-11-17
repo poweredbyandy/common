@@ -100,6 +100,12 @@
             white-space: nowrap;
         }
 
+        .col.col-12 {
+            flex: 0 0 100%;
+            width: 100%;
+            white-space: normal;
+        }
+
         strong {
             display: inline;
             font-size: 12px;
