@@ -104,6 +104,8 @@ class TestPbaDocumentLayout(TransactionCase):
         self.env.company.report_header = "PBA Tagline"
         self.env.company.company_details = False
         self.env.company.street = "PBA Company Street"
+        self.env.company.phone = "0212-5550000"
+        self.env.company.email = "ventas@pba.example"
         customer = self.env["res.partner"].create({"name": "PBA Customer"})
         invoice_address = self.env["res.partner"].create(
             {
@@ -139,6 +141,8 @@ class TestPbaDocumentLayout(TransactionCase):
         self.assertIn("o_pba_shipping_information", html)
         self.assertIn("o_pba_document_information", html)
         self.assertIn("PBA Company Street", html)
+        self.assertIn("0212-5550000", html)
+        self.assertIn("ventas@pba.example", html)
         self.assertLess(html.index("PBA Tagline"), html.index("PBA Company Street"))
         self.assertIn("PBA Customer", html)
         self.assertIn("PBA Shipping Address", html)
