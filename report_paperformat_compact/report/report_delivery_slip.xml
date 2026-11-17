@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template
+        id="report_delivery_document_compact"
+        inherit_id="stock.report_delivery_document"
+    >
+        <xpath expr="//div[hasclass('page')]" position="attributes">
+            <attribute name="class" add="o_delivery_slip_compact" separator=" "/>
+        </xpath>
+        <xpath expr="//div[hasclass('page')]/h2" position="after">
+            <div class="o_compact_parties" style="border: 0; overflow: hidden;">
+                <div style="float: left; width: 50%; border: 0;">
+                    <strong>Dirección de entrega</strong>
+                    <div
+                        t-out="(o.move_ids and o.move_ids[0].partner_id) or o.partner_id"
+                        t-options='{"widget": "contact", "fields": ["name", "address", "phone", "vat"], "no_marker": True}'
+                    />
+                </div>
+                <div style="float: left; width: 50%; border: 0;">
+                    <strong>Cliente</strong>
+                    <div
+                        t-out="o.partner_id.commercial_partner_id or o.partner_id"
+                        t-options='{"widget": "contact", "fields": ["name", "address", "phone", "vat"], "no_marker": True}'
+                    />
+                </div>
+                <div style="clear: both;"/>
+            </div>
+        </xpath>
+    </template>
+    <template
+        id="report_picking_batch_compact"
+        inherit_id="stock_picking_batch.report_picking_batch"
+    >
+        <xpath expr="//div[hasclass('page')]" position="attributes">
+            <attribute name="class" add="o_delivery_slip_compact" separator=" "/>
+        </xpath>
+    </template>
+</odoo>

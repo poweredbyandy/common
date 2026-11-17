@@ -1,0 +1,169 @@
+.o_letter_compact_header {
+    font-size: 11px;
+    line-height: 1.15;
+    margin-bottom: 4px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid #000;
+
+    address,
+    p,
+    div {
+        margin: 0;
+    }
+
+    .o_letter_compact_company {
+        width: 100%;
+        border-collapse: collapse;
+        border: 0;
+
+        td {
+            border: 0;
+        }
+    }
+
+    .o_letter_compact_logo {
+        width: 70px;
+        vertical-align: middle;
+
+        img {
+            max-height: 36px;
+            max-width: 64px;
+        }
+    }
+
+    .o_letter_compact_identity {
+        vertical-align: middle;
+        padding: 0 8px;
+    }
+
+    .o_letter_compact_company_address {
+        width: 42%;
+        font-size: 10px;
+        line-height: 1.15;
+        text-align: right;
+        vertical-align: top;
+    }
+}
+
+.o_report_layout_letter_compact {
+    font-size: 12px;
+    line-height: 1.3;
+
+    .address {
+        margin-bottom: 6px;
+        font-size: 12px;
+
+        .ms-auto,
+        [name="address"] {
+            margin-left: 0 !important;
+            width: 50%;
+            max-width: 50%;
+        }
+    }
+
+    .o_compact_parties {
+        width: 100%;
+        margin: 0 0 8px;
+        border-collapse: collapse;
+
+        td {
+            width: 50%;
+            vertical-align: top;
+            border: 0;
+        }
+
+        strong {
+            display: block;
+            margin-bottom: 2px;
+        }
+    }
+
+    h2 {
+        font-size: 17px;
+        line-height: 1.2;
+        margin: 6px 0 8px;
+        padding-bottom: 3px;
+        border: 0;
+        border-bottom: 1px solid #000;
+    }
+
+    #informations {
+        display: flex;
+        flex-wrap: wrap;
+        margin-bottom: 6px;
+
+        .col {
+            flex: 0 0 auto;
+            width: auto;
+            max-width: none;
+            margin: 0 16px 4px 0;
+            white-space: nowrap;
+        }
+
+        strong {
+            display: inline;
+            font-size: 12px;
+
+            &::after {
+                content: ": ";
+            }
+        }
+
+        strong.text-danger {
+            color: #000;
+
+            &::after {
+                content: none;
+            }
+        }
+
+        .col > div {
+            display: inline;
+        }
+    }
+
+    table[name="stock_move_table"],
+    table[name="stock_move_line_table"] {
+        font-size: 12px;
+        border: 1px solid #000;
+
+        thead th {
+            background: #f0f0f0;
+            border-bottom: 1px solid #000;
+        }
+
+        tbody td {
+            border-top: 1px solid #ccc;
+            padding-top: 2px;
+            padding-bottom: 2px;
+        }
+    }
+
+    table.table-sm.table-borderless {
+        width: auto;
+        border: 0;
+        margin-bottom: 0;
+
+        tr,
+        td {
+            display: inline;
+            border: 0;
+            background: transparent;
+            padding: 0 12px 0 0;
+        }
+    }
+
+    .text-danger {
+        color: #000;
+        font-size: 12px;
+    }
+
+    div[name="delivery_slip_note"] {
+        margin-top: 8px;
+        padding: 4px 6px;
+        border: 1px solid #000;
+        background: #f0f0f0;
+        font-size: 11px;
+        line-height: 1.3;
+    }
+}

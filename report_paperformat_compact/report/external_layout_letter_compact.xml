@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="external_layout_letter_compact">
+        <t t-if="not o" t-set="o" t-value="doc"/>
+        <div t-if="display_report_header is not False" class="header" style="height: 0; overflow: hidden;"/>
+        <div
+            t-attf-class="article o_report_layout_letter_compact o_table_standard o_company_#{company.id}_layout"
+            t-att-data-oe-model="o and o._name"
+            t-att-data-oe-id="o and o.id"
+            t-att-data-oe-lang="o and o.env.context.get('lang')"
+        >
+            <div class="o_letter_compact_header" style="border: 0; border-bottom: 1px solid #000;">
+                <div t-if="company.logo" class="o_letter_compact_logo" style="float: left; width: 70px; border: 0;">
+                    <img t-att-src="image_data_uri(company.logo)" alt="" style="max-height: 36px; max-width: 64px; border: 0;"/>
+                </div>
+                <div class="o_letter_compact_company_address" name="company_address" style="float: right; width: 42%; text-align: right; font-size: 10px; line-height: 1.15; border: 0;">
+                    <span
+                        t-field="company.partner_id"
+                        t-options='{"widget": "contact", "fields": ["address"], "no_marker": true}'
+                    />
+                </div>
+                <div class="o_letter_compact_identity" style="margin-left: 78px; margin-right: 44%; border: 0;">
+                    <div class="fw-bold" t-out="company.name"/>
+                    <div t-if="company.report_header" t-field="company.report_header"/>
+                    <div>
+                        <t t-if="company.vat">
+                            <t t-out="company.country_id.vat_label or 'Tax ID'"/>:
+                            <span t-out="forced_vat or company.vat"/>
+                        </t>
+                        <t t-if="company.phone">
+                            <span t-if="company.vat"> · </span>
+                            <span t-out="company.phone"/>
+                        </t>
+                        <t t-if="company.email">
+                            <span> · </span>
+                            <span t-out="company.email"/>
+                        </t>
+                    </div>
+                </div>
+                <div style="clear: both;"/>
+            </div>
+            <t t-if="not o or o._name != 'stock.picking'">
+                <t t-call="web.address_layout"/>
+            </t>
+            <h2 t-if="layout_document_title" t-out="layout_document_title"/>
+            <t t-out="0"/>
+        </div>
+        <div t-attf-class="footer o_company_#{company.id}_layout">
+            <div class="o_footer_content d-flex border-top pt-1">
+                <div class="flex-grow-1 text-start me-2 small" t-field="company.report_footer"/>
+                <div class="text-end text-muted small">
+                    <div t-if="report_type == 'pdf' and display_name_in_footer" t-out="o.name"/>
+                    <div t-if="report_type == 'pdf'">
+                        Página <span class="page"/> / <span class="topage"/>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+</odoo>

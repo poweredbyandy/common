@@ -33,6 +33,35 @@
                     class="btn-link"
                     invisible="partner_id"
                 />
+                <field name="partner_name"/>
+                <field name="vat"/>
+                <label for="contact_name"/>
+                <div class="o_row">
+                    <field name="contact_name"/>
+                    <field name="title" placeholder="Title" domain="[]" options='{"no_open": True}'/>
+                </div>
+                <field name="function"/>
+                <label for="street" string="Address"/>
+                <div class="o_address_format">
+                    <field name="street" placeholder="Street..." class="o_address_street"/>
+                    <field name="street2" placeholder="Street 2..." class="o_address_street"/>
+                    <field name="city" placeholder="City" class="o_address_city"/>
+                    <field name="state_id" class="o_address_state" placeholder="State" options='{"no_open": True}'/>
+                    <field name="zip" placeholder="ZIP" class="o_address_zip"/>
+                    <field name="country_id" placeholder="Country" class="o_address_country" options='{"no_open": True, "no_create": True}'/>
+                </div>
+            </xpath>
+            <xpath expr="//group[@name='opportunity_partner']/field[@name='lost_reason_id']" position="before">
+                <label for="mobile" class="oe_inline"/>
+                <div class="o_row o_row_readonly">
+                    <field name="mobile" widget="phone" string="Mobile"/>
+                </div>
+            </xpath>
+            <xpath expr="//page[@name='lead']//field[@name='partner_name']/ancestor::group[1]" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//page[@name='lead']//field[@id='contact_name_page_lead']/ancestor::group[1]" position="attributes">
+                <attribute name="invisible">1</attribute>
             </xpath>
         </field>
     </record>

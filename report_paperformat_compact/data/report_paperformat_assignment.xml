@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="stock.action_report_delivery" model="ir.actions.report">
+        <field name="paperformat_id" ref="paperformat_letter_compact"/>
+    </record>
+    <record id="stock_picking_batch.action_report_picking_batch" model="ir.actions.report">
+        <field name="paperformat_id" ref="paperformat_letter_compact"/>
+    </record>
+</odoo>
