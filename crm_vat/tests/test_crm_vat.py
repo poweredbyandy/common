@@ -70,16 +70,20 @@ class TestCrmVat(TransactionCase):
             }
         )
         lead.action_create_contact()
-        contact = lead.partner_id
-        self.assertEqual(contact.name, "Ana")
+        company = lead.partner_id
+        self.assertEqual(company.name, "Empresa Nueva")
+        self.assertTrue(company.is_company)
+        self.assertEqual(company.vat, "J-55555555-5")
+        self.assertEqual(lead.vat, "J-55555555-5")
+        contact = company.child_ids.filtered(lambda partner: partner.name == "Ana")
+        self.assertEqual(len(contact), 1)
+        self.assertFalse(contact.is_company)
+        self.assertEqual(contact.type, "contact")
+        self.assertFalse(contact.vat)
         self.assertEqual(contact.email, "ana@example.com")
         self.assertEqual(contact.phone, "02121234567")
         self.assertEqual(contact.street, "Calle 1")
         self.assertEqual(contact.city, "Caracas")
-        self.assertEqual(contact.parent_id.name, "Empresa Nueva")
-        self.assertTrue(contact.parent_id.is_company)
-        self.assertEqual(contact.commercial_partner_id.vat, "J-55555555-5")
-        self.assertEqual(lead.vat, "J-55555555-5")
         with self.assertRaises(UserError):
             lead.action_create_contact()
 

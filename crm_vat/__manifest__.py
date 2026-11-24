@@ -1,7 +1,7 @@
 {
     "name": "CRM VAT",
     "summary": "Identificación fiscal en la información de contacto del CRM",
-    "version": "18.0.1.1.1",
+    "version": "18.0.1.1.2",
     "category": "Sales/CRM",
     "author": "andyengit",
     "maintainer": "andyengit",
