@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Copyright 2026 Anderson Armeya
+     License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl). -->
+<odoo>
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.l10n.ve.exchange.rate.spread</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="base_setup.res_config_settings_view_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//app[@name='general_settings']" position="inside">
+                <block
+                    title="Exchange Rates"
+                    name="l10n_ve_exchange_spread_container"
+                    groups="base.group_system"
+                >
+                    <setting
+                        id="l10n_ve_currency_spread"
+                        string="Spread de tasas"
+                        company_dependent="1"
+                        help="Defina las comparaciones de spread (desde → hacia, p. ej. USD vs USDT) que se muestran en el tooltip de tasas de la barra de navegación."
+                    >
+                        <field
+                            name="l10n_ve_currency_spread_ids"
+                            context="{'default_company_id': company_id}"
+                        >
+                            <list editable="bottom" decoration-warning="has_rate and spread &gt; 0" decoration-muted="not has_rate">
+                                <field name="sequence" widget="handle" />
+                                <field name="company_id" column_invisible="1" />
+                                <field name="name" optional="show" />
+                                <field
+                                    name="from_currency_id"
+                                    options="{'no_create': True}"
+                                    string="Desde (referencia)"
+                                />
+                                <field
+                                    name="to_currency_id"
+                                    options="{'no_create': True}"
+                                    string="Hacia (comparada)"
+                                />
+                                <field name="from_rate" string="Tasa ref." groups="base.group_no_one" />
+                                <field name="to_rate" string="Tasa comp." groups="base.group_no_one" />
+                                <field name="ratio" optional="show" />
+                                <field name="spread" optional="show" />
+                                <field name="has_rate" column_invisible="1" />
+                                <field name="active" column_invisible="1" />
+                            </list>
+                        </field>
+                    </setting>
+                </block>
+            </xpath>
+        </field>
+    </record>
+</odoo>
