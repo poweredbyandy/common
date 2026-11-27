@@ -962,6 +962,58 @@ class AccountMove(models.Model):
             },
         }
 
+    @api.model
+    def _pba_commission_payment_company(self, source_company):
+        """Compañía donde se registra la factura de proveedor de la comisión.
+
+        Por defecto es la compañía de la factura del cliente. Otro módulo puede
+        indicar una compañía distinta.
+        """
+        return source_company or self.env.company
+
+    @api.model
+    def _pba_commission_product_for_company(self, company):
+        product = company.commission_product_id
+        if not product:
+            template = self.env.ref(
+                'pba_easy_commission.product_commission_service_tmpl',
+                raise_if_not_found=False,
+            )
+            product = template.product_variant_id if template else False
+        if not product:
+            raise UserError(_(
+                'Debe configurar el producto de comision en Ajustes de Contabilidad de %(company)s.',
+                company=company.display_name,
+            ))
+        if product.company_id and product.company_id != company:
+            raise UserError(_(
+                'El producto de comision %(product)s pertenece a %(product_company)s y no se puede usar en %(company)s.',
+                product=product.display_name,
+                product_company=product.company_id.display_name,
+                company=company.display_name,
+            ))
+        return product
+
+    def _pba_create_commission_vendor_bill(self, company, bill_vals):
+        """Crea la factura de proveedor en ``company``, aunque el usuario esté en otra."""
+        company = company or self.env.company
+        if not self.env.su and company not in self.env.user.company_ids:
+            raise UserError(_(
+                'El usuario %(user)s debe tener la compañía %(company)s en Compañías permitidas para generar la comisión allí.',
+                user=self.env.user.display_name,
+                company=company.display_name,
+            ))
+        allowed = set(self.env.context.get('allowed_company_ids') or [])
+        allowed.add(company.id)
+        bill_env = self.with_context(allowed_company_ids=list(allowed)).with_company(company)
+        company = bill_env.env['res.company'].browse(company.id)
+        bill_vals = dict(bill_vals)
+        bill_vals['company_id'] = company.id
+        journal = company.commission_journal_id
+        if journal:
+            bill_vals['journal_id'] = journal.id
+        return bill_env.create(bill_vals)
+
     def action_open_commission_billing_wizard(self):
         invoices = self._filter_pending_commission_invoices()
         if not invoices:
@@ -1016,12 +1068,8 @@ class AccountMove(models.Model):
             if not pending_lines and not pending_adjustments:
                 continue
 
-            product = move.company_id.commission_product_id
-            if not product:
-                template = self.env.ref('pba_easy_commission.product_commission_service_tmpl', raise_if_not_found=False)
-                product = template.product_variant_id if template else False
-            if not product:
-                raise UserError(_('Debe configurar el producto de comision en Ajustes de Contabilidad.'))
+            payment_company = move._pba_commission_payment_company(move.company_id)
+            product = move._pba_commission_product_for_company(payment_company)
 
             for line in pending_lines:
                 if mode == 'only_single_currency' and target_currency and line.currency_id != target_currency:
@@ -1056,12 +1104,13 @@ class AccountMove(models.Model):
                     group_currency = line.currency_id
                     line_label = '%s - %s' % (line.invoice_id.name or line.invoice_id.ref or line.invoice_id.id, line.description)
 
-                group_key = (seller_partner.id, group_currency.id)
+                group_key = (seller_partner.id, group_currency.id, payment_company.id)
                 if group_key not in grouped_payload:
                     grouped_payload[group_key] = {
                         'partner': seller_partner,
                         'currency': group_currency,
                         'product': product,
+                        'payment_company': payment_company,
                         'line_items': [],
                         'source_invoices': self.env['account.move'],
                     }
@@ -1093,12 +1142,13 @@ class AccountMove(models.Model):
                     adjustment.invoice_id.name or adjustment.invoice_id.ref or adjustment.invoice_id.id,
                     adjustment.description,
                 )
-                group_key = (seller_partner.id, group_currency.id)
+                group_key = (seller_partner.id, group_currency.id, payment_company.id)
                 if group_key not in grouped_payload:
                     grouped_payload[group_key] = {
                         'partner': seller_partner,
                         'currency': group_currency,
                         'product': product,
+                        'payment_company': payment_company,
                         'line_items': [],
                         'source_invoices': self.env['account.move'],
                     }
@@ -1129,7 +1179,9 @@ class AccountMove(models.Model):
                     'price_unit': item['amount'],
                 }))
 
-            company = source_invoices[:1].company_id if source_invoices else self.env.company
+            company = payload.get('payment_company') or (
+                source_invoices[:1].company_id if source_invoices else self.env.company
+            )
             bill_vals = {
                 'move_type': 'in_invoice',
                 'partner_id': payload['partner'].id,
@@ -1139,9 +1191,7 @@ class AccountMove(models.Model):
                 'is_commission_vendor_bill': True,
                 'commission_source_invoice_id': source_invoices[:1].id if source_invoices else False,
             }
-            if company.commission_journal_id:
-                bill_vals['journal_id'] = company.commission_journal_id.id
-            bill = self.env['account.move'].create(bill_vals)
+            bill = self._pba_create_commission_vendor_bill(company, bill_vals)
             bills |= bill
             if line_group:
                 line_group.write({'vendor_bill_id': bill.id, 'state': 'invoiced'})
